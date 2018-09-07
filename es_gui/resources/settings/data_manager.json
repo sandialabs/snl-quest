@@ -1,0 +1,24 @@
+[
+    {
+        "type": "title",
+        "title": "PJM"
+    },
+    {
+        "type": "string",
+        "title": "Subscription key",
+        "desc": "Key provided for PJM's Data Miner 2 API access.",
+        "section": "data_manager_pjm",
+        "key": "pjm_subscription_key"
+    },
+    {
+        "type": "title",
+        "title": "ISO-NE"
+    },
+    {
+        "type": "string",
+        "title": "API username",
+        "desc": "Username for ISO-NE Web Services API account.",
+        "section": "data_manager_iso-ne",
+        "key": "iso-ne_api_username"
+    }
+]

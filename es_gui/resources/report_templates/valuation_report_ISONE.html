@@ -1,0 +1,142 @@
+<!DOCTYPE html> 
+<html>
+
+
+{% include "head.html" ignore missing %}
+
+
+
+{% include "optimization.html" ignore missing %}
+
+
+
+<!-- ISONE -->
+\begin{align}
+\max_{q_d,q_c,q_r} \sum_t \big( \lambda(t) q_d(t) - \lambda(t) q_c(t) + \lambda_c(t)q_r(t) \big) e^{-tR}
+\end{align}
+<br />
+subject to the following constraints for all \( t \)
+<br />
+\begin{align}
+s(t+1) = \eta_s s(t) + \eta_c q_c(t) & - q_d(t) + \eta_c \delta_{rd}(t) q_r(t) - \delta_{ru}(t) q_r(t) \\
+0 \leq s(t) & \leq \bar Q  \\
+q_c(t) + q_d(t) + q_r(t) & \leq \bar Q \\
+q_c(t) + q_r(t) & \leq \bar P \\
+q_d(t) + q_r(t) & \leq \bar P
+\end{align}
+<br />
+The total revenue can be calculated as             
+<br />
+\begin{align}
+r_\text{arb} & = \sum_t \lambda(t) \big(q_d(t) - q_c(t) \big) \\
+r_\text{reg} & = \sum_t \lambda_c(t) q_r(t) \\
+r & = r_\text{arb} + r_\text{reg}
+\end{align}
+<br />
+The data required to run this analysis in ISONE are the day ahead LMP, reg capacity price, and the reg performance price.
+<br />
+<br />
+NOTE: If the energy storage device is not participating in frequency regulation, \( q_r(t) \) is equal to zero for all \( t \).
+<br />
+<br />
+
+<div align="center"> <!-- center content -->
+<table width="70%", class="center">
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th> 
+    <th>Units</th>
+  </tr>
+  <tr>
+    <td>\( q_c(t) \) </td>
+    <td> Energy charged from time \(t\) to \(t+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( q_d(t) \) </td>
+    <td> Energy discharged from time \(t\) to \(t+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( q_r(t) \) </td>
+    <td> Energy allocated for frequency regulation from time \(t\) to \(t+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( s(t) \) </td>
+    <td>Energy storage state of charge at time \(t\)</td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( \bar{P} \) </td>
+    <td>Power rating</td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( \bar{Q} \) </td>
+    <td>Energy capacity</td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td> \( \eta_s \) </td>
+    <td> Self-discharge efficiency</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \eta_c \) </td>
+    <td> Round-trip efficiency</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \delta_{ru}(t) \) </td>
+    <td> Fraction of regulation up provided from time \(t\) to \(t+1\) </td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \delta_{rd}(t) \) </td>
+    <td> Fraction of regulation down provided from time \(t\) to \(t+1\)</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( R \) </td>
+    <td> Discount/interest rate</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \lambda(t) \) </td>
+    <td> Electricity price from time \(t\) to \(t+1\)  </td> 
+    <td> $/MWh </td>
+  </tr>
+  <tr>
+    <td>\( \lambda_c(t) \) </td>
+    <td> Freq. regulation capacity price from time \(t\) to \(t+1\) </td> 
+    <td> $/MWh </td>
+  </tr>
+</table>
+<h4>Table 2: Notation</h4>
+</div>
+
+
+
+{% include "optimization2.html" ignore missing %}
+
+
+
+<h3>Assumptions</h3>
+The following assumptions were used:
+<ul>
+  <li> The discount/interest rate is fixed and equal to 0. </li>
+  <li> The amount of energy provided for regulation up is equal to 25% of the quantity offered. </li>
+  <li> The amount of energy provided for regulation down is equal to 25% of the quantity offered. </li>
+</ul>
+
+
+
+
+{% include "results_foot.html" ignore missing %}
+
+
+
+</div>
+</body>
+</html>
