@@ -1,7 +1,7 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt: Optimizing Energy Storage
-Current version: 1.0
+Current release version: 1.0
 
 ## Table of contents
 - [Introduction](#intro)
@@ -40,19 +40,15 @@ You will want to obtain the codebase for QuESt. You can do that by either clonin
 
 #### Windows
 1. Install Python 3.x, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
-2. Install Kivy. Check [here](https://kivy.org/docs/installation/installation-windows.html) for the latest instructions. From the Anaconda Prompt or other Command Prompt where Python is recognized:
-  1. Ensure you have the latest pip and wheel:
-  ``python -m pip install --upgrade pip wheel setuptools
-  ``
-  2. Install the dependencies:
-  ``python -m pip install docutils pygments pypiwin32 kivy.deps.sdl2 kivy.deps.glew
-  ``
-  3. Install kivy:
-  ``python -m pip install kivy
-    ``
+2. Install Kivy. Check [here](https://kivy.org/docs/installation/installation-windows.html) for the latest instructions. 
 3. Navigate to the root directory of the codebase. Then run the setup
  ``python setup.py develop`` This will check dependencies for QuESt and install them as needed.
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
+  
+#### OSX
+
+#### Solvers for Pyomo
+At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required. Here are a few of the many choices for solvers:
 
 ##### Installing GLPK
 1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
@@ -61,6 +57,8 @@ You will want to obtain the codebase for QuESt. You can do that by either clonin
 ##### Installing IPOPT
 1. Download and extract the pre-compiled binaries linked [here](https://www.coin-or.org/download/binary/Ipopt/). Select the latest version appropriate for your system and OS.
 2. Add the directory with the `ipopt.exe` executable file to your path system environment variable. For example, if you extracted the archive to `C:\ipopt`, then `C:\ipopt\bin` must be added to your path.
+
+Regardless of which solver(s) you install, remember to specify which of them to use in Settings within QuESt.
 
 ### Running QuESt
 From the Anaconda Prompt or Command Prompt, run:
@@ -109,10 +107,6 @@ The current working directory must be where ``main.py`` is located.
 > Why are only [x] options available for market areas/historical data/revenue streams/etc.?
 
 These options are based on the data that you have downloaded through QuESt Data Manager. Download more varieties if you wish to use them!
-
-<!-- > I downloaded data for MISO but it's not appearing as an option under QuESt Valuation sections. What gives?
-
-Depending on the amount of data downloaded, it may take a long time for the software to complete scanning and cataloging the data that you have. At the moment, that process is performed concurrently in the background when QuESt is launched so it may not be complete by the time you open a section that requires that information. We are looking into options for making this experience less jarring. -->
 
 > I'm getting solver errors/QuESt is crashing when building optimization models. How can I fix that?
 
