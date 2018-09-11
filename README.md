@@ -36,7 +36,7 @@ The software is designed to be used by anyone with an interest in performing ana
 * Solver compatible with Pyomo
 
 ### Installation
-You will want to obtain the codebase for QuESt. You can do that by downloading a release version in a compressed archive from the "Releases" tab on the GitHub page. Alternatively, you can clone this repository or download a compressed archive of it by clicking the "Clone or download" button on this page. We recommend keeping the QuESt files in a location where you have read/write permission. Once you have the codebase, follow the appropriate set of instructions for your operating system.
+You will want to obtain the codebase for QuESt. You can do that by downloading a release version in a compressed archive from the "releases" tab on the GitHub repository page. Alternatively, you can clone this repository or download a compressed archive of it by clicking the "Clone or download" button on this page. We recommend keeping the QuESt files in a location where you have read/write permission. Once you have the codebase, follow the appropriate set of instructions for your operating system.
 
 #### Windows
 1. Install Python, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
