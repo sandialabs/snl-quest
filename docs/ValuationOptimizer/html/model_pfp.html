@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Pay-for-performance models &#8212; Valuation Optimizer  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="pay-for-performance-models">
+<span id="sec-pfp"></span><h1>Pay-for-performance models<a class="headerlink" href="#pay-for-performance-models" title="Permalink to this headline">¶</a></h1>
+<p>Regulation up (RegUp) and down (RegDown) are ancillary services designed to maintain frequency stability and are sometimes combined into a single regulation product. In order to maintain tight tolerances on the frequency, generation must be constantly dithered so that load and generation are balanced. Depending on the market, a balancing authority or vertically integrated utility will control generation on a second-by-second basis to track the load. The balancing authority must reserve enough regulation capacity to meet expected variations in load.</p>
+<p>RegUp is the ability to provide additional generation on command while RegDown is the ability to reduce generation or store power on demand. Until recently, the practice was to reimburse regulation services providers based mainly on capacity reserved along with compensation for any electricity that is purchased or sold. This approach did not compensate fast-responding systems for more accurately following commanded regulation signals and the corresponding increased benefit compared to slower resources. FERC order 755 and FERC order 784 provide pay-for-performance requirements and direct utilities and independent system operators to consider speed and accuracy when purchasing frequency regulation <a class="reference internal" href="references.html#ferc1" id="id1">[FERC1]</a>, <a class="reference internal" href="references.html#ferc2" id="id2">[FERC2]</a>. Independent System Operators (ISOs) have differing implementations of pay-for-performance.</p>
+<div class="section" id="pjm">
+<h2>PJM<a class="headerlink" href="#pjm" title="Permalink to this headline">¶</a></h2>
+<p>PJM is a regional transmission organization in the northeastern United States that serves 13 states and the District of Columbia <a class="reference internal" href="references.html#pjm1" id="id3">[PJM1]</a>. PJM’s implementation employs a two part payment based on the Regulation Market Capability Clearing Price (RMCCP) and the Regulation Market Performance Clearing Price (RMPCP), compensating for both capability offered as well as the performance provided <a class="reference internal" href="references.html#pjm2" id="id4">[PJM2]</a>. These payments are weighted by a performance score that may be calculated hourly based on a delay score, a correlation score, and a precision score <a class="reference internal" href="references.html#pjm3" id="id5">[PJM3]</a>.</p>
+<p>The capability credit is a function of the Regulation Market Capability Clearing Price (RMCCP) <a class="reference internal" href="references.html#pjm2" id="id6">[PJM2]</a>:</p>
+<div class="math">
+\[\text{RMCCP credit} = REG_t \times \eta_t \times RMCCP_t\]</div>
+<p>where <span class="math">\(REG_t\)</span> is the hourly integrated regulation signal, <span class="math">\(\eta_t\)</span> is the actual performance score, and <span class="math">\(RMCCP_t\)</span> is the RMCCP, all at time <span class="math">\(t\)</span>. For fast responding resources, the performance credit compensates for how much the resource changes to track the regulation signal <a class="reference internal" href="references.html#pjm2" id="id7">[PJM2]</a>:</p>
+<div class="math">
+\[\text{RMPCP credit} = REG_t \times \eta_t \times \beta_t^M \times RMPCP_t\]</div>
+<p>where <span class="math">\(\beta_t^M\)</span> is the mileage ratio at time <span class="math">\(t\)</span>.</p>
+<p>PJM offers two different regulation signals: <span class="math">\(RegA\)</span> and <span class="math">\(RegD\)</span>. <span class="math">\(RegA\)</span> is a low pass filtered area control error (ACE) signal designed for traditional regulating resources. <span class="math">\(RegD\)</span> is a high pass filtered ACE signal for faster responding resources like energy storage. For <span class="math">\(RegD\)</span> systems, the PJM mileage ratio, <span class="math">\(\beta_t^M\)</span>, is defined as:</p>
+<div class="math">
+\[\beta_t^M = \frac{RegD \text{ Mileage}}{RegA \text{ Mileage}}\]</div>
+<p>Mileage is simply defined as the movement requested by the regulation control signal. For example, the <span class="math">\(RegD\)</span> mileage is defined as:</p>
+<div class="math">
+\[RegD \text{ Mileage} = \sum_{i=1}^N \left| RegD_i - RegD_{i-1} \right|\]</div>
+<p>over the one hour time period. The PJM mileage ratio increases the compensation for faster responding resources. The increased mileage results from following a signal with higher frequency content, e.g., <span class="math">\(RegD\)</span>. The total compensation for a plant providing regulation services is the sum of the RMCCP and RMPCP credits.</p>
+<p>The model of the energy storage device follows similarly from the generic <span class="xref std std-ref">arbreg_model_desc</span>. A device participating solely in arbitrage in the PJM market will have an identical optimization formulation as the pay-for-performance aspects are ignored.</p>
+<p>For a device participating in both arbitrage and regulation in the PJM market, the formulation changes slightly. Bids into the regulation market are combined into the non-negative <span class="math">\(q_t^{reg}\)</span> decision variable rather than being separated into <span class="math">\(q_t^{RU}\)</span> and <span class="math">\(q_t^{RD}\)</span> variables. In regulation markets, there is no guarantee that the capacity reserved will actually be deployed but for this formulation it is assumed that the assigned quantity is equal to the bid quantity, e.g., <span class="math">\(q_t^{reg} = REG_t\)</span>.</p>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/regulation_signal_example_legend.png"><img alt="_images/regulation_signal_example_legend.png" src="_images/regulation_signal_example_legend.png" style="width: 325px;" /></a>
+</div>
+<div class="align-center figure" id="id9">
+<span id="fig-regd-signal-pjm"></span><a class="reference internal image-reference" href="_images/regulation_signal_example.png"><img alt="_images/regulation_signal_example.png" src="_images/regulation_signal_example.png" style="width: 750px;" /></a>
+<p class="caption"><span class="caption-text">Example PJM regulation signal from June 1, 2014.</span></p>
+</div>
+<p>In order to quantify the change in state of charge from participation in the regulation market, it is useful to define the regulation up efficiency <span class="math">\(\gamma_t^{RU}\)</span> as the fraction of the regulation up reserve capacity that is actually employed at time <span class="math">\(t\)</span>. Similarly, the regulation down efficiency <span class="math">\(\gamma_t^{RD}\)</span> is the fraction of the regulation down reserve capacity that is actually employed at time <span class="math">\(t\)</span>. In the actual operation of a storage system, <span class="math">\(\gamma_t^{RU}\)</span> and <span class="math">\(\gamma_t^{RD}\)</span> will vary over each time interval. To formulate the problem as a linear program, a known value must be employed. Fortunately, PJM provides historical regulation signals so it is possible to calculate these efficiencies at each time step (c.f. <a class="reference internal" href="#fig-regd-signal-pjm"><span class="std std-ref">Example PJM regulation signal from June 1, 2014.</span></a> <a class="reference internal" href="references.html#pjm4" id="id8">[PJM4]</a>). The state of charge is thus given by:</p>
+<div class="math">
+\[S_t = \gamma_s S_{t-1} + \gamma_c q_t^R - q_t^D + q_t^{reg} \left( \gamma_c \gamma_t^{RD} - \gamma_t^{ru} \right)\]</div>
+<p>It is complemented by the following constraints:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}S_{min} \leq S_t \leq S_{max}, \mbox{for all }t\\0 \leq q_t^R + q_t^{reg} \leq \bar{q}^R, \mbox{for all }t\\0 \leq q_t^D + q_t^{reg} \leq \bar{q}^D, \mbox{for all }t\end{aligned}\end{align} \]</div>
+<p>The quantity allocated to regulation, <span class="math">\(q_t^{reg}\)</span>, reduces the maximum potential quantities allocated to arbitrage subject to the charge/discharge constraints of the device.</p>
+<p>Given these constraints and the objective of maximizing revenue, the problem is naturally formulated as a linear program. The objective function using the pay-for-performance model is expressed as:</p>
+<div class="math">
+\[J = \sum_{t=1}^T \left[ (P_t-C_d) q_t^D - (P_t+C_r) q_t^R + q_t^{reg} \eta_t \left( \beta_t^M RMPCP_t + RMCCP_t \right) \right] e^{-rt}\]</div>
+<p>The financial quantities of interest are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="21%" />
+<col width="79%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(P_t\)</span></td>
+<td>Price of electricity (LMP) at time <span class="math">\(t\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(C_d\)</span></td>
+<td>Cost of discharging at time <span class="math">\(t\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(C_r\)</span></td>
+<td>Cost of recharging at time <span class="math">\(t\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(RMPCP_t\)</span></td>
+<td>Regulation Market Performance Clearing Price at time <span class="math">\(t\)</span></td>
+</tr>
+<tr class="row-even"><td><span class="math">\(RMCCP_t\)</span></td>
+<td>Regulation Market Capacity Clearing Price at time <span class="math">\(t\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(r\)</span></td>
+<td>Interest rate for one period</td>
+</tr>
+</tbody>
+</table>
+<p>Other regulation-related parameters include:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="33%" />
+<col width="67%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Parameter</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\eta_t\)</span></td>
+<td>Performance score at time <span class="math">\(t\)</span></td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\beta_t^M\)</span></td>
+<td>Mileage ratio at time <span class="math">\(t\)</span></td>
+</tr>
+</tbody>
+</table>
+<p>The decision variables are:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="18%" />
+<col width="82%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Decision variable</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(q_t^D\)</span></td>
+<td>quantity of energy sold (discharged) at time <span class="math">\(t\)</span> (MWh)</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(q_t^R\)</span></td>
+<td>quantity of energy purchased (charged) at time <span class="math">\(t\)</span> (MWh)</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(q_t^{reg}\)</span></td>
+<td>quantity of energy offered into the regulation market at time <span class="math">\(t\)</span> (MWh)</td>
+</tr>
+</tbody>
+</table>
+<p>The pay-for-performance model can be summarized as:</p>
+<div class="math">
+\[\max_{q_t^D, q_t^R, q_t^{reg}} \sum_{t=1}^T \left[ (P_t-C_d) q_t^D - (P_t+C_r) q_t^R + q_t^{reg} \eta_t \left( \beta_t^M RMPCP_t + RMCCP_t \right) \right] e^{-rt}\]</div>
+<p>subject to:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}S_{min} \leq S_t \leq S_{max}, \mbox{for all }t\\0 \leq q_t^R + q_t^{reg} \leq \bar{q}^R, \mbox{for all }t\\0 \leq q_t^D + q_t^{reg} \leq \bar{q}^D, \mbox{for all }t\end{aligned}\end{align} \]</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Valuation Optimizer</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">A framework for building optimization models for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html">Constraints</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ricky Concepcion.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/model_pfp.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

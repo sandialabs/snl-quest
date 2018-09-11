@@ -1,0 +1,153 @@
+Tutorial
+========
+
+The :py:func:`optimizer` class essentially provides a framework for creating a desired Pyomo model for the energy storage valuation problem and solving it. The basic process flow for using this tool is as follows:
+
+#. Create an instance of the :py:func:`optimizer` class, optionally providing keyword arguments to the constructor.
+#. Load historical data using packaged utilities or otherwise.
+#. Populate the instance's attributes.
+
+    * Assign the loaded data.
+    * Assign values to parameters such as maximum state of charge.
+
+#. Populate the Pyomo model using the instance's attributes.
+#. Create a solver and solve the populated Pyomo model.
+#. Analyze the results.
+
+------------------------------
+Creating an Optimizer instance
+------------------------------
+
+First, the module must be imported::
+
+    from optimizer import Optimizer
+
+Now the constructor can be called to create an instance of the :py:func:`optimizer` class::
+
+    my_optimizer = Optimizer()
+
+No arguments or keyword arguments are required, but may be supplied at instantiation. For example, if locational marginal prices are already loaded in memory, you may assign it to the :py:func:`optimizer` instance::
+
+    my_lmp = load_lmp(filename)
+    my_optimizer = Optimizer(lmp=my_lmp)
+
+Or, if you want to set the market type to PJM's pay-for-performance and the solver to Gurobi::
+
+    my_optimizer = Optimizer(market_type='pjm_pfp', solver='gurobi')
+
+-----------------------
+Loading historical data
+-----------------------
+
+This tool is packaged with example_datasheet.xlsx, an Excel workbook that has compiled into a format that has been tested to run using utilities packaged with the tool.
+
+Although not required to provide input data in this format, you can use the functions in :py:func:`utilities` such as :py:func:`utilities.get_lmp` and :py:func:`utilities.import_workbook` to facilitate loading data into memory::
+
+    from utilities import import_workbook, get_lmp, get_reg_prices
+
+    file_name = 'example_datasheet.xlsx'
+    loc_name = 'HB_HOUSTON'
+    market_type = 'arbreg'
+
+    dfs = import_workbook(file_name)
+    lmp = get_lmp(dfs, month, loc_name)
+    ru, rd = get_reg_prices(dfs, month)
+
+    optimizer_instance = Optimizer(lmp, ru, rd, market_type=market_type)
+
+Data was loaded from the included example_datasheet.xlsx for the 'HB_HOUSTON' pricing node using the :py:func:`utilities` functions. An :py:func:`optimizer` instance was constructed with the loaded data and prepared to optimize for participation in arbitrage and regulation.
+
+-----------------------
+Populating the instance
+-----------------------
+
+The :py:func:`optimizer` instance builds the Pyomo model using its own attributes. Therefore, its attributes, in particular data time series like LMP, must be assigned values before attempting to solve the model. For example, if optimization using arbitrage for revenue only is desired, the :py:attr:`optimizer.Optimizer.lmp` attribute. must be assigned a value, either at instantiation or prior to executing a solve.
+
+.. note:: If the energy storage device parameters listed in :py:func:`param` are not explicitly assigned values, they will take on default values indicated in the source code upon creation of the Pyomo model.
+
+To populate the instance, you simply need to bind a value to an attribute reference::
+
+    my_optimizer = Optimizer()
+    lmp = get_lmp(dfs, month, loc_name)
+
+    my_optimizer.lmp = lmp
+
+To use non-default values for device parameters, simply assign values to the instance attributes before executing :py:func:`optimizer.Optimizer.instantiate_optimizer_model` or :py:func:`optimizer.Optimizer.create_optimizer_model`::
+
+    my_optimizer.S_max = 20  # Sets the maximum state of charge of the device to 20 MWh
+
+.. note:: Parameters, supplied by the user, are named with leading capital letters. Variables, solved for by the optimization routine, are named in all lower case.
+
+--------------------------
+Populating the Pyomo model
+--------------------------
+
+The Pyomo model is built from the :py:func:`optimizer` instance's attributes using the :py:func:`optimizer.Optimizer.instantiate_optimizer_model` class method. It takes the :py:func:`optimizer` instance's attributes related to data time series such as :py:attr:`optimizer.Optimizer.lmp` and assigns them as parameters to a Pyomo concrete model::
+
+    my_optimizer.lmp = lmp  # assign LMP data to instance attribute
+    my_optimizer.instantiate_optimizer_model()  # assigns my_optimizer.lmp to my_optimizer.model.lmp
+
+.. note:: Any changes to LMP, regulation price data, etc. must be proceeded by rerunning :py:func:`optimizer.Optimizer.instantiate_optimizer_model` to update the internal Pyomo model.
+
+Likewise, the :py:func:`optimizer.Optimizer.create_optimizer_model` class method finalizes creation of the Pyomo model by defining model parameters, variables and constraints specific to the market type specified by :py:attr:`optimizer.Optimizer.market_type`. Therefore, parameter values and other characteristic attributes such as market type must be finalized before executing this method::
+
+    my_optimizer.solver = 'gurobi'
+    my_optimizer.S_min = 0
+
+    my_optimizer.instantiate_optimizer_model()
+    my_optimizer.create_optimizer_model()
+
+-----------------------
+Solving the Pyomo model
+-----------------------
+
+Once the Pyomo model is well-defined with appropriate parameters, data, objectives, and constraints, it is ready to be solved. The :py:func:`optimizer.Optimizer.solve_optimizer_model` class method facilitates the process of solving the model::
+
+    my_optimizer.instantiate_optimizer_model()
+    my_optimizer.create_optimizer_model()
+    my_optimizer.solve_optimizer_model()
+
+Upon execution, Pyomo and the solver will notify you if the solve was successful or not.
+
+---------------
+Analyze results
+---------------
+
+The Pyomo model is solved "in place" and can be accessed via the :py:func:`optimizer` instance's model attribute. In other words, the value of the decision variables is updated from their initializations after a successful solve. For example, to print the values of the device's state of charge at each timestep::
+
+    my_optimizer.solve_optimizer_model()  # solve the model
+
+    my_model = my_optimizer.model  # create reference to the instance's model
+    print([my_model.s[n].value for n in my_model])  # print value of state of charge decision variable
+
+.. note:: my_model.s[n] will return a Pyomo Variable object. You must use the :py:func:`value` or value attribute of the object to obtain the actual numerical value.
+
+-----------------------
+Putting it all together
+-----------------------
+
+Having gone through each step individually, we can put together a simple driver script example for executing an optimization over one month::
+
+    # PJM pay-for-performance example
+    month = 12
+    year = 2016
+    nodeid = '51216'
+
+    # load data for given month, year, nodeid
+    lmp, MR, regA, regD, regCCP, regPCP, ru, rd = load_pjm_data(month, year, nodeid)
+
+    optimizer_instance = Optimizer(lmp=lmp,
+                                   mi_ratio=MR, regA_mi=regA, regD_mi=regD,
+                                   regCCP=regCCP, regPCP=regPCP,
+                                   gamma_ru_t=ru, gamma_rd_t=rd,
+                                   market_type='pjm_pfp',
+                                   solver='gurobi')
+
+    # change some parameter values
+    optimizer_instance.S_max = 5
+    optimizer_instance.Perf_score = 96.2
+
+    # build the model and solve
+    optimizer_instance.instantiate_optimizer_model()
+    optimizer_instance.create_optimizer_model()
+    optimizer_instance.solve_optimizer_model()

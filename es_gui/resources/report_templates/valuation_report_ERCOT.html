@@ -12,31 +12,29 @@
 
 <!-- ERCOT -->
 \begin{align}
-\max_{q_d,q_c,q_{ru},q_{rd}} \sum_t \big( \lambda(t) q_d(t) - \lambda(t)q_c(t) + \lambda_{ru}(t) q_{ru}(t) + \lambda_{rd}(t) q_{rd}(t) + \lambda(t) \delta_{ru}(t)q_{ru}(t) - \lambda(t)\delta_{rd}(t)q_{rd}(t) \big) e^{-tR}
+\max_{q^\text{d},q^\text{r},q^\text{ru},q^\text{rd}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + \lambda_i^\text{ru} q_i^\text{ru} + \lambda_i^\text{rd} q_i^\text{rd} + \lambda_i \delta_i^\text{ru} q_i^\text{ru} - \lambda_i \delta_i^\text{rd} q_i^\text{rd} \big) e^{-iR}
 \end{align}
 <br />
 subject to the following constraints
 <br />
 \begin{align}
-s(t+1) = \eta_s s(t) + \eta_c q_c(t) & - q_d(t) + \eta_c\delta_{rd}(t) q_{rd}(t) - \delta_{ru}(t) q_{ru}(t) \\
-0 \leq s(t) & \leq \bar Q \\
-q_c(t) + q_d(t) + q_{ru}(t) + q_{rd}(t) & \leq \bar Q \\
-q_c(t) + q_{rd}(t) & \leq \bar P \\
-q_d(t) + q_{ru}(t) & \leq \bar P
+s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} & - q_i^\text{d} + \eta_\text{c} \delta_i^\text{rd} q_i^\text{rd} - \delta_i^\text{ru} q_i^\text{ru} \\
+0 \leq s_i & \leq \bar{S} \\
+q_i^\text{r} + q_i^\text{d} + q_i^\text{ru} + q_i^\text{rd} & \leq \bar Q
 \end{align}
 <br />
-The total revenue can be calculated as           
+for all time periods \(i \in \mathcal{T} \). The total revenue can be calculated as           
 <br />
 \begin{align}
-r_\text{arb} & = \sum_t \lambda(t)\big(q_d(t) - q_c(t) + \delta_{ru}(t) q_{ru}(t) - \delta_{rd}(t) q_{rd}(t)\big) \\
-r_\text{reg} & = \sum_t \lambda_{ru}(t) q_{ru}(t) + \lambda_{rd}(t)q_{rd}(t) \\
+r_\text{arb} & = \sum_{i \in \mathcal{T}} \lambda_i \big( q_i^\text{d} - q_i^\text{r} + \delta_i^\text{ru} q_i^\text{ru} - \delta_i^\text{rd} q_i^\text{rd} \big) \\
+r_\text{reg} & = \sum_{i \in \mathcal{T}} \lambda_i^\text{ru} q_i^\text{ru} + \lambda_i^\text{rd} q_i^\text{rd} \\
 r & = r_\text{arb} + r_\text{reg}
 \end{align}
 <br />
 The data required to run this analysis in ERCOT are the day ahead LMP, reg up price, and the reg down price.
 <br />
 <br />
-NOTE: If the energy storage device is not participating in frequency regulation, \( q_{ru}(t) \) and \( q_{rd}(t) \) are equal to zero for all \( t \).
+NOTE: If the energy storage device is not participating in frequency regulation, \( q_i^\text{ru} \) and \( q_i^\text{rd} \) are equal to zero for all \( i \in \mathcal{T} \).
 <br />
 <br />
 
@@ -48,63 +46,58 @@ NOTE: If the energy storage device is not participating in frequency regulation,
     <th>Units</th>
   </tr>
   <tr>
-    <td>\( q_c(t) \) </td>
-    <td> Energy charged from time \(t\) to \(t+1\) </td> 
+    <td>\( q_i^\text{r} \) </td>
+    <td> Energy charged from time period \(i\) to \(i+1\) </td> 
     <td> MWh </td>
   </tr>
   <tr>
-    <td>\( q_d(t) \) </td>
-    <td> Energy discharged from time \(t\) to \(t+1\) </td> 
+    <td>\( q_i^\text{d} \) </td>
+    <td> Energy discharged from time period \(i\) to \(i+1\) </td> 
     <td> MWh </td>
   </tr>
   <tr>
-    <td>\( q_r(t) \) </td>
-    <td> Energy allocated for frequency regulation from time \(t\) to \(t+1\) </td> 
+    <td>\( q_i^\text{ru} \) </td>
+    <td> Energy allocated for frequency regulation up from time period \(i\) to \(i+1\) </td> 
     <td> MWh </td>
   </tr>
   <tr>
-    <td>\( q_{ru}(t) \) </td>
-    <td> Energy allocated for frequency regulation up from time \(t\) to \(t+1\) </td> 
+    <td>\( q_i^\text{rd} \) </td>
+    <td> Energy allocated for frequency regulation down from time period \(i\) to \(i+1\) </td> 
     <td> MWh </td>
   </tr>
   <tr>
-    <td>\( q_{rd}(t) \) </td>
-    <td> Energy allocated for frequency regulation down from time \(t\) to \(t+1\) </td> 
+    <td>\( s_i \) </td>
+    <td>Energy storage state of charge at time period \(t\)</td> 
     <td> MWh </td>
   </tr>
   <tr>
-    <td>\( s(t) \) </td>
-    <td>Energy storage state of charge at time \(t\)</td> 
-    <td> MWh </td>
-  </tr>
-  <tr>
-    <td>\( \bar{P} \) </td>
+    <td>\( \bar{Q} \) </td>
     <td>Power rating</td> 
     <td> MW </td>
   </tr>
   <tr>
-    <td>\( \bar{Q} \) </td>
+    <td>\( \bar{S} \) </td>
     <td>Energy capacity</td> 
     <td> MWh </td>
   </tr>
   <tr>
-    <td> \( \eta_s \) </td>
+    <td> \( \eta_\text{s} \) </td>
     <td> Self-discharge efficiency</td> 
     <td> % </td>
   </tr>
   <tr>
-    <td>\( \eta_c \) </td>
+    <td>\( \eta_\text{c} \) </td>
     <td> Round-trip efficiency</td> 
     <td> % </td>
   </tr>
   <tr>
-    <td>\( \delta_{ru}(t) \) </td>
-    <td> Fraction of regulation up provided from time \(t\) to \(t+1\) </td> 
+    <td>\( \delta_i^\text{ru} \) </td>
+    <td> Fraction of regulation up provided from time period \(i\) to \(i+1\) </td> 
     <td> % </td>
   </tr>
   <tr>
-    <td>\( \delta_{rd}(t) \) </td>
-    <td> Fraction of regulation down provided from time \(t\) to \(t+1\)</td> 
+    <td>\( \delta_i^\text{rd} \) </td>
+    <td> Fraction of regulation down provided from time period \(i\) to \(i+1\)</td> 
     <td> % </td>
   </tr>
   <tr>
@@ -113,18 +106,18 @@ NOTE: If the energy storage device is not participating in frequency regulation,
     <td> % </td>
   </tr>
   <tr>
-    <td>\( \lambda(t) \) </td>
-    <td> Electricity price from time \(t\) to \(t+1\)  </td> 
+    <td>\( \lambda_i \) </td>
+    <td> Electricity price from time period \(i\) to \(i+1\)  </td> 
     <td> $/MWh </td>
   </tr>
   <tr>
-    <td>\( \lambda_{ru}(t) \) </td>
-    <td> Freq. regulation up price from time \(t\) to \(t+1\) </td> 
+    <td>\( \lambda_i^\text{ru} \) </td>
+    <td> Freq. regulation up price from time period \(i\) to \(i+1\) </td> 
     <td> $/MWh </td>
   </tr>
   <tr>
-    <td>\( \lambda_{rd}(t) \) </td>
-    <td> Freq. regulation down price from time \(t\) to \(t+1\) </td> 
+    <td>\( \lambda_i^\text{rd} \) </td>
+    <td> Freq. regulation down price from time period \(i\) to \(i+1\) </td> 
     <td> $/MWh </td>
   </tr>
 </table>
@@ -138,6 +131,7 @@ NOTE: If the energy storage device is not participating in frequency regulation,
 <h3>Assumptions</h3>
 The following assumptions were used:
 <ul>
+  <li> The time periods are hourly. </li>
   <li> The discount/interest rate is fixed and equal to 0. </li>
   <li> The amount of energy provided for regulation up is equal to 25% of the quantity offered. </li>
   <li> The amount of energy provided for regulation down is equal to 25% of the quantity offered. </li>

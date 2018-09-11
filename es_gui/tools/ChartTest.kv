@@ -1,0 +1,90 @@
+#: import C kivy.utils.get_color_from_hex
+
+
+<ChartScreen>:
+    bar_chart1: bar_chart1
+    donut_chart1: donut_chart1
+    stacked_chart2: stacked_chart2
+    pie_chart2: pie_chart2
+    multiset_chart1: multiset_chart1
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 25
+
+#        Label:
+#            text_size: self.width, None
+#            height: self.texture_size[1]
+#            halign: 'left'
+#            font_name: 'Roboto'
+#            font_size: sp(30)
+#            color: C('#000000')
+#            size_hint_y: 0.1
+#            bold: True
+#            text: 'Look at all these graphs'
+
+        GridLayout:
+            cols: 2
+            padding: 10
+            spacing: 10
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                DonutChart:
+                    id: donut_chart1
+
+                Button:
+                    text: 'draw donut chart'
+                    size_hint_y: 0.1
+                    on_release: root.draw_donut(donut_chart1)
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                BarChart:
+                    id: bar_chart1
+                    bar_spacing: 15
+
+                Button:
+                    size_hint_y: 0.1
+                    text: 'draw bar chart'
+                    on_release: root.draw_chart(bar_chart1)
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+
+                    StackedBarChart:
+                        id: stacked_chart2
+                        bar_spacing: 15
+
+                Button:
+                    size_hint_y: 0.1
+                    text: 'draw stacked bar chart'
+                    on_release: root.draw_stacked_chart(stacked_chart2)
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                PieChart:
+                    id: pie_chart2
+
+                Button:
+                    text: 'draw pie chart'
+                    size_hint_y: 0.1
+                    on_release: root.draw_pie(pie_chart2)
+
+            BoxLayout:
+                orientation: 'vertical'
+
+                MultisetBarChart:
+                    id: multiset_chart1
+
+                Button:
+                    text: 'draw multiset bar chart'
+                    size_hint_y: 0.1
+                    on_release: root.draw_multiset_chart(multiset_chart1)

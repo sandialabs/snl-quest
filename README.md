@@ -39,13 +39,18 @@ The software is designed to be used by anyone with an interest in performing ana
 You will want to obtain the codebase for QuESt. You can do that by either cloning this repository or downloading a compressed archive of it by clicking the "Clone or download" button on this page. We recommend keeping the QuESt files in a location where you have read/write permission. Once you have the codebase, follow the appropriate set of instructions for your operating system.
 
 #### Windows
-1. Install Python 3.x, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
+1. Install Python, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
 2. Install Kivy. Check [here](https://kivy.org/docs/installation/installation-windows.html) for the latest instructions. 
 3. Navigate to the root directory of the codebase. Then run the setup
  ``python setup.py develop`` This will check dependencies for QuESt and install them as needed.
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
   
 #### OSX
+1. Install Python, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
+2. Install Kivy. Check [here](https://kivy.org/doc/stable/installation/installation-osx.html#using-homebrew-with-pip) for the latest instructions. (Refer to "Using Homebrew with pip" OR "Using MacPorts with pip")
+3. Navigate to the root directory of the codebase. Then run the setup
+ ``python setup.py develop`` This will check dependencies for QuESt and install them as needed.
+4. Install a solver for Pyomo to use. See other sections for instructions on this.
 
 #### Solvers for Pyomo
 At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required. Here are a few of the many choices for solvers:
@@ -83,6 +88,10 @@ Typically, devices have their connection settings configured for the network the
 
 We found these issues to be very network dependent and hard to diagnose or mitigate against. The best practice would be to limit the amount of data that you request at a time. Additionally, QuESt Data Manager is configured to skip data that is already downloaded so you can just issue the same request to patch up any data that may have failed to download.
 
+> I downloaded data but other QuESt applications are telling me that I haven't downloaded any.
+
+QuESt expects data to be in a certain directory structure as structured by QuESt Data Manager. Changing directory names, filenames, modifying files, etc. will produce unexpected results. We recommend not performing any modifications to downloaded data files except for perhaps deleting them.
+
 > How do I obtain PJM Data Miner 2 API access?
 
 Refer to the instructions in QuESt Data Manager or see the API guide [here](http://www.pjm.com/markets-and-operations/etools/data-miner-2.aspx).
@@ -112,11 +121,15 @@ These options are based on the data that you have downloaded through QuESt Data 
 
 Our experience indicates that most crashes are due to data issues. For example, data for a month is missing unexpectedly, disallowing the model building process from completing. We make every effort to limit these incidents from happening, but it is difficult to perfectly predict the data that we need to design around. We will try to handle these exceptions as best we can as we learn more about the common situations.
 
-> The appearance of GUI elements in QuESt do not appear correct/The window does not display properly.
+> The appearance of GUI elements in QuESt do not appear correct/The window does not display properly/The window is too big for my display/I cannot click or interact with the UI properly.
 
-There appears to be a display issue with certain displays causing GUI elements such as buttons and text to not be displayed as they were designed to be. This appears to be a scaling issue and has most commonly been observed on Apple Macbook Pros. One solution for this issue is to connect to an external display and run QuESt on it.
+QuESt is designed to be displayed at minimum resolution of 1600x900.
 
-QuESt is designed to be displayed at minimum resolution of 1600x900. The window size may be increased but many GUI elements, such as fonts, may not scale accordingly.
+There are a number of possible reasons for display issues, but the most likely reason is due to operating system scaling. For example, Windows 10 has a feature that scales the appearance of display elements, usually to assist with higher resolution displays. For example, if scaling is set to 125% in Windows, this will scale the QuESt window to be too big for the display.
+
+Scaling may also have the effect of confusing Kivy of where a UI element is and where it is displayed; e.g., you may be clicking where a button appears to be, but the scaling causes Kivy to not "detect" that you are pressing the button.
+
+So far, this issue has been observed on a variety of laptops of both Windows and OSX varieties. Our suggestion is to disable OS level scaling or to connect to an external display and try to launch QuESt on it.
 
 > An electricity market area I want to do analysis on isn't available. When will it be available?
 
