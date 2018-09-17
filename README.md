@@ -20,9 +20,17 @@ An application for acquiring data from regional transmission operator (RTO), ind
 
 *Note: Certain data sources require registering an account to obtain access.*
 
+<img src="es_gui/resources/gifs/01_datamanager.gif" alt="Download ISO/RTO data" width=600px margin="auto" />
+
 #### QuESt Valuation
 
 An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data.
+
+<img src="es_gui/resources/gifs/02_wizard.gif" alt="Wizard setup" width=600px margin="auto" />
+
+<img src="es_gui/resources/gifs/03_reportcharts.gif" alt="Wizard report charts" width=600px margin="auto" />
+
+<img src="es_gui/resources/gifs/04_batch.gif" alt="Batch runs" width=600px margin="auto" />
 
 ### Who should use it?
 The software is designed to be used by anyone with an interest in performing analysis of energy storage or its applications without having to create their own models or write their own code. It’s designed to be easy to use out of the box but also modifiable by the savvy user if they so choose. The software is intended to be used as a platform for running simulations, obtaining results, and using the information to inform planning decisions. 
@@ -125,7 +133,7 @@ Our experience indicates that most crashes are due to data issues. For example, 
 
 QuESt is designed to be displayed at minimum resolution of 1600x900.
 
-There are a number of possible reasons for display issues, but the most likely reason is due to operating system scaling. For example, Windows 10 has a feature that scales the appearance of display elements, usually to assist with higher resolution displays. For example, if scaling is set to 125% in Windows, this will scale the QuESt window to be too big for the display.
+There are a number of possible reasons for display issues, but the most likely reason is due to operating system scaling. For example, Windows 10 has a feature that scales the appearance of display elements, usually to assist with higher resolution displays. For example, if scaling is set to 125% in Windows, this will scale the QuESt window to be too big for the display (on a 1920x1080 resolution display).
 
 Scaling may also have the effect of confusing Kivy of where a UI element is and where it is displayed; e.g., you may be clicking where a button appears to be, but the scaling causes Kivy to not "detect" that you are pressing the button.
 
