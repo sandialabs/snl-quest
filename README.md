@@ -63,14 +63,18 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
 #### Solvers for Pyomo
 At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required. Here are a few of the many choices for solvers:
 
-##### Installing GLPK
+##### Installing GLPK (for Windows)
 1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
 2. The .dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. These files need to be in the search path for Windows. The easiest way to do this is to move those files to the `C:\windows\system32` directory.
+3. Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 
-##### Installing IPOPT
+##### Installing GLPK (for OSX)
+You will need to either build GLPK from source or install it using the [homebrew](https://brew.sh/) package manager. This [blog post](http://arnab-deka.com/posts/2010/02/installing-glpk-on-a-mac/) may be useful.
+
+##### Installing IPOPT (for Windows)
 1. Download and extract the pre-compiled binaries linked [here](https://www.coin-or.org/download/binary/Ipopt/). Select the latest version appropriate for your system and OS.
 2. Add the directory with the `ipopt.exe` executable file to your path system environment variable. For example, if you extracted the archive to `C:\ipopt`, then `C:\ipopt\bin` must be added to your path.
-
+3. Try running the command ``ipopt`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 Regardless of which solver(s) you install, remember to specify which of them to use in Settings within QuESt.
 
 ### Running QuESt

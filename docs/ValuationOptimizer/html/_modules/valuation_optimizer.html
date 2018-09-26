@@ -322,7 +322,7 @@
         
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_init&#39;</span><span class="p">):</span>
             <span class="c1"># Initial state of charge [MWh], defaults to the amount reserved for discharging.</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No S_init provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No State_of_charge_init provided, setting default...&#39;</span><span class="p">)</span>
             <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_init</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">Reserve_charge_min</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">Energy_capacity</span>
 
         <span class="c1"># Check if params necessary for certain formulations are set if required.</span>
@@ -457,9 +457,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_set_model_var</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">expressions_block</span> <span class="o">=</span> <span class="n">ExpressionsBlock</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">market_type</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expressions_block</span><span class="o">.</span><span class="n">set_expressions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective_expr</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">maximize</span><span class="p">)</span></div>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expressions_block</span><span class="o">.</span><span class="n">set_expressions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># Array-like object(s) do(es) not match the length of the price_electricity array-like.</span>
+            <span class="k">raise</span><span class="p">(</span><span class="n">IncompatibleDataException</span><span class="p">(</span><span class="s1">&#39;At least one of the array-like parameter objects is not the expected length. (It should match the length of the price_electricity object.)&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective_expr</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">maximize</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_process_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Processes optimization results for further evaluation.&quot;&quot;&quot;</span>
@@ -545,6 +550,10 @@
 
 
 <span class="k">class</span> <span class="nc">BadParameterException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">IncompatibleDataException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span>
 
 

@@ -12,7 +12,7 @@
 
 <!-- PJM -->
 \begin{align}
-\max_{q^\text{d},q^\text{r},q^\text{reg}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + \gamma_i (\beta_i \lambda_i^\text{m} + \lambda_i^\text{c}) q_i^\text{reg} \big) e^{-iR}
+\max_{q^\text{d},q^\text{r},q^\text{reg}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + \gamma_i (\beta_i \lambda_i^\text{p} + \lambda_i^\text{c}) q_i^\text{reg} \big) e^{-iR}
 \end{align}
 <br />
 subject to the following constraints
@@ -106,7 +106,7 @@ NOTE: If the energy storage device is not participating in frequency regulation,
     <td> -- </td>
   </tr>
   <tr>
-    <td>\( \beta(t) \) </td>
+    <td>\( \beta_i \) </td>
     <td> Mileage ratio from time period \(i\) to \(i+1\) </td> 
     <td> -- </td>
   </tr>
@@ -121,7 +121,7 @@ NOTE: If the energy storage device is not participating in frequency regulation,
     <td> $/MWh </td>
   </tr>
   <tr>
-    <td>\( \lambda_i^\text{m} \) </td>
+    <td>\( \lambda_i^\text{p} \) </td>
     <td> Freq. regulation performance (movement) price from time \(i\) to \(i+1\) </td> 
     <td> $/MWh </td>
   </tr>
