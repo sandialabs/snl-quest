@@ -15,12 +15,18 @@ class ValuationOptimizer(optimizer.Optimizer):
 
     def __init__(self, price_electricity=None,
                  price_reg_up=None, price_reg_down=None,
-                 price_reg_capacity=None, price_reg_performance=None,
+                 price_reg_serv_up=None, price_reg_serv_down=None,
+                 price_regulation=None, price_reg_service=None,
                  cost_charge=None, cost_discharge=None,
                  mileage_slow=None, mileage_fast=None, mileage_ratio=None,
+                 mileage_mult=None, mileage_mult_ru=None, mileage_mult_rd=None,
+                 perf_score=None, perf_score_ru=None, perf_score_rd=None,
                  fraction_reg_up=None, fraction_reg_down=None,
                  market_type='arbitrage',
                  solver='glpk'):
+
+        # TODO: deprecate Perf_score and mileage_ratio
+
         self._model = ConcreteModel()
         self._market_type = market_type
         self._solver = solver
@@ -29,18 +35,27 @@ class ValuationOptimizer(optimizer.Optimizer):
 
         self._price_electricity = price_electricity
 
+        self._price_regulation = price_regulation
         self._price_reg_up = price_reg_up
         self._price_reg_down = price_reg_down
 
-        self._price_reg_capacity = price_reg_capacity
-        self._price_reg_performance = price_reg_performance
+        self._price_reg_service = price_reg_service
+        self._price_reg_serv_up = price_reg_serv_up
+        self._price_reg_serv_down = price_reg_serv_down
 
         self._cost_charge = cost_charge
         self._cost_discharge = cost_discharge
 
         self._mileage_slow = mileage_slow
         self._mileage_fast = mileage_fast
-        self._mileage_ratio = mileage_ratio
+        self._mileage_ratio = mileage_ratio # deprecate
+        self._mileage_mult = mileage_mult
+        self._mileage_mult_ru = mileage_mult_ru
+        self._mileage_mult_rd = mileage_mult_rd
+
+        self._perf_score = perf_score
+        self._perf_score_ru = perf_score_ru
+        self._perf_score_rd = perf_score_rd
 
         self._fraction_reg_up = fraction_reg_up
         self._fraction_reg_down = fraction_reg_down
@@ -56,6 +71,15 @@ class ValuationOptimizer(optimizer.Optimizer):
     @price_electricity.setter
     def price_electricity(self, value):
         self._price_electricity = value
+
+    @property
+    def price_regulation(self):
+        """The price for providing capacity for regulation services in pay-for-performance markets [$/MWh]."""
+        return self._price_regulation
+
+    @price_regulation.setter
+    def price_regulation(self, value):
+        self._price_regulation = value
 
     @property
     def price_reg_up(self):
@@ -76,22 +100,31 @@ class ValuationOptimizer(optimizer.Optimizer):
         self._price_reg_down = value
 
     @property
-    def price_reg_capacity(self):
-        """The price for providing capacity for regulation services in pay-for-performance markets [$/MWh]."""
-        return self._price_reg_capacity
+    def price_reg_service(self):
+        """The price for providing regulation services; based on mileage or performance [$/MWh]."""
+        return self._price_reg_service
 
-    @price_reg_capacity.setter
-    def price_reg_capacity(self, value):
-        self._price_reg_capacity = value
+    @price_reg_service.setter
+    def price_reg_service(self, value):
+        self._price_reg_service = value
 
     @property
-    def price_reg_performance(self):
-        """The price for providing regulation services; based on mileage or performance [$/MWh]."""
-        return self._price_reg_performance
+    def price_reg_serv_up(self):
+        """The price for providing regulation up service; based on mileage or performance [$/MWh]."""
+        return self._price_reg_serv_up
 
-    @price_reg_performance.setter
-    def price_reg_performance(self, value):
-        self._price_reg_performance = value
+    @price_reg_serv_up.setter
+    def price_reg_serv_up(self, value):
+        self._price_reg_serv_up = value
+
+    @property
+    def price_reg_serv_down(self):
+        """The price for providing regulation down service; based on mileage or performance [$/MWh]."""
+        return self._price_reg_serv_down
+
+    @price_reg_serv_down.setter
+    def price_reg_serv_down(self, value):
+        self._price_reg_serv_down = value
 
     @property
     def cost_charge(self):
@@ -137,6 +170,60 @@ class ValuationOptimizer(optimizer.Optimizer):
     @mileage_ratio.setter
     def mileage_ratio(self, value):
         self._mileage_ratio = value
+
+    @property
+    def mileage_mult(self):
+        """Mileage multiplier or ratio according to the selected market."""
+        return self._mileage_mult
+
+    @mileage_mult.setter
+    def mileage_mult(self, value):
+        self._mileage_mult = value
+
+    @property
+    def mileage_mult_ru(self):
+        """Mileage multiplier or ratio for the regulation up service according to the selected market."""
+        return self._mileage_mult_ru
+
+    @mileage_mult_ru.setter
+    def mileage_mult_ru(self, value):
+        self._mileage_mult_ru = value
+
+    @property
+    def mileage_mult_rd(self):
+        """Mileage multiplier or ratio for the regulation down service according to the selected market."""
+        return self._mileage_mult_rd
+
+    @mileage_mult_rd.setter
+    def mileage_mult_rd(self, value):
+        self._mileage_mult_rd = value
+
+    @property
+    def perf_score(self):
+        """Performance score of the regulation service provided."""
+        return self._perf_score
+
+    @perf_score.setter
+    def perf_score(self, value):
+        self._perf_score = value
+
+    @property
+    def perf_score_ru(self):
+        """Performance score of the regulation up service provided."""
+        return self._perf_score_ru
+
+    @perf_score_ru.setter
+    def perf_score_ru(self, value):
+        self._perf_score_ru = value
+
+    @property
+    def perf_score_rd(self):
+        """Performance score of the regulation down service provided."""
+        return self._perf_score_rd
+
+    @perf_score_rd.setter
+    def perf_score_rd(self, value):
+        self._perf_score_rd = value
 
     @property
     def fraction_reg_up(self):
@@ -281,7 +368,7 @@ class ValuationOptimizer(optimizer.Optimizer):
             m.State_of_charge_init = m.Reserve_charge_min*m.Energy_capacity
 
         # Check if params necessary for certain formulations are set if required.
-        if self.market_type in {'ercot_arbreg', 'pjm_pfp', 'miso_pfp', 'isone_pfp'}:
+        if self.market_type in {'ercot_arbreg', 'pjm_pfp', 'miso_pfp', 'isone_pfp', 'nyiso_pfp', 'spp_pfp','caiso_pfp'}:
             try:
                 if not getattr(m, 'fraction_reg_up', None):
                     logging.debug('ValuationOptimizer: No fraction_reg_up provided, setting default...')
@@ -311,10 +398,64 @@ class ValuationOptimizer(optimizer.Optimizer):
             except TypeError:
                 m.fraction_reg_down = np.array([m.fraction_reg_down] * len(m.price_electricity))
 
-        if self.market_type in {'pjm_pfp', 'miso_pfp'}:
+        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
             if not hasattr(m, 'Perf_score'):
                 # Performance score for pay-for-performance models.
                 m.Perf_score = 0.95
+
+        ###############################################################################################################
+        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
+            # Performance score for regulation service for pay-for-performance models.
+            try:
+                if not getattr(m, 'perf_score', None):
+                    logging.debug('ValuationOptimizer: No perf_score provided, setting default...')
+                    m.perf_score = 0.95
+            except ValueError:  # perf_score is array-like
+                if np.isnan(m.perf_score).any():
+                    logging.debug('ValuationOptimizer: perf_score array-like provided has None values, setting default...')
+                    m.perf_score = 0.95
+
+            # Converts perf_score to array.
+            try:
+                # TODO: what if it is an array but longer than price of electricity??
+                m.perf_score[len(m.price_electricity) - 1]
+            except TypeError:
+                m.perf_score = np.array([m.perf_score] * len(m.price_electricity))
+
+        if self.market_type in {'caiso_pfp'}: # TODO: Figure out SPP for this?
+            # Performance score for regulation up and down services for pay-for-performance models.
+            try:
+                if not getattr(m, 'perf_score_ru', None):
+                    logging.debug('ValuationOptimizer: No perf_score_ru provided, setting default...')
+                    m.perf_score_ru = 0.95
+            except ValueError:  # fraction_reg_up is array-like
+                if np.isnan(m.perf_score_ru).any():
+                    logging.debug('ValuationOptimizer: perf_score_ru array-like provided has None values, setting default...')
+                    m.perf_score_ru = 0.95
+
+            # Performance score for regulation up and down services for pay-for-performance models.
+            try:
+                if not getattr(m, 'perf_score_rd', None):
+                    logging.debug('ValuationOptimizer: No perf_score_rd provided, setting default...')
+                    m.perf_score_rd = 0.95
+            except ValueError:  # fraction_reg_up is array-like
+                if np.isnan(m.perf_score_rd).any():
+                    logging.debug('ValuationOptimizer: perf_score_rd array-like provided has None values, setting default...')
+                    m.perf_score_rd = 0.95
+
+            # Converts perf_score_ru and perf_score_rd to arrays.
+            try:
+                # TODO: what if it is an array but longer than price of electricity, better to prompt an error??
+                m.perf_score_ru[len(m.price_electricity) - 1]
+            except TypeError:
+                m.perf_score_ru = np.array([m.perf_score_ru] * len(m.price_electricity))
+
+            try:
+                # TODO: what if it is an array but longer than price of electricity, better to prompt an error??
+                m.perf_score_rd[len(m.price_electricity) - 1]
+            except TypeError:
+                m.perf_score_rd = np.array([m.perf_score_rd] * len(m.price_electricity))
+        ###############################################################################################################
 
         if self.market_type in {'miso_pfp'}:
             if not hasattr(m, 'Make_whole'):
@@ -383,13 +524,21 @@ class ValuationOptimizer(optimizer.Optimizer):
             m.soc_time = []
 
         m.price_electricity = self.price_electricity
-        m.ru = self.price_reg_up
-        m.rd = self.price_reg_down
 
-        m.rmccp = self.price_reg_capacity
-        m.rmpcp = self.price_reg_performance
+        m.rmccp = self.price_regulation # Deprecate
+        m.ru = self.price_reg_up # Deprecate
+        m.rd = self.price_reg_down # Deprecate
+        m.price_regulation = self.price_regulation  # Deprecate
+        m.price_reg_up = self.price_reg_up # take the name of m.ru
+        m.price_reg_down = self.price_reg_down # take the name of m.rd
 
-        m.regMCP = self.price_reg_performance
+
+        m.rmpcp = self.price_reg_service # Deprecate
+        m.price_reg_service = self.price_reg_service
+        m.price_reg_serv_up = self.price_reg_serv_up
+        m.price_reg_serv_down = self.price_reg_serv_down
+
+        m.regMCP = self.price_reg_service # MISO deprecate
 
         m.cost_charge = self.cost_charge
         m.cost_discharge = self.cost_discharge
@@ -397,12 +546,22 @@ class ValuationOptimizer(optimizer.Optimizer):
         m.mi_ratio = self.mileage_ratio
         m.reg_a = self.mileage_slow
         m.reg_d = self.mileage_fast
+        m.mi_mult = self.mileage_mult
+        m.mi_mult_ru = self.mileage_mult_ru
+        m.mi_mult_rd = self.mileage_mult_rd
 
         # If fraction_reg_up/fraction_reg_down are provided to the instance, set them in the ConcreteModel.
         if self.fraction_reg_up is not None:
             m.fraction_reg_up = self.fraction_reg_up
         if self.fraction_reg_down is not None:
             m.fraction_reg_down = self.fraction_reg_down
+
+        if self.perf_score is not None:
+            m.perf_score = self.perf_score
+        if self.perf_score_ru is not None:
+            m.perf_score_ru = self.perf_score_ru
+        if self.perf_score_rd is not None:
+            m.perf_score_rd = self.perf_score_rd
 
     def populate_model(self):
         """Populates the Pyomo ConcreteModel based on the specified market_type."""
@@ -439,7 +598,7 @@ class ValuationOptimizer(optimizer.Optimizer):
 
         if self.market_type == 'pjm_pfp':
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
-            rev_reg = np.cumsum(np.array([m.q_reg[t].value*m.Perf_score*(m.mi_ratio[t]*m.rmpcp[t] + m.rmccp[t]) for t in m.time]))
+            rev_reg = np.cumsum(np.array([m.q_reg[t].value*m.perf_score[t]*(m.mi_mult[t]*m.price_reg_service[t] + m.price_regulation[t]) for t in m.time]))
 
             revenue = rev_arb + rev_reg
 
@@ -448,7 +607,7 @@ class ValuationOptimizer(optimizer.Optimizer):
             run_results['revenue'] = revenue
         elif self.market_type == 'miso_pfp':
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
-            rev_reg = np.cumsum(np.array([(1 + m.Make_whole)*m.Perf_score*m.regMCP[t]*m.q_reg[t].value for t in m.time]))
+            rev_reg = np.cumsum(np.array([(1 + m.Make_whole)*m.perf_score[t]*m.price_regulation[t]*m.q_reg[t].value for t in m.time]))
 
             revenue = rev_arb + rev_reg
 
@@ -456,24 +615,83 @@ class ValuationOptimizer(optimizer.Optimizer):
             run_results['rev_reg'] = rev_reg
             run_results['revenue'] = revenue
         elif self.market_type == 'isone_pfp':
-            # copied from PJM and adjusted according to the Sterling code -FW
-            # DOUBLE CHECK THE EQUATION WITH RAY -The Eqn of the Sterling code DOES NOT match the info available
-            # online for the ISO-NE market...
-
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
-            rev_reg = np.cumsum(np.array([m.rmccp[t]*m.q_reg[t].value for t in m.time]))
+            rev_reg = np.cumsum(np.array([m.price_regulation[t]*m.q_reg[t].value for t in m.time]))
 
             revenue = rev_arb + rev_reg
 
             run_results['rev_arb'] = rev_arb
             run_results['rev_reg'] = rev_reg
             run_results['revenue'] = revenue
-        elif self.market_type == 'ercot_arbreg':
-            rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value
-                                                                  + m.q_ru[t].value*m.fraction_reg_up[t]
-                                                                  - m.q_rd[t].value*m.fraction_reg_down[t])
+        #######################################################################################################################
+        elif self.market_type == 'nyiso_pfp':
+            rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
+            rev_reg = np.cumsum(np.array([m.q_reg[t].value* m.price_regulation[t] * (1 - 1.1*(1 - m.perf_score[t]))
+                                          + m.price_electricity[t]*(m.q_reg[t].value * m.fraction_reg_up[t]
+                                          - m.q_reg[t].value * m.fraction_reg_down[t])
                                           for t in m.time]))
-            rev_reg = np.cumsum(np.array([m.ru[t]*m.q_ru[t].value + m.rd[t]*m.q_rd[t].value for t in m.time]))
+
+            revenue = rev_arb + rev_reg
+
+            run_results['rev_arb'] = rev_arb
+            run_results['rev_reg'] = rev_reg
+            run_results['revenue'] = revenue
+        #######################################################################################################################
+        #######################################################################################################################
+        elif self.market_type == 'spp_pfp':
+            # TODO: copied from 'ercot_arbreg' -make sure is correct for this market
+            # rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value
+            #                                                       + m.q_ru[t].value*m.fraction_reg_up[t]
+            #                                                       - m.q_rd[t].value*m.fraction_reg_down[t])
+            #                               for t in m.time]))
+            # rev_reg = np.cumsum(np.array([m.ru[t]*m.q_ru[t].value + m.rd[t]*m.q_rd[t].value for t in m.time]))
+            rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
+            rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value
+                                          + m.price_electricity[t]*(m.q_ru[t].value * m.fraction_reg_up[t]
+                                          - m.q_rd[t].value * m.fraction_reg_down[t])
+                                          for t in m.time]))
+
+            revenue = rev_arb + rev_reg
+
+            run_results['rev_arb'] = rev_arb
+            run_results['rev_reg'] = rev_reg
+            run_results['revenue'] = revenue
+        #######################################################################################################################
+        elif self.market_type == 'caiso_pfp':
+            # rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value
+            #                                                       + m.q_ru[t].value*m.fraction_reg_up[t]
+            #                                                       - m.q_rd[t].value*m.fraction_reg_down[t])
+            #                               for t in m.time]))
+            # rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value
+            #                               + m.perf_score_ru[t] * m.mi_mult_ru[t] * m.price_reg_serv_up[t]
+            #                               + m.perf_score_rd[t] * m.mi_mult_rd[t] * m.price_reg_serv_down[t]
+            #                               for t in m.time]))
+            rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
+            rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value
+                                          + m.perf_score_ru[t] * m.mi_mult_ru[t] * m.price_reg_serv_up[t]
+                                          + m.perf_score_rd[t] * m.mi_mult_rd[t] * m.price_reg_serv_down[t]
+                                          + m.price_electricity[t]*(m.q_ru[t].value * m.fraction_reg_up[t]
+                                          - m.q_rd[t].value * m.fraction_reg_down[t])
+                                          for t in m.time]))
+
+            revenue = rev_arb + rev_reg
+
+            run_results['rev_arb'] = rev_arb
+            run_results['rev_reg'] = rev_reg
+            run_results['revenue'] = revenue
+        #######################################################################################################################
+        elif self.market_type == 'ercot_arbreg':
+            # rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value
+            #                                                       + m.q_ru[t].value*m.fraction_reg_up[t]
+            #                                                       - m.q_rd[t].value*m.fraction_reg_down[t])
+            #                               for t in m.time]))
+            # # rev_reg = np.cumsum(np.array([m.ru[t] * m.q_ru[t].value + m.rd[t] * m.q_rd[t].value for t in m.time]))
+            # rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value for t in m.time]))
+            rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
+            rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value
+                                          + m.price_electricity[t]*(m.q_ru[t].value * m.fraction_reg_up[t]
+                                          - m.q_rd[t].value * m.fraction_reg_down[t])
+                                          for t in m.time]))
 
             revenue = rev_arb + rev_reg
 

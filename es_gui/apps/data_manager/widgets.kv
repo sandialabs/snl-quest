@@ -6,6 +6,7 @@
 #:set isone_data_start_year 2016
 #:set pjm_data_start_year 2009
 #:set miso_data_start_year 2015
+#:set nyiso_data_start_year 2013
 #:set its_current_year datetime.datetime.now().year
 
 <DataManagerTitle@TitleTextBase>:
@@ -473,6 +474,124 @@
                     text: 'Download'
                     on_release: root.execute_download()
 
+
+########################################################################################################################
+
+<DataManagerPanelNYISO>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        DataManagerTabContentTitle:
+            text: 'NYISO'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (450, 0)
+            size_hint_y: 0.6
+
+            DataManagerTabContentSubtitle:
+                text: 'Range of months'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 10
+
+                DataManagerTabContentBodyText:
+                    text: 'Start:'
+                    size_hint_x: 0.3
+
+                PlotSpinner:
+                    id: month_start
+                    size_hint_x: 0.35
+                    text: 'Month'
+                    values: [month for month in calendar.month_name]
+
+                PlotSpinner:
+                    id: year_start
+                    size_hint_x: 0.35
+                    text: 'Year'
+                    values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 10
+
+                DataManagerTabContentBodyText:
+                    text: 'End:'
+                    size_hint_x: 0.3
+
+                PlotSpinner:
+                    id: month_end
+                    size_hint_x: 0.35
+                    text: 'Month'
+                    values: [month for month in calendar.month_name]
+
+                PlotSpinner:
+                    id: year_end
+                    size_hint_x: 0.35
+                    text: 'Year'
+                    values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+
+            BoxLayout:
+                size_hint_y: 0.7
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                TileButton:
+                    id: execute_download_button
+                    size_hint_x: 0.15
+                    background_color: C(hex_primary)
+                    text: 'Download'
+                    on_release: root.execute_download()
+
+########################################################################################################################
+
 <DataManagerPanelPJM>:
     subscription_key: subscription_key
     month_start: month_start
@@ -707,10 +826,10 @@
 
         DataManagerPanelERCOT:
 
-    # TabbedPanelItem:
-    #     text: 'ISO-NE'
+    TabbedPanelItem:
+        text: 'ISO-NE'
 
-    #     DataManagerPanelISONE:
+        DataManagerPanelISONE:
 
     TabbedPanelItem:
         text: 'MISO'
@@ -721,6 +840,11 @@
         text: 'PJM'
         
         DataManagerPanelPJM:
+
+    TabbedPanelItem:
+        text: 'NYISO'
+
+        DataManagerPanelNYISO:
 
 <DataManagerRTOMOdataScreen>:
     BoxLayout:

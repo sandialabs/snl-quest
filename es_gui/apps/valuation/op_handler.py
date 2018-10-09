@@ -58,11 +58,11 @@ class ValuationOptimizerHandler:
                     lmp_da, MR, RA, RD, RegCCP, RegPCP = dms.get_pjm_data(year, month, node_id)
 
                     op.price_electricity = lmp_da
-                    op.mileage_ratio = MR
+                    op.mileage_mult = MR
                     op.mileage_slow = RA
                     op.mileage_fast = RD
-                    op.price_reg_capacity = RegCCP
-                    op.price_reg_performance = RegPCP
+                    op.price_regulation = RegCCP
+                    op.price_reg_service = RegPCP
                     #op.fraction_reg_up = RUP
                     #op.fraction_reg_down = RDW
                 elif iso == 'ERCOT':
@@ -75,13 +75,39 @@ class ValuationOptimizerHandler:
                     lmp_da, regMCP = dms.get_miso_data(year, month, node_name)
 
                     op.price_electricity = lmp_da
-                    op.price_reg_performance = regMCP
+                    # op.price_reg_service = regMCP
+                    op.price_regulation = regMCP
                 elif iso == 'ISO-NE':
                     daLMP, RegCCP, RegPCP = dms.get_isone_data(year, month, node_id)
 
                     op.price_electricity = daLMP
-                    op.price_reg_capacity = RegCCP
-                    op.price_reg_performance = RegPCP
+                    op.price_regulation = RegCCP
+                    op.price_reg_service = RegPCP
+                ########################################################################################################
+                elif iso == 'NYISO':
+                    lbmp_da, rcap_da = dms.get_nyiso_data(year, month, node_id)
+
+                    op.price_electricity = lbmp_da
+                    op.price_regulation = rcap_da
+                elif iso == 'SPP':
+                    lmp_da, mcpru_da, mcprd_da = dms.get_spp_data(year, month, node_name)
+
+                    op.price_electricity = lmp_da
+                    op.price_reg_up = mcpru_da
+                    op.price_reg_down = mcprd_da
+                elif iso == 'CAISO':
+                    lmp_da, aspru_da, asprd_da, asprmu_da, asprmd_da, rmu_mm, rmd_mm, rmu_pacc, rmd_pacc = dms.get_caiso_data(year, month, node_name)
+
+                    op.price_electricity = lmp_da
+                    op.price_reg_up = aspru_da
+                    op.price_reg_down = asprd_da
+                    op.price_reg_serv_up = asprmu_da
+                    op.price_reg_serv_down = asprmd_da
+                    op.mileage_mult_ru = rmu_mm
+                    op.mileage_mult_rd = rmd_mm
+                    op.perf_score_ru = rmu_pacc # TODO: give the option to the user to override this
+                    op.perf_score_rd = rmd_pacc
+                    ########################################################################################################
                 else:
                     logging.error('ValOp Handler: Invalid ISO provided.')
                     raise ValueError('Invalid ISO provided to ValuationOptimizer handler.')

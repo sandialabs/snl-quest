@@ -42,6 +42,19 @@ class ExpressionsBlock:
         elif self.market_type == 'isone_pfp':
             self._objective_isone_pfp(block_obj)
             self._constraints_isone_pfp(block_con)
+        ################################################################
+        elif self.market_type == 'nyiso_pfp':
+            self._objective_nyiso_pfp(block_obj)
+            self._constraints_nyiso_pfp(block_con)
+        ################################################################
+        elif self.market_type == 'spp_pfp':
+            self._objective_spp_pfp(block_obj)
+            self._constraints_spp_pfp(block_con)
+        ################################################################
+        elif self.market_type == 'caiso_pfp':
+            self._objective_caiso_pfp(block_obj)
+            self._constraints_caiso_pfp(block_con)
+        ################################################################
         else:
             raise ValueError('Invalid market type specified!')
 
@@ -110,6 +123,54 @@ class ExpressionsBlock:
         # ineq_charge_limit_pfp(block)
         # ineq_discharge_limit_pfp(block)
 
+    ####################################################################################################################
+    # NYISO
+    ####################################################################################################################
+    def _objective_nyiso_pfp(self, block):
+        eq_objective_nyiso_pfp(block)
+
+    def _constraints_nyiso_pfp(self, block):
+        eq_stateofcharge_nyiso_pfp(block)
+        eq_stateofcharge_initial(block)
+        eq_stateofcharge_final(block)
+        ineq_stateofcharge_minimum_reserve_oneprod(block)
+        ineq_stateofcharge_maximum_reserve_oneprod(block)
+        ineq_power_limit_oneprod(block)
+        # ineq_charge_limit_pfp(block)
+        # ineq_discharge_limit_pfp(block)
+    ####################################################################################################################
+    ####################################################################################################################
+    # SPP
+    ####################################################################################################################
+    def _objective_spp_pfp(self, block):
+        eq_objective_spp_pfp(block) ## TODO
+
+    def _constraints_spp_pfp(self, block):
+        eq_stateofcharge_spp_pfp(block) ## TODO
+        eq_stateofcharge_initial(block)
+        eq_stateofcharge_final(block)
+        ineq_stateofcharge_minimum_reserve_twoprod(block)
+        ineq_stateofcharge_maximum_reserve_twoprod(block)
+        ineq_power_limit_twoprod(block)
+        # ineq_charge_limit_pfp(block)
+        # ineq_discharge_limit_pfp(block)
+    ####################################################################################################################
+    ####################################################################################################################
+    # CAISO
+    ####################################################################################################################
+    def _objective_caiso_pfp(self, block):
+        eq_objective_caiso_pfp(block) ## TODO
+
+    def _constraints_caiso_pfp(self, block):
+        eq_stateofcharge_caiso_pfp(block) ## TODO
+        eq_stateofcharge_initial(block)
+        eq_stateofcharge_final(block)
+        ineq_stateofcharge_minimum_reserve_twoprod(block)
+        ineq_stateofcharge_maximum_reserve_twoprod(block)
+        ineq_power_limit_twoprod(block)
+        # ineq_charge_limit_pfp(block)
+        # ineq_discharge_limit_pfp(block)
+    ####################################################################################################################
 
 #############################
 # Arbitrage only ############
@@ -180,7 +241,7 @@ def eq_objective_ercot_arbreg(m):
     mp = m.parent_block()
 
     _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
-                 + mp.ru[t] * mp.q_ru[t] + mp.rd[t] * mp.q_rd[t]
+                 + mp.price_reg_up[t] * mp.q_ru[t] + mp.price_reg_down[t] * mp.q_rd[t]
                  + mp.price_electricity[t] * mp.q_ru[t] * mp.fraction_reg_up[t]
                  - mp.price_electricity[t] * mp.q_rd[t] * mp.fraction_reg_down[t])
                 * math.e ** (-t * mp.R) for t in mp.time)
@@ -231,7 +292,7 @@ def eq_objective_pjm_pfp(m):
     mp = m.parent_block()
 
     _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
-                 + mp.q_reg[t] * mp.Perf_score * (mp.mi_ratio[t] * mp.rmpcp[t] + mp.rmccp[t]))
+                 + mp.q_reg[t] * mp.perf_score[t] * (mp.mi_mult[t] * mp.price_reg_service[t] + mp.price_regulation[t]))
                 * math.e ** (-t * mp.R) for t in mp.time)
 
     mp.objective_expr += _expr
@@ -279,7 +340,7 @@ def eq_objective_miso_pfp(m):
     """Net revenue over the time horizon for pay-for-performance in MISO regulation market."""
     mp = m.parent_block()
     _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
-                 + (1 + mp.Make_whole) * mp.q_reg[t] * mp.Perf_score * mp.regMCP[t])
+                 + (1 + mp.Make_whole) * mp.q_reg[t] * mp.perf_score[t] * mp.price_regulation[t])
                 * math.e ** (-t * mp.R) for t in mp.time)
 
     mp.objective_expr += _expr
@@ -329,7 +390,7 @@ def eq_objective_isone_pfp(m):
     mp = m.parent_block()
 
     _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
-                 + mp.q_reg[t] * mp.rmccp[t]) * math.e ** (-t * mp.R) for t in mp.time)
+                 + mp.q_reg[t] * mp.price_regulation[t]) * math.e ** (-t * mp.R) for t in mp.time)
 
     mp.objective_expr += _expr
     m.objective_rt = Expression(expr=_expr)
@@ -345,6 +406,126 @@ def eq_stateofcharge_isone_pfp(m):
                 - mp.fraction_reg_up[t] * mp.q_reg[t] == mp.s[t+1]
 
     m.stateofcharge = Constraint(mp.time, rule=_eq_stateofcharge_isone_pfp)
+
+
+#################################
+#   NYISO Pay-for-Performance  ##
+#            FW                ##
+#################################
+def eq_objective_nyiso_pfp(m):
+    """Net revenue over the time horizon for pay-for-performance in the NYISO market."""
+    mp = m.parent_block()
+
+    # Expression without movement price because it makes no sense for the DAM????
+    # _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+    #              + mp.price_electricity[t] * mp.fraction_reg_up[t] * mp.q_reg[t]
+    #              - mp.price_electricity[t] * mp.fraction_reg_down[t] * mp.q_reg[t]
+    #              + mp.q_reg[t] * mp.rmccp[t] * (1 - 1.1*(1-mp.Perf_score)) )
+    #              * math.e ** (-t * mp.R) for t in mp.time)
+    _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+                 + mp.price_electricity[t] * mp.fraction_reg_up[t] * mp.q_reg[t]
+                 - mp.price_electricity[t] * mp.fraction_reg_down[t] * mp.q_reg[t]
+                 + mp.q_reg[t] * mp.price_regulation[t] * (1 - 1.1*(1-mp.perf_score[t])) )
+                 * math.e ** (-t * mp.R) for t in mp.time)
+
+    # _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+    #              + mp.q_reg[t] * mp.rmccp[t] * (1 - 1.1*(1-mp.Perf_score)) )
+    #              * math.e ** (-t * mp.R) for t in mp.time)
+
+    # # Expression with movement price...
+    # # TODO: need 'movement' from NYISO
+    # _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+    #              + mp.q_reg[t] * mp.rmccp[t] * (1 - 1.1*(1-mp.Perf_score))
+    #              + mp.rmpcp[t] * mp.movement[t] * mp.Perf_score) * math.e ** (-t * mp.R) for t in mp.time)
+
+    mp.objective_expr += _expr
+    m.objective_rt = Expression(expr=_expr)
+
+def eq_stateofcharge_nyiso_pfp(m):
+    """Definition of state of charge for device in NYISO market."""
+    mp = m.parent_block()
+
+    def _eq_stateofcharge_nyiso_pfp(_m, t):
+        return mp.Self_discharge_efficiency * mp.s[t] + mp.Round_trip_efficiency * mp.q_r[t] \
+               - mp.q_d[t] + mp.Round_trip_efficiency * mp.fraction_reg_down[t] * mp.q_reg[t] \
+               - mp.fraction_reg_up[t] * mp.q_reg[t] == mp.s[t + 1]
+
+    m.stateofcharge = Constraint(mp.time, rule=_eq_stateofcharge_nyiso_pfp)
+
+#################################
+#    SPP Pay-for-Performance   ##
+#            FW                ##
+#################################
+def eq_objective_spp_pfp(m):
+    #TODO: Ricky to double check whether this is the actual equation
+    """Net revenue over the time horizon for pay-for-performance in the SPP market."""
+    mp = m.parent_block()
+
+    # Expression without Mileage because there's no data for it in the SPP DA market
+    # _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+    #              + mp.ru[t] * mp.q_ru[t] + mp.rd[t] * mp.q_rd[t]
+    #              + mp.price_electricity[t] * mp.q_ru[t] * mp.fraction_reg_up[t]
+    #              - mp.price_electricity[t] * mp.q_rd[t] * mp.fraction_reg_down[t])
+    #             * math.e ** (-t * mp.R) for t in mp.time)
+    _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+                 + mp.price_reg_up[t] * mp.q_ru[t] + mp.price_reg_down[t] * mp.q_rd[t]
+                 + mp.price_electricity[t] * mp.q_ru[t] * mp.fraction_reg_up[t]
+                 - mp.price_electricity[t] * mp.q_rd[t] * mp.fraction_reg_down[t])
+                * math.e ** (-t * mp.R) for t in mp.time)
+
+    mp.objective_expr += _expr
+    m.objective_rt = Expression(expr=_expr)
+
+def eq_stateofcharge_spp_pfp(m):
+    """Definition of state of charge for device in SPP market."""
+    mp = m.parent_block()
+    # Equation (8) CAISO paper
+    def _eq_stateofcharge_spp_pfp(_m, t):
+        return mp.Self_discharge_efficiency * mp.s[t] + mp.Round_trip_efficiency * mp.q_r[t] \
+               - mp.q_d[t] + mp.Round_trip_efficiency * mp.fraction_reg_down[t] * mp.q_rd[t] \
+               - mp.fraction_reg_up[t] * mp.q_ru[t] == mp.s[t + 1]
+
+    m.stateofcharge = Constraint(mp.time, rule=_eq_stateofcharge_spp_pfp)
+
+
+#################################
+#   CAISO Pay-for-Performance  ##
+#            FW                ##
+#################################
+def eq_objective_caiso_pfp(m):
+    """Net revenue over the time horizon for pay-for-performance in the CAISO market."""
+    mp = m.parent_block()
+
+    # Expression without Mileage because
+    # TODO: to be updated when the new names are ready
+    # _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+    #              + mp.ru[t] * mp.q_ru[t] + mp.rd[t] * mp.q_rd[t]
+    #              + mp.price_electricity[t] * mp.q_ru[t] * mp.fraction_reg_up[t]
+    #              - mp.price_electricity[t] * mp.q_rd[t] * mp.fraction_reg_down[t])
+    #             * math.e ** (-t * mp.R) for t in mp.time)
+
+    #  TODO: Uncomment below and delete above when new names are ready
+    _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
+                 + mp.price_reg_up[t] * mp.q_ru[t] + mp.price_reg_down[t] * mp.q_rd[t]
+                 + mp.price_electricity[t] * mp.q_ru[t] * mp.fraction_reg_up[t]
+                 - mp.price_electricity[t] * mp.q_rd[t] * mp.fraction_reg_down[t]
+                 + mp.perf_score_ru[t] * mp.mi_mult_ru[t] * mp.price_reg_serv_up[t]
+                 + mp.perf_score_rd[t] * mp.mi_mult_rd[t] * mp.price_reg_serv_down[t])
+                * math.e ** (-t * mp.R) for t in mp.time)
+
+    mp.objective_expr += _expr
+    m.objective_rt = Expression(expr=_expr)
+
+def eq_stateofcharge_caiso_pfp(m):
+    """Definition of state of charge for device in CAISO market."""
+    mp = m.parent_block()
+    # Equation (8) CAISO paper
+    def _eq_stateofcharge_caiso_pfp(_m, t):
+        return mp.Self_discharge_efficiency * mp.s[t] + mp.Round_trip_efficiency * mp.q_r[t] \
+               - mp.q_d[t] + mp.Round_trip_efficiency * mp.fraction_reg_down[t] * mp.q_rd[t] \
+               - mp.fraction_reg_up[t] * mp.q_ru[t] == mp.s[t + 1]
+
+    m.stateofcharge = Constraint(mp.time, rule=_eq_stateofcharge_caiso_pfp)
 
 
 # def ineq_stateofcharge_minimum_isone_pfp(m): # WHY REPLICATE EQUATIONS THAT ARE THE SAME FOR DIFF MARKETS???? -FW

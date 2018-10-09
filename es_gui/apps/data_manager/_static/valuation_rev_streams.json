@@ -38,5 +38,35 @@
    "market type": "isone_pfp",
    "desc": ""
   }
+ },
+ "NYISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "nyiso_pfp",
+   "desc": "TBW"
+  }
+ },
+ "SPP": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "spp_pfp",
+   "desc": "TBW"
+  }
+ },
+ "CAISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "caiso_pfp",
+   "desc": "TBW"
+  }
  }
 }

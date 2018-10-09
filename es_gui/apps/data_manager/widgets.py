@@ -37,7 +37,7 @@ from kivy.core.text import LabelBase
 from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE
 
 MAX_THREADS = 4
-
+MAX_WHILE_ATTEMPTS = 7
 
 class DataManagerHomeScreen(Screen):
     def on_enter(self):
@@ -922,6 +922,374 @@ class DataManagerPanelMISO(BoxLayout):
 
         self.n_active_threads -= 1
 
+
+########################################################################################################################
+
+class DataManagerPanelNYISO(BoxLayout):
+    n_active_threads = NumericProperty(0)
+    thread_failed = BooleanProperty(False)
+
+    def on_n_active_threads(self, instance, value):
+        # Check if all threads have finished executing.
+        if value == 0:
+            if self.thread_failed:
+                logging.warning \
+                    ('NYISOdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
+                Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'), 0)
+            else:
+                logging.info('NYISOdownloader: All requested data finished downloading.')
+                Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
+
+            self.execute_download_button.disabled = False
+            self.thread_failed = False
+
+    @mainthread
+    def update_output_log(self, text, *args):
+        """Updates the text input object representing the output log.
+
+        :param text: The text to be added to the log.
+        :type text: str
+        """
+
+        self.output_log.text = '\n'.join([self.output_log.text, text])
+
+    def _validate_inputs(self):
+        """Checks if all options selected in the GUI are valid and returns them.
+
+        :return: datetime of start of range, datetime of end of range
+        :rtype: 2-tuple of datetime
+        """
+
+        # Check if all the spinners have been selected.
+        month_start = self.month_start.text
+        month_end = self.month_end.text
+
+        try:
+            year_start = int(self.year_start.text)
+        except ValueError:
+            raise (InputError('Please select a starting year.'))
+
+        try:
+            year_end = int(self.year_end.text)
+        except ValueError:
+            raise (InputError('Please select an ending year.'))
+
+        if not month_start or month_start not in calendar.month_name:
+            raise (InputError('Please select a valid starting month (got "' + month_start + '").'))
+        elif not month_end or month_end not in calendar.month_name:
+            raise (InputError('Please select a valid ending month (got "' + month_end + '").'))
+
+        month_start_int = list(calendar.month_name).index(month_start)
+        month_end_int = list(calendar.month_name).index(month_end)
+
+        # Check if a valid month range has been specified.
+        datetime_start = datetime.date(year_start, month_start_int, 1)
+        datetime_end = datetime.date(year_end, month_end_int, 1)
+
+        if datetime_start > datetime_end:
+            raise (InputError('Please specify a valid month range where the starting month precedes the ending month.'))
+
+        return datetime_start, datetime_end
+
+    def get_inputs(self):
+        """Gets the options selected in the GUI.
+
+        :return: datetime of start of range, datetime of end of range
+        :rtype: 2-tuple of datetime
+        """
+
+        datetime_start, datetime_end = self._validate_inputs()
+
+        return datetime_start, datetime_end
+
+    def execute_download(self):
+        """Executes the data downloader for NYISO data based on options selected in GUI.
+
+        """
+
+        try:
+            datetime_start, datetime_end = self.get_inputs()
+        except ValueError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            self.execute_download_button.disabled = True
+
+            # Compute the range of months to iterate over.
+            monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+            monthrange.union([monthrange[-1] + 1])
+
+            # # TODO: FW I don't think I need days for NYISO download
+            # # Compute number of days in the given range.
+            # total_days = 0
+            # for date in monthrange:
+            #     total_days += calendar.monthrange(date.year, date.month)[1]
+            #
+            # self.n_active_threads = len(monthrange)
+            #
+            # # (Re)set the progress bar and output log.
+            # self.progress_bar.value = 0
+            # self.progress_bar.max = 2* total_days
+            # self.output_log.text = ''
+
+            # Split up the download requests to accomodate the maximum amount of allowable threads.
+            month_queue = collections.deque([date for date in monthrange])
+            batch_size = math.ceil(len(month_queue) / MAX_THREADS)
+
+            job_batches = []
+            while len(month_queue) > 0:
+                batch = []
+
+                for ix in range(batch_size):
+                    try:
+                        batch.append(month_queue.popleft())
+                    except IndexError:
+                        # Pop from empty queue.
+                        continue
+
+                job_batches.append(batch)
+
+            self.n_active_threads = len(job_batches)
+
+            # (Re)set the progress bar and output log.
+            self.progress_bar.value = 0
+            self.progress_bar.max = 0
+            self.output_log.text = ''
+
+            # Check connection settings.
+            ssl_verify, proxy_settings = check_connection_settings()
+
+            # Spawn a new thread for each download_NYISO_data call.
+            for batch in job_batches:
+                thread_downloader = threading.Thread(target=self._download_NYISO_data,
+                                                     args=(batch[0], batch[-1]),
+                                                     kwargs={'ssl_verify': ssl_verify,
+                                                             'proxy_settings': proxy_settings, 'RT_DAM':'DAM'})
+                # TODO: FW- give the user the possibility of downloading only zones or buses or both (checkboxes in panel)
+                thread_downloader.start()
+
+            # # Spawn a new thread for each download call.
+            # for date in monthrange:
+            #     thread_downloader = threading.Thread(target=self._download_MISO_data, args=(date.year, date.month), kwargs={'ssl_verify': False})
+            #     thread_downloader.start()
+
+    def _download_NYISO_data(self, datetime_start, datetime_end=None, typedat="both", RT_DAM="both", zone_gen="both",
+                            path='data', ssl_verify=True, proxy_settings=None):
+        """Downloads a range of monthly NYISO day ahead LBMP and ASP data.
+
+        :param datetime_start: the start of the range of data to download
+        :type datetime_start: datetime
+        :param datetime_end: the end of the range of data to download, defaults to one month's worth
+        :type datetime_end: datetime
+        :param path: root directory of data download location, defaults to 'data'
+        :param path: str, optional
+        :param ssl_verify: if SSL verification should be done, defaults to True
+        :param ssl_verify: bool, optional
+        :param proxy_settings: dictionary of proxy settings, defaults to None
+        :param proxy_settings: dict, optional
+        """
+        print("Inside _download_NYISO_data")
+        if not datetime_end:
+            datetime_end = datetime_start
+
+        # Compute the range of months to iterate over.
+        monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+        monthrange.union([monthrange[-1] + 1])
+
+        # Note NYISO has .zip files with months
+
+        # ASP
+        zone_or_gen_ASP_nam = []
+        zone_or_gen_ASP_folder = []
+        dam_or_rt_ASP_folder = []
+        dam_or_rt_ASP_nam = []
+        if RT_DAM == "RT":
+            zone_or_gen_ASP_nam.append("")
+            zone_or_gen_ASP_folder.append("")
+            dam_or_rt_ASP_nam.append("rtasp")
+            dam_or_rt_ASP_folder.append("RT")
+        elif RT_DAM == "DAM":
+            zone_or_gen_ASP_nam.append("")
+            zone_or_gen_ASP_folder.append("")
+            dam_or_rt_ASP_nam.append("damasp")
+            dam_or_rt_ASP_folder.append("DAM")
+        elif RT_DAM == "both":
+            zone_or_gen_ASP_nam.append("")
+            zone_or_gen_ASP_nam.append("")
+            zone_or_gen_ASP_folder.append("")
+            zone_or_gen_ASP_folder.append("")
+            dam_or_rt_ASP_nam.append("rtasp")
+            dam_or_rt_ASP_nam.append("damasp")
+            dam_or_rt_ASP_folder.append("RT")
+            dam_or_rt_ASP_folder.append("DAM")
+
+        # LBMP
+        zone_or_gen_LBMP_nam = []
+        zone_or_gen_LBMP_folder = []
+        dam_or_rt_LBMP_folder = []
+        dam_or_rt_LBMP_nam = []
+        if zone_gen == 'zone' or zone_gen == 'both':
+            if RT_DAM == "RT":
+                dam_or_rt_LBMP_nam.append("realtime")
+                dam_or_rt_LBMP_folder.append("RT")
+                zone_or_gen_LBMP_nam.append("_zone")
+                zone_or_gen_LBMP_folder.append("zone")
+            elif RT_DAM == "DAM":
+                dam_or_rt_LBMP_nam.append("damlbmp")
+                dam_or_rt_LBMP_folder.append("DAM")
+                zone_or_gen_LBMP_nam.append("_zone")
+                zone_or_gen_LBMP_folder.append("zone")
+            elif RT_DAM == "both":
+                dam_or_rt_LBMP_nam.append("realtime")
+                dam_or_rt_LBMP_nam.append("damlbmp")
+                dam_or_rt_LBMP_folder.append("RT")
+                dam_or_rt_LBMP_folder.append("DAM")
+                zone_or_gen_LBMP_nam.append("_zone")
+                zone_or_gen_LBMP_nam.append("_zone")
+                zone_or_gen_LBMP_folder.append("zone")
+                zone_or_gen_LBMP_folder.append("zone")
+
+        if zone_gen == 'gen' or zone_gen == 'both':
+            if RT_DAM == "RT":
+                dam_or_rt_LBMP_nam.append("realtime")
+                dam_or_rt_LBMP_folder.append("RT")
+                zone_or_gen_LBMP_nam.append("_gen")
+                zone_or_gen_LBMP_folder.append("gen")
+            elif RT_DAM == "DAM":
+                dam_or_rt_LBMP_nam.append("damlbmp")
+                dam_or_rt_LBMP_folder.append("DAM")
+                zone_or_gen_LBMP_nam.append("_gen")
+                zone_or_gen_LBMP_folder.append("gen")
+            elif RT_DAM == "both":
+                dam_or_rt_LBMP_nam.append("realtime")
+                dam_or_rt_LBMP_nam.append("damlbmp")
+                dam_or_rt_LBMP_folder.append("RT")
+                dam_or_rt_LBMP_folder.append("DAM")
+                zone_or_gen_LBMP_nam.append("_gen")
+                zone_or_gen_LBMP_nam.append("_gen")
+                zone_or_gen_LBMP_folder.append("gen")
+                zone_or_gen_LBMP_folder.append("gen")
+
+        zone_or_gen_nam = []
+        zone_or_gen_folder = []
+        dam_or_rt_nam = []
+        dam_or_rt_folder = []
+        lbmp_or_asp_folder = []
+        if typedat == "asp":
+            zone_or_gen_nam = zone_or_gen_ASP_nam
+            zone_or_gen_folder = zone_or_gen_ASP_folder
+            dam_or_rt_folder = dam_or_rt_ASP_folder
+            dam_or_rt_nam = dam_or_rt_ASP_nam
+            lbmp_or_asp_folder = ["ASP"] * len(dam_or_rt_ASP_nam)
+        elif typedat == "lbmp":
+            zone_or_gen_nam = zone_or_gen_LBMP_nam
+            zone_or_gen_folder = zone_or_gen_LBMP_folder
+            dam_or_rt_folder = dam_or_rt_LBMP_folder
+            dam_or_rt_nam = dam_or_rt_LBMP_nam
+            lbmp_or_asp_folder = ["LBMP"] * len(dam_or_rt_LBMP_nam)
+        elif typedat == "both":
+            zone_or_gen_nam = zone_or_gen_ASP_nam + zone_or_gen_LBMP_nam
+            zone_or_gen_folder = zone_or_gen_ASP_folder + zone_or_gen_LBMP_folder
+            dam_or_rt_folder = dam_or_rt_ASP_folder + dam_or_rt_LBMP_folder
+            dam_or_rt_nam = dam_or_rt_ASP_nam + dam_or_rt_LBMP_nam
+            lbmp_or_asp_folder = ["ASP"] * len(dam_or_rt_ASP_nam) + ["LBMP"] * len(dam_or_rt_LBMP_nam)
+
+        for date in monthrange:
+            date_str = date.strftime('%Y%m')
+
+            for sx, dam_or_rt_nam_x in enumerate(dam_or_rt_nam):
+
+                # Data download call.
+                # datadownload_url = url_NYISO + dam_or_rt_nam_x + "/" + date_str + "01" + dam_or_rt_nam_x + zone_or_gen_nam[sx] + "_csv.zip"
+                datadownload_url = ''.join(
+                    ['http://mis.nyiso.com/public/csv/', dam_or_rt_nam_x, '/', date_str, '01', dam_or_rt_nam_x,
+                     zone_or_gen_nam[sx], "_csv.zip"])
+                destination_dir = os.path.join(path, 'NYISO', lbmp_or_asp_folder[sx], dam_or_rt_folder[sx],
+                                               zone_or_gen_folder[sx], date.strftime('%Y'), date.strftime('%m'))
+                first_name_file = os.path.join(destination_dir,
+                                               ''.join([date_str, '01', dam_or_rt_nam_x, zone_or_gen_nam[sx], '.csv']))
+                print(datadownload_url)
+
+                if not os.path.exists(first_name_file):
+                    trydownloaddate = True
+                    wx = 0
+                    while trydownloaddate:
+                        wx = wx + 1
+                        if wx >= MAX_WHILE_ATTEMPTS:
+                            print("Hit wx limit")
+                            trydownloaddate = False
+
+                        try:
+                            with requests.Session() as req:
+                                http_request = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
+                                                       verify=ssl_verify, stream=True)
+
+                            if http_request.status_code == requests.codes.ok:
+                                trydownloaddate = False
+                                self.thread_failed = False
+                            else:
+                                http_request.raise_for_status()
+                        except requests.HTTPError as e:
+                            logging.error('NYISOdownloader: {0}: {1}'.format(date_str, repr(e)))
+                            Clock.schedule_once(partial(self.update_output_log,
+                                                        '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
+                            self.thread_failed = True
+                        except requests.exceptions.ProxyError:
+                            logging.error('NYISOdownloader: {0}: Could not connect to proxy.'.format(date_str))
+                            Clock.schedule_once(
+                                partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
+                            self.thread_failed = True
+                        except requests.ConnectionError as e:
+                            logging.error(
+                                'NYISOdownloader: {0}: Failed to establish a connection to the host server.'.format(
+                                    date_str))
+                            Clock.schedule_once(partial(self.update_output_log,
+                                                        '{0}: Failed to establish a connection to the host server.'.format(
+                                                            date_str)), 0)
+                            self.thread_failed = True
+                        except requests.Timeout as e:
+                            trydownloaddate = True
+                            logging.error('NYISOdownloader: {0}: The connection timed out.'.format(date_str))
+                            Clock.schedule_once(
+                                partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
+                            self.thread_failed = True
+                        except requests.RequestException as e:
+                            logging.error('NYISOdownloader: {0}: {1}'.format(date_str, repr(e)))
+                            # self.thread_failed = True
+                        except Exception as e:
+                            # Something else went wrong.
+                            logging.error(
+                                'NYISOdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,
+                                                                                                       repr(e)))
+                            Clock.schedule_once(partial(self.update_output_log,
+                                                        '{0}: An unexpected error has occurred. ({1})'.format(date_str,
+                                                                                                              repr(e))), 0)
+                            self.thread_failed = True
+                        else:
+                            os.makedirs(destination_dir, exist_ok=True)
+                            z = zipfile.ZipFile(io.BytesIO(http_request.content))
+                            z.extractall(destination_dir)
+                            print("Successful NYISO data download")
+
+                else:
+                    # Skip downloading the daily file if it already exists where expected.
+                    logging.info('NYISOdownloader: {0}: {1} file already exists, skipping...'.format(date_str,
+                                                                                                     lbmp_or_asp_folder[
+                                                                                                         sx]))
+                    print('NYISOdownloader: {0}: {1} file already exists, skipping...'.format(date_str,
+                                                                                              lbmp_or_asp_folder[sx]))
+                    # self.update_output_log('{0}: LMP file already exists, skipping...'.format(date_str))
+
+                self.progress_bar.value +=1
+
+        self.n_active_threads -= 1
+
+########################################################################################################################
 
 class DataManagerPanelPJM(BoxLayout):
     n_active_threads = NumericProperty(0)

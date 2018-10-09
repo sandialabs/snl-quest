@@ -63,7 +63,9 @@ class DataManager(EventDispatcher):
         for dir_entry in os.scandir(self.data_bank_root):
             if not dir_entry.name.startswith('.'):
                 market_names.append(dir_entry.name)
-        
+
+        # market_names = ['NYISO'] # TODO: comment out, this is just for testing NYISO scan data functions
+
         # threads = []
 
         self.n_threads_scanning = 1
@@ -83,7 +85,12 @@ class DataManager(EventDispatcher):
                 # thread_miso_scanner = threading.Thread(target=self._scan_miso_data_bank)
                 # threads.append(thread_miso_scanner)
                 self._scan_miso_data_bank()
-            
+
+            if 'NYISO' in market_names:
+                # thread_nyiso_scanner = threading.Thread(target=self._scan_nyiso_data_bank)
+                # threads.append(thread_nyiso_scanner)
+                self._scan_nyiso_data_bank()
+
             self.n_threads_scanning -= 1
         
         thread = threading.Thread(target=_scan_data_bank)
@@ -180,7 +187,7 @@ class DataManager(EventDispatcher):
             miso_data_bank['LMP'] = {}
             lmp_dir = os.path.join(miso_root, 'LMP')
 
-            for node in miso_nodes.keys():
+            for node in miso_nodes.keys(): # FW: - why a for loop with the node??, seems wasteful
                 miso_data_bank['LMP'][node] = {}
 
                 for year_dir_entry in os.scandir(lmp_dir):
@@ -290,7 +297,89 @@ class DataManager(EventDispatcher):
         
         self.data_bank['ERCOT'] = ercot_data_bank
         # self.n_threads_scanning -= 1
-    
+
+########################################################################################################################
+
+    def _scan_nyiso_data_bank(self):
+        """Scans the NYISO data bank."""
+        nyiso_root = os.path.join(self.data_bank_root, 'NYISO')
+        nyiso_data_bank = {}
+        nyiso_nodes = self.get_nodes('NYISO')
+
+        LBMP_ASP = ['LBMP', 'ASP']
+
+        # for casedata in LBMP_ASP:
+        #     print('TBF')
+        #     nyiso_data_bank[casedata] = {}
+        #     if casedata == 'LBMP':
+        #         case_dir = os.path.join(nyiso_root, 'LBMP', 'DAM', 'gen')  # TODO: finalize the zone, gen thing
+        #         caseloop_n = nyiso_nodes.keys()
+        #     elif casedata == 'ASP':
+        #         asp_dir = os.path.join(nyiso_root, 'ASP', 'DAM')  # TODO: finalize the zone, gen thing
+        #         caseloop_n = 'n/a'
+        #
+        #     for node in nyiso_nodes.keys():
+        #         nyiso_data_bank['LBMP'][node] = {}
+
+
+        # LBMP scan.
+        if 'LBMP' in os.listdir(nyiso_root):
+            nyiso_data_bank['LBMP'] = {}
+            lbmp_dir = os.path.join(nyiso_root, 'LBMP', 'DAM', 'gen') # TODO: finalize the zone, gen thing
+
+            for node in nyiso_nodes.keys():
+                nyiso_data_bank['LBMP'][node] = {}
+
+                for year_dir_entry in os.scandir(lbmp_dir):
+                    if not year_dir_entry.name.startswith('.'):
+                        year = year_dir_entry.name
+                        year_dir = year_dir_entry.path
+                        nyiso_data_bank['LBMP'][node][year] = []
+
+                        for month_dir_entry in os.scandir(year_dir):
+                            if not month_dir_entry.name.startswith('.'):
+                                month = month_dir_entry.name
+                                month_dir = month_dir_entry.path
+
+                                # Get the number of days in the month and compare it to number of files in dir.
+                                _, n_days_month = calendar.monthrange(int(year), int(month))
+                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if
+                                               not dir_entry.name.startswith('.')])
+
+                                # Only add the month if it has a full set of data.
+                                if n_files == n_days_month:
+                                    nyiso_data_bank['LBMP'][node][year].append(month)
+
+        # ASP scan.
+        if 'ASP' in os.listdir(nyiso_root):
+            nyiso_data_bank['ASP'] = {}
+            asp_dir = os.path.join(nyiso_root, 'ASP', 'DAM') # TODO: finalize the zone, gen thing
+
+            for year_dir_entry in os.scandir(asp_dir):
+                if not year_dir_entry.name.startswith('.'):
+                    year = year_dir_entry.name
+                    year_dir = year_dir_entry.path
+                    nyiso_data_bank['ASP'][year] = []
+
+                    for month_dir_entry in os.scandir(year_dir):
+                        if not month_dir_entry.name.startswith('.'):
+                            month = month_dir_entry.name
+                            month_dir = month_dir_entry.path
+
+                            # Get the number of days in the month and matches it to number of files in dir.
+                            _, n_days_month = calendar.monthrange(int(year), int(month))
+                            n_files = len \
+                                ([dir_entry for dir_entry in os.scandir(month_dir) if
+                                  not dir_entry.name.startswith('.')])
+
+                            # Only add the month if it has a full set of data.
+                            if n_files == n_days_month:
+                                nyiso_data_bank['ASP'][year].append(month)
+
+        self.data_bank['NYISO'] = nyiso_data_bank
+
+########################################################################################################################
+
     def get_nodes(self, market_area):
         """Retrieves all available pricing nodes for the given market_area."""
         if market_area == 'ERCOT':
@@ -313,6 +402,14 @@ class DataManager(EventDispatcher):
 
             node_df = pd.read_csv(static_miso_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
+        ################################################################################################################
+        elif market_area == 'NYISO':
+            # Reads static node ID list.
+            static_nyiso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_nyiso.csv')
+
+            node_df = pd.read_csv(static_nyiso_node_list)
+            node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
+        ################################################################################################################
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
         
@@ -365,6 +462,21 @@ class DataManager(EventDispatcher):
             if lmp_data and reg_data:
                 # Arbitrage and regulation is available.
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
+
+        ################################################################################################################
+        elif market_area == 'NYISO':
+            nyiso_data_bank = self.data_bank['NYISO']
+
+            lbmp_data = nyiso_data_bank['LBMP'].get(node, [])
+            asp_data = nyiso_data_bank.get('ASP', [])
+
+            if lbmp_data:
+                # Arbitrage is available.
+                rev_stream_dict['Arbitrage'] = rev_stream_defs['Arbitrage']
+            if lbmp_data and asp_data:
+                # Arbitrage and regulation is available.
+                rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
+        ################################################################################################################
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
             
@@ -448,6 +560,27 @@ class DataManager(EventDispatcher):
                         hist_data_options[year] = sorted(months_common)
             else:
                 hist_data_options = lmp_data
+        ################################################################################################################
+        elif market_area == 'NYISO':
+            nyiso_data_bank = self.data_bank['NYISO']
+
+            lbmp_data = nyiso_data_bank['LBMP'].get(node, {})
+
+            if rev_streams == 'Arbitrage and regulation':
+                # Ensure regulation data is downloaded for each month.
+                reg_data = nyiso_data_bank['ASP']
+
+                for year, month_list in lbmp_data.items():
+                    reg_month_list = reg_data.get(year, [])
+
+                    # Compute intersection of all data types.
+                    months_common = list(set(month_list).intersection(set(reg_month_list)))
+
+                    if months_common:
+                        hist_data_options[year] = sorted(months_common)
+            else:
+                hist_data_options = lbmp_data
+        ################################################################################################################
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
         

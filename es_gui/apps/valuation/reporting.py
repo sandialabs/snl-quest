@@ -96,6 +96,9 @@ class ReportScreen(Screen):
     activities['ercot_arbreg'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
     activities['miso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
     activities['isone_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
+    activities['nyiso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
+    activities['spp_arbreg'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
+    activities['caiso_arbreg'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
 
     # lookup table for actions that constitute regulation services for each model formulation
     regulation_def = dict()
@@ -104,6 +107,9 @@ class ReportScreen(Screen):
     regulation_def['ercot_arbreg'] = ['regulation up', 'regulation down', ]
     regulation_def['miso_pfp'] = ['regulation', ]
     regulation_def['isone_pfp'] = ['regulation', ]
+    regulation_def['nyiso_pfp'] = ['regulation', ]
+    regulation_def['spp_pfp'] = ['regulation up', 'regulation down', ]
+    regulation_def['caiso_pfp'] = ['regulation up', 'regulation down', ]
 
     def __init__(self, type, chart_data, market=None, do_animation=True, **kwargs):
         super(ReportScreen, self).__init__(**kwargs)
@@ -494,6 +500,17 @@ class GenerateReportMenu(ModalView):
         elif ISO == "ISO-NE":
             template = env.get_template('valuation_report_ISONE.html')
             fname = os.path.join(output_dir, 'QuESt_valuation_report_ISONE.html')
+        #########################################################################################
+        elif ISO == "NYISO":
+            template = env.get_template('valuation_report_NYISO.html')
+            fname = os.path.join(output_dir, 'QuESt_valuation_report_NYISO.html')
+        elif ISO == "SPP":
+            template = env.get_template('valuation_report_SPP.html')
+            fname = os.path.join(output_dir, 'QuESt_valuation_report_SPP.html')
+        elif ISO == "CAISO":
+            template = env.get_template('valuation_report_CAISO.html')
+            fname = os.path.join(output_dir, 'QuESt_valuation_report_CAISO.html')
+        #########################################################################################
         else :
             raise ValueError('The selected ISO does not have a reporting template.')
 
