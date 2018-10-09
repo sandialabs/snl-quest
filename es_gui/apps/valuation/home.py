@@ -31,13 +31,13 @@ class ValuationHomeScreen(Screen):
         ab.reset_nav_bar()
         ab.set_title('Valuation')
 
-        data_manager = App.get_running_app().data_manager
+        # data_manager = App.get_running_app().data_manager
         
         # Check if any data is available.
-        if not data_manager.data_bank:
-            no_data_popup = WarningPopup()
-            no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"
-            no_data_popup.dismiss_button.text = "Got it, take me back!"
+        # if not data_manager.data_bank:
+        #     no_data_popup = WarningPopup()
+        #     no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"
+        #     no_data_popup.dismiss_button.text = "Got it, take me back!"
 
-            no_data_popup.bind(on_dismiss=partial(ab.go_to_screen, 'index'))
-            no_data_popup.open()
+        #     no_data_popup.bind(on_dismiss=partial(ab.go_to_screen, 'index'))
+        #     no_data_popup.open()
