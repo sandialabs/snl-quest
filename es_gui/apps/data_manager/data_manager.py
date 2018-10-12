@@ -6,6 +6,7 @@ import json
 import calendar
 import threading
 import logging
+import copy
 
 import pandas as pd
 from kivy.animation import Animation
@@ -72,34 +73,21 @@ class DataManager(EventDispatcher):
 
         def _scan_data_bank():
             if 'ERCOT' in market_names:
-                # thread_ercot_scanner = threading.Thread(target=self._scan_ercot_data_bank)
-                # threads.append(thread_ercot_scanner)
                 self._scan_ercot_data_bank()
                 
             if 'PJM' in market_names:
-                # thread_pjm_scanner = threading.Thread(target=self._scan_pjm_data_bank)
-                # threads.append(thread_pjm_scanner)
                 self._scan_pjm_data_bank()
                 
             if 'MISO' in market_names:
-                # thread_miso_scanner = threading.Thread(target=self._scan_miso_data_bank)
-                # threads.append(thread_miso_scanner)
                 self._scan_miso_data_bank()
 
             if 'NYISO' in market_names:
-                # thread_nyiso_scanner = threading.Thread(target=self._scan_nyiso_data_bank)
-                # threads.append(thread_nyiso_scanner)
                 self._scan_nyiso_data_bank()
 
             self.n_threads_scanning -= 1
         
         thread = threading.Thread(target=_scan_data_bank)
-        thread.start()
-        
-        # self.n_threads_scanning = len(threads)
-        # for thread in threads:
-        #     thread.start()
-            
+        thread.start()            
     
     def _scan_pjm_data_bank(self):
         """Scans the PJM data bank."""
@@ -174,7 +162,6 @@ class DataManager(EventDispatcher):
                             pjm_data_bank['MILEAGE'][year].append(month)
         
         self.data_bank['PJM'] = pjm_data_bank
-        # self.n_threads_scanning -= 1
     
     def _scan_miso_data_bank(self):
         """Scans the MISO data bank."""
@@ -187,27 +174,31 @@ class DataManager(EventDispatcher):
             miso_data_bank['LMP'] = {}
             lmp_dir = os.path.join(miso_root, 'LMP')
 
-            for node in miso_nodes.keys(): # FW: - why a for loop with the node??, seems wasteful
-                miso_data_bank['LMP'][node] = {}
+            # Scan LMP directory structure once.
+            miso_lmp_dir_struct = {}
 
-                for year_dir_entry in os.scandir(lmp_dir):
-                    if not year_dir_entry.name.startswith('.'):
-                        year = year_dir_entry.name
-                        year_dir = year_dir_entry.path
-                        miso_data_bank['LMP'][node][year] = []
+            for year_dir_entry in os.scandir(lmp_dir):
+                if not year_dir_entry.name.startswith('.'):
+                    year = year_dir_entry.name
+                    year_dir = year_dir_entry.path
+                    miso_lmp_dir_struct[year] = []
 
-                        for month_dir_entry in os.scandir(year_dir):
-                            if not month_dir_entry.name.startswith('.'):
-                                month = month_dir_entry.name
-                                month_dir = month_dir_entry.path
-                                
-                                # Get the number of days in the month and compare it to number of files in dir.
-                                _, n_days_month = calendar.monthrange(int(year), int(month))
-                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if not dir_entry.name.startswith('.')])
+                    for month_dir_entry in os.scandir(year_dir):
+                        if not month_dir_entry.name.startswith('.'):
+                            month = month_dir_entry.name
+                            month_dir = month_dir_entry.path
+                            
+                            # Get the number of days in the month and compare it to number of files in dir.
+                            _, n_days_month = calendar.monthrange(int(year), int(month))
+                            n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if not dir_entry.name.startswith('.')])
 
-                                # Only add the month if it has a full set of data.
-                                if n_files == n_days_month:
-                                    miso_data_bank['LMP'][node][year].append(month)
+                            # Only add the month if it has a full set of data.
+                            if n_files == n_days_month:
+                                miso_lmp_dir_struct[year].append(month)
+
+            for node in miso_nodes.keys():
+                tmp_dir = copy.deepcopy(miso_lmp_dir_struct)
+                miso_data_bank['LMP'][node] = tmp_dir                
         
         # MCP scan.
         if 'MCP' in os.listdir(miso_root):
@@ -234,27 +225,6 @@ class DataManager(EventDispatcher):
                                 miso_data_bank['MCP'][year].append(month)
         
         self.data_bank['MISO'] = miso_data_bank
-        # self.n_threads_scanning -= 1
-    
-    def scan_miso_lmp_nodes_month(self, month_dir):
-        node_set_intersection = set()
-
-        for daily_file in os.listdir(month_dir):
-            # Read the .csv file.
-            df = pd.read_csv(os.path.join(month_dir, daily_file), skiprows=4, low_memory=False)
-
-            # Get the list of nodes in the file.
-            node_col = df.axes[1][0]
-            node_set = set(df.loc[:, node_col])
-
-            if node_set_intersection:
-                # Intersection update of node set.
-                node_set_intersection.intersection_update(node_set)
-            else:
-                node_set_intersection.update(node_set)
-        
-        return node_set_intersection
-
     
     def _scan_ercot_data_bank(self):
         """Scans the ERCOT data bank."""
@@ -267,17 +237,21 @@ class DataManager(EventDispatcher):
             ercot_data_bank['SPP'] = {}
             spp_dir = os.path.join(ercot_root, 'SPP')
 
+            # Scan SPP directory structure once.
+            ercot_spp_dir_struct = {}
+
+            for year_dir_entry in os.scandir(spp_dir):
+                if not year_dir_entry.name.startswith('.'):
+                    year = year_dir_entry.name
+                    year_dir = year_dir_entry.path
+                    ercot_spp_dir_struct[year] = []
+
+                    # TODO: Not all yearly files have every month of data... but opening them to look is costly.
+                    ercot_spp_dir_struct[year].extend([str(x+1).zfill(2) for x in range(0, 12)])
+
             for node in ercot_nodes.keys():
-                ercot_data_bank['SPP'][node] = {}
-
-                for year_dir_entry in os.scandir(spp_dir):
-                    if not year_dir_entry.name.startswith('.'):
-                        year = year_dir_entry.name
-                        year_dir = year_dir_entry.path
-                        ercot_data_bank['SPP'][node][year] = []
-
-                        # TODO: Not all yearly files have every month of data... but opening them to look is costly.
-                        ercot_data_bank['SPP'][node][year].extend([str(x+1).zfill(2) for x in range(0, 12)])
+                tmp_dir = copy.deepcopy(ercot_spp_dir_struct)
+                ercot_data_bank['SPP'][node] = tmp_dir
         
         # CCP scan.
         if 'CCP' in os.listdir(ercot_root):
@@ -296,7 +270,6 @@ class DataManager(EventDispatcher):
                         ercot_data_bank['CCP'][year].extend([str(x+1).zfill(2) for x in range(0, 12)])
         
         self.data_bank['ERCOT'] = ercot_data_bank
-        # self.n_threads_scanning -= 1
 
 ########################################################################################################################
 
@@ -327,28 +300,32 @@ class DataManager(EventDispatcher):
             nyiso_data_bank['LBMP'] = {}
             lbmp_dir = os.path.join(nyiso_root, 'LBMP', 'DAM', 'gen') # TODO: finalize the zone, gen thing
 
+            # Scan LBMP directory structure once.
+            nyiso_lbmp_dir_struct = {}
+
+            for year_dir_entry in os.scandir(lbmp_dir):
+                if not year_dir_entry.name.startswith('.'):
+                    year = year_dir_entry.name
+                    year_dir = year_dir_entry.path
+                    nyiso_lbmp_dir_struct[year] = []
+
+                    for month_dir_entry in os.scandir(year_dir):
+                        if not month_dir_entry.name.startswith('.'):
+                            month = month_dir_entry.name
+                            month_dir = month_dir_entry.path
+
+                            # Get the number of days in the month and compare it to number of files in dir.
+                            _, n_days_month = calendar.monthrange(int(year), int(month))
+                            n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if
+                                            not dir_entry.name.startswith('.')])
+
+                            # Only add the month if it has a full set of data.
+                            if n_files == n_days_month:
+                                nyiso_lbmp_dir_struct[year].append(month)
+
             for node in nyiso_nodes.keys():
-                nyiso_data_bank['LBMP'][node] = {}
-
-                for year_dir_entry in os.scandir(lbmp_dir):
-                    if not year_dir_entry.name.startswith('.'):
-                        year = year_dir_entry.name
-                        year_dir = year_dir_entry.path
-                        nyiso_data_bank['LBMP'][node][year] = []
-
-                        for month_dir_entry in os.scandir(year_dir):
-                            if not month_dir_entry.name.startswith('.'):
-                                month = month_dir_entry.name
-                                month_dir = month_dir_entry.path
-
-                                # Get the number of days in the month and compare it to number of files in dir.
-                                _, n_days_month = calendar.monthrange(int(year), int(month))
-                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if
-                                               not dir_entry.name.startswith('.')])
-
-                                # Only add the month if it has a full set of data.
-                                if n_files == n_days_month:
-                                    nyiso_data_bank['LBMP'][node][year].append(month)
+                tmp_dir = copy.deepcopy(nyiso_lbmp_dir_struct)
+                nyiso_data_bank['LBMP'][node] = tmp_dir
 
         # ASP scan.
         if 'ASP' in os.listdir(nyiso_root):
@@ -378,8 +355,6 @@ class DataManager(EventDispatcher):
 
         self.data_bank['NYISO'] = nyiso_data_bank
 
-########################################################################################################################
-
     def get_nodes(self, market_area):
         """Retrieves all available pricing nodes for the given market_area."""
         if market_area == 'ERCOT':
@@ -389,6 +364,7 @@ class DataManager(EventDispatcher):
             node_df = pd.read_csv(static_ercot_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
         elif market_area == 'PJM':
+            # Reads static node ID list.
             static_pjm_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_pjm.csv')
             node_df = pd.read_csv(static_pjm_node_list)
             node_dict = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
@@ -410,6 +386,7 @@ class DataManager(EventDispatcher):
             node_df = pd.read_csv(static_nyiso_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
         ################################################################################################################
+        # Use the PJM pattern of reading data_bank node keys to generate the node_dict (key = value) if no CSV LUT exists.
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
         
@@ -462,8 +439,6 @@ class DataManager(EventDispatcher):
             if lmp_data and reg_data:
                 # Arbitrage and regulation is available.
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
-
-        ################################################################################################################
         elif market_area == 'NYISO':
             nyiso_data_bank = self.data_bank['NYISO']
 
@@ -476,7 +451,6 @@ class DataManager(EventDispatcher):
             if lbmp_data and asp_data:
                 # Arbitrage and regulation is available.
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
-        ################################################################################################################
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
             

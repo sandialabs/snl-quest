@@ -23,9 +23,9 @@
       "default": 20
      },
      {
-        "name": "initial state of charge",
-        "attr name": "State_of_charge_init",
-        "default": 0
+      "name": "initial state of charge (%)",
+      "attr name": "State_of_charge_init",
+      "default": 0
      },
      {
       "name": "% of capacity reserved for discharging",
@@ -59,7 +59,7 @@
      },
      {
       "name": "performance score",
-      "attr name": "Perf_score",
+      "attr name": "perf_score",
       "default": 0.95
      }
     ],
@@ -86,6 +86,11 @@
       "attr name": "Power_rating",
       "default": 20
      },
+     {
+        "name": "initial state of charge (%)",
+        "attr name": "State_of_charge_init",
+        "default": 0
+       },
      {
       "name": "% of capacity reserved for discharging",
       "attr name": "Reserve_charge_min",
@@ -141,6 +146,11 @@
       "default": 20
      },
      {
+        "name": "initial state of charge (%)",
+        "attr name": "State_of_charge_init",
+        "default": 0
+       },
+     {
       "name": "% of capacity reserved for discharging",
       "attr name": "Reserve_charge_min",
       "default": 0
@@ -172,7 +182,7 @@
      },
      {
       "name": "performance score",
-      "attr name": "Perf_score",
+      "attr name": "perf_score",
       "default": 0.95
      },
      {
@@ -204,6 +214,11 @@
       "attr name": "Power_rating",
       "default": 20
      },
+     {
+        "name": "initial state of charge (%)",
+        "attr name": "State_of_charge_init",
+        "default": 0
+       },
      {
       "name": "% of capacity reserved for discharging",
       "attr name": "Reserve_charge_min",
@@ -259,6 +274,11 @@
       "default": 20
      },
      {
+        "name": "initial state of charge (%)",
+        "attr name": "State_of_charge_init",
+        "default": 0
+       },
+     {
       "name": "% of capacity reserved for discharging",
       "attr name": "Reserve_charge_min",
       "default": 0
@@ -284,8 +304,13 @@
       "default": 0.25
      },
      {
+      "name": "frac. of reg. down capacity deployed",
+      "attr name": "fraction_reg_down",
+      "default": 0.25
+     },
+     {
       "name": "performance score",
-      "attr name": "Perf_score",
+      "attr name": "perf_score",
       "default": 0.95
      }
       ]

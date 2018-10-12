@@ -62,9 +62,6 @@ class DataManagerPanelERCOT(BoxLayout):
     thread_failed = BooleanProperty(False)
 
     def on_n_active_threads(self, instance, value):
-        # Update progress bar.
-        #self.progress_bar.value = self.progress_bar.max - value
-
         # Check if all threads have finished executing.
         if value == 0:
             if self.thread_failed:
@@ -144,21 +141,7 @@ class DataManagerPanelERCOT(BoxLayout):
             year_range.union([year_range[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
-            year_queue = collections.deque([year.year for year in year_range])
-            batch_size = math.ceil(len(year_queue)/MAX_THREADS)
-
-            job_batches = []
-            while len(year_queue) > 0:
-                batch = []
-
-                for ix in range(batch_size):
-                    try:
-                        batch.append(year_queue.popleft())
-                    except IndexError:
-                        # Pop from empty queue.
-                        continue
-                
-                job_batches.append(batch)
+            job_batches = batch_splitter(year_range, frequency='year')
 
             self.n_active_threads = len(job_batches)
 
@@ -525,6 +508,7 @@ class DataManagerPanelISONE(BoxLayout):
         self.n_active_threads -= 1
     
     def _download_ISONE_LMP(self, username, password, node, year, month, path=os.path.join('data'), ssl_verify=True):
+        """Deprecated."""
         api = 'https://webservices.iso-ne.com/api/v1.1'
 
         record_list = []
@@ -585,6 +569,7 @@ class DataManagerPanelISONE(BoxLayout):
         self.n_active_threads -= 1
     
     def _download_ISONE_RCP(self, username, password, year, month, path=os.path.join('data'), ssl_verify=True):
+        """Deprecated."""
         api = 'https://webservices.iso-ne.com/api/v1.1'
 
         record_list = []
@@ -756,21 +741,7 @@ class DataManagerPanelMISO(BoxLayout):
             self.output_log.text = ''
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
-            month_queue = collections.deque([date for date in monthrange])
-            batch_size = math.ceil(len(month_queue)/MAX_THREADS)
-
-            job_batches = []
-            while len(month_queue) > 0:
-                batch = []
-
-                for ix in range(batch_size):
-                    try:
-                        batch.append(month_queue.popleft())
-                    except IndexError:
-                        # Pop from empty queue.
-                        continue
-                
-                job_batches.append(batch)
+            job_batches = batch_splitter(monthrange)
 
             self.n_active_threads = len(job_batches)
 
@@ -988,27 +959,36 @@ class DataManagerPanelNYISO(BoxLayout):
 
         if datetime_start > datetime_end:
             raise (InputError('Please specify a valid month range where the starting month precedes the ending month.'))
+        
+        # Check if at least one node type has been specified.
+        if self.chkbx_zonal.active and self.chkbx_gens.active:
+            nodes_selected = 'both'
+        elif self.chkbx_zonal.active:
+            nodes_selected = 'zone'
+        elif self.chkbx_gens.active:
+            nodes_selected = 'gen'
+        else:
+            nodes_selected = None
+            raise (InputError('Please select at least one category of pricing nodes.'))
 
-        return datetime_start, datetime_end
+        return datetime_start, datetime_end, nodes_selected
 
     def get_inputs(self):
         """Gets the options selected in the GUI.
 
-        :return: datetime of start of range, datetime of end of range
-        :rtype: 2-tuple of datetime
+        :return: datetime of start of range, datetime of end of range, str describing which nodes to download
+        :rtype: 2-tuple of datetime, str
         """
 
-        datetime_start, datetime_end = self._validate_inputs()
+        datetime_start, datetime_end, nodes_selected = self._validate_inputs()
 
-        return datetime_start, datetime_end
+        return datetime_start, datetime_end, nodes_selected
 
     def execute_download(self):
         """Executes the data downloader for NYISO data based on options selected in GUI.
-
         """
-
         try:
-            datetime_start, datetime_end = self.get_inputs()
+            datetime_start, datetime_end, nodes_selected = self.get_inputs()
         except ValueError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
@@ -1024,41 +1004,17 @@ class DataManagerPanelNYISO(BoxLayout):
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
             monthrange.union([monthrange[-1] + 1])
 
-            # # TODO: FW I don't think I need days for NYISO download
-            # # Compute number of days in the given range.
-            # total_days = 0
-            # for date in monthrange:
-            #     total_days += calendar.monthrange(date.year, date.month)[1]
-            #
-            # self.n_active_threads = len(monthrange)
-            #
-            # # (Re)set the progress bar and output log.
-            # self.progress_bar.value = 0
-            # self.progress_bar.max = 2* total_days
-            # self.output_log.text = ''
-
-            # Split up the download requests to accomodate the maximum amount of allowable threads.
-            month_queue = collections.deque([date for date in monthrange])
-            batch_size = math.ceil(len(month_queue) / MAX_THREADS)
-
-            job_batches = []
-            while len(month_queue) > 0:
-                batch = []
-
-                for ix in range(batch_size):
-                    try:
-                        batch.append(month_queue.popleft())
-                    except IndexError:
-                        # Pop from empty queue.
-                        continue
-
-                job_batches.append(batch)
+            # Distribute the requests for multiple threads.
+            job_batches = batch_splitter(monthrange)
 
             self.n_active_threads = len(job_batches)
 
             # (Re)set the progress bar and output log.
             self.progress_bar.value = 0
-            self.progress_bar.max = 0
+            if nodes_selected == 'both':
+                self.progress_bar.max = len(monthrange)*3
+            else:
+                self.progress_bar.max = len(monthrange)*2
             self.output_log.text = ''
 
             # Check connection settings.
@@ -1069,14 +1025,11 @@ class DataManagerPanelNYISO(BoxLayout):
                 thread_downloader = threading.Thread(target=self._download_NYISO_data,
                                                      args=(batch[0], batch[-1]),
                                                      kwargs={'ssl_verify': ssl_verify,
-                                                             'proxy_settings': proxy_settings, 'RT_DAM':'DAM'})
-                # TODO: FW- give the user the possibility of downloading only zones or buses or both (checkboxes in panel)
-                thread_downloader.start()
+                                                             'proxy_settings': proxy_settings, 
+                                                             'zone_gen': nodes_selected,
+                                                             'RT_DAM': 'DAM'})
 
-            # # Spawn a new thread for each download call.
-            # for date in monthrange:
-            #     thread_downloader = threading.Thread(target=self._download_MISO_data, args=(date.year, date.month), kwargs={'ssl_verify': False})
-            #     thread_downloader.start()
+                thread_downloader.start()
 
     def _download_NYISO_data(self, datetime_start, datetime_end=None, typedat="both", RT_DAM="both", zone_gen="both",
                             path='data', ssl_verify=True, proxy_settings=None):
@@ -1086,6 +1039,12 @@ class DataManagerPanelNYISO(BoxLayout):
         :type datetime_start: datetime
         :param datetime_end: the end of the range of data to download, defaults to one month's worth
         :type datetime_end: datetime
+        :param typedat: download ASP data, LBMP data, or both, defaults to 'both'
+        :type typedat: str
+        :param RT_DAM: download real time or day ahead data, defaults to 'both'
+        :type RT_DAM: str
+        :param zone_gen: download LBMP data for zones or gens, defaults to 'both'
+        :type zone_gen: str
         :param path: root directory of data download location, defaults to 'data'
         :param path: str, optional
         :param ssl_verify: if SSL verification should be done, defaults to True
@@ -1093,7 +1052,6 @@ class DataManagerPanelNYISO(BoxLayout):
         :param proxy_settings: dictionary of proxy settings, defaults to None
         :param proxy_settings: dict, optional
         """
-        print("Inside _download_NYISO_data")
         if not datetime_end:
             datetime_end = datetime_start
 
@@ -1213,7 +1171,7 @@ class DataManagerPanelNYISO(BoxLayout):
                                                zone_or_gen_folder[sx], date.strftime('%Y'), date.strftime('%m'))
                 first_name_file = os.path.join(destination_dir,
                                                ''.join([date_str, '01', dam_or_rt_nam_x, zone_or_gen_nam[sx], '.csv']))
-                print(datadownload_url)
+                # print(datadownload_url)
 
                 if not os.path.exists(first_name_file):
                     trydownloaddate = True
@@ -1221,7 +1179,8 @@ class DataManagerPanelNYISO(BoxLayout):
                     while trydownloaddate:
                         wx = wx + 1
                         if wx >= MAX_WHILE_ATTEMPTS:
-                            print("Hit wx limit")
+                            logging.warning('NYISOdownloader: {0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx]))
+                            Clock.schedule_once(partial(self.update_output_log, '{0} {1}: Hit download retry limit'.format(date_str, lbmp_or_asp_folder[sx])), 0)
                             trydownloaddate = False
 
                         try:
@@ -1274,16 +1233,13 @@ class DataManagerPanelNYISO(BoxLayout):
                             os.makedirs(destination_dir, exist_ok=True)
                             z = zipfile.ZipFile(io.BytesIO(http_request.content))
                             z.extractall(destination_dir)
-                            print("Successful NYISO data download")
-
+                            # print("Successful NYISO data download")
                 else:
                     # Skip downloading the daily file if it already exists where expected.
                     logging.info('NYISOdownloader: {0}: {1} file already exists, skipping...'.format(date_str,
                                                                                                      lbmp_or_asp_folder[
                                                                                                          sx]))
-                    print('NYISOdownloader: {0}: {1} file already exists, skipping...'.format(date_str,
-                                                                                              lbmp_or_asp_folder[sx]))
-                    # self.update_output_log('{0}: LMP file already exists, skipping...'.format(date_str))
+                    self.update_output_log('{0}: {1} file already exists, skipping...'.format(date_str, lbmp_or_asp_folder[sx]))
 
                 self.progress_bar.value +=1
 
@@ -1409,21 +1365,7 @@ class DataManagerPanelPJM(BoxLayout):
             monthrange.union([monthrange[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
-            month_queue = collections.deque([date for date in monthrange])
-            batch_size = math.ceil(len(month_queue)/MAX_THREADS)
-
-            job_batches = []
-            while len(month_queue) > 0:
-                batch = []
-
-                for ix in range(batch_size):
-                    try:
-                        batch.append(month_queue.popleft())
-                    except IndexError:
-                        # Pop from empty queue.
-                        continue
-                
-                job_batches.append(batch)
+            job_batches = batch_splitter(monthrange)
 
             self.n_active_threads = len(job_batches)
 
@@ -1785,3 +1727,32 @@ def check_connection_settings():
 
     return ssl_verify, proxy_settings
 
+def batch_splitter(date_range, frequency='month'):
+    """Splits a Pandas date_range evenly to allocate data download workload among different threads.
+
+    :param date_range: Range of dates to download data for.
+    :type text: Pandas date_range
+    :return: list of batch jobs to pass to data downloader function
+    :rtype: list of batches (list of datetime)
+    """
+    # Split up the download requests to accomodate the maximum amount of allowable threads.
+    if frequency == 'year':
+        date_queue = collections.deque([date.year for date in date_range])
+    else:
+        date_queue = collections.deque([date for date in date_range])
+    batch_size = math.ceil(len(date_queue) / MAX_THREADS)
+
+    job_batches = []
+    while len(date_queue) > 0:
+        batch = []
+
+        for ix in range(batch_size):
+            try:
+                batch.append(date_queue.popleft())
+            except IndexError:
+                # Pop from empty queue.
+                continue
+
+        job_batches.append(batch)
+    
+    return job_batches

@@ -18,7 +18,6 @@ class ValuationOptimizer(optimizer.Optimizer):
                  price_reg_serv_up=None, price_reg_serv_down=None,
                  price_regulation=None, price_reg_service=None,
                  cost_charge=None, cost_discharge=None,
-                 mileage_slow=None, mileage_fast=None, mileage_ratio=None,
                  mileage_mult=None, mileage_mult_ru=None, mileage_mult_rd=None,
                  perf_score=None, perf_score_ru=None, perf_score_rd=None,
                  fraction_reg_up=None, fraction_reg_down=None,
@@ -46,9 +45,6 @@ class ValuationOptimizer(optimizer.Optimizer):
         self._cost_charge = cost_charge
         self._cost_discharge = cost_discharge
 
-        self._mileage_slow = mileage_slow
-        self._mileage_fast = mileage_fast
-        self._mileage_ratio = mileage_ratio # deprecate
         self._mileage_mult = mileage_mult
         self._mileage_mult_ru = mileage_mult_ru
         self._mileage_mult_rd = mileage_mult_rd
@@ -143,33 +139,6 @@ class ValuationOptimizer(optimizer.Optimizer):
     @cost_discharge.setter
     def cost_discharge(self, value):
         self._cost_discharge = value
-
-    @property
-    def mileage_slow(self):
-        """The mileage of the low pass-filtered ACE signal."""
-        return self._mileage_slow
-
-    @mileage_slow.setter
-    def mileage_slow(self, value):
-        self._mileage_slow = value
-
-    @property
-    def mileage_fast(self):
-        """The mileage of the high pass-filtered ACE signal."""
-        return self._mileage_fast
-
-    @mileage_fast.setter
-    def mileage_fast(self, value):
-        self._mileage_fast = value
-
-    @property
-    def mileage_ratio(self):
-        """The ratio of the mileages of the high and low pass-filtered ACE signal."""
-        return self._mileage_ratio
-
-    @mileage_ratio.setter
-    def mileage_ratio(self, value):
-        self._mileage_ratio = value
 
     @property
     def mileage_mult(self):
@@ -363,12 +332,15 @@ class ValuationOptimizer(optimizer.Optimizer):
             m.Reserve_charge_max = m.Reserve_charge_max/100
         
         if not hasattr(m, 'State_of_charge_init'):
-            # Initial state of charge [MWh], defaults to the amount reserved for discharging.
+            # Initial state of charge [% of capacity], defaults to the amount reserved for discharging.
             logging.debug('ValuationOptimizer: No State_of_charge_init provided, setting default...')
-            m.State_of_charge_init = m.Reserve_charge_min*m.Energy_capacity
+            m.State_of_charge_init = m.Reserve_charge_min
+        elif getattr(m, 'State_of_charge_init') > 1.0:
+            logging.warning('ValuationOptimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...')
+            m.State_of_charge_init = m.State_of_charge_init/100
 
-        # Check if params necessary for certain formulations are set if required.
-        if self.market_type in {'ercot_arbreg', 'pjm_pfp', 'miso_pfp', 'isone_pfp', 'nyiso_pfp', 'spp_pfp','caiso_pfp'}:
+        # Check if params necessary for certain market types are set if required.
+        if self.market_type in {'ercot_arbreg', 'pjm_pfp', 'miso_pfp', 'isone_pfp', 'nyiso_pfp', 'spp_pfp', 'caiso_pfp'}:
             try:
                 if not getattr(m, 'fraction_reg_up', None):
                     logging.debug('ValuationOptimizer: No fraction_reg_up provided, setting default...')
@@ -398,10 +370,10 @@ class ValuationOptimizer(optimizer.Optimizer):
             except TypeError:
                 m.fraction_reg_down = np.array([m.fraction_reg_down] * len(m.price_electricity))
 
-        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
-            if not hasattr(m, 'Perf_score'):
-                # Performance score for pay-for-performance models.
-                m.Perf_score = 0.95
+        # if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
+        #     if not hasattr(m, 'Perf_score'):
+        #         # Performance score for pay-for-performance models.
+        #         m.Perf_score = 0.95
 
         ###############################################################################################################
         if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
@@ -525,27 +497,19 @@ class ValuationOptimizer(optimizer.Optimizer):
 
         m.price_electricity = self.price_electricity
 
-        m.rmccp = self.price_regulation # Deprecate
-        m.ru = self.price_reg_up # Deprecate
-        m.rd = self.price_reg_down # Deprecate
-        m.price_regulation = self.price_regulation  # Deprecate
-        m.price_reg_up = self.price_reg_up # take the name of m.ru
-        m.price_reg_down = self.price_reg_down # take the name of m.rd
+        m.price_regulation = self.price_regulation
+        m.price_reg_up = self.price_reg_up
+        m.price_reg_down = self.price_reg_down
 
-
-        m.rmpcp = self.price_reg_service # Deprecate
         m.price_reg_service = self.price_reg_service
         m.price_reg_serv_up = self.price_reg_serv_up
         m.price_reg_serv_down = self.price_reg_serv_down
 
-        m.regMCP = self.price_reg_service # MISO deprecate
-
         m.cost_charge = self.cost_charge
         m.cost_discharge = self.cost_discharge
 
-        m.mi_ratio = self.mileage_ratio
-        m.reg_a = self.mileage_slow
-        m.reg_d = self.mileage_fast
+        # m.reg_a = self.mileage_slow
+        # m.reg_d = self.mileage_fast
         m.mi_mult = self.mileage_mult
         m.mi_mult_ru = self.mileage_mult_ru
         m.mi_mult_rd = self.mileage_mult_rd
@@ -579,6 +543,11 @@ class ValuationOptimizer(optimizer.Optimizer):
             raise(IncompatibleDataException('At least one of the array-like parameter objects is not the expected length. (It should match the length of the price_electricity object.)'))
         else:
             self.model.objective = Objective(expr=self.model.objective_expr, sense=maximize)
+        
+        if isinstance(self.model.objective.expr, pyomo.core.kernel.numvalue.NumericConstant):
+            # Detect constant objective function value.
+            raise(IncompatibleDataException('The objective function was ill-formed, resulting in a constant objective function.'))
+
 
     def _process_results(self):
         """Processes optimization results for further evaluation."""

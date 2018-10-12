@@ -197,8 +197,6 @@ class ValuationWizardNodeSelect(Screen):
             data_manager = App.get_running_app().data_manager
             node_options = [{'name': node[1],
                             'nodeid': node[0]} for node in data_manager.get_nodes(value).items()]
-            # node_options = [{'name': node['name'],
-            #                 'nodeid': node['ID']} for node in NODES[value].values()]
             self.node_rv.data = node_options
             self.node_rv.unfiltered_data = node_options
         except AttributeError:
@@ -921,14 +919,9 @@ class ValuationWizardExecute(Screen):
     report_attributes = {}
 
     def on_enter(self):
-        # anim = Animation(transition='out_expo', duration=2, opacity=1)
-        # anim.start(self.content)
-        #Clock.schedule_once(lambda dt: self.execute_run(), 1)
         self.execute_run()
 
     def on_leave(self):
-        # Animation.stop_all(self.content, 'opacity')
-        # self.content.opacity = 0
         self.progress_label.text = 'This may take a while. Please wait patiently!'
 
     def execute_run(self):
@@ -939,12 +932,11 @@ class ValuationWizardExecute(Screen):
         wiz_selections = ss.wiz_selections
         iso = wiz_selections['iso']
         node = wiz_selections['node']
-        nodeid = wiz_selections['nodeid']  # For ISO-NE
+        nodeid = wiz_selections['nodeid']
 
         data_manager = App.get_running_app().data_manager
         rev_streams = data_manager.get_valuation_revstreams(iso, nodeid)[wiz_selections['rev_streams']]['market type']
 
-        #rev_streams = REV_STREAMS[iso][wiz_selections['rev_streams']]['market type']
         hist_data = wiz_selections['selected_data']
         device = wiz_selections['device']
 
@@ -960,6 +952,17 @@ class ValuationWizardExecute(Screen):
         valop_handler = valuation_home.handler
         valop_handler.solver_name = App.get_running_app().config.get('optimization', 'solver')
         self.solved_ops, handler_status = valop_handler.process_requests(handler_requests)
+
+        # If no optimizations were solved successfully, bail out.
+        if not self.solved_ops:
+            popup = ValWizardCompletePopup()
+
+            popup.title = "Hmm..."
+            popup.popup_text.text = "Unfortunately, none of the models were able to be solved. This is likely due to no data being available for the node selected. Try selecting another pricing node next time. (You selected {0}.)".format(node)
+            popup.results_button.text = "Take me back"
+            popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to Valuation Home
+            popup.open()
+            return
 
         # Save selection summary details to pass to report generator.
         deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children

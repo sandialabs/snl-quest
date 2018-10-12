@@ -178,6 +178,9 @@
     month_end: month_end
     year_end: year_end
     node_id: node_id
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_zones: chkbx_zones
+    chkbx_hub: chkbx_hub
     output_log: output_log
     execute_download_button: execute_download_button
     progress_bar: progress_bar
@@ -312,7 +315,7 @@
                 spacing: 10
 
                 DataManagerTabContentSubtitle:
-                    text: 'Specify the pricing node ID.'
+                    text: 'Pricing node ID and/or types of nodes'
                 
                 TextInput:
                     id: node_id
@@ -324,8 +327,38 @@
                     hint_text: 'Node ID'
                     input_filter: 'int'
                 
-                BoxLayout:
+                GridLayout:
+                    id: labeled_chkbx_grid
                     size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_hub
+                            attr_name: '1'
+
+                        DataManagerTabContentBodyText:
+                            text: 'Internal Hub'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_zones
+                            attr_name: 'hubs'
+
+                        DataManagerTabContentBodyText:
+                            text: 'Zones'
+                            size_hint_x: 0.95
         
         AnchorLayout:
             anchor_x: 'right'
@@ -482,7 +515,9 @@
     year_start: year_start
     month_end: month_end
     year_end: year_end
-
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_zonal: chkbx_zonal
+    chkbx_gens: chkbx_gens
     output_log: output_log
     progress_bar: progress_bar
     execute_download_button: execute_download_button
@@ -501,60 +536,105 @@
 
         DataManagerTabContentTitle:
             text: 'NYISO'
-
-        BoxLayout:
-            orientation: 'vertical'
-            spacing: 10
-            padding: (450, 0)
+        
+        GridLayout:
+            cols: 2
+            spacing: 150
+            padding: (150, 0)
             size_hint_y: 0.6
 
-            DataManagerTabContentSubtitle:
-                text: 'Range of months'
-
             BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.15
+                orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentBodyText:
-                    text: 'Start:'
-                    size_hint_x: 0.3
+                DataManagerTabContentSubtitle:
+                    text: 'Range of months'
 
-                PlotSpinner:
-                    id: month_start
-                    size_hint_x: 0.35
-                    text: 'Month'
-                    values: [month for month in calendar.month_name]
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
 
-                PlotSpinner:
-                    id: year_start
-                    size_hint_x: 0.35
-                    text: 'Year'
-                    values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+                    DataManagerTabContentBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
 
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerTabContentBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.6
+            
             BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.15
+                orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentBodyText:
-                    text: 'End:'
-                    size_hint_x: 0.3
+                DataManagerTabContentSubtitle:
+                    text: 'Types of nodes'
+            
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
 
-                PlotSpinner:
-                    id: month_end
-                    size_hint_x: 0.35
-                    text: 'Month'
-                    values: [month for month in calendar.month_name]
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
 
-                PlotSpinner:
-                    id: year_end
-                    size_hint_x: 0.35
-                    text: 'Year'
-                    values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+                        DataManagerTabCheckbox:
+                            id: chkbx_zonal
+                            attr_name: 'zone'
 
-            BoxLayout:
-                size_hint_y: 0.7
+                        DataManagerTabContentBodyText:
+                            text: 'Zonal'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_gens
+                            attr_name: 'gens'
+
+                        DataManagerTabContentBodyText:
+                            text: 'Generators'
+                            size_hint_x: 0.95
 
         AnchorLayout:
             anchor_x: 'right'
@@ -712,7 +792,7 @@
                 spacing: 10
 
                 DataManagerTabContentSubtitle:
-                    text: 'Pricing node ID and/or types of node ID'
+                    text: 'Pricing node ID and/or types of nodes'
                 
                 TextInput:
                     id: node_id_txtinput
@@ -835,16 +915,16 @@
         text: 'MISO'
         
         DataManagerPanelMISO:
-        
-    TabbedPanelItem:
-        text: 'PJM'
-        
-        DataManagerPanelPJM:
 
     TabbedPanelItem:
         text: 'NYISO'
 
         DataManagerPanelNYISO:
+
+    TabbedPanelItem:
+        text: 'PJM'
+        
+        DataManagerPanelPJM:
 
 <DataManagerRTOMOdataScreen>:
     BoxLayout:

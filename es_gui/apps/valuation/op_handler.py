@@ -59,8 +59,8 @@ class ValuationOptimizerHandler:
 
                     op.price_electricity = lmp_da
                     op.mileage_mult = MR
-                    op.mileage_slow = RA
-                    op.mileage_fast = RD
+                    # op.mileage_slow = RA
+                    # op.mileage_fast = RD
                     op.price_regulation = RegCCP
                     op.price_reg_service = RegPCP
                     #op.fraction_reg_up = RUP

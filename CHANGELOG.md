@@ -1,5 +1,23 @@
 # Master branch changelog
 
+## Patch 1.1
+This patch provides a number of feature updates...
+
+### QuESt
+#### QuESt Data Manager
+* Market and operations data for ISO-NE, NYISO, CAISO, and SPP market areas are now available.
+
+#### QuESt Valuation
+* (Arbitrage) and regulation market models for ISO-NE, NYISO, CAISO, and SPP are now available for use in all QuESt Valuation modes.
+
+### Resolved issues
+* An issue where QuESt Valuation would say that you have no data downloaded even if you do and prevent you from proceeding.
+* An issue where certain choices in QuESt Valuation wizard would cause the application to force quit upon attempting to solve.
+* An issue where data scanning at QuESt Valuation startup would take an inconvenient amount of time to complete.
+
+### Known issues
+
+
 ## Release 1.0
 The official release version of QuESt.
 

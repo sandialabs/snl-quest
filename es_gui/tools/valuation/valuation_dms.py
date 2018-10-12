@@ -205,6 +205,8 @@ class ValuationDMS(DataManagementSystem):
             RD = self.get_data(rd_key)
             RegCCP = self.get_data(rccp_key)
             RegPCP = self.get_data(rpcp_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')
@@ -262,6 +264,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             lmp_da = self.get_data(lmp_key)
             RegMCP = self.get_data(regmcp_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')
@@ -347,6 +351,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             lbmp_da = self.get_data(lbmp_key)
             rcap_da = self.get_data(rcap_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')
@@ -374,6 +380,7 @@ class ValuationDMS(DataManagementSystem):
             mcpru_da = self.get_data(mcpru_key)
             mcprd_da = self.get_data(mcprd_key)
 
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')
@@ -414,6 +421,8 @@ class ValuationDMS(DataManagementSystem):
             rmd_mm = self.get_data(rmd_mm_key)
             rmu_pacc = self.get_data(rmu_pacc_key)
             rmd_pacc = self.get_data(rmd_pacc_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')

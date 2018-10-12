@@ -211,7 +211,7 @@ def ineq_power_limit(m):
 
 
 def ineq_charge_limit(m):
-    """Limits the energy charged at each timestep to the device maximum."""
+    """Probably deprecated. Limits the energy charged at each timestep to the device maximum."""
     mp = m.parent_block()
 
     def _ineq_charge_limit(_m, t):
@@ -221,7 +221,7 @@ def ineq_charge_limit(m):
 
 
 def ineq_discharge_limit(m):
-    """Limits the energy discharged at each timestep to the device maximum."""
+    """Probably deprecated. Limits the energy discharged at each timestep to the device maximum."""
     mp = m.parent_block()
 
     def _ineq_discharge_limit(_m, t):
@@ -608,7 +608,7 @@ def eq_stateofcharge_initial(m):
         if not t == 0:
             return Constraint.Skip
         else:
-            return mp.s[t] == mp.State_of_charge_init
+            return mp.s[t] == mp.State_of_charge_init*mp.Energy_capacity
 
     m.stateofcharge_initial = Constraint(mp.soc_time, rule=_eq_stateofcharge_initial)
 
@@ -620,7 +620,7 @@ def eq_stateofcharge_final(m):
         if not t == mp.soc_time[-1]:
             return Constraint.Skip
         else:
-            return mp.s[t] == mp.State_of_charge_init
+            return mp.s[t] == mp.State_of_charge_init*mp.Energy_capacity
         
     m.stateofcharge_final = Constraint(mp.soc_time, rule=_eq_stateofcharge_final)
 
@@ -719,7 +719,7 @@ def ineq_power_limit_twoprod(m):
 
 
 def ineq_charge_limit_pfp(m):
-    """Limits the energy charged at each timestep to the device maximum."""
+    """Probably deprecated. Limits the energy charged at each timestep to the device maximum."""
     mp = m.parent_block()
 
     def _ineq_charge_limit_pfp(_m, t):
@@ -729,7 +729,7 @@ def ineq_charge_limit_pfp(m):
 
 
 def ineq_discharge_limit_pfp(m):
-    """Limits the energy discharged at each timestep to the device maximum."""
+    """Probably deprecated. Limits the energy discharged at each timestep to the device maximum."""
     mp = m.parent_block()
 
     def _ineq_discharge_limit_pfp(_m, t):
