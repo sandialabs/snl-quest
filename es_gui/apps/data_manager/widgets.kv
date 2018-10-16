@@ -7,6 +7,8 @@
 #:set pjm_data_start_year 2009
 #:set miso_data_start_year 2015
 #:set nyiso_data_start_year 2013
+#:set spp_data_start_year 2014
+#:set caiso_data_start_year 2015
 #:set its_current_year datetime.datetime.now().year
 
 <DataManagerTitle@TitleTextBase>:
@@ -509,6 +511,7 @@
 
 
 ########################################################################################################################
+########################################################################################################################
 
 <DataManagerPanelNYISO>:
     month_start: month_start
@@ -590,7 +593,7 @@
                         id: year_end
                         size_hint_x: 0.35
                         text: 'Year'
-                        values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+                        values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)]
                 
                 BoxLayout:
                     orientation: 'horizontal'
@@ -635,6 +638,348 @@
                         DataManagerTabContentBodyText:
                             text: 'Generators'
                             size_hint_x: 0.95
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                TileButton:
+                    id: execute_download_button
+                    size_hint_x: 0.15
+                    background_color: C(hex_primary)
+                    text: 'Download'
+                    on_release: root.execute_download()
+
+########################################################################################################################
+########################################################################################################################
+
+<DataManagerPanelSPP>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_location: chkbx_location
+    chkbx_bus: chkbx_bus
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        DataManagerTabContentTitle:
+            text: 'SPP'
+
+        GridLayout:
+            cols: 2
+            spacing: 150
+            padding: (150, 0)
+            size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerTabContentSubtitle:
+                    text: 'Range of months'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerTabContentBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(spp_data_start_year, its_current_year+1)]
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerTabContentBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(spp_data_start_year, its_current_year+1)]
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerTabContentSubtitle:
+                    text: 'Types of nodes'
+
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_location
+                            attr_name: 'location'
+
+                        DataManagerTabContentBodyText:
+                            text: 'Location'
+                            size_hint_x: 0.95
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_bus
+                            attr_name: 'bus'
+
+                        DataManagerTabContentBodyText:
+                            text: 'Bus'
+                            size_hint_x: 0.95
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                TileButton:
+                    id: execute_download_button
+                    size_hint_x: 0.15
+                    background_color: C(hex_primary)
+                    text: 'Download'
+                    on_release: root.execute_download()
+
+########################################################################################################################
+########################################################################################################################
+
+<DataManagerPanelCAISO>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    node_id_txtinput: node_id_txtinput
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_th: chkbx_th
+    chkbx_asp: chkbx_asp
+
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        DataManagerTabContentTitle:
+            text: 'CAISO'
+
+        GridLayout:
+            cols: 2
+            size_hint_y: 0.6
+            spacing: 150
+            padding: (150, 0)
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerTabContentSubtitle:
+                    text: 'Range of months'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerTabContentBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(caiso_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerTabContentBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(caiso_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+
+                BoxLayout:
+                    size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerTabContentSubtitle:
+                    text: 'Pricing node ID and/or types of nodes'
+
+                TextInput:
+                    id: node_id_txtinput
+                    size_hint_y: 0.15
+                    size_hint_x: 0.5
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'Node ID'
+                    input_filter: 'int'
+
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_th
+                            attr_name: 'TH'
+
+                        DataManagerTabContentBodyText:
+                            text: 'Total Hubs'
+                            size_hint_x: 0.95
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerTabCheckbox:
+                            id: chkbx_asp
+                            attr_name: 'ASP'
+
+                        DataManagerTabContentBodyText:
+                            text: 'ASP'
+                            size_hint_x: 0.95
+
 
         AnchorLayout:
             anchor_x: 'right'
@@ -920,6 +1265,16 @@
         text: 'NYISO'
 
         DataManagerPanelNYISO:
+
+    TabbedPanelItem:
+        text: 'SPP'
+
+        DataManagerPanelSPP:
+
+    TabbedPanelItem:
+        text: 'CAISO'
+
+        DataManagerPanelCAISO:
 
     TabbedPanelItem:
         text: 'PJM'

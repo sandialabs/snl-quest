@@ -97,8 +97,8 @@ class ReportScreen(Screen):
     activities['miso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
     activities['isone_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
     activities['nyiso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
-    activities['spp_arbreg'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
-    activities['caiso_arbreg'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
+    activities['spp_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
+    activities['caiso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
 
     # lookup table for actions that constitute regulation services for each model formulation
     regulation_def = dict()
@@ -497,7 +497,7 @@ class GenerateReportMenu(ModalView):
             template = env.get_template('valuation_report_PJM.html')
             fname = os.path.join(output_dir, 'QuESt_valuation_report_PJM.html')
 
-        elif ISO == "ISO-NE":
+        elif ISO == "ISONE":
             template = env.get_template('valuation_report_ISONE.html')
             fname = os.path.join(output_dir, 'QuESt_valuation_report_ISONE.html')
         #########################################################################################

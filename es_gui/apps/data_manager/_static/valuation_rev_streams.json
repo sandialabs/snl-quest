@@ -29,14 +29,14 @@
    "desc": ""
   }
  },
- "ISO-NE": {
+ "ISONE": {
   "Arbitrage": {
    "market type": "arbitrage",
    "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
   },
   "Arbitrage and regulation": {
    "market type": "isone_pfp",
-   "desc": ""
+   "desc": "TBW"
   }
  },
  "NYISO": {

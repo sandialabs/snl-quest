@@ -77,7 +77,7 @@ class ValuationOptimizerHandler:
                     op.price_electricity = lmp_da
                     # op.price_reg_service = regMCP
                     op.price_regulation = regMCP
-                elif iso == 'ISO-NE':
+                elif iso == 'ISONE':
                     daLMP, RegCCP, RegPCP = dms.get_isone_data(year, month, node_id)
 
                     op.price_electricity = daLMP

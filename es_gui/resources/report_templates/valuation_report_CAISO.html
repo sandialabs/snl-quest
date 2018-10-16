@@ -10,9 +10,9 @@
 
 
 
-<!-- ERCOT -->
+<!-- CAISO -->
 \begin{align}
-\max_{q^\text{d},q^\text{r},q^\text{ru},q^\text{rd}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + \lambda_i^\text{c,ru} q_i^\text{ru} + \lambda_i^\text{c,rd} q_i^\text{rd} + \lambda_i \delta_i^\text{ru} q_i^\text{ru} - \lambda_i \delta_i^\text{rd} q_i^\text{rd} \big) e^{-Ri}
+\max_{q^\text{d},q^\text{r},q^\text{ru},q^\text{rd}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + \lambda_i^\text{c,ru} q_i^\text{ru} + \lambda_i^\text{c,rd} q_i^\text{rd} + \lambda_i \delta_i^\text{ru} q_i^\text{ru} - \lambda_i \delta_i^\text{rd} q_i^\text{rd} + \gamma_i^\text{ru}\beta_i^\text{ru}\lambda_i^\text{p,ru} + \gamma_i^\text{rd}\beta_i^\text{rd}\lambda_i^\text{p,rd} \big) e^{-Ri}
 \end{align}
 <br />
 subject to the following constraints
@@ -27,11 +27,11 @@ for all time periods \(i \in \mathcal{T} \). The total revenue can be calculated
 <br />
 \begin{align}
 r_\text{arb} & = \sum_{i \in \mathcal{T}} \lambda_i \big( q_i^\text{d} - q_i^\text{r} \big) \\
-r_\text{reg} & = \sum_{i \in \mathcal{T}} \lambda_i^\text{c,ru} q_i^\text{ru} + \lambda_i^\text{c,rd} q_i^\text{rd} + \lambda_i(\delta_i^\text{ru} q_i^\text{ru} - \delta_i^\text{rd} q_i^\text{rd})\\
+r_\text{reg} & = \sum_{i \in \mathcal{T}} \lambda_i^\text{c,ru} q_i^\text{ru} + \lambda_i^\text{c,rd} q_i^\text{rd} + \lambda_i(\delta_i^\text{ru} q_i^\text{ru} - \delta_i^\text{rd} q_i^\text{rd}) + \gamma_i^\text{ru}\beta_i^\text{ru}\lambda_i^\text{p,ru} + \gamma_i^\text{rd}\beta_i^\text{rd}\lambda_i^\text{p,rd}\\
 r & = r_\text{arb} + r_\text{reg}
 \end{align}
 <br />
-The data required to run this analysis in ERCOT are the day ahead LMP, reg up price, and the reg down price.
+The data required to run this analysis in CAISO are the day ahead LMP, mileage multiplier, reg up price, reg down price, reg mileage up price and reg mileage down price.
 <br />
 <br />
 NOTE: If the energy storage device is not participating in frequency regulation, \( q_i^\text{ru} \) and \( q_i^\text{rd} \) are equal to zero for all \( i \in \mathcal{T} \).
@@ -106,18 +106,48 @@ NOTE: If the energy storage device is not participating in frequency regulation,
     <td> % </td>
   </tr>
   <tr>
+    <td>\( \gamma_i^\text{ru} \) </td>
+    <td> Performance score for reg up from time period \(i\) to \(i+1\)</td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \gamma_i^\text{rd} \) </td>
+    <td> Performance score for reg down from time period \(i\) to \(i+1\)</td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \beta_i^\text{ru} \) </td>
+    <td> Mileage multiplier for reg up from time period \(i\) to \(i+1\) </td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \beta_i^\text{rd} \) </td>
+    <td> Mileage multiplier for reg down from time period \(i\) to \(i+1\) </td>
+    <td> -- </td>
+  </tr>
+  <tr>
     <td>\( \lambda_i \) </td>
     <td> Electricity price from time period \(i\) to \(i+1\)  </td> 
     <td> $/MWh </td>
   </tr>
   <tr>
     <td>\( \lambda_i^\text{c,ru} \) </td>
-    <td> Freq. regulation up price from time period \(i\) to \(i+1\) </td> 
+    <td> Freq. regulation up price from time period \(i\) to \(i+1\) </td>
     <td> $/MWh </td>
   </tr>
   <tr>
     <td>\( \lambda_i^\text{c,rd} \) </td>
-    <td> Freq. regulation down price from time period \(i\) to \(i+1\) </td> 
+    <td> Freq. regulation down price from time period \(i\) to \(i+1\) </td>
+    <td> $/MWh </td>
+  </tr>
+    <tr>
+    <td>\( \lambda_i^\text{p,ru} \) </td>
+    <td> Freq. regulation mileage (performance) up price from time period \(i\) to \(i+1\) </td>
+    <td> $/MWh </td>
+  </tr>
+  <tr>
+    <td>\( \lambda_i^\text{p,rd} \) </td>
+    <td> Freq. regulation mileage (performance) down price from time period \(i\) to \(i+1\) </td>
     <td> $/MWh </td>
   </tr>
 </table>

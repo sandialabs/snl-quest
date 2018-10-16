@@ -276,8 +276,8 @@ class ValuationDMS(DataManagementSystem):
 
         return lmp_da, RegMCP
 
-    # TODO: clean ISONE
-    def get_isone_data(self, year, month, nodeid):
+    # TODO: delete function below
+    def get_isone_data_old(self, year, month, nodeid):
         path = self.home_path + '/ISONE/'
 
         fnameLMP = "DA_node{0:s}_month{1:s}_year{2:s}.csv".format(nodeid, month, year)
@@ -334,6 +334,35 @@ class ValuationDMS(DataManagementSystem):
         finally:
             return daLMP, RegCCP, RegPCP
 
+    ####################################################################################################################
+
+    def get_isone_data(self, year, month, nodeid):
+        path = os.path.join(self.home_path, 'ISONE')
+
+        year = str(year)
+        month = str(month)
+
+        lmp_key = self.delimiter.join([path, year, month, nodeid, 'LMP'])
+        rccp_key = self.delimiter.join([path, year, month, 'RegCCP'])
+        rpcp_key = self.delimiter.join([path, year, month, 'RegPCP'])
+
+        try:
+            # attempt to access data if it is already loaded
+            lmp_da = self.get_data(lmp_key)
+            rccp = self.get_data(rccp_key)
+            rpcp = self.get_data(rpcp_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
+        except KeyError:
+            # load the data and add it to the DMS
+            logging.info('DMS: Data not yet in DMS, loading...')
+            lmp_da, rccp, rpcp = read_isone_data(path, year, month, nodeid)
+
+            self.add_data(lmp_da, lmp_key)
+            self.add_data(rccp, rccp_key)
+            self.add_data(rpcp, rpcp_key)
+
+        return lmp_da, rccp, rpcp
 
     ####################################################################################################################
 

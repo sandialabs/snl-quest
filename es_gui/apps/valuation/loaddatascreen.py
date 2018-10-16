@@ -121,11 +121,15 @@ class LoadDataScreen(Screen):
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_miso.png')
         elif self.iso_select.text=='ERCOT':
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_ercot.png')
-        elif self.iso_select.text=='ISO-NE':
+        elif self.iso_select.text=='ISONE':
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_isone.png')
         elif self.iso_select.text=='NYISO':
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_nyiso.png')
-        
+        elif self.iso_select.text=='CAISO':
+            self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_caiso.png')
+        elif self.iso_select.text=='SPP':
+            self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_spp.png')
+
         data_manager = App.get_running_app().data_manager
         node_data = [{'name': node[1],
                       'nodeid': node[0]} for node in data_manager.get_nodes(self.iso_select.text).items()]

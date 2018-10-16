@@ -191,7 +191,7 @@
       "default": 0.03
      }
     ],
-    "ISO-NE": [
+    "ISONE": [
      {
       "name": "self-discharge efficiency (%/h)",
       "attr name": "Self_discharge_efficiency",
@@ -313,5 +313,133 @@
       "attr name": "perf_score",
       "default": 0.95
      }
-      ]
+     ],
+     "SPP": [
+     {
+      "name": "self-discharge efficiency (%/h)",
+      "attr name": "Self_discharge_efficiency",
+      "max": 1,
+      "default": 100
+     },
+     {
+      "name": "round trip efficiency (%)",
+      "attr name": "Round_trip_efficiency",
+      "max": 1,
+      "default": 85
+     },
+     {
+      "name": "energy capacity (MWh)",
+      "attr name": "Energy_capacity",
+      "default": 5
+     },
+     {
+      "name": "power rating (MW)",
+      "attr name": "Power_rating",
+      "default": 20
+     },
+     {
+        "name": "initial state of charge (%)",
+        "attr name": "State_of_charge_init",
+        "default": 0
+       },
+     {
+      "name": "% of capacity reserved for discharging",
+      "attr name": "Reserve_charge_min",
+      "default": 0
+     },
+     {
+      "name": "% of capacity reserved for charging",
+      "attr name": "Reserve_charge_max",
+      "default": 0
+     },
+     {
+      "name": "% of reg. bid reserved for discharging",
+      "attr name": "Reserve_reg_min",
+      "default": 0
+     },
+     {
+      "name": "% of reg. bid reserved for charging",
+      "attr name": "Reserve_reg_max",
+      "default": 0
+     },
+     {
+      "name": "frac. of reg. up capacity deployed",
+      "attr name": "fraction_reg_up",
+      "default": 0.25
+     },
+     {
+      "name": "frac. of reg. down capacity deployed",
+      "attr name": "fraction_reg_down",
+      "default": 0.25
+     }
+    ],
+      "CAISO": [
+     {
+      "name": "self-discharge efficiency (%/h)",
+      "attr name": "Self_discharge_efficiency",
+      "max": 1,
+      "default": 100
+     },
+     {
+      "name": "round trip efficiency (%)",
+      "attr name": "Round_trip_efficiency",
+      "max": 1,
+      "default": 85
+     },
+     {
+      "name": "energy capacity (MWh)",
+      "attr name": "Energy_capacity",
+      "default": 5
+     },
+     {
+      "name": "power rating (MW)",
+      "attr name": "Power_rating",
+      "default": 20
+     },
+     {
+        "name": "initial state of charge (%)",
+        "attr name": "State_of_charge_init",
+        "default": 0
+       },
+     {
+      "name": "% of capacity reserved for discharging",
+      "attr name": "Reserve_charge_min",
+      "default": 0
+     },
+     {
+      "name": "% of capacity reserved for charging",
+      "attr name": "Reserve_charge_max",
+      "default": 0
+     },
+     {
+      "name": "% of reg. bid reserved for discharging",
+      "attr name": "Reserve_reg_min",
+      "default": 0
+     },
+     {
+      "name": "% of reg. bid reserved for charging",
+      "attr name": "Reserve_reg_max",
+      "default": 0
+     },
+     {
+      "name": "frac. of reg. up capacity deployed",
+      "attr name": "fraction_reg_up",
+      "default": 0.25
+     },
+     {
+      "name": "frac. of reg. down capacity deployed",
+      "attr name": "fraction_reg_down",
+      "default": 0.25
+     },
+     {
+      "name": "performance score reg up",
+      "attr name": "perf_score_ru",
+      "default": 0.95
+     },
+     {
+      "name": "performance score reg down",
+      "attr name": "perf_score_rd",
+      "default": 0.95
+     }
+    ]
 }
