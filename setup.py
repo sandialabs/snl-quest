@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from distutils.core import Extension
 
 DISTNAME = 'QuESt'
-VERSION = '1.0'
+VERSION = '1.1'
 EXTENSIONS = []
 PYTHON_REQUIRES='>=36'
 DESCRIPTION = 'Sandia National Laboratories application for energy storage analysis and evaluation tools.'
