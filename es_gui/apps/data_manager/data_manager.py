@@ -65,10 +65,6 @@ class DataManager(EventDispatcher):
             if not dir_entry.name.startswith('.'):
                 market_names.append(dir_entry.name)
 
-        # market_names = ['NYISO'] # TODO: comment out, this is just for testing NYISO scan data functions
-
-        # threads = []
-
         self.n_threads_scanning = 1
 
         def _scan_data_bank():
@@ -279,32 +275,12 @@ class DataManager(EventDispatcher):
                         ercot_data_bank['CCP'][year].extend([str(x+1).zfill(2) for x in range(0, 12)])
         
         self.data_bank['ERCOT'] = ercot_data_bank
-
-########################################################################################################################
-
     def _scan_nyiso_data_bank(self):
         """Scans the NYISO data bank."""
         nyiso_root = os.path.join(self.data_bank_root, 'NYISO')
         nyiso_data_bank = {}
 
         # LBMP scan.
-        # nyiso_nodes = self.get_nodes('NYISO')
-
-        # LBMP_ASP = ['LBMP', 'ASP']
-
-        # for casedata in LBMP_ASP:
-        #     print('TBF')
-        #     nyiso_data_bank[casedata] = {}
-        #     if casedata == 'LBMP':
-        #         case_dir = os.path.join(nyiso_root, 'LBMP', 'DAM', 'gen')
-        #         caseloop_n = nyiso_nodes.keys()
-        #     elif casedata == 'ASP':
-        #         asp_dir = os.path.join(nyiso_root, 'ASP', 'DAM')
-        #         caseloop_n = 'n/a'
-        #
-        #     for node in nyiso_nodes.keys():
-        #         nyiso_data_bank['LBMP'][node] = {}
-
         if 'LBMP' in os.listdir(nyiso_root):
             nyiso_data_bank['LBMP'] = {}
 
@@ -334,8 +310,7 @@ class DataManager(EventDispatcher):
 
                                 # Get the number of days in the month and compare it to number of files in dir.
                                 _, n_days_month = calendar.monthrange(int(year), int(month))
-                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if
-                                               not dir_entry.name.startswith('.')])
+                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if not dir_entry.name.startswith('.')])
 
                                 # Only add the month if it has a full set of data.
                                 if n_files == n_days_month:
@@ -344,7 +319,7 @@ class DataManager(EventDispatcher):
                 for node_id in df_gen_nodes['Node ID']:
                     tmp_dir = copy.deepcopy(nyiso_lbmp_gen_dir_struct)
                     nyiso_data_bank['LBMP'][node_id] = tmp_dir
-
+            
             # Zone nodes scan.
             lbmp_dir = os.path.join(nyiso_root, 'LBMP', 'DAM', 'zone')
 
@@ -364,8 +339,7 @@ class DataManager(EventDispatcher):
 
                                 # Get the number of days in the month and compare it to number of files in dir.
                                 _, n_days_month = calendar.monthrange(int(year), int(month))
-                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if
-                                               not dir_entry.name.startswith('.')])
+                                n_files = len([dir_entry for dir_entry in os.scandir(month_dir) if not dir_entry.name.startswith('.')])
 
                                 # Only add the month if it has a full set of data.
                                 if n_files == n_days_month:
@@ -402,9 +376,6 @@ class DataManager(EventDispatcher):
                                 nyiso_data_bank['ASP'][year].append(month)
 
         self.data_bank['NYISO'] = nyiso_data_bank
-
-
-    ########################################################################################################################
 
     def _scan_isone_data_bank(self):
         """Scans the ISONE data bank."""
@@ -459,8 +430,6 @@ class DataManager(EventDispatcher):
                             isone_data_bank['RCP'][year].append(month)
 
         self.data_bank['ISONE'] = isone_data_bank
-
-    ########################################################################################################################
 
     def _scan_spp_data_bank(self):
         """Scans the SPP data bank."""
@@ -566,9 +535,6 @@ class DataManager(EventDispatcher):
                                 spp_data_bank['MCP'][year].append(month)
 
         self.data_bank['SPP'] = spp_data_bank
-
-    ########################################################################################################################
-
     def _scan_caiso_data_bank(self):
         """Scans the CAISO data bank."""
         caiso_root = os.path.join(self.data_bank_root, 'CAISO')
@@ -642,10 +608,7 @@ class DataManager(EventDispatcher):
                             caiso_data_bank['MILEAGE'][year].append(month)
 
         self.data_bank['CAISO'] = caiso_data_bank
-
-
-    ########################################################################################################################
-
+    
     def get_nodes(self, market_area):
         """Retrieves all available pricing nodes for the given market_area."""
         if market_area == 'ERCOT':
@@ -658,55 +621,49 @@ class DataManager(EventDispatcher):
             # Reads static node ID list.
             static_pjm_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_pjm.csv')
             node_df = pd.read_csv(static_pjm_node_list)
-            node_dict = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
+            node_mapping = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
             # Reads keys of PJM LMP data bank.
             node_id_list = self.data_bank['PJM']['LMP'].keys()
-            node_dict = {node_id: node_dict.get(node_id, node_id) for node_id in node_id_list}
+            node_dict = {node_id: node_mapping.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'MISO':
             # Reads static node ID list.
             static_miso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_miso.csv')
 
             node_df = pd.read_csv(static_miso_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
-        ################################################################################################################
         elif market_area == 'NYISO':
             # Reads static node ID list.
             static_nyiso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_nyiso.csv')
-
             node_df = pd.read_csv(static_nyiso_node_list)
-            node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
-        ################################################################################################################
+            node_mapping = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
+
+            # Reads keys of NYISO LBMP data bank.
+            node_id_list = self.data_bank['NYISO']['LBMP'].keys()
+            node_dict = {node_id: node_mapping.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'ISONE':
             # Reads static node ID list.
             static_isone_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_isone.csv')
             node_df = pd.read_csv(static_isone_node_list, encoding="cp1252")
-
-            # node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
             node_dict = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
             # Reads keys of PJM LMP data bank.
             node_id_list = self.data_bank['ISONE']['LMP'].keys()
             node_dict = {node_id: node_dict.get(node_id, node_id) for node_id in node_id_list}
-
-        ################################################################################################################
         elif market_area == 'SPP':
             # Reads static node ID list.
             static_spp_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_spp.csv')
 
             node_df = pd.read_csv(static_spp_node_list)
             node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
-        ################################################################################################################
         elif market_area == 'CAISO':
             # Reads static node ID list.
             static_caiso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_caiso.csv')
             node_df = pd.read_csv(static_caiso_node_list)
 
-            # node_dict = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
             node_id_list = self.data_bank['CAISO']['LMP'].keys()
             node_dict = {node_x: node_x for node_x in node_id_list}
-        ################################################################################################################
         # Use the PJM pattern of reading data_bank node keys to generate the node_dict (key = value) if no CSV LUT exists.
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
@@ -899,7 +856,6 @@ class DataManager(EventDispatcher):
                         hist_data_options[year] = sorted(months_common)
             else:
                 hist_data_options = lmp_data
-        ################################################################################################################
         elif market_area == 'NYISO':
             nyiso_data_bank = self.data_bank['NYISO']
 
@@ -919,7 +875,6 @@ class DataManager(EventDispatcher):
                         hist_data_options[year] = sorted(months_common)
             else:
                 hist_data_options = lbmp_data
-
         elif market_area == 'ISONE':
             isone_data_bank = self.data_bank['ISONE']
 
@@ -939,7 +894,6 @@ class DataManager(EventDispatcher):
                         hist_data_options[year] = sorted(months_common)
             else:
                 hist_data_options = lmp_data
-
         elif market_area == 'SPP':
             spp_data_bank = self.data_bank['SPP']
 
@@ -979,7 +933,6 @@ class DataManager(EventDispatcher):
 
                     if months_common:
                         hist_data_options[year] = sorted(months_common)
-        ################################################################################################################
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
         

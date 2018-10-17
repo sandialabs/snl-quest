@@ -1163,6 +1163,7 @@ class DataManagerPanelMISO(BoxLayout):
 class DataManagerPanelNYISO(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    stop_download = BooleanProperty(False)
 
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
@@ -1171,12 +1172,23 @@ class DataManagerPanelNYISO(BoxLayout):
                 logging.warning \
                     ('NYISOdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'), 0)
+            elif self.stop_download:
+                logging.info('NYISOdownloader: Download process canceled in progress.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download process canceled in progress.'), 0)
             else:
                 logging.info('NYISOdownloader: All requested data finished downloading.')
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
 
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.stop_download = False
+    
+    def on_stop_download(self, instance, value):
+        pass
+        # if not value:
+        #     logging.warning('NYISOdownloader: Download cancellation requested...')
+        #     Clock.schedule_once(partial(self.update_output_log, 'Download cancellation requested...'), 0)
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -1263,6 +1275,7 @@ class DataManagerPanelNYISO(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -1294,6 +1307,11 @@ class DataManagerPanelNYISO(BoxLayout):
                                                              'RT_DAM': 'DAM'})
 
                 thread_downloader.start()
+
+    def cancel_download(self):
+        """Sets flag to signal to download threads to end their processes.
+        """
+        self.stop_download = True
 
     def _download_NYISO_data(self, datetime_start, datetime_end=None, typedat="both", RT_DAM="both", zone_gen="both",
                             path='data', ssl_verify=True, proxy_settings=None):
@@ -1425,6 +1443,10 @@ class DataManagerPanelNYISO(BoxLayout):
             date_str = date.strftime('%Y%m')
 
             for sx, dam_or_rt_nam_x in enumerate(dam_or_rt_nam):
+                if self.stop_download:
+                    # Abort download and terminate thread.
+                    self.n_active_threads -= 1
+                    return
 
                 # Data download call.
                 # datadownload_url = url_NYISO + dam_or_rt_nam_x + "/" + date_str + "01" + dam_or_rt_nam_x + zone_or_gen_nam[sx] + "_csv.zip"
@@ -1444,7 +1466,7 @@ class DataManagerPanelNYISO(BoxLayout):
                         wx = wx + 1
                         if wx >= MAX_WHILE_ATTEMPTS:
                             logging.warning('NYISOdownloader: {0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx]))
-                            Clock.schedule_once(partial(self.update_output_log, '{0} {1}: Hit download retry limit'.format(date_str, lbmp_or_asp_folder[sx])), 0)
+                            Clock.schedule_once(partial(self.update_output_log, '{0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx])), 0)
                             trydownloaddate = False
                             break
                         try:
@@ -1508,7 +1530,7 @@ class DataManagerPanelNYISO(BoxLayout):
                     logging.info('NYISOdownloader: {0}: {1} file already exists, skipping...'.format(date_str,
                                                                                                      lbmp_or_asp_folder[
                                                                                                          sx]))
-                    self.update_output_log('{0}: {1} file already exists, skipping...'.format(date_str, lbmp_or_asp_folder[sx]))
+                    #self.update_output_log('{0}: {1} file already exists, skipping...'.format(date_str, lbmp_or_asp_folder[sx]))
 
                 self.progress_bar.value +=1
 

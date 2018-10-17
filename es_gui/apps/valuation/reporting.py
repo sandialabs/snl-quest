@@ -439,13 +439,13 @@ class GenerateReportMenu(ModalView):
 
         chartSaveLocation = os.path.join(chart_dir, 'chart_{n}.png'.format(n=screen.name))
 
-        Clock.schedule_once(partial(screen.chart.export_to_png, chartSaveLocation), 0.5)
+        Clock.schedule_once(partial(screen.chart.export_to_png, chartSaveLocation), 0.7)
 
         # Save image name/path for report generator.
         self.graphicsLocations[screen.name] = os.path.join('images', 'chart_{n}.png'.format(n=screen.name))
 
     def generate_report_screens(self):
-        screenFlipInterval = 0.6
+        screenFlipInterval = 0.8
         nCharts = len(self.host_report.chart_types.items())
 
         # Draw figures for saving to .png.
