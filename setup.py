@@ -5,7 +5,7 @@ DISTNAME = 'QuESt'
 VERSION = '1.1'
 EXTENSIONS = []
 PYTHON_REQUIRES='>=36'
-DESCRIPTION = 'Sandia National Laboratories application for energy storage analysis and evaluation tools.'
+DESCRIPTION = 'Sandia National Laboratories application suite for energy storage analysis and evaluation tools.'
 LONG_DESCRIPTION = open('README.md').read()
 AUTHOR = 'Sandia National Laboratories'
 MAINTAINER_EMAIL = 'rconcep@sandia.gov'
@@ -15,9 +15,9 @@ URL = 'https://www.github.com/rconcep/snl-quest'
 setuptools_kwargs = {
     'scripts': [],
     'include_package_data': True,
-    'install_requires' : ['numpy', 'scipy', 'pandas',
-                          'pyomo', 'matplotlib',
-                          'kivy', 'kivy-garden',
+    'install_requires' : ['numpy', 'scipy', 'pandas>=0.23.4',
+                          'pyomo>=5.3', 'matplotlib',
+                          'kivy>=1.10.1', 'kivy-garden',
                           'xlrd', 'six',
                           'jinja2',
                           'bs4', 'requests', 'urllib3']

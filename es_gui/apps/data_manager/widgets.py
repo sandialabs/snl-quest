@@ -296,9 +296,6 @@ class DataManagerPanelISONE(BoxLayout):
         isone_acc_help_view.open()
 
     def on_n_active_threads(self, instance, value):
-        # Update progress bar.
-        # self.progress_bar.value = self.progress_bar.max - value
-
         # Check if all threads have finished executing.
         if value == 0:
             if self.thread_failed:
@@ -369,11 +366,6 @@ class DataManagerPanelISONE(BoxLayout):
         elif node_id:
             nodes_selected.append(node_id)
             total_nodes += 1
-        # # Check if a node ID has been specified
-        # node_id = self.node_id.text
-        #
-        # if not node_id:
-        #     raise (InputError('Please enter a node ID.'))
         
         return acc_user, acc_pw, datetime_start, datetime_end, nodes_selected, total_nodes
 
@@ -416,45 +408,18 @@ class DataManagerPanelISONE(BoxLayout):
             self.progress_bar.value = 0
             self.progress_bar.max = total_months*total_nodes + total_months
             self.output_log.text = ''
-            # print("I0 Progress bar: " + str(self.progress_bar.value))
 
             # Check connection settings.
             ssl_verify, proxy_settings = check_connection_settings()
 
-            # Spawn a new thread for each download_NYISO_data call.
+            # Spawn a new thread for each download_ISONE_data call.
             for batch in job_batches:
                 thread_downloader = threading.Thread(target=self._download_ISONE_data, args=(acc_user, acc_pw, batch[0], batch[-1]),
                                                      kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'nodes':nodes_selected})
 
                 thread_downloader.start()
 
-
-
-            # # Compute the range of months to iterate over.
-            # daterange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            # daterange.union([daterange[-1] + 1])
-            #
-            # self.n_active_threads = len(daterange)
-            #
-            # # (Re)set the progress bar and output log.
-            # self.progress_bar.value = 0
-            # self.progress_bar.max = len(daterange)
-            # self.output_log.text = ''
-            #
-            # # Spawn a new thread for each download call.
-            # for date in daterange:
-            #     # thread_downloader = threading.Thread(target=self._download_ISONE_data, args=(acc_user, acc_pw, node_id, date.year, date.month,), kwargs={'ssl_verify': False})
-            #     thread_downloader = threading.Thread(target=self._download_ISONE_data,
-            #                                          args=(acc_user, acc_pw, date.year, date.month,),
-            #                                          kwargs={'ssl_verify': False})
-            #     thread_downloader.start()
-            #
-            #     # thread_downloader = threading.Thread(target=self._download_ISONE_RCP, args=(acc_user, acc_pw, date.year, date.month,), kwargs={'ssl_verify': False})
-            #     # thread_downloader.start()
-
-########################################################################################################################
-
-    def _download_ISONE_data(self, username, password, datetime_start, datetime_end=None, nodes=[], typedat="all",path='data/', ssl_verify=True, proxy_settings={}):
+    def _download_ISONE_data(self, username, password, datetime_start, datetime_end=None, nodes=[], typedat="all", path='data/', ssl_verify=True, proxy_settings={}):
         """Downloads a month's worth of ISO-NE day ahead LMP and RCP data.
 
         :param username: ISO-NE ISO Express username
@@ -472,9 +437,6 @@ class DataManagerPanelISONE(BoxLayout):
         :param ssl_verify: if SSL verification should be done, defaults to True
         :param ssl_verify: bool, optional
         """
-        # print("I1 Progress bar: " + str(self.progress_bar.value))
-
-        print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
         if not datetime_end:
             datetime_end = datetime_start
 
@@ -494,7 +456,6 @@ class DataManagerPanelISONE(BoxLayout):
                 else:
                     nodelist.append(node_x)
 
-        # node = nodes
         # Compute the range of months to iterate over.
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
         monthrange.union([monthrange[-1] + 1])
@@ -534,17 +495,12 @@ class DataManagerPanelISONE(BoxLayout):
                     if isinstance(node_x, int):
                         nodex = str(node_x)
 
-                    # nodex = node
-                    # if case_dwn_x == 'rcp':
-                    #     nodex = ''
-
                     destination_dir = os.path.join(path, 'ISONE', folderdata[sx], nodex, date.strftime('%Y'))
                     destination_file = os.path.join(destination_dir,
                                                     ''.join([date.strftime('%Y%m'), lmp_or_rcp_nam[sx], nodex, ".csv"]))
 
                     date_Ym_str = date.strftime('%Y%m')
                     if not os.path.exists(destination_file):
-
                         data_down_month = []
                         dwn_ok = True
                         for day in range(1, n_days_month + 1):
@@ -556,20 +512,19 @@ class DataManagerPanelISONE(BoxLayout):
                                      '.json'])
                             elif case_dwn_x == 'rcp':
                                 datadownload_url = ''.join([url_ISONE, '/hourlyrcp/final/day/', date_str, '.json'])
-                            print(datadownload_url)
+                            # print(datadownload_url)
 
                             trydownloaddate = True
                             wx = 0
 
                             if not dwn_ok:
-                                print("Month download failed")
+                                logging.error('ISONEdownloader: {0}: Month download failed.'.format(date_Ym_str))
                                 break
                             while trydownloaddate:
                                 wx = wx + 1
                                 if wx >= MAX_WHILE_ATTEMPTS:
-                                    print("Hit wx limit")
                                     logging.warning(
-                                        'NYISOdownloader: {0} {1}: Hit download retry limit.'.format(date_Ym_str, case_dwn[sx]))
+                                        'ISONEdownloader: {0} {1}: Hit download retry limit.'.format(date_Ym_str, case_dwn[sx]))
                                     Clock.schedule_once(partial(self.update_output_log,
                                                                 '{0} {1}: Hit download retry limit'.format(date_Ym_str, case_dwn[sx])), 0)
                                     dwn_ok = False
@@ -581,10 +536,8 @@ class DataManagerPanelISONE(BoxLayout):
                                         http_request = req.get(datadownload_url, auth=(username, password),
                                                                proxies=proxy_settings, timeout=6, verify=ssl_verify,
                                                                stream=True)
-
                                         if http_request.status_code == requests.codes.ok:
                                             trydownloaddate = False
-                                            # self.thread_failed = False
                                         else:
                                             http_request.raise_for_status()
 
@@ -596,8 +549,8 @@ class DataManagerPanelISONE(BoxLayout):
                                         self.thread_failed = True
                                 except requests.exceptions.ProxyError:
                                     logging.error('ISONEdownloader: {0}: Could not connect to proxy.'.format(date_str))
-                                    Clock.schedule_once(
-                                        partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
+                                    # Clock.schedule_once(
+                                    #     partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
                                     if wx >= (MAX_WHILE_ATTEMPTS - 1):
                                         self.thread_failed = True
                                 except requests.ConnectionError as e:
@@ -610,8 +563,8 @@ class DataManagerPanelISONE(BoxLayout):
                                 except requests.Timeout as e:
                                     trydownloaddate = True
                                     logging.error('ISONEdownloader: {0}: The connection timed out.'.format(date_str))
-                                    Clock.schedule_once(
-                                        partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
+                                    # Clock.schedule_once(
+                                    #     partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
                                     self.thread_failed = True
                                 except requests.RequestException as e:
                                     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
@@ -628,16 +581,28 @@ class DataManagerPanelISONE(BoxLayout):
                                 else:
                                     data_down = []
                                     if case_dwn_x == 'lmp':
-                                        data_down = http_request.json()['HourlyLmps']['HourlyLmp']
-                                        # df_data = pd.DataFrame.from_records(data_down)
+                                        try:
+                                            data_down = http_request.json()['HourlyLmps']['HourlyLmp']
+                                        except TypeError:
+                                            logging.error('ISONEdownloader: {0} {1}: No data returned.'.format(date_str, case_dwn_x))
+                                            Clock.schedule_once(partial(self.update_output_log, '{0}: No data returned.'.format(date_str)), 0)
+                                            
+                                            # self.thread_failed = True
+                                            dwn_ok = False
+                                            break
                                     elif case_dwn_x == 'rcp':
-                                        data_down = http_request.json()['HourlyRcps']['HourlyRcp']
-                                        # df_data = pd.DataFrame.from_records(data_down)
+                                        try:
+                                            data_down = http_request.json()['HourlyRcps']['HourlyRcp']
+                                        except TypeError:
+                                            logging.error('ISONEdownloader: {0} {1}: No data returned.'.format(date_str, case_dwn_x))
+                                            Clock.schedule_once(partial(self.update_output_log, '{0}: No data returned.'.format(date_str)), 0)
+                                            
+                                            # self.thread_failed = True
+                                            dwn_ok = False
+                                            break
                                     data_down_month += data_down
 
                         if dwn_ok:
-                            self.progress_bar.value += 1
-                            print("Successful ISONE data download")
                             df_data = pd.DataFrame.from_records(data_down_month)
                             if case_dwn_x == 'lmp':
                                 df_data.drop(['Location'], inplace=True, axis=1)
@@ -651,12 +616,10 @@ class DataManagerPanelISONE(BoxLayout):
 
                     else:
                         # Skip downloading the file if it already exists where expected.
-                        self.progress_bar.value += 1
                         logging.info('ISONEdownloader: {0}: {1} file already exists, skipping...'.format(date_Ym_str, case_dwn[sx]))
-                        print('ISONEdownloader: {0}: {1} file already exists, skipping...'.format(date_Ym_str, case_dwn[sx]))
+                    
+                    self.progress_bar.value += 1
 
-                    # print("I2 Progress bar: " + str(self.progress_bar.value))
-                # self.progress_bar.value += 1
         self.n_active_threads -= 1
 
     ########################################################################################################################
@@ -1018,11 +981,6 @@ class DataManagerPanelMISO(BoxLayout):
                 args=(batch[0], batch[-1]),
                 kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings})
                 thread_downloader.start()
-
-            # # Spawn a new thread for each download call.
-            # for date in monthrange:
-            #     thread_downloader = threading.Thread(target=self._download_MISO_data, args=(date.year, date.month), kwargs={'ssl_verify': False})
-            #     thread_downloader.start()
     
     def _download_MISO_data(self, datetime_start, datetime_end=None, path='data', ssl_verify=True, proxy_settings=None):
         """Downloads a range of monthly MISO day ahead LMP and MCP data.
@@ -1065,7 +1023,6 @@ class DataManagerPanelMISO(BoxLayout):
                 if os.path.exists(destination_file):
                     # Skip downloading the daily file if it already exists where expected.
                     logging.info('MISOdownloader: {0}: LMP file already exists, skipping...'.format(date_str))
-                    #self.update_output_log('{0}: LMP file already exists, skipping...'.format(date_str))
                 else:
                     try:
                         with requests.Session() as s:
@@ -1112,7 +1069,6 @@ class DataManagerPanelMISO(BoxLayout):
                 if os.path.exists(destination_file):
                     # Skip downloading the daily file if it already exists where expected.
                     logging.info('MISOdownloader: {0}: MCP file already exists, skipping...'.format(date_str))
-                    #self.update_output_log('{0}: MCP file already exists, skipping...'.format(date_str))
                 else:
                     try:
                         with requests.Session() as s:
@@ -1157,8 +1113,6 @@ class DataManagerPanelMISO(BoxLayout):
 
         self.n_active_threads -= 1
 
-
-########################################################################################################################
 
 class DataManagerPanelNYISO(BoxLayout):
     n_active_threads = NumericProperty(0)
@@ -1444,9 +1398,10 @@ class DataManagerPanelNYISO(BoxLayout):
                         wx = wx + 1
                         if wx >= MAX_WHILE_ATTEMPTS:
                             logging.warning('NYISOdownloader: {0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx]))
-                            Clock.schedule_once(partial(self.update_output_log, '{0} {1}: Hit download retry limit'.format(date_str, lbmp_or_asp_folder[sx])), 0)
+                            Clock.schedule_once(partial(self.update_output_log, '{0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx])), 0)
                             trydownloaddate = False
                             break
+                        
                         try:
                             with requests.Session() as req:
                                 http_request = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
@@ -1454,7 +1409,6 @@ class DataManagerPanelNYISO(BoxLayout):
 
                             if http_request.status_code == requests.codes.ok:
                                 trydownloaddate = False
-                                # self.thread_failed = False
                             else:
                                 http_request.raise_for_status()
                         except requests.HTTPError as e:
@@ -1465,17 +1419,17 @@ class DataManagerPanelNYISO(BoxLayout):
                                 self.thread_failed = True
                         except requests.exceptions.ProxyError:
                             logging.error('NYISOdownloader: {0}: Could not connect to proxy.'.format(date_str))
-                            Clock.schedule_once(
-                                partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
+                            # Clock.schedule_once(
+                            #     partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
                             if wx >= (MAX_WHILE_ATTEMPTS - 1):
                                 self.thread_failed = True
                         except requests.ConnectionError as e:
                             logging.error(
                                 'NYISOdownloader: {0}: Failed to establish a connection to the host server.'.format(
                                     date_str))
-                            Clock.schedule_once(partial(self.update_output_log,
-                                                        '{0}: Failed to establish a connection to the host server.'.format(
-                                                            date_str)), 0)
+                            # Clock.schedule_once(partial(self.update_output_log,
+                            #                             '{0}: Failed to establish a connection to the host server.'.format(
+                            #                                 date_str)), 0)
                             if wx >= (MAX_WHILE_ATTEMPTS - 1):
                                 self.thread_failed = True
                         except requests.Timeout as e:
@@ -1487,7 +1441,8 @@ class DataManagerPanelNYISO(BoxLayout):
                                 self.thread_failed = True
                         except requests.RequestException as e:
                             logging.error('NYISOdownloader: {0}: {1}'.format(date_str, repr(e)))
-                            # self.thread_failed = True
+                            if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                self.thread_failed = True
                         except Exception as e:
                             # Something else went wrong.
                             logging.error(
@@ -1502,7 +1457,6 @@ class DataManagerPanelNYISO(BoxLayout):
                             os.makedirs(destination_dir, exist_ok=True)
                             z = zipfile.ZipFile(io.BytesIO(http_request.content))
                             z.extractall(destination_dir)
-                            # print("Successful NYISO data download")
                 else:
                     # Skip downloading the daily file if it already exists where expected.
                     logging.info('NYISOdownloader: {0}: {1} file already exists, skipping...'.format(date_str,
@@ -1514,8 +1468,6 @@ class DataManagerPanelNYISO(BoxLayout):
 
         self.n_active_threads -= 1
 
-########################################################################################################################
-########################################################################################################################
 
 class DataManagerPanelSPP(BoxLayout):
     n_active_threads = NumericProperty(0)
@@ -1867,9 +1819,6 @@ class DataManagerPanelSPP(BoxLayout):
 
         self.n_active_threads -= 1
 
-
-########################################################################################################################
-########################################################################################################################
 
 class DataManagerPanelCAISO(BoxLayout):
     n_active_threads = NumericProperty(0)
@@ -2371,8 +2320,6 @@ class DataManagerPanelCAISO(BoxLayout):
             time.sleep(5.1)  # delays for 5.1 seconds
         return df_data, dwn_ok
 
-########################################################################################################################
-
 
 class DataManagerPanelPJM(BoxLayout):
     n_active_threads = NumericProperty(0)
@@ -2753,12 +2700,13 @@ class DataManagerPanelPJM(BoxLayout):
         self.n_active_threads -= 1
         
 
-
 class DataManagerTabCheckbox(CheckBox):
     node_type_name = StringProperty('')
 
+
 class DataManagerPJMSubKeyHelp(ModalView):
     pass
+
 
 class DataManagerISONEAccHelp(ModalView):
     pass
