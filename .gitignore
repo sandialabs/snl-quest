@@ -5,6 +5,8 @@
 **/*.ini
 **/*.p
 **/*.log
+**/*.pyomo.*
+**/*.glpk.*
 
 **/__pycache__/*
 

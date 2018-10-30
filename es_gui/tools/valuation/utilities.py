@@ -917,10 +917,10 @@ def read_spp_data(fpath, year, month, node, typedat="both"):
     else:
         nodetype = df_nodes_x.iloc[0,2]
         if nodetype == 'Location':
-            print('It is a Location node')
+            # print('It is a Location node')
             bus_loc = ["location", "SL"]
         elif nodetype == 'Bus':
-            print('It is a Bus node')
+            # print('It is a Bus node')
             bus_loc = ["bus", "B"]
 
     # TODO: figure out the reserve zone for each node, for SPP there are 5 reserve zones and there should be a correspondance with the nodes
@@ -966,7 +966,7 @@ def read_spp_data(fpath, year, month, node, typedat="both"):
                 logging.warning('read_spp_data: MCP file missing, returning empty arrays.')
                 break
 
-            print('Warning -reserve zone not figured out!!!')
+            # print('Warning -reserve zone not figured out!!!')
             daMCPRU_node_x = df_daMCP.loc[df_daMCP['Reserve Zone'] == ResZone, ['RegUP']]
             daMCPRD_node_x = df_daMCP.loc[df_daMCP['Reserve Zone'] == ResZone, ['RegDN']]
 
