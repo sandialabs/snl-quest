@@ -9,6 +9,7 @@ import logging
 import copy
 
 import pandas as pd
+from kivy.app import App
 from kivy.animation import Animation
 from kivy.event import EventDispatcher
 from kivy.properties import NumericProperty
@@ -68,26 +69,66 @@ class DataManager(EventDispatcher):
         self.n_threads_scanning = 1
 
         def _scan_data_bank():
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
+
             if 'ERCOT' in market_names:
                 self._scan_ercot_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
                 
             if 'PJM' in market_names:
                 self._scan_pjm_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
                 
             if 'MISO' in market_names:
                 self._scan_miso_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
 
             if 'NYISO' in market_names:
                 self._scan_nyiso_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
 
             if 'ISONE' in market_names:
                 self._scan_isone_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
 
             if 'SPP' in market_names:
                 self._scan_spp_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
 
             if 'CAISO' in market_names:
                 self._scan_caiso_data_bank()
+            
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
 
             self.n_threads_scanning -= 1
         
@@ -918,6 +959,7 @@ class DataManager(EventDispatcher):
             caiso_data_bank = self.data_bank['CAISO']
 
             lmp_data = caiso_data_bank['LMP'].get(node, {})
+            print(lmp_data)
 
             if rev_streams == 'Arbitrage and regulation':
                 # Ensure regulation and mileage data is downloaded for each month.
@@ -933,6 +975,8 @@ class DataManager(EventDispatcher):
 
                     if months_common:
                         hist_data_options[year] = sorted(months_common)
+            else:
+                hist_data_options = lmp_data
         else:
             raise(DataManagerException('Invalid market_area given (got {0})'.format(market_area)))
         

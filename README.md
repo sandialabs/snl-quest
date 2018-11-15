@@ -6,8 +6,9 @@ Current release version: 1.0
 ## Table of contents
 - [Introduction](#intro)
 - [Getting started](#getting-started)
-- [QuESt Data Manager](#quest-data-manager)
-- [QuESt Valuation](#quest-valuation)
+- [Frequently Asked Questions](#faq)
+    - [QuESt Data Manager](#faq-data-manager)
+    - [QuESt Valuation](#faq-valuation)
 
 ### What is it?
 <a id="intro"></a>
@@ -87,10 +88,29 @@ Alternatively, run ```main.py``` in a Python IDE of your choice.
 
 **NOTE: The current working directory must be where ``main.py`` is located (the root of the repository).**
 
-## QuESt Data Manager
-<a id="quest-data-manager"></a>
+## Frequently Asked Questions
+<a id="faq"></a>
 
-### Frequently Asked Questions
+### General
+
+> The appearance of GUI elements in QuESt do not appear correct/The window does not display properly/The window is too big for my display/I cannot click or interact with the UI properly.
+
+QuESt is designed to be displayed at minimum resolution of 1600x900.
+
+There are a number of possible reasons for display issues, but the most likely reason is due to operating system scaling. For example, Windows 10 has a feature that scales the appearance of display elements, usually to assist with higher resolution displays. For example, if scaling is set to 125% in Windows, this will scale the QuESt window to be too big for the display (on a 1920x1080 resolution display).
+
+Scaling may also have the effect of confusing Kivy of where a UI element is and where it is displayed; e.g., you may be clicking where a button appears to be, but the scaling causes Kivy to not "detect" that you are pressing the button.
+
+So far, this issue has been observed on a variety of laptops of both Windows and OSX varieties. Our suggestion is to disable OS level scaling or to connect to an external display and try to launch QuESt on it.
+
+> How do I update QuESt?
+
+If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts.
+
+If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not hae to download all the data again if you would like.
+
+### QuESt Data Manager
+<a id="faq-data-manager"></a>
 
 > I am connecting to the internet through a proxy, such as on a corporate network. How should I configure my connection settings?
 
@@ -108,18 +128,20 @@ QuESt expects data to be in a certain directory structure as structured by QuESt
 
 Refer to the instructions in QuESt Data Manager or see the API guide [here](http://www.pjm.com/markets-and-operations/etools/data-miner-2.aspx).
 
-<!-- > How do I obtain an ISO-NE ISO Express account?
+> How do I obtain an ISO-NE ISO Express account?
 
-Refer to the instructions in QuESt Data Manager or simply register an account at ISO-NE's [website](https://www.iso-ne.com/). Make sure to sign up for Data Feeds access. -->
+Refer to the instructions in QuESt Data Manager or simply register an account at ISO-NE's [website](https://www.iso-ne.com/). Make sure to sign up for Data Feeds access.
 
 > Why can't I download [data for which no option in QuESt Data Manager exists]?
 
 RTO/ISO/etc. provide a lot more varieties of data than what is shown in QuESt Data Manager. We are focused on acquiring data necessary for other QuESt applications to function. Additionally, acquiring data is not the fastest process. In order to improve the user experience, we decided to limit the amount of data that one can request at a time. For that reason, we have limited the number of pricing nodes for which data can be requested directly. (For reference, PJM has over 11,000 pricing nodes.) We can consider lifting some of these limitations if requested.
 
-## QuESt Valuation
-<a id="quest-valuation"></a>
+> I downloaded data for a previous month before the month was over. Now I can't complete the month's data set because it skips over it. What should I do?
 
-### Frequently Asked Questions
+QuESt Data Manager skips downloads if a file with the anticipated filename already exists. If you delete the specific file(s) in the `/data/` directory, it should try to download the data.
+
+### QuESt Valuation
+<a id="faq-valuation"></a>
 
 > I am getting import errors when trying to run QuESt.
 
@@ -132,16 +154,6 @@ These options are based on the data that you have downloaded through QuESt Data 
 > I'm getting solver errors/QuESt is crashing when building optimization models. How can I fix that?
 
 Our experience indicates that most crashes are due to data issues. For example, data for a month is missing unexpectedly, disallowing the model building process from completing. We make every effort to limit these incidents from happening, but it is difficult to perfectly predict the data that we need to design around. We will try to handle these exceptions as best we can as we learn more about the common situations.
-
-> The appearance of GUI elements in QuESt do not appear correct/The window does not display properly/The window is too big for my display/I cannot click or interact with the UI properly.
-
-QuESt is designed to be displayed at minimum resolution of 1600x900.
-
-There are a number of possible reasons for display issues, but the most likely reason is due to operating system scaling. For example, Windows 10 has a feature that scales the appearance of display elements, usually to assist with higher resolution displays. For example, if scaling is set to 125% in Windows, this will scale the QuESt window to be too big for the display (on a 1920x1080 resolution display).
-
-Scaling may also have the effect of confusing Kivy of where a UI element is and where it is displayed; e.g., you may be clicking where a button appears to be, but the scaling causes Kivy to not "detect" that you are pressing the button.
-
-So far, this issue has been observed on a variety of laptops of both Windows and OSX varieties. Our suggestion is to disable OS level scaling or to connect to an external display and try to launch QuESt on it.
 
 > An electricity market area I want to do analysis on isn't available. When will it be available?
 

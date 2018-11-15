@@ -427,7 +427,6 @@ class ValuationOptimizer(optimizer.Optimizer):
                 m.perf_score_rd[len(m.price_electricity) - 1]
             except TypeError:
                 m.perf_score_rd = np.array([m.perf_score_rd] * len(m.price_electricity))
-        ###############################################################################################################
 
         if self.market_type in {'miso_pfp'}:
             if not hasattr(m, 'Make_whole'):

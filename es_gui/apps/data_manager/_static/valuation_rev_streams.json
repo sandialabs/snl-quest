@@ -56,7 +56,7 @@
   },
   "Arbitrage and regulation": {
    "market type": "spp_pfp",
-   "desc": "TBW"
+   "desc": "In the SPP Integrated Marketplace, operating reserve products available include regulation up and regulation down services. Compensation for regulation capacity offered is available. A compensation model for mileage incurred also exists but not in the day-ahead market."
   }
  },
  "CAISO": {

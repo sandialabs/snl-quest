@@ -283,6 +283,11 @@ class DataManagerPanelERCOT(BoxLayout):
                 logging.info('ERCOTdownloader: {0} data successfully downloaded and extracted.'.format(year))
             finally:
                 self.progress_bar.value += 1
+
+                # Quit?
+                if App.get_running_app().root.stop.is_set():
+                    # Stop running this thread so the main Python process can exit.
+                    return
             
         self.n_active_threads -= 1
 
@@ -504,6 +509,11 @@ class DataManagerPanelISONE(BoxLayout):
                         data_down_month = []
                         dwn_ok = True
                         for day in range(1, n_days_month + 1):
+                            # Quit?
+                            if App.get_running_app().root.stop.is_set():
+                                # Stop running this thread so the main Python process can exit.
+                                return
+
                             # for day in [ x +1 for x in range(n_days_month)]:
                             date_str = date.strftime('%Y%m') + str(day).zfill(2)
                             if case_dwn_x == 'lmp':
@@ -620,9 +630,12 @@ class DataManagerPanelISONE(BoxLayout):
                     
                     self.progress_bar.value += 1
 
-        self.n_active_threads -= 1
+                    # Quit?
+                    if App.get_running_app().root.stop.is_set():
+                        # Stop running this thread so the main Python process can exit.
+                        return
 
-    ########################################################################################################################
+        self.n_active_threads -= 1
 
     # TODO: function below is the older ISO-NE downloader
     def _download_ISONE_data_old(self, username, password, node, year, month, path=os.path.join('data'), ssl_verify=True):
@@ -1012,6 +1025,11 @@ class DataManagerPanelMISO(BoxLayout):
             _, n_days_month = calendar.monthrange(year, month)
 
             for day in [x+1 for x in range(n_days_month)]:
+                # Quit?
+                if App.get_running_app().root.stop.is_set():
+                    # Stop running this thread so the main Python process can exit.
+                    return
+
                 date = dt.date(year, month, day)
                 date_str = date.strftime('%Y%m%d')
 
@@ -1395,6 +1413,11 @@ class DataManagerPanelNYISO(BoxLayout):
                     trydownloaddate = True
                     wx = 0
                     while trydownloaddate:
+                        # Quit?
+                        if App.get_running_app().root.stop.is_set():
+                            # Stop running this thread so the main Python process can exit.
+                            return
+
                         wx = wx + 1
                         if wx >= MAX_WHILE_ATTEMPTS:
                             logging.warning('NYISOdownloader: {0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx]))
@@ -1465,6 +1488,11 @@ class DataManagerPanelNYISO(BoxLayout):
                     self.update_output_log('{0}: {1} file already exists, skipping...'.format(date_str, lbmp_or_asp_folder[sx]))
 
                 self.progress_bar.value +=1
+
+                # Quit?
+                if App.get_running_app().root.stop.is_set():
+                    # Stop running this thread so the main Python process can exit.
+                    return
 
         self.n_active_threads -= 1
 
@@ -1630,7 +1658,7 @@ class DataManagerPanelSPP(BoxLayout):
 
         # Valid for SPP data starting on Jan 2014. SPP shares data starting May/June 2013 but it is completely disorganized in certain parts
 
-        print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
+        # print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
         if not datetime_end:
             datetime_end = datetime_start
 
@@ -1709,11 +1737,16 @@ class DataManagerPanelSPP(BoxLayout):
 
                     if not os.path.exists(destination_file):
 
-                        print(datadownload_url)
+                        # print(datadownload_url)
 
                         trydownloaddate = True
                         wx = 0
                         while trydownloaddate:
+                            # Quit?
+                            if App.get_running_app().root.stop.is_set():
+                                # Stop running this thread so the main Python process can exit.
+                                return
+
                             wx = wx + 1
                             if wx >= MAX_WHILE_ATTEMPTS:
                                 logging.warning('SPPdownloader: {0} {1}: Hit download retry limit.'.format(date_str, lmp_or_mpc_folder[sx]))
@@ -1740,8 +1773,8 @@ class DataManagerPanelSPP(BoxLayout):
                                         URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F{2:s}".format(date.year, date.month, foldercompl_da[1])
                                     datadownload_url = ''.join(
                                         [case_URL_x, bus_or_loc_folder[sx], URL_compl, name_file])
-                                    print(datadownload_url)
-                                    print('Try LMP again!!!')
+                                    # print(datadownload_url)
+                                    # print('Try LMP again!!!')
                                     with requests.Session() as req:
                                         http_request2 = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
                                                                 verify=ssl_verify, stream=True)
@@ -1807,15 +1840,20 @@ class DataManagerPanelSPP(BoxLayout):
                                 output_file = open(destination_file, 'w')
                                 output_file.write(urldata_str)
                                 output_file.close()
-                                print("Successful SPP data download")
+                                # print("Successful SPP data download")
 
 
                     else:
                         # Skip downloading the daily file if it already exists where expected.
                         logging.info('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
-                        print('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
+                        # print('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
 
                     self.progress_bar.value += 1
+
+                    # Quit?
+                    if App.get_running_app().root.stop.is_set():
+                        # Stop running this thread so the main Python process can exit.
+                        return
 
         self.n_active_threads -= 1
 
@@ -1887,12 +1925,6 @@ class DataManagerPanelCAISO(BoxLayout):
 
         if datetime_start > datetime_end:
             raise (InputError('Please specify a valid month range where the starting month precedes the ending month.'))
-
-        # # Check if a subscription key has been specified.
-        # sub_key = self.subscription_key.text
-        #
-        # if not sub_key:
-        #     raise (InputError('Please enter a subscription key.'))
 
         # Check if a node ID and/or node types have been specified.
         total_nodes = 0
@@ -1984,7 +2016,7 @@ class DataManagerPanelCAISO(BoxLayout):
         :param ssl_verify: bool, optional
         """
 
-        print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
+        # print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
         if not datetime_end:
             datetime_end = datetime_start
 
@@ -2003,7 +2035,7 @@ class DataManagerPanelCAISO(BoxLayout):
                     nodelist = nodelist + selnodelist
                 else:
                     nodelist.append(node_x)
-        print(nodelist)
+        # print(nodelist)
 
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
         monthrange.union([monthrange[-1] + 1])
@@ -2068,6 +2100,11 @@ class DataManagerPanelCAISO(BoxLayout):
                         if case_dwn[ixlp] == "asp":
                             dwn_ok = True
                             for dayx in range(n_days_month):
+                                # Quit?
+                                if App.get_running_app().root.stop.is_set():
+                                    # Stop running this thread so the main Python process can exit.
+                                    return
+
                                 log_identifier = '{date}, {pnode}, {dtype}'.format(date=date_str+str(dayx+1).zfill(2), dtype=case_dwn[ixlp], pnode=pnode_look)
                                 datetime_start_loop = dt.datetime(date.year, date.month, dayx + 1)
                                 date_start_loop = datetime_start_loop + GMT_PST_chunk
@@ -2097,6 +2134,10 @@ class DataManagerPanelCAISO(BoxLayout):
                                     break
 
                         else:
+                            # Quit?
+                            if App.get_running_app().root.stop.is_set():
+                                # Stop running this thread so the main Python process can exit.
+                                return
                             if date_start_x.month == 3:
                                 HTstart = 8
                                 HTend = 7
@@ -2187,7 +2228,7 @@ class DataManagerPanelCAISO(BoxLayout):
                             os.makedirs(destination_dir, exist_ok=True)
                             df_data.to_csv(destination_file, sep=',')
                     else:
-                        print('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
+                        # print('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
                         logging.info('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
                     
                     self.progress_bar.value += 1
@@ -2237,8 +2278,14 @@ class DataManagerPanelCAISO(BoxLayout):
         dwn_ok = False
         wx = 0
         while trydownloaddate:
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                trydownloaddate = False
+                break
+
             wx = wx + 1
-            print('try no. ' + str(wx) + "--" + log_identifier)
+            # print('try no. ' + str(wx) + "--" + log_identifier)
             if wx >= MAX_WHILE_ATTEMPTS:
                 print("Hit wx limit")
                 trydownloaddate = False
@@ -2252,7 +2299,7 @@ class DataManagerPanelCAISO(BoxLayout):
                                            verify=ssl_verify)
                     # Check the HTTP status code.
 
-                    print(http_request.status_code, http_request.reason)
+                    # print(http_request.status_code, http_request.reason)
                     if http_request.status_code == requests.codes.ok:
                         trydownloaddate = False
                         # self.thread_failed = False
@@ -2280,7 +2327,7 @@ class DataManagerPanelCAISO(BoxLayout):
                 if wx >= (MAX_WHILE_ATTEMPTS - 1):
                     self.thread_failed = True
             except (socket.timeout, requests.Timeout) as e:
-                print("Go in timeout exception")
+                # print("Go in timeout exception")
                 logging.error('CAISOdownloader: {0}: The connection timed out.'.format(log_identifier))
                 Clock.schedule_once(partial(self.update_output_log, '{0}: The connection timed out.'.format(log_identifier)), 0)
                 if wx >= (MAX_WHILE_ATTEMPTS - 1):
@@ -2290,7 +2337,7 @@ class DataManagerPanelCAISO(BoxLayout):
                 if wx >= (MAX_WHILE_ATTEMPTS - 1):
                     self.thread_failed = True
             except Exception as e:
-                print("Go in generic exception")
+                # print("Go in generic exception")
                 # Something else went wrong.
                 logging.error(
                     'CAISOdownloader: {0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e)))
@@ -2299,7 +2346,7 @@ class DataManagerPanelCAISO(BoxLayout):
                     self.thread_failed = True
 
             else:
-                print("go in 'else' for good download")
+                # print("go in 'else' for good download")
                 trydownloaddate = False
 
                 z = zipfile.ZipFile(io.BytesIO(http_request.content))
@@ -2310,14 +2357,15 @@ class DataManagerPanelCAISO(BoxLayout):
                     df_data = pd.read_csv(fcsv)
 
                     logging.info('CAISOdownloader: {0}: Successfully downloaded.'.format(log_identifier))
-                    print('CAISOdownloader: {0}: Successfully downloaded.'.format(log_identifier))
+                    # print('CAISOdownloader: {0}: Successfully downloaded.'.format(log_identifier))
                     # time.sleep(5.2)  # delays for 5.2 seconds
                     dwn_ok = True
                 else:
                     dwn_ok = False
                     logging.info('CAISOdownloader: {0}: Not a valid download request.'.format(log_identifier))
-                    print('CAISOdownloader: {0}: Not a valid download request.'.format(log_identifier))
+                    # print('CAISOdownloader: {0}: Not a valid download request.'.format(log_identifier))
             time.sleep(5.1)  # delays for 5.1 seconds
+
         return df_data, dwn_ok
 
 
@@ -2616,6 +2664,11 @@ class DataManagerPanelPJM(BoxLayout):
                             dodownload = True
                             ix = 0
                             while dodownload:
+                                # Quit?
+                                if App.get_running_app().root.stop.is_set():
+                                    # Stop running this thread so the main Python process can exit.
+                                    return
+
                                 with requests.Session() as response:
                                     response = requests.get(urlPJM_list_x, params=params_dict,headers=headers, proxies=proxy_options,timeout=10, verify=ssl_verify)
                                     # Check the HTTP status code.
@@ -2696,6 +2749,11 @@ class DataManagerPanelPJM(BoxLayout):
                         logging.info('PJMdownloader: {0}: File already exits, skipping...'.format(log_identifier))
                     
                     self.progress_bar.value += 1
+
+                    # Quit?
+                    if App.get_running_app().root.stop.is_set():
+                        # Stop running this thread so the main Python process can exit.
+                        return
         
         self.n_active_threads -= 1
         

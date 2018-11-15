@@ -142,7 +142,7 @@ class AboutScreen(ModalView):
             elif value == 'sandia':
                 webbrowser.open('http://sandia.gov/')
         
-        version_statement = 'QuESt v1.1 \n 2018.10.17'
+        version_statement = 'QuESt v1.1 \n 2018.11.14'
 
         developed_by = '{app_name} is developed by the {ess} and {espr} departments at {sandia}.'.format(app_name=APP_NAME, ess=_ref_link('Energy Storage Technology and Systems', 'sandia-ess'), espr=_ref_link('Electric Power Systems Research', 'sandia-espr'), sandia=_ref_link('Sandia National Laboratories', 'sandia'))
 
@@ -481,6 +481,9 @@ class QuEStApp(App):
         # Create BoxLayout container.
         bx = BoxLayout(orientation='vertical')
 
+        # Add stop flag for threading management.
+        bx.stop = threading.Event()
+
         # Create ActionBar and pass it a reference to the screen manager.
         ab = NavigationBar(sm)
         ab.sm = sm
@@ -509,6 +512,10 @@ class QuEStApp(App):
 
     def on_start(self):
         pass
+    
+    def on_stop(self):
+        # Signal that the app is about to close
+        self.root.stop.set()
 
 if __name__ == '__main__':
     from kivy.core.window import Window

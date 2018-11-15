@@ -14,9 +14,12 @@ This patch provides a number of feature updates...
 * An issue where QuESt Valuation would say that you have no data downloaded even if you do and prevent you from proceeding.
 * An issue where certain choices in QuESt Valuation wizard would cause the application to force quit upon attempting to solve.
 * An issue where data scanning at QuESt Valuation startup would take an inconvenient amount of time to complete.
+* An issue where newer versions of `matplotlib` (3.x) were incompatible, resulting in application crash at launch.
+* An issue where background threads would persist until completion even when QuESt was closed.
 
 ### Known issues
-
+* An issue where older versions of `pandas` were incompatible, resulting in application crash during certain operations. A package version number has now been specified in the setup file. Please either rerun the `setup.py install` or manually update your `pandas` package.
+* An issue where certain pricing node options in the SPP market area will not have LMP data for certain time periods, despite having the option to select it in QuESt Valuation menus. This is due to having a static list of pricing nodes for SPP. Previously, this would cause a full application crash if none of the selected months for valuation were solvable.
 
 ## Release 1.0
 The official release version of QuESt.
