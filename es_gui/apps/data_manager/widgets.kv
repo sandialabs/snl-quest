@@ -78,6 +78,7 @@
     year_end: year_end
     output_log: output_log
     execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
     progress_bar: progress_bar
 
     BoxLayout:
@@ -164,12 +165,23 @@
                         size_hint_y: 0.1
                         value: 0
 
-                TileButton:
-                    id: execute_download_button
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
                     size_hint_x: 0.15
-                    background_color: C(hex_primary)
-                    text: 'Download'
-                    on_release: root.execute_download()
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
 
 <DataManagerPanelISONE>:
     credential_help: credential_help
@@ -185,6 +197,7 @@
     chkbx_hub: chkbx_hub
     output_log: output_log
     execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
     progress_bar: progress_bar
 
     BoxLayout:
@@ -389,12 +402,23 @@
                         size_hint_y: 0.1
                         value: 0
 
-                TileButton:
-                    id: execute_download_button
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
                     size_hint_x: 0.15
-                    background_color: C(hex_primary)
-                    text: 'Download'
-                    on_release: root.execute_download()
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
 
 <DataManagerPanelMISO>:
     month_start: month_start
@@ -405,6 +429,7 @@
     output_log: output_log
     progress_bar: progress_bar
     execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -502,16 +527,23 @@
                         size_hint_y: 0.1
                         value: 0
 
-                TileButton:
-                    id: execute_download_button
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
                     size_hint_x: 0.15
-                    background_color: C(hex_primary)
-                    text: 'Download'
-                    on_release: root.execute_download()
 
-
-########################################################################################################################
-########################################################################################################################
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
 
 <DataManagerPanelNYISO>:
     month_start: month_start
@@ -685,9 +717,6 @@
                         on_release: root.cancel_download()
                         disabled: True
 
-########################################################################################################################
-########################################################################################################################
-
 <DataManagerPanelSPP>:
     month_start: month_start
     year_start: year_start
@@ -699,6 +728,7 @@
     output_log: output_log
     progress_bar: progress_bar
     execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -841,12 +871,23 @@
                         size_hint_y: 0.1
                         value: 0
 
-                TileButton:
-                    id: execute_download_button
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
                     size_hint_x: 0.15
-                    background_color: C(hex_primary)
-                    text: 'Download'
-                    on_release: root.execute_download()
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
 
 <DataManagerPanelCAISO>:
     month_start: month_start
@@ -861,6 +902,7 @@
     output_log: output_log
     progress_bar: progress_bar
     execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -999,7 +1041,7 @@
                 text: 'Caution'
 
             DataManagerTabContentBodyText:
-                text: 'The CAISO API limits requests to approximately every five seconds. It may take a while to complete all of your download requests.'
+                text: 'The CAISO API limits requests to approximately every five seconds. It may take a very long time to complete all of your download requests.'
         
         AnchorLayout:
             anchor_x: 'right'
@@ -1028,12 +1070,23 @@
                         size_hint_y: 0.1
                         value: 0
 
-                TileButton:
-                    id: execute_download_button
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
                     size_hint_x: 0.15
-                    background_color: C(hex_primary)
-                    text: 'Download'
-                    on_release: root.execute_download()
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
 
 <DataManagerPanelPJM>:
     subscription_key: subscription_key
@@ -1051,6 +1104,7 @@
     output_log: output_log
     progress_bar: progress_bar
     execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -1251,12 +1305,23 @@
                         size_hint_y: 0.1
                         value: 0
 
-                TileButton:
-                    id: execute_download_button
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
                     size_hint_x: 0.15
-                    background_color: C(hex_primary)
-                    text: 'Download'
-                    on_release: root.execute_download()
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
 
 <DataManagerMarketTabbedPanel>:
     do_default_tab: False

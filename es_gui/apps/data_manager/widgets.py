@@ -14,9 +14,6 @@ import datetime as dt
 import collections
 import time
 
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 import requests
 import pandas as pd
 import numpy as np
@@ -30,11 +27,15 @@ from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.modalview import ModalView
+from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.actionbar import ActionBar, ActionButton, ActionGroup
 from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, StringProperty
 from kivy.core.text import LabelBase
+
+import urllib3
+urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE
 
@@ -62,11 +63,16 @@ class DataManagerMarketTabbedPanel(TabbedPanel):
 class DataManagerPanelERCOT(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    request_cancel = threading.Event()
 
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('ERCOTdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning('ERCOTdownloader: At least one download thread failed. See the log for details.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the years that returned errors.'), 0)
             else:
@@ -74,7 +80,9 @@ class DataManagerPanelERCOT(BoxLayout):
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data successfully finished downloading.'), 0)
             
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -84,6 +92,11 @@ class DataManagerPanelERCOT(BoxLayout):
         :type text: str
         """
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         """Checks if all options selected in the GUI are valid and returns them.
@@ -121,6 +134,11 @@ class DataManagerPanelERCOT(BoxLayout):
 
         return datetime_start, datetime_end
 
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
+
     def execute_download(self):
         """Executes the data downloader for ERCOT data based on options selected in GUI.
         
@@ -137,6 +155,7 @@ class DataManagerPanelERCOT(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of years to iterate over.
             year_range = pd.date_range(datetime_start, datetime_end, freq='YS')
@@ -282,11 +301,12 @@ class DataManagerPanelERCOT(BoxLayout):
             else:
                 logging.info('ERCOTdownloader: {0} data successfully downloaded and extracted.'.format(year))
             finally:
-                self.progress_bar.value += 1
+                Clock.schedule_once(self.increment_progress_bar, 0)
 
                 # Quit?
-                if App.get_running_app().root.stop.is_set():
+                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                     # Stop running this thread so the main Python process can exit.
+                    self.n_active_threads -= 1
                     return
             
         self.n_active_threads -= 1
@@ -295,6 +315,7 @@ class DataManagerPanelERCOT(BoxLayout):
 class DataManagerPanelISONE(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    request_cancel = threading.Event()
 
     def open_isone_acc_help(self):
         isone_acc_help_view = DataManagerISONEAccHelp()
@@ -303,7 +324,11 @@ class DataManagerPanelISONE(BoxLayout):
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('ISO-NEdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning('ISO-NEdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 self.update_output_log('At least one download thread failed. Please retry downloading data for the months that returned errors.')
             else:
@@ -311,11 +336,18 @@ class DataManagerPanelISONE(BoxLayout):
                 self.update_output_log('All requested data downloaded and extracted.')
             
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         # Check if all the spinners have been selected.
@@ -378,6 +410,11 @@ class DataManagerPanelISONE(BoxLayout):
         acc_user, acc_pw, datetime_start, datetime_end, nodes_selected, total_nodes = self._validate_inputs()
 
         return acc_user, acc_pw, datetime_start, datetime_end, nodes_selected, total_nodes
+    
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
 
     def execute_download(self):
         try:
@@ -392,6 +429,7 @@ class DataManagerPanelISONE(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -510,8 +548,9 @@ class DataManagerPanelISONE(BoxLayout):
                         dwn_ok = True
                         for day in range(1, n_days_month + 1):
                             # Quit?
-                            if App.get_running_app().root.stop.is_set():
+                            if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                                 # Stop running this thread so the main Python process can exit.
+                                self.n_active_threads -= 1
                                 return
 
                             # for day in [ x +1 for x in range(n_days_month)]:
@@ -628,11 +667,12 @@ class DataManagerPanelISONE(BoxLayout):
                         # Skip downloading the file if it already exists where expected.
                         logging.info('ISONEdownloader: {0}: {1} file already exists, skipping...'.format(date_Ym_str, case_dwn[sx]))
                     
-                    self.progress_bar.value += 1
+                    Clock.schedule_once(self.increment_progress_bar, 0)
 
                     # Quit?
                     if App.get_running_app().root.stop.is_set():
                         # Stop running this thread so the main Python process can exit.
+                        self.n_active_threads -= 1
                         return
 
         self.n_active_threads -= 1
@@ -873,11 +913,16 @@ class DataManagerPanelISONE(BoxLayout):
 class DataManagerPanelMISO(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    request_cancel = threading.Event()
 
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('MISOdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning('MISOdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'), 0)
             else:
@@ -885,7 +930,9 @@ class DataManagerPanelMISO(BoxLayout):
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
             
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -896,6 +943,11 @@ class DataManagerPanelMISO(BoxLayout):
         """
 
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         """Checks if all options selected in the GUI are valid and returns them.
@@ -945,6 +997,11 @@ class DataManagerPanelMISO(BoxLayout):
         datetime_start, datetime_end = self._validate_inputs()
 
         return datetime_start, datetime_end
+    
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
 
     def execute_download(self):
         """Executes the data downloader for MISO data based on options selected in GUI.
@@ -963,6 +1020,7 @@ class DataManagerPanelMISO(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -1026,8 +1084,9 @@ class DataManagerPanelMISO(BoxLayout):
 
             for day in [x+1 for x in range(n_days_month)]:
                 # Quit?
-                if App.get_running_app().root.stop.is_set():
+                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                     # Stop running this thread so the main Python process can exit.
+                    self.n_active_threads -= 1
                     return
 
                 date = dt.date(year, month, day)
@@ -1077,7 +1136,7 @@ class DataManagerPanelMISO(BoxLayout):
                         output_file.write(data)
                         output_file.close()
 
-                self.progress_bar.value += 1
+                Clock.schedule_once(self.increment_progress_bar, 0)
                 
                 # MCP call.
                 mcp_url = ''.join(['https://docs.misoenergy.org/marketreports/', date_str, '_asm_exante_damcp.csv'])
@@ -1127,7 +1186,7 @@ class DataManagerPanelMISO(BoxLayout):
                         output_file.write(data)
                         output_file.close()
                 
-                self.progress_bar.value += 1
+                Clock.schedule_once(self.increment_progress_bar, 0)
 
         self.n_active_threads -= 1
 
@@ -1135,11 +1194,16 @@ class DataManagerPanelMISO(BoxLayout):
 class DataManagerPanelNYISO(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    request_cancel = threading.Event()
 
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('NYISOdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning \
                     ('NYISOdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'), 0)
@@ -1148,7 +1212,9 @@ class DataManagerPanelNYISO(BoxLayout):
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
 
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -1159,6 +1225,11 @@ class DataManagerPanelNYISO(BoxLayout):
         """
 
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         """Checks if all options selected in the GUI are valid and returns them.
@@ -1219,6 +1290,11 @@ class DataManagerPanelNYISO(BoxLayout):
         datetime_start, datetime_end, nodes_selected = self._validate_inputs()
 
         return datetime_start, datetime_end, nodes_selected
+    
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
 
     def execute_download(self):
         """Executes the data downloader for NYISO data based on options selected in GUI.
@@ -1235,6 +1311,7 @@ class DataManagerPanelNYISO(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -1414,8 +1491,9 @@ class DataManagerPanelNYISO(BoxLayout):
                     wx = 0
                     while trydownloaddate:
                         # Quit?
-                        if App.get_running_app().root.stop.is_set():
+                        if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                             # Stop running this thread so the main Python process can exit.
+                            self.n_active_threads -= 1
                             return
 
                         wx = wx + 1
@@ -1487,11 +1565,13 @@ class DataManagerPanelNYISO(BoxLayout):
                                                                                                          sx]))
                     self.update_output_log('{0}: {1} file already exists, skipping...'.format(date_str, lbmp_or_asp_folder[sx]))
 
-                self.progress_bar.value +=1
+                # Increment progress bar.
+                Clock.schedule_once(self.increment_progress_bar, 0)
 
                 # Quit?
-                if App.get_running_app().root.stop.is_set():
+                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                     # Stop running this thread so the main Python process can exit.
+                    self.n_active_threads -= 1
                     return
 
         self.n_active_threads -= 1
@@ -1500,11 +1580,16 @@ class DataManagerPanelNYISO(BoxLayout):
 class DataManagerPanelSPP(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    request_cancel = threading.Event()
 
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('SPPdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning \
                     ('SPPdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'),0)
@@ -1513,7 +1598,9 @@ class DataManagerPanelSPP(BoxLayout):
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
 
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -1524,6 +1611,11 @@ class DataManagerPanelSPP(BoxLayout):
         """
 
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         """Checks if all options selected in the GUI are valid and returns them.
@@ -1584,6 +1676,11 @@ class DataManagerPanelSPP(BoxLayout):
         datetime_start, datetime_end, nodes_selected = self._validate_inputs()
 
         return datetime_start, datetime_end, nodes_selected
+    
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
 
     def execute_download(self):
         """Executes the data downloader for SPP data based on options selected in GUI.
@@ -1600,6 +1697,7 @@ class DataManagerPanelSPP(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -1632,13 +1730,6 @@ class DataManagerPanelSPP(BoxLayout):
                                                      kwargs={'ssl_verify': ssl_verify,
                                                              'proxy_settings': proxy_settings,
                                                              'bus_loc': nodes_selected})
-
-                # thread_downloader = threading.Thread(target=self._download_NYISO_data,
-                #                                      args=(batch[0], batch[-1]),
-                #                                      kwargs={'ssl_verify': ssl_verify,
-                #                                              'proxy_settings': proxy_settings,
-                #                                              'zone_gen': nodes_selected,
-                #                                              'RT_DAM': 'DAM'})
 
                 thread_downloader.start()
 
@@ -1743,8 +1834,9 @@ class DataManagerPanelSPP(BoxLayout):
                         wx = 0
                         while trydownloaddate:
                             # Quit?
-                            if App.get_running_app().root.stop.is_set():
+                            if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                                 # Stop running this thread so the main Python process can exit.
+                                self.n_active_threads -= 1
                                 return
 
                             wx = wx + 1
@@ -1848,11 +1940,12 @@ class DataManagerPanelSPP(BoxLayout):
                         logging.info('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
                         # print('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
 
-                    self.progress_bar.value += 1
+                    Clock.schedule_once(self.increment_progress_bar, 0)
 
                     # Quit?
                     if App.get_running_app().root.stop.is_set():
                         # Stop running this thread so the main Python process can exit.
+                        self.n_active_threads -= 1
                         return
 
         self.n_active_threads -= 1
@@ -1861,15 +1954,16 @@ class DataManagerPanelSPP(BoxLayout):
 class DataManagerPanelCAISO(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
-
-    # def open_pjm_subkey_help(self):
-    #     pjm_subkey_help_view = DataManagerPJMSubKeyHelp()
-    #     pjm_subkey_help_view.open()
+    request_cancel = threading.Event()
 
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('CAISOdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning(
                     'CAISOdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'),0)
@@ -1878,7 +1972,9 @@ class DataManagerPanelCAISO(BoxLayout):
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
 
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -1889,6 +1985,11 @@ class DataManagerPanelCAISO(BoxLayout):
         """
 
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         """Checks if all options selected in the GUI are valid and returns them.
@@ -1954,6 +2055,11 @@ class DataManagerPanelCAISO(BoxLayout):
         datetime_start, datetime_end, node_type_selected, total_nodes = self._validate_inputs()
 
         return datetime_start, datetime_end, node_type_selected, total_nodes
+    
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
 
     def execute_download(self):
         """Executes the data downloader for CAISO data based on options selected in GUI.
@@ -1971,6 +2077,7 @@ class DataManagerPanelCAISO(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -2101,8 +2208,9 @@ class DataManagerPanelCAISO(BoxLayout):
                             dwn_ok = True
                             for dayx in range(n_days_month):
                                 # Quit?
-                                if App.get_running_app().root.stop.is_set():
+                                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                                     # Stop running this thread so the main Python process can exit.
+                                    self.n_active_threads -= 1
                                     return
 
                                 log_identifier = '{date}, {pnode}, {dtype}'.format(date=date_str+str(dayx+1).zfill(2), dtype=case_dwn[ixlp], pnode=pnode_look)
@@ -2135,8 +2243,9 @@ class DataManagerPanelCAISO(BoxLayout):
 
                         else:
                             # Quit?
-                            if App.get_running_app().root.stop.is_set():
+                            if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                                 # Stop running this thread so the main Python process can exit.
+                                self.n_active_threads -= 1
                                 return
                             if date_start_x.month == 3:
                                 HTstart = 8
@@ -2231,7 +2340,7 @@ class DataManagerPanelCAISO(BoxLayout):
                         # print('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
                         logging.info('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
                     
-                    self.progress_bar.value += 1
+                    Clock.schedule_once(self.increment_progress_bar, 0)
 
         self.n_active_threads -= 1
 
@@ -2372,6 +2481,7 @@ class DataManagerPanelCAISO(BoxLayout):
 class DataManagerPanelPJM(BoxLayout):
     n_active_threads = NumericProperty(0)
     thread_failed = BooleanProperty(False)
+    request_cancel = threading.Event()
 
     def open_pjm_subkey_help(self):
         pjm_subkey_help_view = DataManagerPJMSubKeyHelp()
@@ -2380,7 +2490,11 @@ class DataManagerPanelPJM(BoxLayout):
     def on_n_active_threads(self, instance, value):
         # Check if all threads have finished executing.
         if value == 0:
-            if self.thread_failed:
+            if self.request_cancel.is_set():
+                logging.warning \
+                    ('PJMdownloader: User manually canceled download requests.')
+                Clock.schedule_once(partial(self.update_output_log, 'Download requests canceled.'), 0)
+            elif self.thread_failed:
                 logging.warning('PJMdownloader: At least one download thread failed. See the log for details. Please retry downloading data for the months that returned errors.')
                 Clock.schedule_once(partial(self.update_output_log, 'At least one download thread failed. Please retry downloading data for the months that returned errors.'), 0)
             else:
@@ -2388,7 +2502,9 @@ class DataManagerPanelPJM(BoxLayout):
                 Clock.schedule_once(partial(self.update_output_log, 'All requested data finished downloading.'), 0)
             
             self.execute_download_button.disabled = False
+            self.cancel_download_button.disabled = True
             self.thread_failed = False
+            self.request_cancel.clear()
 
     @mainthread
     def update_output_log(self, text, *args):
@@ -2399,6 +2515,11 @@ class DataManagerPanelPJM(BoxLayout):
         """
 
         self.output_log.text = '\n'.join([self.output_log.text, text])
+    
+    @mainthread
+    def increment_progress_bar(self, *args):
+        """Increases the value of the progress bar by 1."""
+        self.progress_bar.value += 1
 
     def _validate_inputs(self):
         """Checks if all options selected in the GUI are valid and returns them.
@@ -2464,6 +2585,11 @@ class DataManagerPanelPJM(BoxLayout):
         sub_key, datetime_start, datetime_end, node_type_selected = self._validate_inputs()
 
         return sub_key, datetime_start, datetime_end, node_type_selected
+    
+    def cancel_download(self):
+        self.request_cancel.set()
+        Clock.schedule_once(partial(self.update_output_log, 'Canceling download requests...'), 0)
+        self.cancel_download_button.disabled = True
 
     def execute_download(self):
         """Executes the data downloader for PJM data based on options selected in GUI.
@@ -2481,6 +2607,7 @@ class DataManagerPanelPJM(BoxLayout):
             popup.open()
         else:
             self.execute_download_button.disabled = True
+            self.cancel_download_button.disabled = False
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
@@ -2665,8 +2792,9 @@ class DataManagerPanelPJM(BoxLayout):
                             ix = 0
                             while dodownload:
                                 # Quit?
-                                if App.get_running_app().root.stop.is_set():
+                                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                                     # Stop running this thread so the main Python process can exit.
+                                    self.n_active_threads -= 1
                                     return
 
                                 with requests.Session() as response:
@@ -2748,11 +2876,12 @@ class DataManagerPanelPJM(BoxLayout):
                     else:
                         logging.info('PJMdownloader: {0}: File already exits, skipping...'.format(log_identifier))
                     
-                    self.progress_bar.value += 1
+                    Clock.schedule_once(self.increment_progress_bar, 0)
 
                     # Quit?
-                    if App.get_running_app().root.stop.is_set():
+                    if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
                         # Stop running this thread so the main Python process can exit.
+                        self.n_active_threads -= 1
                         return
         
         self.n_active_threads -= 1

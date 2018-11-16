@@ -6,6 +6,8 @@ This patch provides a number of feature updates...
 ### QuESt
 #### QuESt Data Manager
 * Market and operations data for ISO-NE, NYISO, CAISO, and SPP market areas are now available.
+* Added buttons that cancel the current data download requests.
+    * The download/cancel buttons are independent for each tab.
 
 #### QuESt Valuation
 * (Arbitrage) and regulation market models for ISO-NE, NYISO, CAISO, and SPP are now available for use in all QuESt Valuation modes.

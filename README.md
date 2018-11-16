@@ -134,11 +134,17 @@ Refer to the instructions in QuESt Data Manager or simply register an account at
 
 > Why can't I download [data for which no option in QuESt Data Manager exists]?
 
-RTO/ISO/etc. provide a lot more varieties of data than what is shown in QuESt Data Manager. We are focused on acquiring data necessary for other QuESt applications to function. Additionally, acquiring data is not the fastest process. In order to improve the user experience, we decided to limit the amount of data that one can request at a time. For that reason, we have limited the number of pricing nodes for which data can be requested directly. (For reference, PJM has over 11,000 pricing nodes.) We can consider lifting some of these limitations if requested.
+RTO/ISO/etc. provide a lot more varieties of data than what is shown in QuESt Data Manager. We are focused on acquiring data necessary for other QuESt applications to function. Additionally, acquiring data is not the fastest process. In order to improve the user experience, we decided to limit the amount of data that one can request at a time. For that reason, we have limited the number of pricing nodes for which data can be requested directly. (For example, PJM has over 11,000 pricing nodes.) We can consider lifting some of these limitations if requested.
 
 > I downloaded data for a previous month before the month was over. Now I can't complete the month's data set because it skips over it. What should I do?
 
 QuESt Data Manager skips downloads if a file with the anticipated filename already exists. If you delete the specific file(s) in the `/data/` directory, it should try to download the data.
+
+> Why does it take so long to download data?
+
+* Some download requests are requesting large amounts of data.
+* Some ISO/RTO websites or APIs have connection issues. We incorporate mechanisms for automatically retrying a limited amount of times.
+* CAISO's API limits API requests to every five seconds.
 
 ### QuESt Valuation
 <a id="faq-valuation"></a>
