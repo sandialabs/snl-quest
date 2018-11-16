@@ -1,7 +1,7 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt: Optimizing Energy Storage
-Current release version: 1.0
+Current release version: 1.1
 
 ## Table of contents
 - [Introduction](#intro)

@@ -1,7 +1,7 @@
 # Master branch changelog
 
 ## Patch 1.1
-This patch provides a number of feature updates...
+This patch provides a number of content and quality of life updates for QuESt Data Manager and QuESt Valuation. 
 
 ### QuESt
 #### QuESt Data Manager
