@@ -63,6 +63,12 @@
                 background_color: C(hex_primary)
                 text: 'ISO/RTO Market and Operations Data'
                 on_release: root.manager.current = 'data_manager_rto_mo_data'
+            
+            DataManagerMenuTileButton:
+                id: utility_rate_data_button
+                background_color: C(hex_primary)
+                text: 'Utility Rate Structure Data'
+                on_release: root.manager.current = 'data_manager_rate_structure_data'
 
 <TabbedPanelHeader>:
     background_color: C(hex_cloud_dancer) if self.state == 'down' else C(hex_white)
@@ -1497,6 +1503,200 @@
                 size_hint: (1, None)
                 text: "1) From anywhere on ISO-NE's [ref=isone_web][color=003359][u]website[/u][/color][/ref] click the 'sign up' link located at the top right. Fill out the required information and make sure to check the option to sign up for access to ISO Data Feeds. \n\n 2) After completing registration, you should receive two emails, one of which is for verifying the email address associated with the account you are creating. Complete the verification process. \n\n 3) Upon successful verification, your credentials should be ready to go. These credentials are what you will supply to the API for authentication. You can test them by signing in on [ref=isone_web][color=003359][u]https://www.iso-ne.com/[/u][/color][/ref] \n\n 4) Enter these account details where requested in the QuESt Data Manager ISO-NE panel and/or enter them into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
                 on_ref_press: webbrowser.open('https://www.iso-ne.com/')
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            padding: 5
+            size_hint_y: 0.07
+
+            TileButton:
+                text: 'Got it, thanks!'
+                #font_size: stnd_font
+                size_hint_y: 1
+                size_hint_x: 0.25
+                on_release: root.dismiss()
+
+<DataManagerRateStructureDataScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+        
+        BoxLayout:
+            orientation:
+
+            DataManagerRateStructureScreenManager:
+
+<DataManagerRateStructureUtilitySearchScreen>:
+    api_key: api_key
+    search_text_input: search_text_input
+    chkbx_by_name: chkbx_by_name
+    chkbx_by_zip: chkbx_by_zip
+    chkbx_by_state: chkbx_by_state
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+
+        DataManagerTitle:
+            size_hint_y: 0.1
+            text: 'Search for a utility.'
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (425, 0)
+            size_hint_y: 0.2
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.33
+
+                DataManagerTabContentBodyText:
+                    text: 'OpenEI API key [font=Modern Pictograms][color=00ADD0][ref=openEIkeyHelp]?[/ref][/color][/font]'
+                    markup: True
+                    on_ref_press: root.open_openei_key_help()
+                    size_hint_x: 0.3
+
+                TextInput:
+                    id: api_key
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'API key'
+                    text: app.App.get_running_app().config.get('data_manager_openei', 'openei_key')
+                    size_hint_x: 0.7
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.33
+
+                TextInput:
+                    id: search_text_input
+                    multiline: False
+                    size_hint_x: 0.8
+                    write_tab: False
+                    hint_text: 'Search by name, zip code, or state'
+                
+                TileButton:
+                    background_color: C(hex_primary)
+                    size_hint_x: 0.2
+                    text: 'Search'
+                    on_release: root.execute_search()
+            
+            GridLayout:
+                id: labeled_chkbx_grid
+                size_hint_y: 0.33
+                cols: 3
+                spacing: 5
+                # row_force_default: True
+                # row_default_height: self.height/8
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    DataManagerTabCheckbox:
+                        id: chkbx_by_name
+                        group: 'search_type'
+
+                    DataManagerTabContentBodyText:
+                        text: 'by name'
+                        size_hint_x: 0.95
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    DataManagerTabCheckbox:
+                        id: chkbx_by_zip
+                        group: 'search_type'
+
+                    DataManagerTabContentBodyText:
+                        text: 'by zip'
+                        size_hint_x: 0.95
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    DataManagerTabCheckbox:
+                        id: chkbx_by_state
+                        group: 'search_type'
+
+                    DataManagerTabContentBodyText:
+                        text: 'by state (abbr.)'
+                        size_hint_x: 0.95
+                
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.6
+
+            Button:
+                text: 'filter'
+        
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'right'
+            size_hint_y: 0.1
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.15
+
+                TileButton:
+                    background_color: C(hex_primary)
+                    text: 'Select rate structure'
+                    # on_release: root.manager.settings_screen.open()
+
+<DataManagerOpenEIapiHelp>:
+    auto_dismiss: False
+    size_hint: (0.52, 0.90)
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: (25, 10)
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.23
+
+            TitleTextBase:
+                size_hint_y: 0.1
+                text: 'Obtaining an OpenEI API key'
+            
+            BodyTextBase:
+                size_hint_y: 0.9
+                justify: True
+                markup: True
+                text: "You need an API key to access OpenEI data through the OpenEI API. This requires a quick registration. The guide here is only meant to serve as a quick reference; please refer to the Utility Rate Database page [ref=utility_rate_database_page][color=003359][u]here[/u][/color][/ref] for the most recent information."
+                on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
+            
+        ScrollView:
+            size_hint_y: 0.7
+            size_hint_x: 1
+            scroll_type: ['bars', 'content']
+            effect_cls: 'OpacityScrollEffect'
+
+            BodyTextBase:
+                #readonly: True
+                markup: True
+                size_hint: (1, None)
+                text: "1) On the OpenEI Utility Rate Database [ref=utility_rate_database][color=003359][u]page[/u][/color][/ref], find the block titled 'Utility Rate Database API' and click on the 'utility rate API' link. \n\n 2) Under a block titled 'API Key,' click on the 'Get an API Key' button. \n\n 3) Fill out the form. Upon successful completion of the form, you should be given an alphanumeric API key on the page immediately. A copy of it should also be sent to the email address you provided. \n\n 4) Enter this key where requested in the QuESt Data Manager Utility Rate Structure Data menu and/or enter it into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
+                on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
 
         AnchorLayout:
             anchor_x: 'right'

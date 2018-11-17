@@ -22,7 +22,7 @@ from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
 from kivy.app import App
 from kivy.clock import Clock, mainthread
-from kivy.uix.screenmanager import ScreenManager, Screen, RiseInTransition, SwapTransition
+from kivy.uix.screenmanager import ScreenManager, Screen, RiseInTransition, SwapTransition, SlideTransition
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.tabbedpanel import TabbedPanel
@@ -42,6 +42,10 @@ from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, A
 MAX_THREADS = 4
 MAX_WHILE_ATTEMPTS = 7
 
+URL_OPENEI_IOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/500990ae-ada2-4791-9206-01dc68e36f12/download/iouzipcodes2017.csv"
+URL_OPENEI_NONIOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/672523aa-0d8a-4e6c-8a10-67e311bb1691/download/noniouzipcodes2017.csv"
+
+
 class DataManagerHomeScreen(Screen):
     def on_enter(self):
         ab = self.manager.nav_bar
@@ -54,6 +58,207 @@ class DataManagerRTOMOdataScreen(Screen):
         ab = self.manager.nav_bar
         ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: ISO/RTO Market and Operations Data')
+
+
+class DataManagerRateStructureDataScreen(Screen):
+    """"""
+    def on_enter(self):
+        ab = self.manager.nav_bar
+        ab.build_data_manager_nav_bar()
+        ab.set_title('Data Manager: Utility Rate Structure Data')
+
+
+class DataManagerRateStructureScreenManager(ScreenManager):
+    """The screen manager for the Data Manager Rate Structure Data screens."""
+    def __init__(self, **kwargs):
+        super(DataManagerRateStructureScreenManager, self).__init__(**kwargs)
+
+        self.transition = SlideTransition()
+        self.add_widget(DataManagerRateStructureUtilitySearchScreen(name='start'))
+
+class DataManagerOpenEIapiHelp(ModalView):
+    pass
+
+
+class DataManagerRateStructureUtilitySearchScreen(Screen):
+    utility_ref_table = pd.DataFrame()
+
+    def open_openei_key_help(self):
+        open_ei_help_view = DataManagerOpenEIapiHelp()
+        open_ei_help_view.open()
+
+    
+    def _download_utility_ref_table(self):
+        """Downloads and builds the utility reference table from OpenEI."""
+
+        ssl_verify, proxy_settings = check_connection_settings()
+
+        try:
+            with requests.Session() as req:
+                http_request = req.get(URL_OPENEI_IOU,
+                                        proxies=proxy_settings, 
+                                        timeout=6, 
+                                        verify=ssl_verify,
+                                        stream=True)
+                if http_request.status_code != requests.codes.ok:
+                    http_request.raise_for_status()
+        # except requests.HTTPError as e:
+        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+        #     Clock.schedule_once(partial(self.update_output_log,
+        #                                 '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        # except requests.exceptions.ProxyError:
+        #     logging.error('ISONEdownloader: {0}: Could not connect to proxy.'.format(date_str))
+        #     # Clock.schedule_once(
+        #     #     partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        # except requests.ConnectionError as e:
+        #     logging.error(
+        #         'ISONEdownloader: {0}: Failed to establish a connection to the host server.'.format(date_str))
+        #     Clock.schedule_once(partial(self.update_output_log,
+        #                                 '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        # except requests.Timeout as e:
+        #     trydownloaddate = True
+        #     logging.error('ISONEdownloader: {0}: The connection timed out.'.format(date_str))
+        #     # Clock.schedule_once(
+        #     #     partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
+        #     self.thread_failed = True
+        # except requests.RequestException as e:
+        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        except Exception as e:
+            # Something else went wrong.
+            print(e)
+            # logging.error(
+            #     'ISONEdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e)))
+            # Clock.schedule_once(partial(self.update_output_log,
+            #                             '{0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e))), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        else:
+            data_down = http_request.content.decode(http_request.encoding)
+            data_iou = pd.read_csv(io.StringIO(data_down))
+        
+        try:
+            with requests.Session() as req:
+                http_request = req.get(URL_OPENEI_NONIOU,
+                                        proxies=proxy_settings, 
+                                        timeout=6, 
+                                        verify=ssl_verify,
+                                        stream=True)
+                if http_request.status_code != requests.codes.ok:
+                    http_request.raise_for_status()
+        # except requests.HTTPError as e:
+        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+        #     Clock.schedule_once(partial(self.update_output_log,
+        #                                 '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        # except requests.exceptions.ProxyError:
+        #     logging.error('ISONEdownloader: {0}: Could not connect to proxy.'.format(date_str))
+        #     # Clock.schedule_once(
+        #     #     partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        # except requests.ConnectionError as e:
+        #     logging.error(
+        #         'ISONEdownloader: {0}: Failed to establish a connection to the host server.'.format(date_str))
+        #     Clock.schedule_once(partial(self.update_output_log,
+        #                                 '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        # except requests.Timeout as e:
+        #     trydownloaddate = True
+        #     logging.error('ISONEdownloader: {0}: The connection timed out.'.format(date_str))
+        #     # Clock.schedule_once(
+        #     #     partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
+        #     self.thread_failed = True
+        # except requests.RequestException as e:
+        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        except Exception as e:
+            # Something else went wrong.
+            print(e)
+            # logging.error(
+            #     'ISONEdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e)))
+            # Clock.schedule_once(partial(self.update_output_log,
+            #                             '{0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e))), 0)
+        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
+        #         self.thread_failed = True
+        else:
+            data_down = http_request.content.decode(http_request.encoding)
+            data_noniou = pd.read_csv(io.StringIO(data_down))
+        
+        df_combined = pd.concat([data_iou, data_noniou], ignore_index=True)
+
+        self.utility_ref_table = df_combined
+
+    def _validate_inputs(self):        
+        # Check if an API key has been provided.
+        api_key = self.api_key.text
+
+        if not api_key:
+            raise (InputError('Please enter an OpenEI API key.'))
+        
+        # Check if a search string has been provided.
+        search_query = self.search_text_input.text
+
+        if not search_query:
+            raise (InputError('Please enter a search query.'))
+
+        # Check if a search type has been specified.
+        if self.chkbx_by_name.active:
+            search_type = 'utility_name'
+        elif self.chkbx_by_zip.active:
+            search_type = 'zip'
+        elif self.chkbx_by_state.active:
+            search_type = 'state'
+        else:
+            raise(InputError('Please select a search type. (by name, by zip, or by state)'))
+        
+        return api_key, search_query, search_type
+
+    def get_inputs(self):
+        api_key, search_query, search_type = self._validate_inputs()
+
+        if search_type == 'zip':
+            try:
+                search_query = int(search_query)
+            except ValueError:
+                raise(InputError('When searching by zip, please provide a five digit numeric search query. (got "{0}")'.format(search_query)))
+
+        return api_key, search_query, search_type
+    
+    def execute_search(self):
+        """"""
+        try:
+            api_key, search_query, search_type = self.get_inputs()
+        except ValueError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            # Download list of all utilities if we have not done so already.
+            if self.utility_ref_table.empty:
+                self._download_utility_ref_table()
+            
+            # Filter DataFrame by search type/query and drop duplicate entries.
+            # TODO: Strip out capitalization, etc.?
+            utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type] == search_query]
+            utility_data_filtered = utility_data_filtered[['eiaid', 'utility_name', 'state', 'ownership']]
+            utility_data_filtered.drop_duplicates(inplace=True)
+
+            print(utility_data_filtered)
 
 
 class DataManagerMarketTabbedPanel(TabbedPanel):

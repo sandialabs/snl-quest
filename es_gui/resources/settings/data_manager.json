@@ -20,5 +20,16 @@
         "desc": "Username for ISO-NE Web Services API account.",
         "section": "data_manager_iso-ne",
         "key": "iso-ne_api_username"
+    },
+    {
+        "type": "title",
+        "title": "OpenEI"
+    },
+    {
+        "type": "string",
+        "title": "API key",
+        "desc": "Key for OpenEI API access.",
+        "section": "data_manager_openei",
+        "key": "openei_key"
     }
 ]

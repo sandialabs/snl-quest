@@ -64,7 +64,7 @@ from es_gui.settings import ESAppSettings
 Builder.load_file(os.path.join(dirname, 'es_gui', 'settings.kv'))
 
 # Data Manager
-from es_gui.apps.data_manager.widgets import DataManagerHomeScreen, DataManagerRTOMOdataScreen
+from es_gui.apps.data_manager.widgets import DataManagerHomeScreen, DataManagerRTOMOdataScreen, DataManagerRateStructureDataScreen
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'widgets.kv'))
 
 # Valuation
@@ -218,6 +218,7 @@ class QuEStScreenManager(ScreenManager):
         # Data manager.
         self.add_widget(DataManagerHomeScreen(name='data_manager_home'))
         self.add_widget(DataManagerRTOMOdataScreen(name='data_manager_rto_mo_data'))
+        self.add_widget(DataManagerRateStructureDataScreen(name='data_manager_rate_structure_data'))
 
         # Energy storage valuation.
         #self.add_widget(ValuationScreen(name='valuation_advanced'))
@@ -255,6 +256,7 @@ class NavigationBar(ActionBar):
                      'valuation_advanced': 'valuation_home',
                      'data_manager_home': 'index',
                      'data_manager_rto_mo_data': 'data_manager_home',
+                     'data_manager_rate_structure_data': 'data_manager_home',
                      }
 
     def __init__(self, sm):
@@ -465,6 +467,7 @@ class QuEStApp(App):
         config.setdefaults('valuation', {'valuation_dms_save': 1, 'valuation_dms_size': 20000})
         config.setdefaults('data_manager_pjm', {'pjm_subscription_key': ''})
         config.setdefaults('data_manager_iso-ne', {'iso-ne_api_username': ''})
+        config.setdefaults('data_manager_openei', {'openei_key': ''})
 
     def build(self):
         # Sets the window/application title.
