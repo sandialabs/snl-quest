@@ -28,7 +28,7 @@ class DataManager(EventDispatcher):
     def on_n_threads_scanning(self, instance, value):
         if value == 0:
             logging.info('DataManager: Data bank scan complete.')
-            Animation.stop_all(self.loading_screen.logo, 'opacity')
+            # Animation.stop_all(self.loading_screen.logo, 'opacity')
             self.loading_screen.dismiss()
 
     @property

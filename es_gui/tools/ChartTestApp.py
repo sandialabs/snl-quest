@@ -9,6 +9,7 @@ Config.set('graphics', 'resizable', '1')
 Config.set('kivy', 'desktop', 1)
 
 from numpy.random import random, randn
+import numpy as np
 
 from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
@@ -18,6 +19,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.core.text import LabelBase
 
 import charts as charts
+import calendar
 
 
 class ChartTestApp(App):
@@ -125,16 +127,23 @@ class ChartScreen(Screen):
         pie_data.append([''.join(sample(ascii_letters, 12)), random(4), random()])
 
         chart.draw_chart(pie_data)
+    
+    def draw_rate_schedule_chart(self, chart):
+        n_tiers = np.random.randint(1, 4)
+        # print(n_tiers)
+
+        schedule_data = np.random.randint(n_tiers, size=(12,24))
+        # print(schedule_data)
+
+        labels = calendar.month_abbr[1:]
+        category_colors = [random(4), random(4), random(4)]
+        
+        chart.draw_chart(schedule_data, category_colors[:n_tiers], labels)
 
 if __name__ == '__main__':
     from kivy.core.window import Window
 
     # Sets window background color
     Window.clearcolor = get_color_from_hex('#FFFFFF')
-
-    LabelBase.register(name='Roboto',
-                       fn_regular='../resources/fonts/roboto/RobotoCondensed-Light.ttf',
-                       fn_bold='../resources/fonts/roboto/RobotoCondensed-Bold.ttf',
-                       fn_italic='../resources/fonts/roboto/RobotoCondensed-Italic.ttf')
 
     ChartTestApp().run()

@@ -1,90 +1,127 @@
 #: import C kivy.utils.get_color_from_hex
+# Color sets.
+#:set hex_pantone1625c '#FFA38B'
+#:set hex_pantone294c '#002F6C'
+#:set hex_pantone427c '#D0D3D4'
+#
+#:set hex_cloud_dancer '#F0EEE9'
+#:set hex_scuba_blue '#00ABC0'
+#:set hex_ultra_violet '#5F4B8B'
+#
+#:set hex_snl_medium_blue '005376'
+#:set hex_snl_green '84BD00'
+#:set hex_snl_gray '3D3D3D'
+
+# Application palette.
+# QuESt foundation colors
+#:set hex_primary hex_snl_medium_blue
+#:set hex_secondary hex_snl_green
+
+# QuESt support colors
+#:set hex_pms312 '00ADD0'
+#:set hex_pms137 'FFA300'
+#:set hex_pms178 'FF585D'
+#:set hex_pms674 'AE2573'
+
+#:set hex_black hex_snl_gray
+#:set hex_white '#FFFFFF'
 
 
 <ChartScreen>:
-    bar_chart1: bar_chart1
-    donut_chart1: donut_chart1
-    stacked_chart2: stacked_chart2
-    pie_chart2: pie_chart2
-    multiset_chart1: multiset_chart1
+    # rate_schedule_chart: rate_schedule_chart
+    # rate_schedule_chart2: rate_schedule_chart2
 
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 25
 
-#        Label:
-#            text_size: self.width, None
-#            height: self.texture_size[1]
-#            halign: 'left'
-#            font_name: 'Roboto'
-#            font_size: sp(30)
-#            color: C('#000000')
-#            size_hint_y: 0.1
-#            bold: True
-#            text: 'Look at all these graphs'
+        RateScheduleGridLayout:
 
-        GridLayout:
-            cols: 2
-            padding: 10
-            spacing: 10
 
-            BoxLayout:
-                orientation: 'vertical'
+        # BoxLayout:
+        #     orientation: 'vertical'
 
-                DonutChart:
-                    id: donut_chart1
+        #     RateScheduleChart:
+        #         id: rate_schedule_chart
 
-                Button:
-                    text: 'draw donut chart'
-                    size_hint_y: 0.1
-                    on_release: root.draw_donut(donut_chart1)
+        #     Button:
+        #         size_hint_y: 0.1
+        #         text: 'draw bar chart'
+        #         on_release: root.draw_rate_schedule_chart(rate_schedule_chart)
+        
+        # BoxLayout:
+        #     orientation: 'vertical'
 
-            BoxLayout:
-                orientation: 'vertical'
+        #     RateScheduleChart:
+        #         id: rate_schedule_chart2
 
-                BarChart:
-                    id: bar_chart1
-                    bar_spacing: 15
+        #     Button:
+        #         size_hint_y: 0.1
+        #         text: 'draw bar chart'
+        #         on_release: root.draw_rate_schedule_chart(rate_schedule_chart2)
 
-                Button:
-                    size_hint_y: 0.1
-                    text: 'draw bar chart'
-                    on_release: root.draw_chart(bar_chart1)
+<RateScheduleGridLayout>:
+    cols: 24
+    row_force_default: True
+    row_default_height: 30
 
-            BoxLayout:
-                orientation: 'vertical'
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
 
-                BoxLayout:
-                    orientation: 'horizontal'
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+        
 
-                    StackedBarChart:
-                        id: stacked_chart2
-                        bar_spacing: 15
-
-                Button:
-                    size_hint_y: 0.1
-                    text: 'draw stacked bar chart'
-                    on_release: root.draw_stacked_chart(stacked_chart2)
-
-            BoxLayout:
-                orientation: 'vertical'
-
-                PieChart:
-                    id: pie_chart2
-
-                Button:
-                    text: 'draw pie chart'
-                    size_hint_y: 0.1
-                    on_release: root.draw_pie(pie_chart2)
-
-            BoxLayout:
-                orientation: 'vertical'
-
-                MultisetBarChart:
-                    id: multiset_chart1
-
-                Button:
-                    text: 'draw multiset bar chart'
-                    size_hint_y: 0.1
-                    on_release: root.draw_multiset_chart(multiset_chart1)
+<RateScheduleTextInput@TextInput>:
+    multiline: False
+    background_color: C(hex_primary) if self.text == '0' else C(hex_cloud_dancer)
+    foreground_color: C(hex_white) if self.text == '0' else C(hex_black)
+    # font_size: stnd_font
+    input_filter: 'float'
+    write_tab: False
+    on_focus: self.select_all() if self.focus else self.cancel_selection() 

@@ -39,6 +39,17 @@ THREE_ABC_WIDTH = 1200
 APP_NAME = 'QuESt'
 APP_TAGLINE = 'Optimizing Energy Storage'
 
+# Palette #
+PALETTE = [(0, 83, 118), (132, 189, 0),
+     (0, 173, 208), (255, 163, 0), (255, 88, 93), (174, 37, 115)]
+
+def rgba_to_fraction(rgba):
+    """Converts rgb values in int format to fractional values suitable for Kivy."""
+    if len(rgba) > 3:
+        return float(rgba[0])/255, float(rgba[1])/255, float(rgba[2])/255, rgba[3]
+    else:
+        return float(rgba[0])/255, float(rgba[1])/255, float(rgba[2])/255, 1
+
 
 class TileButton(Button):
     pass
@@ -177,9 +188,8 @@ class LoadingModalView(ModalView):
     def on_open(self):
         loading_animation = Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
 
-        # for x in range(5):
-        #     loading_animation += Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
-        loading_animation.repeat = False
+        for x in range(5):
+            loading_animation += Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
+        # loading_animation.repeat = True
 
-        # Clock.schedule_once(lambda dt: loading_animation.start(self.logo), 0)
-        #Animation.stop_all(self.logo, 'opacity')
+        Clock.schedule_once(lambda dt: loading_animation.start(self.logo), 0)

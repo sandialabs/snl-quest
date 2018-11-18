@@ -36,6 +36,7 @@
 
 <DataManagerHomeScreen>:
     rto_mo_data_button: rto_mo_data_button
+    utility_rate_data_button: utility_rate_data_button
 
     GridLayout:
         cols: 1
@@ -1529,20 +1530,28 @@
             DataManagerRateStructureScreenManager:
 
 <DataManagerRateStructureUtilitySearchScreen>:
-    api_key: api_key
+    api_key_input: api_key_input
     search_text_input: search_text_input
+    search_button: search_button
     chkbx_by_name: chkbx_by_name
     chkbx_by_zip: chkbx_by_zip
     chkbx_by_state: chkbx_by_state
+    utility_select_bx: utility_select_bx
+    utility_rv: utility_rv
+    rate_structure_select_bx: rate_structure_select_bx
+    rate_structure_rv: rate_structure_rv
+    utility_rv_text_filter: utility_rv_text_filter
+    rate_structure_rv_text_filter: rate_structure_rv_text_filter
+    rate_structure_desc: rate_structure_desc
     
     BoxLayout:
         orientation: 'vertical'
         padding: 10
-        spacing: 20
+        spacing: 5
 
         DataManagerTitle:
-            size_hint_y: 0.1
-            text: 'Search for a utility.'
+            size_hint_y: 0.05
+            text: 'Search for a utility rate structure.'
         
         BoxLayout:
             orientation: 'vertical'
@@ -1562,7 +1571,7 @@
                     size_hint_x: 0.3
 
                 TextInput:
-                    id: api_key
+                    id: api_key_input
                     multiline: False
                     #password: True
                     write_tab: False
@@ -1583,6 +1592,7 @@
                     hint_text: 'Search by name, zip code, or state'
                 
                 TileButton:
+                    id: search_button
                     background_color: C(hex_primary)
                     size_hint_x: 0.2
                     text: 'Search'
@@ -1634,24 +1644,328 @@
                 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.6
+            size_hint_y: 0.7
+            spacing: 20
+            padding: (50, 0)
 
-            Button:
-                text: 'filter'
-        
+            BoxLayout:
+                id: utility_select_bx
+                orientation: 'vertical'
+                size_hint_x: 0.3
+                spacing: 10
+                opacity: 0.05
+
+                DataManagerTabContentSubtitle:
+                    text: 'Select a utility.'
+                    color: C(hex_pms178)
+                    size_hint_y: 0.1
+                    font_size: large_font
+
+                TextInput:
+                    id: utility_rv_text_filter
+                    size_hint_y: 0.1
+                    on_text: utility_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: utility_rv
+                    viewclass: 'DataManagerUtilitySearchRVNodeEntry'
+                    size_hint_y: 0.8
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+            
+            BoxLayout:
+                id: rate_structure_select_bx
+                orientation: 'vertical'
+                spacing: 10
+                opacity: 0.05
+                size_hint_x: 0.7
+
+                DataManagerTabContentSubtitle:
+                    text: 'Select a rate structure.'
+                    color: C(hex_pms178)
+                    size_hint_y: 0.1
+                    font_size: large_font
+
+                TextInput:
+                    id: rate_structure_rv_text_filter
+                    size_hint_y: 0.1
+                    on_text: rate_structure_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: rate_structure_rv
+                    viewclass: 'DataManagerRateStructureRVNodeEntry'
+                    size_hint_y: 0.4
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+            
+                ScrollView:
+                    size_hint_x: 1
+                    size_hint_y: 0.4
+                    scroll_type: ['bars', 'content']
+                    effect_cls: 'OpacityScrollEffect'
+
+                    DataManagerTabContentBodyText:
+                        id: rate_structure_desc
+                        # text_size: self.size
+                        text: ''
+                        size_hint_y: None
+                        size_hint_x: 1
+                        markup: True
+                        valign: 'top'
+                        halign: 'justify'
+                        font_size: stnd_font
+                        font_name: 'Open Sans'
+                
         AnchorLayout:
             anchor_y: 'center'
-            anchor_x: 'right'
-            size_hint_y: 0.1
+            anchor_x: 'center'
+            size_hint_y: 0.05
 
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_x: 0.15
+                size_hint_x: 0.35
+                spacing: 10
+
+                BoxLayout:
+                    size_hint_x: 0.5
 
                 TileButton:
+                    size_hint_x: 0.5
                     background_color: C(hex_primary)
-                    text: 'Select rate structure'
-                    # on_release: root.manager.settings_screen.open()
+                    text: 'Energy rate structure'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.manager.current = root.manager.next()
+
+<DataManagerRateStructureEnergyRateStructureScreen>:
+    rate_structure_tier_table: rate_structure_tier_table
+    weekday_chart: weekday_chart
+    weekend_chart: weekend_chart
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Verify the energy rate structure.'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            padding: (50, 0)
+            size_hint_y: 0.90
+
+            DataManageRateStructureTierTable:
+                id: rate_structure_tier_table
+                cols: 1
+                spacing: 10
+                size_hint_x: 0.2
+                padding: (25, 200)
+                row_force_default: True
+                row_default_height: 40
+                
+                DataManageRateStructureTierHeader:
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.1
+
+                DataManagerTabContentSubtitle:
+                    text: 'Weekday'
+                
+                DataManagerTabContentSubtitle:
+                    text: 'Weekend'
+
+            BoxLayout:
+                orientation: 'vertical'
+                # spacing: 5
+                size_hint_x: 0.7
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    DataManagerRateStructureScheduleGrid:
+                        id: weekday_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekday_chart
+                        
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    DataManagerRateStructureScheduleGrid:
+                        id: weekend_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekend_chart
+                        
+        
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.35
+                spacing: 10
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Return to search'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Demand rate structure'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.go_to_demand_rate_schedule()
+
+<DataManageRateStructureTierHeader>:
+    cols: 2
+    spacing: 5
+
+    DataManagerTabContentSubtitle:
+        size_hint_x: 0.4
+        # font_size: large_font
+        text: 'Tier'
+    
+    DataManagerTabContentSubtitle:
+        size_hint_x: 0.6
+        # font_size: large_font
+        text: 'Rate'
+
+<DataManagerRateStructureTierRow>:
+    cols: 2
+    spacing: 5
+
+    name: name
+    text_input: text_input
+
+    DataManagerTabContentBodyText:
+        id: name
+        size_hint_x: 0.4
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    RateStructureRateTextInput:
+        id: text_input
+        size_hint_x: 0.6
+        on_focus: root._validate_input()
+
+<RateStructureRateTextInput>:
+    multiline: False
+    color: C(hex_black)
+    font_size: stnd_font
+    input_filter: 'float'
+    write_tab: False
+    on_focus: self.select_all() if self.focus else self.cancel_selection() 
+
+<DataManagerRateScheduleRow>:
+    cols: 25
+    spacing: 1
+    row_force_default: True
+    row_default_height: 28
+
+    name: name
+
+    DataManagerTabContentBodyText:
+        id: name
+        size_hint_x: 0.05
+        color: C(hex_black)
+        font_size: default_font
+
+<RateScheduleTextInput>:
+    size_hint_x: 1/24
+    multiline: False
+    background_color: self.get_background_color(self.text)
+    foreground_color: self.get_foreground_color(self.text)
+    font_size: sp(16)
+    input_filter: 'int'
+    write_tab: False
+    on_focus: self.select_all() if self.focus else self.cancel_selection() 
+
+<DataManagerRateStructureScheduleGrid>:
+    rows: 13
+    row_force_default: True
+    row_default_height: 28
+    spacing: 1
+
+    # GridLayout:
+    #     cols: 24
+
+    #     DataManagerTabContentBodyText:
+    #         text: '1'
+    #     DataManagerTabContentBodyText:
+    #         text: '2'
+    #     DataManagerTabContentBodyText:
+    #         text: '3'
+    #     DataManagerTabContentBodyText:
+    #         text: '4'
+    #     DataManagerTabContentBodyText:
+    #         text: '5'
+    #     DataManagerTabContentBodyText:
+    #         text: '6'
+    #     DataManagerTabContentBodyText:
+    #         text: '7'
+    #     DataManagerTabContentBodyText:
+    #         text: '8'
+    #     DataManagerTabContentBodyText:
+    #         text: '9'
+    #     DataManagerTabContentBodyText:
+    #         text: '10'
+    #     DataManagerTabContentBodyText:
+    #         text: '11'
+    #     DataManagerTabContentBodyText:
+    #         text: '12'
+    #     DataManagerTabContentBodyText:
+    #         text: '13'
+    #     DataManagerTabContentBodyText:
+    #         text: '14'
+    #     DataManagerTabContentBodyText:
+    #         text: '15'
+    #     DataManagerTabContentBodyText:
+    #         text: '16'
+    #     DataManagerTabContentBodyText:
+    #         text: '17'
+    #     DataManagerTabContentBodyText:
+    #         text: '18'
+    #     DataManagerTabContentBodyText:
+    #         text: '19'
+    #     DataManagerTabContentBodyText:
+    #         text: '20'
+    #     DataManagerTabContentBodyText:
+    #         text: '21'
+    #     DataManagerTabContentBodyText:
+    #         text: '22'
+    #     DataManagerTabContentBodyText:
+    #         text: '23'
+    #     DataManagerTabContentBodyText:
+    #         text: '24'
 
 <DataManagerOpenEIapiHelp>:
     auto_dismiss: False

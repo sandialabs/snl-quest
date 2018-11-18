@@ -18,6 +18,7 @@ import requests
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup
+from kivy.animation import Animation
 from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
 from kivy.app import App
@@ -28,22 +29,33 @@ from kivy.uix.checkbox import CheckBox
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.modalview import ModalView
 from kivy.uix.progressbar import ProgressBar
+from kivy.uix.textinput import TextInput
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.actionbar import ActionBar, ActionButton, ActionGroup
-from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, StringProperty
+from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, StringProperty, DictProperty
 from kivy.core.text import LabelBase
 
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE
+from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction
+from es_gui.apps.data_manager.data_manager import DataManagerException
+from es_gui.tools.charts import RateScheduleChart
+
 
 MAX_THREADS = 4
 MAX_WHILE_ATTEMPTS = 7
 
 URL_OPENEI_IOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/500990ae-ada2-4791-9206-01dc68e36f12/download/iouzipcodes2017.csv"
 URL_OPENEI_NONIOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/672523aa-0d8a-4e6c-8a10-67e311bb1691/download/noniouzipcodes2017.csv"
+APIROOT_OPENEI = "https://api.openei.org/utility_rates?"
+VERSION_OPENEI = "version=latest"
+REQUEST_FMT_OPENEI = "&format=json"
+DETAIL_OPENEI = "&detail=full"
+
+bx_anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
 
 
 class DataManagerHomeScreen(Screen):
@@ -75,18 +87,51 @@ class DataManagerRateStructureScreenManager(ScreenManager):
 
         self.transition = SlideTransition()
         self.add_widget(DataManagerRateStructureUtilitySearchScreen(name='start'))
+        self.add_widget(DataManagerRateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
 
 class DataManagerOpenEIapiHelp(ModalView):
-    pass
+    """ModalView to display instructions on how to get an OpenEI API key."""
 
 
 class DataManagerRateStructureUtilitySearchScreen(Screen):
+    """DataManager Rate Structure screen for searching for a utility rate structure."""
     utility_ref_table = pd.DataFrame()
+    utility_selected = DictProperty()
+    rate_structure_selected = DictProperty()
+    api_key = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(DataManagerRateStructureUtilitySearchScreen, self).__init__(**kwargs)
+
+        DataManagerUtilitySearchRVNodeEntry.host_screen = self
+        DataManagerRateStructureRVNodeEntry.host_screen = self
 
     def open_openei_key_help(self):
+        """Opens the OpenEI API key ModalView."""
         open_ei_help_view = DataManagerOpenEIapiHelp()
         open_ei_help_view.open()
+    
+    def _reset_screen(self):
+        """Resets the screen to its initial state."""
+        self.utility_select_bx.opacity = 0.05
+        self.rate_structure_select_bx.opacity = 0.05
 
+        # Deselects all RV selections.
+        self.utility_rv.deselect_all_nodes()
+        self.rate_structure_rv.deselect_all_nodes()
+
+        # Clear all RV data.
+        self.utility_rv.data = []
+        self.rate_structure_rv.data = []
+
+        # Clears all RV text filters.
+        self.rate_structure_rv_text_filter.text = ''
+        self.utility_rv_text_filter.text = ''
+
+        # Resets properties.
+        self.rate_structure_desc.text = ''
+        self.utility_selected = {}
+        self.rate_structure_selected = {}
     
     def _download_utility_ref_table(self):
         """Downloads and builds the utility reference table from OpenEI."""
@@ -102,42 +147,27 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                                         stream=True)
                 if http_request.status_code != requests.codes.ok:
                     http_request.raise_for_status()
-        # except requests.HTTPError as e:
-        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
-        #     Clock.schedule_once(partial(self.update_output_log,
-        #                                 '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
-        # except requests.exceptions.ProxyError:
-        #     logging.error('ISONEdownloader: {0}: Could not connect to proxy.'.format(date_str))
-        #     # Clock.schedule_once(
-        #     #     partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
-        # except requests.ConnectionError as e:
-        #     logging.error(
-        #         'ISONEdownloader: {0}: Failed to establish a connection to the host server.'.format(date_str))
-        #     Clock.schedule_once(partial(self.update_output_log,
-        #                                 '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
-        # except requests.Timeout as e:
-        #     trydownloaddate = True
-        #     logging.error('ISONEdownloader: {0}: The connection timed out.'.format(date_str))
-        #     # Clock.schedule_once(
-        #     #     partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
-        #     self.thread_failed = True
-        # except requests.RequestException as e:
-        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+        except requests.HTTPError as e:
+            logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+            # if wx >= (MAX_WHILE_ATTEMPTS - 1):
+            #     self.thread_failed = True
+        except requests.exceptions.ProxyError:
+            logging.error('DMUtilitySearch: Could not connect to proxy.')
+            # if wx >= (MAX_WHILE_ATTEMPTS - 1):
+            #     self.thread_failed = True
+        except requests.ConnectionError as e:
+            logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+            # if wx >= (MAX_WHILE_ATTEMPTS - 1):
+            #     self.thread_failed = True
+        except requests.Timeout as e:
+            logging.error('DMUtilitySearch: The connection timed out.')
+        except requests.RequestException as e:
+            logging.error('DMUtilitySearch: {0}'.format(repr(e)))
         #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
         #         self.thread_failed = True
         except Exception as e:
             # Something else went wrong.
-            print(e)
-            # logging.error(
-            #     'ISONEdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e)))
-            # Clock.schedule_once(partial(self.update_output_log,
-            #                             '{0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e))), 0)
+            logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
         #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
         #         self.thread_failed = True
         else:
@@ -153,44 +183,19 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                                         stream=True)
                 if http_request.status_code != requests.codes.ok:
                     http_request.raise_for_status()
-        # except requests.HTTPError as e:
-        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
-        #     Clock.schedule_once(partial(self.update_output_log,
-        #                                 '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
-        # except requests.exceptions.ProxyError:
-        #     logging.error('ISONEdownloader: {0}: Could not connect to proxy.'.format(date_str))
-        #     # Clock.schedule_once(
-        #     #     partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
-        # except requests.ConnectionError as e:
-        #     logging.error(
-        #         'ISONEdownloader: {0}: Failed to establish a connection to the host server.'.format(date_str))
-        #     Clock.schedule_once(partial(self.update_output_log,
-        #                                 '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
-        # except requests.Timeout as e:
-        #     trydownloaddate = True
-        #     logging.error('ISONEdownloader: {0}: The connection timed out.'.format(date_str))
-        #     # Clock.schedule_once(
-        #     #     partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
-        #     self.thread_failed = True
-        # except requests.RequestException as e:
-        #     logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
+        except requests.HTTPError as e:
+            logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+        except requests.exceptions.ProxyError:
+            logging.error('DMUtilitySearch: Could not connect to proxy.')
+        except requests.ConnectionError as e:
+            logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+        except requests.Timeout as e:
+            logging.error('DMUtilitySearch: The connection timed out.')
+        except requests.RequestException as e:
+            logging.error('DMUtilitySearch: {0}'.format(repr(e)))
         except Exception as e:
             # Something else went wrong.
-            print(e)
-            # logging.error(
-            #     'ISONEdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e)))
-            # Clock.schedule_once(partial(self.update_output_log,
-            #                             '{0}: An unexpected error has occurred. ({1})'.format(date_str,repr(e))), 0)
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
+            logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
         else:
             data_down = http_request.content.decode(http_request.encoding)
             data_noniou = pd.read_csv(io.StringIO(data_down))
@@ -199,9 +204,10 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
 
         self.utility_ref_table = df_combined
 
-    def _validate_inputs(self):        
+    def _validate_inputs(self):      
+        """Validates the search parameters."""  
         # Check if an API key has been provided.
-        api_key = self.api_key.text
+        api_key = self.api_key_input.text
 
         if not api_key:
             raise (InputError('Please enter an OpenEI API key.'))
@@ -225,6 +231,7 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
         return api_key, search_query, search_type
 
     def get_inputs(self):
+        """Retrieves the search inputs and validates them."""
         api_key, search_query, search_type = self._validate_inputs()
 
         if search_type == 'zip':
@@ -232,11 +239,13 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                 search_query = int(search_query)
             except ValueError:
                 raise(InputError('When searching by zip, please provide a five digit numeric search query. (got "{0}")'.format(search_query)))
+        else:
+            search_query = search_query.lower()
 
         return api_key, search_query, search_type
     
     def execute_search(self):
-        """"""
+        """Executes the utility search using the given parameters."""
         try:
             api_key, search_query, search_type = self.get_inputs()
         except ValueError as e:
@@ -248,17 +257,377 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
             popup.popup_text.text = str(e)
             popup.open()
         else:
-            # Download list of all utilities if we have not done so already.
-            if self.utility_ref_table.empty:
-                self._download_utility_ref_table()
-            
-            # Filter DataFrame by search type/query and drop duplicate entries.
-            # TODO: Strip out capitalization, etc.?
-            utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type] == search_query]
-            utility_data_filtered = utility_data_filtered[['eiaid', 'utility_name', 'state', 'ownership']]
-            utility_data_filtered.drop_duplicates(inplace=True)
+            # Reset screen.
+            self._reset_screen()
+            self.search_button.disabled = True
 
-            print(utility_data_filtered)
+            def _execute_search():
+                # Open loading screen.
+                # self.loading_screen = LoadingModalView()
+                # self.loading_screen.loading_text.text = 'Retrieving rate structures...'
+                # self.loading_screen.open()
+
+                if self.utility_ref_table.empty:
+                    self._download_utility_ref_table()
+                
+                # Filter DataFrame by search type/query and drop duplicate entries.
+                if not search_type == 'zip': 
+                    utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type].str.lower().str.contains(search_query)]
+                else:
+                    utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type] == search_query]
+                
+                utility_data_filtered = utility_data_filtered[['eiaid', 'utility_name', 'state', 'ownership']]
+                utility_data_filtered.drop_duplicates(inplace=True)
+
+                # Enable search results selector.
+                bx_anim.start(self.utility_select_bx)
+                self._populate_utility_selector(utility_data_filtered)
+
+                self.api_key = api_key
+
+                logging.info('RateStructureDM: Retrieved list of all utilities.')
+                # Animation.stop_all(self.loading_screen.logo, 'opacity')
+                # self.loading_screen.dismiss()
+                self.search_button.disabled = False
+
+            thread_query = threading.Thread(target=_execute_search)
+            thread_query.start()
+    
+    def _populate_utility_selector(self, df):
+        """Generates utility RecycleView based on search results."""
+        records = df.to_dict(orient='records')
+        records = [{'name': record['utility_name'], 'record': record} for record in records]
+
+        records = sorted(records, key=lambda t: t['name'])
+
+        self.utility_rv.data = records
+        self.utility_rv.unfiltered_data = records
+    
+    def on_utility_selected(self, instance, value):
+        try:
+            logging.info('RateStructureDM: Utility selection changed to {0}.'.format(value['utility_name']))
+        except KeyError:
+            logging.info('RateStructureDM: Utility selection reset.')
+        else:
+            eiaid = str(value['eiaid'])
+
+            self.rate_structure_desc.text = ''
+            self.rate_structure_rv.deselect_all_nodes()
+            self.rate_structure_rv_text_filter.text = ''
+            self.rate_structure_selected = {}
+
+            # Get utility schedules.
+            self._populate_utility_rate_structures(eiaid)
+            
+    def _populate_utility_rate_structures(self, eia_id):
+        """Executes OpenEI API query for given EIA ID."""
+        api_root = APIROOT_OPENEI + VERSION_OPENEI + REQUEST_FMT_OPENEI + DETAIL_OPENEI
+        api_query = api_root + '&api_key=' + self.api_key + '&eia=' + eia_id
+
+        thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
+        thread_query.start()
+
+        # Open loading screen.
+        self.loading_screen = LoadingModalView()
+        self.loading_screen.loading_text.text = 'Retrieving rate structures...'
+        self.loading_screen.open()
+    
+    def _query_api_for_rate_structures(self, api_query):
+        """Uses OpenEI API to query the rate structures for given EIA ID and populates rate structure RecycleView."""
+        ssl_verify, proxy_settings = check_connection_settings()
+
+        try:
+            with requests.Session() as req:
+                http_request = req.get(api_query,
+                                        proxies=proxy_settings, 
+                                        timeout=10, 
+                                        verify=ssl_verify,
+                                        stream=True)
+                if http_request.status_code != requests.codes.ok:
+                    http_request.raise_for_status()
+        except requests.HTTPError as e:
+            logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+        except requests.exceptions.ProxyError:
+            logging.error('DMUtilitySearch: Could not connect to proxy.')
+        except requests.ConnectionError as e:
+            logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+        except requests.Timeout as e:
+            logging.error('DMUtilitySearch: The connection timed out.')
+        except requests.RequestException as e:
+            logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+        except Exception as e:
+            # Something else went wrong.
+            logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
+        else:
+            structure_list = http_request.json()['items']
+
+            structure_df = pd.DataFrame.from_records(structure_list)
+            structure_df.dropna(subset=['energyratestructure'], inplace=True)
+            structure_list = structure_df.to_dict(orient='records')
+
+            records = [{'name': record['name'], 'record': record} for record in structure_list]
+            records = sorted(records, key=lambda t: t['name'])
+
+            self.rate_structure_rv.data = records
+            self.rate_structure_rv.unfiltered_data = records
+
+            logging.info('RateStructureDM: Retrieved utility rate structures.')
+            self.loading_screen.dismiss()
+
+            bx_anim.start(self.rate_structure_select_bx)
+    
+    def on_rate_structure_selected(self, instance, value):
+        try:
+            logging.info('RateStructureDM: Rate structure selection changed to {0}.'.format(value['name']))
+        except KeyError:
+            logging.info('RateStructureDM: Rate structure selection reset.')
+            self.rate_structure_desc.text = ''
+        else:
+            self.manager.get_screen('energy_rate_structure').populate_rate_schedules(value)
+        
+        try:
+            self.rate_structure_desc.text = value.get('description', 'No description provided.')
+        except ValueError:
+            pass
+
+
+class DataManagerUtilitySearchRVNodeEntry(RecycleViewRow):
+    host_screen = None
+
+    def apply_selection(self, rv, index, is_selected):
+        """Respond to the selection of items in the view."""
+        super(DataManagerUtilitySearchRVNodeEntry, self).apply_selection(rv, index, is_selected)
+
+        if is_selected:
+            self.host_screen.utility_selected = rv.data[self.index]['record']
+
+
+class DataManagerRateStructureRVNodeEntry(RecycleViewRow):
+    host_screen = None
+
+    def apply_selection(self, rv, index, is_selected):
+        """Respond to the selection of items in the view."""
+        super(DataManagerRateStructureRVNodeEntry, self).apply_selection(rv, index, is_selected)
+
+        if is_selected:
+            self.host_screen.rate_structure_selected = rv.data[self.index]['record']
+
+
+class DataManagerRateStructureEnergyRateStructureScreen(Screen):
+    """DataManager Rate Structure screen for viewing and modifying a utility rate structure."""
+    rate_structure = DictProperty()
+
+    def populate_rate_schedules(self, rate_structure):
+        """"""
+        self.rate_structure_tier_table.reset_table()
+
+        self.rate_structure = rate_structure
+
+        # Get the energy rate structure.
+        energy_rate_structure = rate_structure.get('energyratestructure', [])
+
+        # Populates the tier/rate table.
+        for ix, energy_rate in enumerate(energy_rate_structure, start=0):
+            try:
+                rate = str(energy_rate[0]['rate'])
+            except KeyError:
+                logging.warning('RateStructureDM: No rate value found in energy rate structure.')
+
+            tier = str(ix)
+            rate = str(energy_rate[0].get('rate', 0))
+
+            row = DataManagerRateStructureTierRow(desc={'tier': tier, 'rate': rate})
+            self.rate_structure_tier_table.add_widget(row)
+
+        self.generate_schedule_charts()
+    
+    def generate_schedule_charts(self, *args):
+        """Populates the weekday and weekend rate schedule tables."""
+        weekday_schedule_data = self.rate_structure['energyweekdayschedule']
+        weekend_schedule_data = self.rate_structure['energyweekendschedule']
+
+        # Weekday chart.
+        for ix, month_row in enumerate(self.weekday_chart.schedule_rows, start=0):
+            for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                text_input.text = str(weekday_schedule_data[ix][iy])
+        
+        # Weekend chart.
+        for ix, month_row in enumerate(self.weekend_chart.schedule_rows, start=0):
+            for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                text_input.text = str(weekend_schedule_data[ix][iy])
+        
+        # n_tiers = len(np.unique(weekday_schedule_data))
+
+        # # Select chart colors.
+        # palette = [rgba_to_fraction(color) for color in PALETTE][:n_tiers]
+        # labels = calendar.month_abbr[1:]
+
+        # # Draw charts.
+        # self.weekday_chart.draw_chart(np.array(weekday_schedule_data), palette, labels)
+        # self.weekend_chart.draw_chart(np.array(weekend_schedule_data), palette, labels)
+    
+    def read_schedule_input(self):
+        """Retrieves the rate schedule inputs into NumPy arrays."""
+        weekday_schedule = np.empty((12, 24))
+        weekend_schedule = np.empty((12, 24))
+
+        # Weekday chart.
+        for ix, month_row in enumerate(self.weekday_chart.schedule_rows, start=0):
+            for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                weekday_schedule[ix, iy] = int(text_input.text)
+        
+        # Weekend chart.
+        for ix, month_row in enumerate(self.weekend_chart.schedule_rows, start=0):
+            for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                weekend_schedule[ix, iy] = int(text_input.text)
+
+        return weekday_schedule, weekend_schedule
+    
+    def read_rates_input(self):
+        """Retrives the rate inputs."""
+        pass
+    
+    def _validate_inputs(self):
+        weekday_schedule, weekend_schedule = self.read_schedule_input()
+        weekday_tiers = np.unique(weekday_schedule)
+        weekend_tiers = np.unique(weekend_schedule)
+
+        print(weekday_tiers)
+        print(weekend_tiers)
+
+        # get tiers/rates
+
+        # determine if any entered values in schedule are not in tier list        
+    
+    def go_to_demand_rate_schedule(self):
+        self._validate_inputs()
+    
+    def on_enter(self):
+        pass
+        # self.generate_schedule_charts()
+
+    def on_leave(self):
+        pass
+        # self.weekday_chart.clear_widgets()
+        # self.weekend_chart.clear_widgets()
+
+
+class DataManageRateStructureTierTable(GridLayout):
+    """"""
+    def reset_table(self):
+        while len(self.children) > 1:
+            for widget in self.children:
+                if isinstance(widget, DataManagerRateStructureTierRow):
+                    self.remove_widget(widget)
+
+
+class DataManageRateStructureTierHeader(GridLayout):
+    pass
+
+
+class DataManagerRateStructureTierRow(GridLayout):
+    """Grid layout containing parameter descriptor label, slider, and value label."""
+    desc = DictProperty()
+
+    def __init__(self, **kwargs):
+        super(DataManagerRateStructureTierRow, self).__init__(**kwargs)
+
+        self.name.text = self.desc['tier']
+        self.text_input.text = self.desc['rate']
+
+    def _validate_input(self):
+        """Validate entry when unfocusing text input."""
+        pass
+        # if not self.text_input.focus:
+        #     try:
+        #         input_value = float(self.text_input.text)
+        #     except ValueError:
+        #         # No text entered.
+        #         input_value = self.param_slider.value
+        #         self.text_input.text = str(input_value)
+
+        #         return
+
+        #     if input_value > self.param_max or input_value < self.param_min:
+        #         # If input value is out of range.
+        #         popup = WarningPopup()
+        #         popup.popup_text.text = '{param_name} must be between {param_min} and {param_max} (got {input_val}).'.format(param_name=self.name.text[:1].upper() + self.name.text[1:], param_min=self.param_min, param_max=self.param_max, input_val=input_value)
+        #         popup.open()
+
+        #         input_value = self.param_slider.value
+        #         self.text_input.text = str(input_value)
+        #     else:
+        #         # Set slider value to input value.
+        #         anim = Animation(transition='out_expo', duration=SLIDER_DUR, value=input_value)
+        #         anim.start(self.param_slider)
+
+
+class RateStructureRateTextInput(TextInput):
+    """A TextInput field for entering parameter values."""
+
+    def insert_text(self, substring, from_undo=False):
+        # limit # chars
+        substring = substring[:8 - len(self.text)]
+        return super(RateStructureRateTextInput, self).insert_text(substring, from_undo=from_undo)
+
+
+class DataManagerRateStructureScheduleGrid(GridLayout):
+    """"""
+    def __init__(self, **kwargs):
+        super(DataManagerRateStructureScheduleGrid, self).__init__(**kwargs)
+
+        self.schedule_rows = []
+
+        for ix in range(1, 13):
+            schedule_row = DataManagerRateScheduleRow(row_name=calendar.month_abbr[ix])
+            self.add_widget(schedule_row)
+            self.schedule_rows.append(schedule_row)
+
+
+class DataManagerRateScheduleRow(GridLayout):
+    """"""
+    row_name = StringProperty('')
+
+    def __init__(self, **kwargs):
+        super(DataManagerRateScheduleRow, self).__init__(**kwargs)
+
+        self.name.text = self.row_name
+        self.text_inputs = []
+
+        for ix in range(1, 25):
+            text_input = RateScheduleTextInput()
+            self.add_widget(text_input)
+            self.text_inputs.append(text_input)
+
+
+class RateScheduleTextInput(TextInput):
+    """A TextInput field for entering parameter values."""
+
+    def insert_text(self, substring, from_undo=False):
+        # limit # chars
+        substring = substring[:1 - len(self.text)]
+        return super(RateScheduleTextInput, self).insert_text(substring, from_undo=from_undo)
+    
+    def get_background_color(self, input_text):
+        try:
+            ix = divmod(int(input_text), len(PALETTE))[1]
+            return_color = rgba_to_fraction(PALETTE[ix])
+        except ValueError:
+            return_color = (1, 1, 1, 1)
+        return return_color
+    
+    def get_foreground_color(self, input_text):
+        try:
+            ix = divmod(int(input_text), len(PALETTE))[1]
+        except ValueError:
+            return (0, 0, 0, 1)
+
+        if not divmod(int(input_text), 6)[1] or not divmod(int(input_text), 5)[1]:
+            return_color = (1, 1, 1, 1)
+        else:
+            return_color = (0, 0, 0, 1)
+
+        return return_color
 
 
 class DataManagerMarketTabbedPanel(TabbedPanel):
