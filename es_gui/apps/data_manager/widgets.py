@@ -418,7 +418,7 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
     rate_structure = DictProperty()
 
     def populate_rate_schedules(self, rate_structure):
-        """"""
+        """Fills in the rate/tier table and energy rate schedule based on selected rate structure."""
         self.rate_structure_tier_table.reset_table()
 
         self.rate_structure = rate_structure
