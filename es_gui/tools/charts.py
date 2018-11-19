@@ -1019,9 +1019,9 @@ class LegendEntry(RelativeLayout):
 
 
 class RateScheduleChart(Chart):
-    def __init__(self, y_axis_format=None, legend_width=90, tile_spacing=2, x_padding=30, y_padding=30, **kwargs):
+    def __init__(self, y_axis_format=None, legend_width=90, tile_spacing=2, x_padding=35, y_padding=35, **kwargs):
         """
-        A vertically-orientated bar chart. Call draw_chart() with bar_data to draw the chart.
+        A rate schedule chart using colored tiles to communicate the rate tier.
 
         :param y_axis_format: str; format string for the y-axis labels. Namely for determining precision/separators/etc.
         :param tile_spacing: int (px) representing the space between adjacent squares.
@@ -1047,24 +1047,23 @@ class RateScheduleChart(Chart):
         """
         Computes the size and positions of the tiles using schedule_data. Adds the tiles and axis labels to RateScheduleChart.
 
-        :param schedule_data: List of lists in 2D array format.
+        :param schedule_data: List of lists or 2D NumPy array.
         :param category_colors: List of rgba tuples to label categories.
+        :param labels: List of label strings for each row.
         """
         n_rows, n_cols = schedule_data.shape        
 
-        # compute origin coordinates, maximum bar height, and bar width
+        # Compute origin coordinates.
         x0 = self.legend_width + 3*self.x_padding
         self.max_height = self.height - self.y_padding
 
-        # calculate the total amount of width available for allocating to tiles and distributing it evenly
+        # Calculate the total amount of width and height available for allocating to tiles and distribute it evenly.
         self.tile_width = (self.width - x0 - self.x_padding - self.tile_spacing*(n_cols - 1))/n_cols
-
-        # calculate the total amount of height available for allocating to tiles and distributing it evenly
         self.tile_height = (self.max_height - self.y_padding - self.tile_spacing*(n_rows - 1))/n_rows
 
         self.tiles = []
 
-        # iterate over each tile
+        # Iterate over each tile
         for iy, row in enumerate(schedule_data, start=0):
             row_label = Label(pos=(0.75*x0 - self.width/2, self.max_height/2 - iy*(self.tile_height + self.tile_spacing)),
             text=labels[iy], color=[0, 0, 0, 1])
@@ -1072,33 +1071,30 @@ class RateScheduleChart(Chart):
 
             for ix, tile_value in enumerate(row, start=0):
                 pos = (x0 + ix*(self.tile_width + self.tile_spacing), self.max_height - iy*(self.tile_height + self.tile_spacing))
-
-                tile_height = self.tile_height
                 
-                bar_widget = ScheduleTile(size=(self.tile_width, self.tile_height), pos=pos, rgba=category_colors[tile_value], height_final=self.tile_height)
+                tile_widget = ScheduleTile(size=(self.tile_width, self.tile_height), pos=pos, rgba=category_colors[tile_value])
                 # bar_label = Label(pos=(x0 - (self.width - self.tile_width)/2 + ix*(self.tile_width + self.tile_spacing), self.max_height/2 - iy*(self.tile_height + self.tile_spacing)), text=str(tile_value), color=[0, 0, 0, 1])
 
-                self.tiles.append(bar_widget)
-                self.add_widget(bar_widget)
+                self.tiles.append(tile_widget)
+                self.add_widget(tile_widget)
                 # self.add_widget(bar_label)
 
                 if iy == 0:
+                    # Column labels for hours.
                     col_label = Label(pos=(x0 - (self.width - self.tile_width)/2 + ix*(self.tile_width + self.tile_spacing), self.max_height/2 + self.y_padding/2),
                               text=str(ix+1), color=[0, 0, 0, 1])
                     self.add_widget(col_label)
 
     def draw_chart(self, schedule_data, category_colors, labels):
-        """
-        Draws the RateScheduleChart.
-        """
-        # clear all widgets from the RateScheduleChart
+        """Draws the RateScheduleChart."""
+        # Clear all widgets from the RateScheduleChart.
         while len(self.children) > 0:
             for widget in self.children:
                 self.remove_widget(widget)
 
-        # with self.canvas.before:
-        #     Color(1, 1, 1, 1)
-        #     Rectangle(size=self.size, pos=self.pos)
+        with self.canvas.before:
+            Color(1, 1, 1, 1)
+            Rectangle(size=self.size, pos=self.pos)
 
         self.generate_tiles(schedule_data, category_colors, labels)
 
@@ -1106,7 +1102,7 @@ class RateScheduleChart(Chart):
             anim = Animation(opacity=1, duration=1.0, t='out_back')
             anim.start(tile)
 
-        # animate the tiles
+        # Animate the tiles.
         TILE_ANIM_LENGTH = 0.005
 
         for ix, tile in enumerate(self.tiles, start=0):
@@ -1116,14 +1112,14 @@ class RateScheduleChart(Chart):
                 else:
                     tile.opacity = 1
 
-        # generate legend
+        # Generate legend.
         leg_pos = (0, 0)
         leg_size = (self.legend_width, self.height)
 
         self.legend = ChartLegend(leg_pos, size=leg_size, opacity=0, key_height=20)
         self.add_widget(self.legend)
 
-        # form the legend input [[name, rgba] for each entry]
+        # Form the legend input [[name, rgba] for each entry.
         legend_data = [[str(ix), color] for ix, color in enumerate(category_colors)]
 
         self.legend.gen_legend(legend_data)
@@ -1137,144 +1133,18 @@ class RateScheduleChart(Chart):
             anim = Animation(opacity=1, duration=t_anim_legend, t='linear')
             anim.start(legend)
 
-        # animate the legend opacity after all bars have been built
+        # Animate the legend opacity
         Clock.schedule_once(partial(_anim_legend, self.legend), len(self.tiles)*TILE_ANIM_LENGTH)
 
-class RateScheduleChartFixed(Chart):
-    def __init__(self, y_axis_format=None, legend_width=80, tile_spacing=2, x_padding=20, y_padding=20, **kwargs):
-        """
-        A vertically-orientated bar chart. Call draw_chart() with bar_data to draw the chart.
-
-        :param y_axis_format: str; format string for the y-axis labels. Namely for determining precision/separators/etc.
-        :param tile_spacing: int (px) representing the space between adjacent squares.
-        :param x_padding: int (px) representing the space between the left and right edges of the chart and chart elements.
-        :param y_padding: int (px) representing the space between the top and bottom edges of the chart and chart elements.
-        """
-        super(RateScheduleChartFixed, self).__init__(**kwargs)
-
-        # sets default y-axis label format to two decimal place precision (fixed point)
-        if not y_axis_format:
-            self.y_axis_format = '{0:.2f}'
-        else:
-            self.y_axis_format = y_axis_format
-        
-        self.width = 800
-        self.height = 600
-
-        self.tile_spacing = tile_spacing
-        self.x_padding = x_padding
-        self.y_padding = y_padding
-        self.legend_width = legend_width
-
-        self.tiles = []
-
-    def generate_tiles(self, schedule_data, category_colors, labels):
-        """
-        Computes the size and positions of the tiles using schedule_data. Adds the tiles and axis labels to RateScheduleChart.
-
-        :param schedule_data: List of lists in 2D array format.
-        :param category_colors: List of rgba tuples to label categories.
-        """
-        n_rows, n_cols = schedule_data.shape        
-
-        # compute origin coordinates, maximum bar height, and bar width
-        x0 = self.legend_width + 3*self.x_padding
-        self.max_height = self.height - 3*self.y_padding
-
-        # calculate the total amount of width available for allocating to tiles and distributing it evenly
-        self.tile_width = 30
-
-        # calculate the total amount of height available for allocating to tiles and distributing it evenly
-        self.tile_height = 30
-
-        self.tiles = []
-
-        # iterate over each tile
-        for iy, row in enumerate(schedule_data, start=0):
-            row_label = Label(pos=(0.75*x0 - self.width/2, self.max_height/2 - 0.75*self.y_padding - iy*(self.tile_height + self.tile_spacing)),
-            text=labels[iy], color=[0, 0, 0, 1])
-            self.add_widget(row_label)
-
-            for ix, tile_value in enumerate(row, start=0):
-                pos = (x0 + ix*(self.tile_width + self.tile_spacing), self.max_height - iy*(self.tile_height + self.tile_spacing))
-
-                tile_height = self.tile_height
-                
-                bar_widget = ScheduleTile(size=(self.tile_width, self.tile_height), pos=pos, rgba=category_colors[tile_value], height_final=self.tile_height)
-                # bar_label = Label(pos=(x0 - (self.width - self.tile_width)/2 + ix*(self.tile_width + self.tile_spacing), self.max_height/2 - iy*(self.tile_height + self.tile_spacing)), text=str(tile_value), color=[0, 0, 0, 1])
-
-                self.tiles.append(bar_widget)
-                self.add_widget(bar_widget)
-                # self.add_widget(bar_label)
-
-                if iy == 0:
-                    col_label = Label(pos=(x0 - (self.width - self.tile_width)/2 + ix*(self.tile_width + self.tile_spacing), self.max_height/2 + self.y_padding),
-                              text=str(ix+1), color=[0, 0, 0, 1])
-                    self.add_widget(col_label)
-
-    def draw_chart(self, schedule_data, category_colors, labels):
-        """
-        Draws the RateScheduleChart.
-        """
-        # clear all widgets from the RateScheduleChart
-        while len(self.children) > 0:
-            for widget in self.children:
-                self.remove_widget(widget)
-
-        # with self.canvas.before:
-        #     Color(1, 1, 1, 1)
-        #     Rectangle(size=self.size, pos=self.pos)
-
-        self.generate_tiles(schedule_data, category_colors, labels)
-
-        def _anim_tile(tile, *args):
-            anim = Animation(opacity=1, duration=1.0, t='out_back')
-            anim.start(tile)
-
-        # animate the tiles
-        TILE_ANIM_LENGTH = 0.005
-
-        for ix, tile in enumerate(self.tiles, start=0):
-            if isinstance(tile, ScheduleTile):
-                if self._do_animation:
-                    Clock.schedule_once(partial(_anim_tile, tile), ix*TILE_ANIM_LENGTH)
-                else:
-                    tile.opacity = 1
-
-        # generate legend
-        leg_pos = (0, 0)
-        leg_size = (self.legend_width, self.height)
-
-        self.legend = ChartLegend(leg_pos, size=leg_size, opacity=0)
-        self.add_widget(self.legend)
-
-        # form the legend input [[name, rgba] for each entry]
-        legend_data = [[str(ix), color] for ix, color in enumerate(category_colors)]
-
-        self.legend.gen_legend(legend_data)
-
-        def _anim_legend(legend, *args):
-            if self._do_animation:
-                t_anim_legend = 0.5
-            else:
-                t_anim_legend = 0
-
-            anim = Animation(opacity=1, duration=t_anim_legend, t='linear')
-            anim.start(legend)
-
-        # animate the legend opacity after all bars have been built
-        Clock.schedule_once(partial(_anim_legend, self.legend), len(self.tiles)*TILE_ANIM_LENGTH)
 
 class ScheduleTile(Widget):
     height_final = NumericProperty
 
-    def __init__(self, rgba=None, height_final=None, info=None, **kwargs):
+    def __init__(self, rgba=None, **kwargs):
         """
         A widget for tiles in Rate Schedule Charts.
 
         :param rgba: Length-4 iterable representing R, G, B, Alpha values in [0, 1].
-        :param height_final: Float representing the value of the bar.
-        :param info: BarChartEntry, a named tuple with fields ('name', 'rgba', 'value')
         :param kwargs:
         """
         super(ScheduleTile, self).__init__(**kwargs)
@@ -1282,21 +1152,19 @@ class ScheduleTile(Widget):
         self.size_hint_x = None
         self.size_hint_y = None
 
-        self.info = info
         self.opacity = 0
 
         self.color = rgba
-        self.height_final = height_final
 
         with self.canvas.after:
             # draws the bar as a rectangle graphic
             Color(*rgba)
             self.tile = Rectangle(pos=self.pos, size=self.size)
 
-        self.bind(pos=self._update_bar, size=self._update_bar)
+        self.bind(pos=self._update_tile, size=self._update_tile)
 
-    def _update_bar(self, instance, value):
-        """Updates Bar graphic size and position whenever widget size or position changes."""
+    def _update_tile(self, instance, value):
+        """Updates tile graphic size and position whenever widget size or position changes."""
         self.tile.pos = instance.pos
         self.tile.size = instance.size
 

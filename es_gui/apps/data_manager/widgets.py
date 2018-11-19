@@ -149,27 +149,17 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                     http_request.raise_for_status()
         except requests.HTTPError as e:
             logging.error('DMUtilitySearch: {0}'.format(repr(e)))
-            # if wx >= (MAX_WHILE_ATTEMPTS - 1):
-            #     self.thread_failed = True
         except requests.exceptions.ProxyError:
             logging.error('DMUtilitySearch: Could not connect to proxy.')
-            # if wx >= (MAX_WHILE_ATTEMPTS - 1):
-            #     self.thread_failed = True
         except requests.ConnectionError as e:
             logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
-            # if wx >= (MAX_WHILE_ATTEMPTS - 1):
-            #     self.thread_failed = True
         except requests.Timeout as e:
             logging.error('DMUtilitySearch: The connection timed out.')
         except requests.RequestException as e:
             logging.error('DMUtilitySearch: {0}'.format(repr(e)))
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
         except Exception as e:
             # Something else went wrong.
             logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
-        #     if wx >= (MAX_WHILE_ATTEMPTS - 1):
-        #         self.thread_failed = True
         else:
             data_down = http_request.content.decode(http_request.encoding)
             data_iou = pd.read_csv(io.StringIO(data_down))
@@ -200,9 +190,14 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
             data_down = http_request.content.decode(http_request.encoding)
             data_noniou = pd.read_csv(io.StringIO(data_down))
         
-        df_combined = pd.concat([data_iou, data_noniou], ignore_index=True)
-
-        self.utility_ref_table = df_combined
+        try:
+            df_combined = pd.concat([data_iou, data_noniou], ignore_index=True)
+        except NameError:
+            # Connection error prevented downloads.
+            raise requests.ConnectionError
+        else:
+            self.utility_ref_table = df_combined
+            logging.info('RateStructureDM: Retrieved list of all utilities.')
 
     def _validate_inputs(self):      
         """Validates the search parameters."""  
@@ -248,6 +243,7 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
         """Executes the utility search using the given parameters."""
         try:
             api_key, search_query, search_type = self.get_inputs()
+            self.api_key = api_key
         except ValueError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
@@ -268,7 +264,13 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                 # self.loading_screen.open()
 
                 if self.utility_ref_table.empty:
-                    self._download_utility_ref_table()
+                    try:
+                        self._download_utility_ref_table()
+                    except requests.ConnectionError:
+                        popup = WarningPopup()
+                        popup.popup_text.text = 'There was an issue connecting and downloading list of utilities.'
+                        popup.open()
+                        return
                 
                 # Filter DataFrame by search type/query and drop duplicate entries.
                 if not search_type == 'zip': 
@@ -279,13 +281,19 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                 utility_data_filtered = utility_data_filtered[['eiaid', 'utility_name', 'state', 'ownership']]
                 utility_data_filtered.drop_duplicates(inplace=True)
 
+                logging.info('RateStructureDM: Utility table filter completed.')
+
+                if utility_data_filtered.empty:
+                    logging.warning('RateStructureDM: No results matched the query.')
+
+                    popup = WarningPopup()
+                    popup.popup_text.text = 'No results matched your query.'
+                    popup.open()
+
                 # Enable search results selector.
                 bx_anim.start(self.utility_select_bx)
                 self._populate_utility_selector(utility_data_filtered)
 
-                self.api_key = api_key
-
-                logging.info('RateStructureDM: Retrieved list of all utilities.')
                 # Animation.stop_all(self.loading_screen.logo, 'opacity')
                 # self.loading_screen.dismiss()
                 self.search_button.disabled = False
@@ -347,25 +355,58 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
                     http_request.raise_for_status()
         except requests.HTTPError as e:
             logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+
+            popup = WarningPopup()
+            popup.popup_text.text = repr(e)
+            popup.open()
         except requests.exceptions.ProxyError:
             logging.error('DMUtilitySearch: Could not connect to proxy.')
+
+            popup = WarningPopup()
+            popup.popup_text.text = 'Could not connect to proxy.'
+            popup.open()
         except requests.ConnectionError as e:
             logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+
+            popup = WarningPopup()
+            popup.popup_text.text = 'Failed to establish a connection to the host server.'
+            popup.open()
         except requests.Timeout as e:
             logging.error('DMUtilitySearch: The connection timed out.')
+
+            popup = WarningPopup()
+            popup.popup_text.text = 'The connection timed out.'
+            popup.open()
         except requests.RequestException as e:
             logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+
+            popup = WarningPopup()
+            popup.popup_text.text = repr(e)
+            popup.open()
         except Exception as e:
             # Something else went wrong.
             logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
+
+            popup = WarningPopup()
+            popup.popup_text.text = 'An unexpected error has occurred. ({0})'.format(repr(e))
+            popup.open()
         else:
             structure_list = http_request.json()['items']
 
             structure_df = pd.DataFrame.from_records(structure_list)
             structure_df.dropna(subset=['energyratestructure'], inplace=True)
+
+            # Filter out entries whose energyratestructure array does not contain "rate" terms
+            mask = structure_df['energyratestructure'].apply(lambda x: all(['rate' in hr.keys() for row in x for hr in row]))
+            structure_df = structure_df[mask]
+
             structure_list = structure_df.to_dict(orient='records')
 
-            records = [{'name': record['name'], 'record': record} for record in structure_list]
+            # Display name: Name (record['startdate'])
+            effective_dates = ['(Effective Date : {0})'.format(dt.datetime.fromtimestamp(record['startdate']).strftime('%m/%d/%Y'))  if not np.isnan(record['startdate']) else '' for record in structure_list]
+
+            records = [{'name': record['name'] + ' ' + effective_dates[ix] , 'record': record} 
+            for ix, record in enumerate(structure_list, start=0)]
             records = sorted(records, key=lambda t: t['name'])
 
             self.rate_structure_rv.data = records
@@ -439,9 +480,10 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
             row = DataManagerRateStructureTierRow(desc={'tier': tier, 'rate': rate})
             self.rate_structure_tier_table.add_widget(row)
 
-        self.generate_schedule_charts()
+        # self.generate_schedule_charts()
+        self.generate_schedule_tables()
     
-    def generate_schedule_charts(self, *args):
+    def generate_schedule_tables(self, *args):
         """Populates the weekday and weekend rate schedule tables."""
         weekday_schedule_data = self.rate_structure['energyweekdayschedule']
         weekend_schedule_data = self.rate_structure['energyweekendschedule']
@@ -456,16 +498,22 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
             for iy, text_input in enumerate(month_row.text_inputs, start=0):
                 text_input.text = str(weekend_schedule_data[ix][iy])
         
-        # n_tiers = len(np.unique(weekday_schedule_data))
+    def generate_schedule_charts(self, *args):
+        """Draws the weekday and weekend rate schedule charts."""
+        weekday_schedule_data = self.rate_structure.get('energyweekdayschedule', [])
+        weekend_schedule_data = self.rate_structure.get('energyweekendschedule', [])
 
-        # # Select chart colors.
-        # palette = [rgba_to_fraction(color) for color in PALETTE][:n_tiers]
-        # labels = calendar.month_abbr[1:]
+        if weekday_schedule_data and weekend_schedule_data:
+            n_tiers = len(np.unique(weekday_schedule_data))
 
-        # # Draw charts.
-        # self.weekday_chart.draw_chart(np.array(weekday_schedule_data), palette, labels)
-        # self.weekend_chart.draw_chart(np.array(weekend_schedule_data), palette, labels)
-    
+            # Select chart colors.
+            palette = [rgba_to_fraction(color) for color in PALETTE][:n_tiers]
+            labels = calendar.month_abbr[1:]
+
+            # Draw charts.
+            self.weekday_chart.draw_chart(np.array(weekday_schedule_data), palette, labels)
+            self.weekend_chart.draw_chart(np.array(weekend_schedule_data), palette, labels)
+
     def read_schedule_input(self):
         """Retrieves the rate schedule inputs into NumPy arrays."""
         weekday_schedule = np.empty((12, 24))
@@ -492,9 +540,6 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
         weekday_tiers = np.unique(weekday_schedule)
         weekend_tiers = np.unique(weekend_schedule)
 
-        print(weekday_tiers)
-        print(weekend_tiers)
-
         # get tiers/rates
 
         # determine if any entered values in schedule are not in tier list        
@@ -513,7 +558,7 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
 
 
 class DataManageRateStructureTierTable(GridLayout):
-    """"""
+    """A layout of DataManagerRateStructureTierRow widgets that form a rate tier table."""
     def reset_table(self):
         while len(self.children) > 1:
             for widget in self.children:
@@ -526,7 +571,7 @@ class DataManageRateStructureTierHeader(GridLayout):
 
 
 class DataManagerRateStructureTierRow(GridLayout):
-    """Grid layout containing parameter descriptor label, slider, and value label."""
+    """A labeled row with a TextInput for the tier rate."""
     desc = DictProperty()
 
     def __init__(self, **kwargs):
@@ -572,7 +617,7 @@ class RateStructureRateTextInput(TextInput):
 
 
 class DataManagerRateStructureScheduleGrid(GridLayout):
-    """"""
+    """A layout of DataManagerRateScheduleRow widgets that form a rate schedule table."""
     def __init__(self, **kwargs):
         super(DataManagerRateStructureScheduleGrid, self).__init__(**kwargs)
 
@@ -585,7 +630,7 @@ class DataManagerRateStructureScheduleGrid(GridLayout):
 
 
 class DataManagerRateScheduleRow(GridLayout):
-    """"""
+    """A labeled row of TextInput fields for the rate schedule table."""
     row_name = StringProperty('')
 
     def __init__(self, **kwargs):
@@ -601,14 +646,15 @@ class DataManagerRateScheduleRow(GridLayout):
 
 
 class RateScheduleTextInput(TextInput):
-    """A TextInput field for entering parameter values."""
+    """A TextInput field for entering rate schedule tiers. Changes color based on input."""
 
     def insert_text(self, substring, from_undo=False):
-        # limit # chars
+        # Limit # chars to 1.
         substring = substring[:1 - len(self.text)]
         return super(RateScheduleTextInput, self).insert_text(substring, from_undo=from_undo)
     
     def get_background_color(self, input_text):
+        """Change the background color depending on the text input."""
         try:
             ix = divmod(int(input_text), len(PALETTE))[1]
             return_color = rgba_to_fraction(PALETTE[ix])
@@ -617,6 +663,7 @@ class RateScheduleTextInput(TextInput):
         return return_color
     
     def get_foreground_color(self, input_text):
+        """Change the font color depending on the background color."""
         try:
             ix = divmod(int(input_text), len(PALETTE))[1]
         except ValueError:
