@@ -1766,7 +1766,7 @@
             padding: (50, 0)
             size_hint_y: 0.90
 
-            DataManageRateStructureTierTable:
+            DataManagerRateStructureTierTable:
                 id: rate_structure_tier_table
                 cols: 1
                 spacing: 2
@@ -1775,7 +1775,7 @@
                 row_force_default: True
                 row_default_height: 28
                 
-                DataManageRateStructureTierHeader:
+                DataManagerRateStructureTierHeader:
             
             BoxLayout:
                 orientation: 'vertical'
@@ -1844,7 +1844,7 @@
                         root.manager.transition.direction = 'left'
                         root.go_to_demand_rate_schedule()
 
-<DataManageRateStructureTierHeader>:
+<DataManagerRateStructureTierHeader>:
     cols: 2
     spacing: 5
 
@@ -1856,7 +1856,7 @@
     DataManagerTabContentSubtitle:
         size_hint_x: 0.7
         # font_size: stnd_font
-        text: 'Rate'
+        text: 'Rate [$/kWh]'
 
 <DataManagerRateStructureTierRow>:
     cols: 2
@@ -1966,6 +1966,116 @@
     #         text: '23'
     #     DataManagerTabContentBodyText:
     #         text: '24'
+
+<DataManagerRateStructureDemandRateStructureScreen>:
+    rate_structure_tier_table: rate_structure_tier_table
+    weekday_chart: weekday_chart
+    weekend_chart: weekend_chart
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Verify the demand rate structure.'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            padding: (50, 0)
+            size_hint_y: 0.90
+
+            DataManagerRateStructureTierTable:
+                id: rate_structure_tier_table
+                cols: 1
+                spacing: 2
+                size_hint_x: 0.3
+                padding: (25, 5)
+                row_force_default: True
+                row_default_height: 28
+                
+                GridLayout:
+                    cols: 2
+                    spacing: 5
+
+                    DataManagerTabContentSubtitle:
+                        size_hint_x: 0.3
+                        # font_size: stnd_font
+                        text: 'Tier'
+                    
+                    DataManagerTabContentSubtitle:
+                        size_hint_x: 0.7
+                        # font_size: stnd_font
+                        text: 'Rate [$/kW]'
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.1
+
+                DataManagerTabContentSubtitle:
+                    text: 'Weekday'
+                
+                DataManagerTabContentSubtitle:
+                    text: 'Weekend'
+
+            BoxLayout:
+                orientation: 'vertical'
+                # spacing: 5
+                size_hint_x: 0.6
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    DataManagerRateStructureScheduleGrid:
+                        id: weekday_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekday_chart
+                        
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    DataManagerRateStructureScheduleGrid:
+                        id: weekend_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekend_chart
+                        
+        
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.35
+                spacing: 10
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Return to search'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Demand rate structure'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.go_to_demand_rate_schedule()
 
 <DataManagerOpenEIapiHelp>:
     auto_dismiss: False

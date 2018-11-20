@@ -88,6 +88,7 @@ class DataManagerRateStructureScreenManager(ScreenManager):
         self.transition = SlideTransition()
         self.add_widget(DataManagerRateStructureUtilitySearchScreen(name='start'))
         self.add_widget(DataManagerRateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
+        self.add_widget(DataManagerRateStructureDemandRateStructureScreen(name='demand_rate_structure'))
 
 class DataManagerOpenEIapiHelp(ModalView):
     """ModalView to display instructions on how to get an OpenEI API key."""
@@ -425,6 +426,7 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
             self.rate_structure_desc.text = ''
         else:
             self.manager.get_screen('energy_rate_structure').populate_rate_schedules(value)
+            self.manager.get_screen('demand_rate_structure').populate_rate_schedules(value)
         
         try:
             self.rate_structure_desc.text = value.get('description', 'No description provided.')
@@ -478,6 +480,7 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
             rate = str(energy_rate[0].get('rate', 0))
 
             row = DataManagerRateStructureTierRow(desc={'tier': tier, 'rate': rate})
+            self.rate_structure_tier_table.tier_rows.append(row)
             self.rate_structure_tier_table.add_widget(row)
 
         # self.generate_schedule_charts()
@@ -513,39 +516,42 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
             # Draw charts.
             self.weekday_chart.draw_chart(np.array(weekday_schedule_data), palette, labels)
             self.weekend_chart.draw_chart(np.array(weekend_schedule_data), palette, labels)
-
-    def read_schedule_input(self):
-        """Retrieves the rate schedule inputs into NumPy arrays."""
-        weekday_schedule = np.empty((12, 24))
-        weekend_schedule = np.empty((12, 24))
-
-        # Weekday chart.
-        for ix, month_row in enumerate(self.weekday_chart.schedule_rows, start=0):
-            for iy, text_input in enumerate(month_row.text_inputs, start=0):
-                weekday_schedule[ix, iy] = int(text_input.text)
-        
-        # Weekend chart.
-        for ix, month_row in enumerate(self.weekend_chart.schedule_rows, start=0):
-            for iy, text_input in enumerate(month_row.text_inputs, start=0):
-                weekend_schedule[ix, iy] = int(text_input.text)
-
-        return weekday_schedule, weekend_schedule
-    
-    def read_rates_input(self):
-        """Retrives the rate inputs."""
-        pass
     
     def _validate_inputs(self):
-        weekday_schedule, weekend_schedule = self.read_schedule_input()
-        weekday_tiers = np.unique(weekday_schedule)
-        weekend_tiers = np.unique(weekend_schedule)
+        weekday_schedule = self.weekday_chart.get_schedule()
+        weekend_schedule = self.weekend_chart.get_schedule()
 
-        # get tiers/rates
+        # Get tiers/rates from table.
+        rates_dict = self.rate_structure_tier_table.get_rates()
+        tiers = set(rates_dict.keys())
 
-        # determine if any entered values in schedule are not in tier list        
-    
+        # Determine if any values in schedule are not in tier list.
+        weekday_tiers = set(np.unique(weekday_schedule))
+        weekend_tiers = set(np.unique(weekend_schedule))
+
+        if not weekday_tiers.issubset(tiers):
+            set_diff = ', '.join(['{:d}'.format(int(x)) for x in sorted(weekday_tiers.difference(tiers))])
+
+            raise(InputError('Impermissible entries ({0}) in the Weekday Rate Schedule found.'.format(set_diff)))
+
+        if not weekend_tiers.issubset(tiers):
+            set_diff = ', '.join(['{:d}'.format(int(x)) for x in sorted(weekend_tiers.difference(tiers))])
+
+            raise(InputError('Impermissible entries ({0}) in the Weekend Rate Schedule found.'.format(set_diff)))
+        
+        return weekday_schedule, weekend_schedule, rates_dict
+
     def go_to_demand_rate_schedule(self):
-        self._validate_inputs()
+        """Check if all input data is valid before proceeding to the next demand rate structure screen."""
+        try:
+            weekday_schedule, weekend_schedule, rates_dict = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            logging.info('EnergyRateSchedule: All seems well.')
+            self.manager.current = self.manager.next()
     
     def on_enter(self):
         pass
@@ -557,16 +563,90 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
         # self.weekend_chart.clear_widgets()
 
 
-class DataManageRateStructureTierTable(GridLayout):
+class DataManagerRateStructureDemandRateStructureScreen(Screen):
+    """DataManager Rate Structure screen for viewing and modifying a utility rate structure."""
+    rate_structure = DictProperty()
+
+    def populate_rate_schedules(self, rate_structure):
+        """Fills in the rate/tier table and energy rate schedule based on selected rate structure."""
+        # self.rate_structure_tier_table.reset_table()
+
+        self.rate_structure = rate_structure
+
+        # Get the energy rate structure.
+        demand_rate_structure = rate_structure.get('demandratestructure', [])
+
+        # # Populates the tier/rate table.
+        # for ix, energy_rate in enumerate(energy_rate_structure, start=0):
+        #     try:
+        #         rate = str(energy_rate[0]['rate'])
+        #     except KeyError:
+        #         logging.warning('RateStructureDM: No rate value found in energy rate structure.')
+
+        #     tier = str(ix)
+        #     rate = str(energy_rate[0].get('rate', 0))
+
+        #     row = DataManagerRateStructureTierRow(desc={'tier': tier, 'rate': rate})
+        #     self.rate_structure_tier_table.tier_rows.append(row)
+        #     self.rate_structure_tier_table.add_widget(row)
+
+        # self.generate_schedule_charts()
+        self.generate_schedule_tables()
+    
+    def generate_schedule_tables(self, *args):
+        """Populates the weekday and weekend rate schedule tables."""
+        try:
+            weekday_schedule_data = self.rate_structure['demandweekdayschedule']
+            weekend_schedule_data = self.rate_structure['demandweekendschedule']
+        except KeyError:
+            # No demand rate schedules provided.
+            logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
+
+            weekday_schedule_data = np.zeros(shape=(12, 24), dtype=int)
+            weekend_schedule_data = np.zeros(shape=(12, 24), dtype=int)
+
+        # Weekday chart.
+        for ix, month_row in enumerate(self.weekday_chart.schedule_rows, start=0):
+            for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                text_input.text = str(weekday_schedule_data[ix][iy])
+        
+        # Weekend chart.
+        for ix, month_row in enumerate(self.weekend_chart.schedule_rows, start=0):
+            for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                text_input.text = str(weekend_schedule_data[ix][iy])
+
+
+class DataManagerRateStructureTierTable(GridLayout):
     """A layout of DataManagerRateStructureTierRow widgets that form a rate tier table."""
+    def __init__(self, **kwargs):
+        super(DataManagerRateStructureTierTable, self).__init__(**kwargs)
+
+        self.tier_rows = []
+
     def reset_table(self):
+        self.tier_rows = []
+
         while len(self.children) > 1:
             for widget in self.children:
                 if isinstance(widget, DataManagerRateStructureTierRow):
                     self.remove_widget(widget)
+    
+    def _validate_inputs(self):
+        try:
+            rate_dict = {int(rate.desc['tier']): float(rate.text_input.text) for rate in self.tier_rows}
+        except ValueError:
+            # An empty input.
+            raise(InputError('All rates in the rate table must be specified.'))
+        
+        return rate_dict
+    
+    def get_rates(self):
+        rate_dict = self._validate_inputs()
 
+        return rate_dict
+        
 
-class DataManageRateStructureTierHeader(GridLayout):
+class DataManagerRateStructureTierHeader(GridLayout):
     pass
 
 
@@ -627,6 +707,27 @@ class DataManagerRateStructureScheduleGrid(GridLayout):
             schedule_row = DataManagerRateScheduleRow(row_name=calendar.month_abbr[ix])
             self.add_widget(schedule_row)
             self.schedule_rows.append(schedule_row)
+    
+    def _validate_inputs(self):
+        schedule_array = np.empty((12, 24))
+
+        try:
+            for ix, month_row in enumerate(self.schedule_rows, start=0):
+                for iy, text_input in enumerate(month_row.text_inputs, start=0):
+                    schedule_array[ix, iy] = int(text_input.text)
+        except ValueError:
+            # A TextInput is empty.
+            raise(InputError('All schedule hours must be populated.'))
+
+        return schedule_array
+    
+    def get_schedule(self):
+        """Retrieves the rate schedule inputs into NumPy arrays."""
+        schedule_array = self._validate_inputs()
+
+        return schedule_array
+    
+    
 
 
 class DataManagerRateScheduleRow(GridLayout):
@@ -649,8 +750,8 @@ class RateScheduleTextInput(TextInput):
     """A TextInput field for entering rate schedule tiers. Changes color based on input."""
 
     def insert_text(self, substring, from_undo=False):
-        # Limit # chars to 1.
-        substring = substring[:1 - len(self.text)]
+        # Limit # chars to 2.
+        substring = substring[:2 - len(self.text)]
         return super(RateScheduleTextInput, self).insert_text(substring, from_undo=from_undo)
     
     def get_background_color(self, input_text):
