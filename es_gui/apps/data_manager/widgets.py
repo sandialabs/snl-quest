@@ -72,7 +72,7 @@ class DataManagerRTOMOdataScreen(Screen):
         ab.set_title('Data Manager: ISO/RTO Market and Operations Data')
 
 
-class DataManagerRateStructureDataScreen(Screen):
+class RateStructureDataScreen(Screen):
     """"""
     def on_enter(self):
         ab = self.manager.nav_bar
@@ -80,21 +80,21 @@ class DataManagerRateStructureDataScreen(Screen):
         ab.set_title('Data Manager: Utility Rate Structure Data')
 
 
-class DataManagerRateStructureScreenManager(ScreenManager):
+class RateStructureScreenManager(ScreenManager):
     """The screen manager for the Data Manager Rate Structure Data screens."""
     def __init__(self, **kwargs):
-        super(DataManagerRateStructureScreenManager, self).__init__(**kwargs)
+        super(RateStructureScreenManager, self).__init__(**kwargs)
 
         self.transition = SlideTransition()
-        self.add_widget(DataManagerRateStructureUtilitySearchScreen(name='start'))
-        self.add_widget(DataManagerRateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
-        self.add_widget(DataManagerRateStructureDemandRateStructureScreen(name='demand_rate_structure'))
+        self.add_widget(RateStructureUtilitySearchScreen(name='start'))
+        self.add_widget(RateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
+        self.add_widget(RateStructureDemandRateStructureScreen(name='demand_rate_structure'))
 
 class DataManagerOpenEIapiHelp(ModalView):
     """ModalView to display instructions on how to get an OpenEI API key."""
 
 
-class DataManagerRateStructureUtilitySearchScreen(Screen):
+class RateStructureUtilitySearchScreen(Screen):
     """DataManager Rate Structure screen for searching for a utility rate structure."""
     utility_ref_table = pd.DataFrame()
     utility_selected = DictProperty()
@@ -102,7 +102,7 @@ class DataManagerRateStructureUtilitySearchScreen(Screen):
     api_key = StringProperty('')
 
     def __init__(self, **kwargs):
-        super(DataManagerRateStructureUtilitySearchScreen, self).__init__(**kwargs)
+        super(RateStructureUtilitySearchScreen, self).__init__(**kwargs)
 
         DataManagerUtilitySearchRVNodeEntry.host_screen = self
         DataManagerRateStructureRVNodeEntry.host_screen = self
@@ -456,7 +456,7 @@ class DataManagerRateStructureRVNodeEntry(RecycleViewRow):
             self.host_screen.rate_structure_selected = rv.data[self.index]['record']
 
 
-class DataManagerRateStructureEnergyRateStructureScreen(Screen):
+class RateStructureEnergyRateStructureScreen(Screen):
     """DataManager Rate Structure screen for viewing and modifying a utility rate structure."""
     rate_structure = DictProperty()
 
@@ -563,7 +563,7 @@ class DataManagerRateStructureEnergyRateStructureScreen(Screen):
         # self.weekend_chart.clear_widgets()
 
 
-class DataManagerRateStructureDemandRateStructureScreen(Screen):
+class RateStructureDemandRateStructureScreen(Screen):
     """DataManager Rate Structure screen for viewing and modifying a utility rate structure."""
     rate_structure = DictProperty()
 
@@ -604,6 +604,16 @@ class DataManagerRateStructureDemandRateStructureScreen(Screen):
 
             weekday_schedule_data = np.zeros(shape=(12, 24), dtype=int)
             weekend_schedule_data = np.zeros(shape=(12, 24), dtype=int)
+        else:
+            # Sometimes rather than being empty, a nan is in the field.
+            if type(weekday_schedule_data) == float:
+                logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
+                weekday_schedule_data = np.zeros(shape=(12, 24), dtype=int)
+            if type(weekend_schedule_data) == float:
+                logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
+                weekend_schedule_data = np.zeros(shape=(12, 24), dtype=int)
+
+        print(self.rate_structure)
 
         # Weekday chart.
         for ix, month_row in enumerate(self.weekday_chart.schedule_rows, start=0):

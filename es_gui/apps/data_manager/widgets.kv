@@ -1518,7 +1518,7 @@
                 size_hint_x: 0.25
                 on_release: root.dismiss()
 
-<DataManagerRateStructureDataScreen>:
+<RateStructureDataScreen>:
     BoxLayout:
         orientation: 'vertical'
         padding: 10
@@ -1527,9 +1527,9 @@
         BoxLayout:
             orientation:
 
-            DataManagerRateStructureScreenManager:
+            RateStructureScreenManager:
 
-<DataManagerRateStructureUtilitySearchScreen>:
+<RateStructureUtilitySearchScreen>:
     api_key_input: api_key_input
     search_text_input: search_text_input
     search_button: search_button
@@ -1746,7 +1746,7 @@
                         root.manager.transition.direction = 'left'
                         root.manager.current = root.manager.next()
 
-<DataManagerRateStructureEnergyRateStructureScreen>:
+<RateStructureEnergyRateStructureScreen>:
     rate_structure_tier_table: rate_structure_tier_table
     weekday_chart: weekday_chart
     weekend_chart: weekend_chart
@@ -1775,7 +1775,19 @@
                 row_force_default: True
                 row_default_height: 28
                 
-                DataManagerRateStructureTierHeader:
+                GridLayout:
+                    cols: 2
+                    spacing: 5
+
+                    DataManagerTabContentSubtitle:
+                        size_hint_x: 0.3
+                        # font_size: stnd_font
+                        text: 'Period'
+                    
+                    DataManagerTabContentSubtitle:
+                        size_hint_x: 0.7
+                        # font_size: stnd_font
+                        text: 'Rate [$/kWh]'
             
             BoxLayout:
                 orientation: 'vertical'
@@ -1843,20 +1855,6 @@
                         root.manager.transition.duration = BASE_TRANSITION_DUR
                         root.manager.transition.direction = 'left'
                         root.go_to_demand_rate_schedule()
-
-<DataManagerRateStructureTierHeader>:
-    cols: 2
-    spacing: 5
-
-    DataManagerTabContentSubtitle:
-        size_hint_x: 0.3
-        # font_size: stnd_font
-        text: 'Tier'
-    
-    DataManagerTabContentSubtitle:
-        size_hint_x: 0.7
-        # font_size: stnd_font
-        text: 'Rate [$/kWh]'
 
 <DataManagerRateStructureTierRow>:
     cols: 2
@@ -1967,7 +1965,7 @@
     #     DataManagerTabContentBodyText:
     #         text: '24'
 
-<DataManagerRateStructureDemandRateStructureScreen>:
+<RateStructureDemandRateStructureScreen>:
     rate_structure_tier_table: rate_structure_tier_table
     weekday_chart: weekday_chart
     weekend_chart: weekend_chart
@@ -2003,7 +2001,7 @@
                     DataManagerTabContentSubtitle:
                         size_hint_x: 0.3
                         # font_size: stnd_font
-                        text: 'Tier'
+                        text: 'Period'
                     
                     DataManagerTabContentSubtitle:
                         size_hint_x: 0.7

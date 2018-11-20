@@ -64,7 +64,7 @@ from es_gui.settings import ESAppSettings
 Builder.load_file(os.path.join(dirname, 'es_gui', 'settings.kv'))
 
 # Data Manager
-from es_gui.apps.data_manager.widgets import DataManagerHomeScreen, DataManagerRTOMOdataScreen, DataManagerRateStructureDataScreen
+from es_gui.apps.data_manager.widgets import DataManagerHomeScreen, DataManagerRTOMOdataScreen, RateStructureDataScreen
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'widgets.kv'))
 
 # Valuation
@@ -218,7 +218,7 @@ class QuEStScreenManager(ScreenManager):
         # Data manager.
         self.add_widget(DataManagerHomeScreen(name='data_manager_home'))
         self.add_widget(DataManagerRTOMOdataScreen(name='data_manager_rto_mo_data'))
-        self.add_widget(DataManagerRateStructureDataScreen(name='data_manager_rate_structure_data'))
+        self.add_widget(RateStructureDataScreen(name='data_manager_rate_structure_data'))
 
         # Energy storage valuation.
         #self.add_widget(ValuationScreen(name='valuation_advanced'))
