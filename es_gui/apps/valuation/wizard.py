@@ -122,7 +122,9 @@ class ValuationWizardISOSelect(Screen):
                     self.iso_select.remove_widget(widget)
         
         ISO_OPTIONS = App.get_running_app().data_manager.get_markets()
-        
+        # print("In the ValuationWizardISOSelect")
+        # print(ISO_OPTIONS)
+
         for iso in ISO_OPTIONS:
             iso_button = WizardISOTileButton(name=iso, text=iso, group='iso')
             self.iso_select.add_widget(iso_button)
@@ -197,8 +199,6 @@ class ValuationWizardNodeSelect(Screen):
             data_manager = App.get_running_app().data_manager
             node_options = [{'name': node[1],
                             'nodeid': node[0]} for node in data_manager.get_nodes(value).items()]
-            # node_options = [{'name': node['name'],
-            #                 'nodeid': node['ID']} for node in NODES[value].values()]
             self.node_rv.data = node_options
             self.node_rv.unfiltered_data = node_options
         except AttributeError:
@@ -720,7 +720,7 @@ class AboutSelectionSummary(ModalView):
     def openwebbrowser(self):
         if self.ISOselname  == "NYISO":
             webbrowser.open('http://www.nyiso.com/')
-        elif self.ISOselname  == "ISO-NE":
+        elif self.ISOselname  == "ISONE":
             webbrowser.open('https://www.iso-ne.com/')
         elif self.ISOselname == "PJM":
             webbrowser.open('http://www.pjm.com/')
@@ -728,6 +728,10 @@ class AboutSelectionSummary(ModalView):
             webbrowser.open('http://www.ercot.com/')
         elif self.ISOselname == "MISO":
             webbrowser.open('https://www.misoenergy.org/')
+        elif self.ISOselname == "SPP":
+            webbrowser.open('https://www.spp.org/')
+        elif self.ISOselname == "CAISO":
+            webbrowser.open('http://www.caiso.com/')
         else:
             webbrowser.open('http://www.sandia.gov/')
 
@@ -739,7 +743,7 @@ class AboutSelectionSummary(ModalView):
         if self.ISOselname == "NYISO":
             # self.img_abt_selsum.source = os.path.join('es_gui', 'resources', 'images', 'xNYISOlogo.jpg')
             self.lab_abt_selsum.text = "The New York Independent System Operator (NYISO) operates competitive wholesale markets to manage the flow of electricity across New York."
-        elif self.ISOselname == "ISO-NE":
+        elif self.ISOselname == "ISONE":
             # self.img_abt_selsum.source = os.path.join('es_gui', 'resources', 'images', 'xISO-NElogo.jpg')
             self.lab_abt_selsum.text = "ISO New England Inc. (ISO-NE) is an independent, non-profit Regional Transmission Organization (RTO), headquartered in Holyoke, Massachusetts, serving Connecticut, Maine, Massachusetts, New Hampshire, Rhode Island, and Vermont. ISO-NE oversees the operation of New England's bulk electric power system and transmission lines, generated and transmitted by its member utilities, as well as Hydro-Quebec, NB Power, the New York Power Authority and utilities in New York state, when the need arises. ISO-NE is responsible for reliably operating New England's bulk electric power generation and transmission system."
         elif self.ISOselname == "PJM":
@@ -751,6 +755,13 @@ class AboutSelectionSummary(ModalView):
         elif self.ISOselname == "MISO":
             # self.img_abt_selsum.source = os.path.join('es_gui', 'resources', 'images', 'xMISOlogo.png')
             self.lab_abt_selsum.text = 'The Midcontinent Independent System Operator, Inc., formerly named Midwest Independent Transmission System Operator, Inc. (MISO) is an Independent System Operator (ISO) and Regional Transmission Organization (RTO) providing open-access transmission service and monitoring the high-voltage transmission system in the Midwest United States and Manitoba, Canada and a southern United States region which includes much of Arkansas, Mississippi, and Louisiana.'
+        elif self.ISOselname == "SPP":
+            # self.img_abt_selsum.source = os.path.join('es_gui', 'resources', 'images', 'xMISOlogo.png')
+            self.lab_abt_selsum.text = 'SPP description TBW.'
+        elif self.ISOselname == "CAISO":
+            # self.img_abt_selsum.source = os.path.join('es_gui', 'resources', 'images', 'xMISOlogo.png')
+            self.lab_abt_selsum.text = 'CAISO description TBW.'
+
         else:
             # self.img_abt_selsum.source = os.path.join('es_gui', 'resources', 'images', 'SNLlogo.png')
             pass
@@ -921,14 +932,9 @@ class ValuationWizardExecute(Screen):
     report_attributes = {}
 
     def on_enter(self):
-        # anim = Animation(transition='out_expo', duration=2, opacity=1)
-        # anim.start(self.content)
-        #Clock.schedule_once(lambda dt: self.execute_run(), 1)
         self.execute_run()
 
     def on_leave(self):
-        # Animation.stop_all(self.content, 'opacity')
-        # self.content.opacity = 0
         self.progress_label.text = 'This may take a while. Please wait patiently!'
 
     def execute_run(self):
@@ -939,12 +945,11 @@ class ValuationWizardExecute(Screen):
         wiz_selections = ss.wiz_selections
         iso = wiz_selections['iso']
         node = wiz_selections['node']
-        nodeid = wiz_selections['nodeid']  # For ISO-NE
+        nodeid = wiz_selections['nodeid']
 
         data_manager = App.get_running_app().data_manager
         rev_streams = data_manager.get_valuation_revstreams(iso, nodeid)[wiz_selections['rev_streams']]['market type']
 
-        #rev_streams = REV_STREAMS[iso][wiz_selections['rev_streams']]['market type']
         hist_data = wiz_selections['selected_data']
         device = wiz_selections['device']
 
@@ -960,6 +965,17 @@ class ValuationWizardExecute(Screen):
         valop_handler = valuation_home.handler
         valop_handler.solver_name = App.get_running_app().config.get('optimization', 'solver')
         self.solved_ops, handler_status = valop_handler.process_requests(handler_requests)
+
+        # If no optimizations were solved successfully, bail out.
+        if not self.solved_ops:
+            popup = ValWizardCompletePopup()
+
+            popup.title = "Hmm..."
+            popup.popup_text.text = "Unfortunately, none of the models were able to be solved. This is likely due to no data being available for the node selected. Try selecting another pricing node next time. (You selected {0}.)".format(node)
+            popup.results_button.text = "Take me back"
+            popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to Valuation Home
+            popup.open()
+            return
 
         # Save selection summary details to pass to report generator.
         deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children

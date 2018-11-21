@@ -33,7 +33,7 @@ class ValuationHomeScreen(Screen):
 
         # data_manager = App.get_running_app().data_manager
         
-        # Check if any data is available.
+        # # Check if any data is available.
         # if not data_manager.data_bank:
         #     no_data_popup = WarningPopup()
         #     no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"

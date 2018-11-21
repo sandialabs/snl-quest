@@ -29,13 +29,43 @@
    "desc": ""
   }
  },
- "ISO-NE": {
+ "ISONE": {
   "Arbitrage": {
    "market type": "arbitrage",
    "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
   },
   "Arbitrage and regulation": {
    "market type": "isone_pfp",
+   "desc": ""
+  }
+ },
+ "NYISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "nyiso_pfp",
+   "desc": ""
+  }
+ },
+ "SPP": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "spp_pfp",
+   "desc": "In the SPP Integrated Marketplace, operating reserve products available include regulation up and regulation down services. Compensation for regulation capacity offered is available. A compensation model for mileage incurred also exists but not in the day-ahead market."
+  }
+ },
+ "CAISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "caiso_pfp",
    "desc": ""
   }
  }

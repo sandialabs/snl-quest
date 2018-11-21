@@ -18,8 +18,8 @@
 subject to the following constraints
 <br />
 \begin{align}
-s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} & - q_i^\text{d} + \eta_\text{c} \delta_i^\text{rd} q_i^\text{reg} - \delta_i^\text{ru} q_i^\text{reg} \\
-0 \leq s_i & \leq \bar{S} \\
+S_{i+1} = \eta_\text{s} S_i + \eta_\text{c} q_i^\text{r} & - q_i^\text{d} + \eta_\text{c} \delta_i^\text{rd} q_i^\text{reg} - \delta_i^\text{ru} q_i^\text{reg} \\
+0 \leq S_i & \leq \bar{S} \\
 q_i^\text{r} + q_i^\text{d} + q_i^\text{reg} & \leq \bar Q
 \end{align}
 <br />
@@ -27,7 +27,7 @@ for all time periods \(i \in \mathcal{T} \). The total revenue can be calculated
 <br />
 \begin{align}
 r_\text{arb} & = \sum_{i \in \mathcal{T}} \lambda_i \big( q_i^\text{d} - q_i^\text{r} \big) \\
-r_\text{reg} & = \sum_{i \in \mathcal{T}} \gamma_i \big( \beta_i \lambda_i^\text{m} + \lambda_i^\text{c} \big) q_i^\text{reg} \\
+r_\text{reg} & = \sum_{i \in \mathcal{T}} \gamma_i \big( \beta_i \lambda_i^\text{p} + \lambda_i^\text{c} \big) q_i^\text{reg} \\
 r & = r_\text{arb} + r_\text{reg}
 \end{align}  
 <br />
@@ -61,7 +61,7 @@ NOTE: If the energy storage device is not participating in frequency regulation,
     <td> MWh </td>
   </tr>
   <tr>
-    <td>\( s_i \) </td>
+    <td>\( S_i \) </td>
     <td>Energy storage state of charge at time period \(i+1\)</td> 
     <td> MWh </td>
   </tr>

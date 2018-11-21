@@ -205,6 +205,8 @@ class ValuationDMS(DataManagementSystem):
             RD = self.get_data(rd_key)
             RegCCP = self.get_data(rccp_key)
             RegPCP = self.get_data(rpcp_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')
@@ -262,6 +264,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             lmp_da = self.get_data(lmp_key)
             RegMCP = self.get_data(regmcp_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
             logging.info('DMS: Data not yet in DMS, loading...')
@@ -272,7 +276,8 @@ class ValuationDMS(DataManagementSystem):
 
         return lmp_da, RegMCP
 
-    def get_isone_data(self, year, month, nodeid):
+    # TODO: delete function below
+    def get_isone_data_old(self, year, month, nodeid):
         path = self.home_path + '/ISONE/'
 
         fnameLMP = "DA_node{0:s}_month{1:s}_year{2:s}.csv".format(nodeid, month, year)
@@ -329,6 +334,143 @@ class ValuationDMS(DataManagementSystem):
         finally:
             return daLMP, RegCCP, RegPCP
 
+    ####################################################################################################################
+
+    def get_isone_data(self, year, month, nodeid):
+        path = os.path.join(self.home_path, 'ISONE')
+
+        year = str(year)
+        month = str(month)
+
+        lmp_key = self.delimiter.join([path, year, month, nodeid, 'LMP'])
+        rccp_key = self.delimiter.join([path, year, month, 'RegCCP'])
+        rpcp_key = self.delimiter.join([path, year, month, 'RegPCP'])
+
+        try:
+            # attempt to access data if it is already loaded
+            lmp_da = self.get_data(lmp_key)
+            rccp = self.get_data(rccp_key)
+            rpcp = self.get_data(rpcp_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
+        except KeyError:
+            # load the data and add it to the DMS
+            logging.info('DMS: Data not yet in DMS, loading...')
+            lmp_da, rccp, rpcp = read_isone_data(path, year, month, nodeid)
+
+            self.add_data(lmp_da, lmp_key)
+            self.add_data(rccp, rccp_key)
+            self.add_data(rpcp, rpcp_key)
+
+        return lmp_da, rccp, rpcp
+
+    ####################################################################################################################
+
+    def get_nyiso_data(self, year, month, nodeid):
+        path = os.path.join(self.home_path, 'NYISO')
+
+        nodeid = str(nodeid)
+        year = str(year)
+        month = str(month)
+
+        lbmp_key = self.delimiter.join([path, year, month, nodeid, 'LBMP'])
+        rcap_key = self.delimiter.join([path, year, month, 'RegCAP'])
+
+        try:
+            # attempt to access data if it is already loaded
+            lbmp_da = self.get_data(lbmp_key)
+            rcap_da = self.get_data(rcap_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
+        except KeyError:
+            # load the data and add it to the DMS
+            logging.info('DMS: Data not yet in DMS, loading...')
+            lbmp_da, lbmp_rt, rcap_da, rcap_rt, rmov_da = read_nyiso_data(path, year, month, nodeid, typedat="both", RT_DAM="DAM")
+
+            self.add_data(lbmp_da, lbmp_key)
+            self.add_data(rcap_da, rcap_key)
+
+        return lbmp_da, rcap_da
+
+
+    def get_spp_data(self, year, month, nodeid):
+        path = os.path.join(self.home_path, 'SPP')
+
+        year = str(year)
+        month = str(month)
+
+        lmp_key = self.delimiter.join([path, year, month, nodeid, 'LMP'])
+        mcpru_key = self.delimiter.join([path, year, month, 'MCPRU'])
+        mcprd_key = self.delimiter.join([path, year, month, 'MCPRD'])
+
+        try:
+            # attempt to access data if it is already loaded
+            lmp_da = self.get_data(lmp_key)
+            mcpru_da = self.get_data(mcpru_key)
+            mcprd_da = self.get_data(mcprd_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
+        except KeyError:
+            # load the data and add it to the DMS
+            logging.info('DMS: Data not yet in DMS, loading...')
+            # lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)
+            lmp_da, mcpru_da, mcprd_da = read_spp_data(path, year, month, nodeid, typedat="both")
+
+            self.add_data(lmp_da, lmp_key)
+            self.add_data(mcpru_da, mcpru_key)
+            self.add_data(mcprd_da, mcprd_key)
+
+        return lmp_da, mcpru_da, mcprd_da
+
+
+    def get_caiso_data(self, year, month, nodeid):
+        path = os.path.join(self.home_path, 'CAISO')
+
+        year = str(year)
+        month = str(month)
+
+        lmp_key = self.delimiter.join([path, year, month, nodeid, 'LMP'])
+        aspru_key = self.delimiter.join([path, year, month, 'ASPRU'])
+        asprd_key = self.delimiter.join([path, year, month, 'ASPRD'])
+        asprmu_key = self.delimiter.join([path, year, month, 'ASPRMU'])
+        asprmd_key = self.delimiter.join([path, year, month, 'ASPRMD'])
+        rmu_mm_key = self.delimiter.join([path, year, month, 'RMU_MM'])
+        rmd_mm_key = self.delimiter.join([path, year, month, 'RMD_MM'])
+        rmu_pacc_key = self.delimiter.join([path, year, month, 'RMU_PACC'])
+        rmd_pacc_key = self.delimiter.join([path, year, month, 'RMD_PACC'])
+
+        try:
+            # attempt to access data if it is already loaded
+            lmp_da = self.get_data(lmp_key)
+            aspru_da = self.get_data(aspru_key)
+            asprd_da = self.get_data(asprd_key)
+            asprmu_da = self.get_data(asprmu_key)
+            asprmd_da = self.get_data(asprmd_key)
+            rmu_mm = self.get_data(rmu_mm_key)
+            rmd_mm = self.get_data(rmd_mm_key)
+            rmu_pacc = self.get_data(rmu_pacc_key)
+            rmd_pacc = self.get_data(rmd_pacc_key)
+
+            logging.info('DMS: Data located in DMS, retrieving...')
+        except KeyError:
+            # load the data and add it to the DMS
+            logging.info('DMS: Data not yet in DMS, loading...')
+            # lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)
+            lmp_da, aspru_da, asprd_da, asprmu_da, asprmd_da, rmu_mm, rmd_mm, rmu_pacc, rmd_pacc = read_caiso_data(path, year, month, nodeid)
+
+            self.add_data(lmp_da, lmp_key)
+            self.add_data(aspru_da, aspru_key)
+            self.add_data(asprd_da, asprd_key)
+            self.add_data(asprmu_da, asprmu_key)
+            self.add_data(asprmd_da, asprmd_key)
+            self.add_data(rmu_mm, rmu_mm_key)
+            self.add_data(rmd_mm, rmd_mm_key)
+            self.add_data(rmu_pacc, rmu_pacc_key)
+            self.add_data(rmd_pacc, rmd_pacc_key)
+
+        return lmp_da, aspru_da, asprd_da, asprmu_da, asprmd_da, rmu_mm, rmd_mm, rmu_pacc, rmd_pacc
+
+    ####################################################################################################################
 
 if __name__ == '__main__':
     dms = ValuationDMS(save_name='valuation_dms.p', home_path='data')

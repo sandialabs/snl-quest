@@ -121,11 +121,15 @@ class LoadDataScreen(Screen):
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_miso.png')
         elif self.iso_select.text=='ERCOT':
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_ercot.png')
-        elif self.iso_select.text=='ISO-NE':
+        elif self.iso_select.text=='ISONE':
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_isone.png')
         elif self.iso_select.text=='NYISO':
             self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_nyiso.png')
-        
+        elif self.iso_select.text=='CAISO':
+            self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_caiso.png')
+        elif self.iso_select.text=='SPP':
+            self.iso_img.source=os.path.join('es_gui', 'resources', 'images', 'IRCmap_spp.png')
+
         data_manager = App.get_running_app().data_manager
         node_data = [{'name': node[1],
                       'nodeid': node[0]} for node in data_manager.get_nodes(self.iso_select.text).items()]
@@ -170,110 +174,110 @@ class LoadDataScreen(Screen):
     def enable_load(self):
         self.load_button.disabled=False
 
-    def load_data_function(self, iso, dttype, year, month, nodeid, op=None):
-        mes_pop=MessagePopup()
-        try:
-            path = self.dpath[iso]
-            flag = True
-        except KeyError as e:
-            flag = False
-            mes_pop.title='Loading Data Error!'
-            mes_pop.pop_label.text='Invalid ISO!'
-            mes_pop.open()
-            print(repr(e))
-            raise(KeyError('Invalid ISO specified.'))
+    # def load_data_function(self, iso, dttype, year, month, nodeid, op=None):
+    #     mes_pop=MessagePopup()
+    #     try:
+    #         path = self.dpath[iso]
+    #         flag = True
+    #     except KeyError as e:
+    #         flag = False
+    #         mes_pop.title='Loading Data Error!'
+    #         mes_pop.pop_label.text='Invalid ISO!'
+    #         mes_pop.open()
+    #         print(repr(e))
+    #         raise(KeyError('Invalid ISO specified.'))
 
-        try:
-            yeari = int(year)
-            monthi = int(month)
-        except ValueError as e:
-            flag = False
-            mes_pop.title='Loading Data Error!'
-            mes_pop.pop_label.text='Invalid year or month!'
-            mes_pop.open()
-            print(repr(e))
-            raise(ValueError('Invalid year or month specified.'))
+    #     try:
+    #         yeari = int(year)
+    #         monthi = int(month)
+    #     except ValueError as e:
+    #         flag = False
+    #         mes_pop.title='Loading Data Error!'
+    #         mes_pop.pop_label.text='Invalid year or month!'
+    #         mes_pop.open()
+    #         print(repr(e))
+    #         raise(ValueError('Invalid year or month specified.'))
 
 
-        if op is None:
-            op_screen = self.manager.get_screen('valuation_advanced')
-            op = op_screen.op
+    #     if op is None:
+    #         op_screen = self.manager.get_screen('valuation_advanced')
+    #         op = op_screen.op
 
-        dms = self.manager.get_screen('valuation_home').dms
+    #     dms = self.manager.get_screen('valuation_home').dms
 
-        if flag and iso == 'PJM':
-            node_name = dms.get_node_name(nodeid, iso)
+    #     if flag and iso == 'PJM':
+    #         node_name = dms.get_node_name(nodeid, iso)
 
-            lmp_da, RUP, RDW, MR, RA, RD, RegCCP, RegPCP = dms.get_pjm_data(yeari, monthi, node_name)
+    #         lmp_da, RUP, RDW, MR, RA, RD, RegCCP, RegPCP = dms.get_pjm_data(yeari, monthi, node_name)
 
-            if dttype == 'Arbitrage and regulation':
-                op.market_type = 'pjm_pfp'
-                op.price_electricity = lmp_da
-                op.mileage_ratio = MR
-                op.mileage_slow = RA
-                op.mileage_fast = RD
-                op.price_reg_capacity = RegCCP
-                op.price_reg_performance = RegPCP
-                op.fraction_reg_up = RUP
-                op.fraction_reg_down = RDW
+    #         if dttype == 'Arbitrage and regulation':
+    #             op.market_type = 'pjm_pfp'
+    #             op.price_electricity = lmp_da
+    #             op.mileage_ratio = MR
+    #             op.mileage_slow = RA
+    #             op.mileage_fast = RD
+    #             op.price_reg_capacity = RegCCP
+    #             op.price_reg_performance = RegPCP
+    #             op.fraction_reg_up = RUP
+    #             op.fraction_reg_down = RDW
 
-            print('Finished loading data!')
-        elif flag and iso == 'ERCOT':
-            node_name = dms.get_node_name(nodeid, iso)
+    #         print('Finished loading data!')
+    #     elif flag and iso == 'ERCOT':
+    #         node_name = dms.get_node_name(nodeid, iso)
 
-            lmp_da, rd, ru = dms.get_ercot_data(yeari, monthi, node_name)
+    #         lmp_da, rd, ru = dms.get_ercot_data(yeari, monthi, node_name)
 
-            if dttype == 'Arbitrage and regulation':
-                op.market_type = 'ercot_arbreg'
-                op.price_electricity = lmp_da
-                op.price_reg_up = ru
-                op.price_reg_down = rd
+    #         if dttype == 'Arbitrage and regulation':
+    #             op.market_type = 'ercot_arbreg'
+    #             op.price_electricity = lmp_da
+    #             op.price_reg_up = ru
+    #             op.price_reg_down = rd
 
-            print('Finished loading data!')
-        elif flag and iso == 'MISO':
-            node_name = dms.get_node_name(nodeid, iso)
+    #         print('Finished loading data!')
+    #     elif flag and iso == 'MISO':
+    #         node_name = dms.get_node_name(nodeid, iso)
 
-            lmp_da, RegMCP = dms.get_miso_data(yeari, monthi, node_name)
+    #         lmp_da, RegMCP = dms.get_miso_data(yeari, monthi, node_name)
             
-            if dttype == 'Arbitrage and regulation':
-                op.market_type = 'miso_pfp'
-                op.price_electricity = lmp_da
-                op.price_reg_performance = RegMCP
+    #         if dttype == 'Arbitrage and regulation':
+    #             op.market_type = 'miso_pfp'
+    #             op.price_electricity = lmp_da
+    #             op.price_reg_performance = RegMCP
 
-            print('Finished loading data!')
+    #         print('Finished loading data!')
 
-        elif flag == True and iso == 'ISO-NE':
-            node_name = dms.get_node_name(nodeid, iso)
-            # nodeidi = int(nodeid)
-            daLMP, RegCCP, RegPCP = dms.get_isone_data(year, month, nodeid)
+    #     elif flag == True and iso == 'ISO-NE':
+    #         node_name = dms.get_node_name(nodeid, iso)
+    #         # nodeidi = int(nodeid)
+    #         daLMP, RegCCP, RegPCP = dms.get_isone_data(year, month, nodeid)
 
-            if dttype == 'Arbitrage and regulation':
-                op.market_type = 'isone_pfp'
-                op.price_electricity = daLMP
-                op.price_reg_capacity = RegCCP
-                op.price_reg_performance = RegPCP
+    #         if dttype == 'Arbitrage and regulation':
+    #             op.market_type = 'isone_pfp'
+    #             op.price_electricity = daLMP
+    #             op.price_reg_capacity = RegCCP
+    #             op.price_reg_performance = RegPCP
 
-            print('Finished loading data!')
+    #         print('Finished loading data!')
 
-    def load_data(self, iso, dttype, year, month, nodeid):
-        for th in self.thread_list:
-            if th.isAlive():
-                self.loading=True
-            else:
-                self.loading=False
+    # def load_data(self, iso, dttype, year, month, nodeid):
+    #     for th in self.thread_list:
+    #         if th.isAlive():
+    #             self.loading=True
+    #         else:
+    #             self.loading=False
 
-        if not self.loading:
-            t=Thread(target=self.load_data_function,args=(iso,dttype,year,month,nodeid))
-            self.thread_list.append(t)
-            t.start()
-        else:
-            mes_pop=MessagePopup()
-            mes_pop.title='Loading Data Status'
-            mes_pop.pop_label.text='Loading data is currently running!'
-            mes_pop.open()
-            print('Loading data is currently running')
-            #print self.thread_list
-            #print self.loading
+    #     if not self.loading:
+    #         t=Thread(target=self.load_data_function,args=(iso,dttype,year,month,nodeid))
+    #         self.thread_list.append(t)
+    #         t.start()
+    #     else:
+    #         mes_pop=MessagePopup()
+    #         mes_pop.title='Loading Data Status'
+    #         mes_pop.pop_label.text='Loading data is currently running!'
+    #         mes_pop.open()
+    #         print('Loading data is currently running')
+    #         #print self.thread_list
+    #         #print self.loading
 
 
 class MessagePopup(MyPopup):

@@ -254,7 +254,6 @@ from matplotlib.mathtext import MathTextParser
 from matplotlib import rcParams
 from hashlib import md5
 from matplotlib import _png
-from matplotlib.font_manager import weight_as_number
 from matplotlib import _path
 
 try:
@@ -306,6 +305,7 @@ import numpy as np
 import io
 import textwrap
 import uuid
+import numbers
 from functools import partial
 from math import cos, sin, pi
 
@@ -666,7 +666,7 @@ class RendererKivy(RendererBase):
             plot_text.text = six.text_type("{}".format(s))
             if prop.get_style() == 'italic':
                 plot_text.italic = True
-            if weight_as_number(prop.get_weight()) > 500:
+            if self.weight_as_number(prop.get_weight()) > 500:
                 plot_text.bold = True
             plot_text.refresh()
             with self.widget.canvas:
@@ -802,6 +802,44 @@ class RendererKivy(RendererBase):
 
     def points_to_pixels(self, points):
         return points / 72.0 * self.dpi
+		
+    def weight_as_number(self, weight):
+        ''' Replaces the deprecated matplotlib function of the same name
+        '''
+        # Return if number
+        if isinstance(weight, numbers.Number):
+            return weight
+        # else use the mapping of matplotlib 2.2
+        elif weight == 'ultralight':
+            return 100
+        elif weight == 'light':
+            return 200
+        elif weight == 'normal':
+            return 400
+        elif weight == 'regular':
+            return 400
+        elif weight == 'book':
+            return 500
+        elif weight == 'medium':
+            return 500
+        elif weight == 'roman':
+            return 500
+        elif weight == 'semibold':
+            return 600
+        elif weight == 'demibold':
+            return 600
+        elif weight == 'demi':
+            return 600
+        elif weight == 'bold':
+            return 700
+        elif weight == 'heavy':
+            return 800
+        elif weight == 'extra bold':
+            return 800
+        elif weight == 'black':
+            return 900
+        else:
+            raise ValueError('weight ' + weight + ' not valid')
 
 
 class NavigationToolbar2Kivy(NavigationToolbar2):
