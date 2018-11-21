@@ -3,6 +3,8 @@
 # QuESt: Optimizing Energy Storage
 Current release version: 1.1
 
+Release date: 11/14/18
+
 ## Table of contents
 - [Introduction](#intro)
 - [Getting started](#getting-started)

@@ -36,7 +36,7 @@
   },
   "Arbitrage and regulation": {
    "market type": "isone_pfp",
-   "desc": "TBW"
+   "desc": ""
   }
  },
  "NYISO": {
@@ -46,7 +46,7 @@
   },
   "Arbitrage and regulation": {
    "market type": "nyiso_pfp",
-   "desc": "TBW"
+   "desc": ""
   }
  },
  "SPP": {
@@ -66,7 +66,7 @@
   },
   "Arbitrage and regulation": {
    "market type": "caiso_pfp",
-   "desc": "TBW"
+   "desc": ""
   }
  }
 }
