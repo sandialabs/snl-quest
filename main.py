@@ -64,8 +64,14 @@ from es_gui.settings import ESAppSettings
 Builder.load_file(os.path.join(dirname, 'es_gui', 'settings.kv'))
 
 # Data Manager
-from es_gui.apps.data_manager.widgets import DataManagerHomeScreen, DataManagerRTOMOdataScreen, RateStructureDataScreen
+from es_gui.apps.data_manager.home import DataManagerHomeScreen
+Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'home.kv'))
+
+from es_gui.apps.data_manager.widgets import DataManagerRTOMOdataScreen
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'widgets.kv'))
+
+from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
+Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'rate_structure.kv'))
 
 # Valuation
 from es_gui.apps.valuation.home import ValuationHomeScreen

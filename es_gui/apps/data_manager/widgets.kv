@@ -11,66 +11,6 @@
 #:set caiso_data_start_year 2015
 #:set its_current_year datetime.datetime.now().year
 
-<DataManagerTitle@TitleTextBase>:
-    color: C(hex_primary)
-
-<DataManagerTabContentTitle@TitleTextBase>:
-    color: C(hex_secondary)
-    font_size: large_font
-    size_hint_y: 0.2
-
-<DataManagerTabContentSubtitle@TitleTextBase>:
-    color: C(hex_pms178)
-    font_size: stnd_font
-    size_hint_y: 0.1
-
-<DataManagerTabContentBodyText@BodyTextBase>:
-    font_name: 'Exo 2'
-
-<DataManagerMenuTileButton@MenuTileButton>:
-    font: huge_font
-
-<DataManagerTabCheckbox>:
-    color: (0.1, 0.1, 0.1, 1)
-    size_hint_x: 0.05
-
-<DataManagerHomeScreen>:
-    rto_mo_data_button: rto_mo_data_button
-    utility_rate_data_button: utility_rate_data_button
-
-    GridLayout:
-        cols: 1
-        padding: 400, 150
-        spacing: 5
-
-        DataManagerTitle:
-            text: 'Download data for QuESt applications.'
-            size_hint_y: 0.1
-        
-        BodyTextBase:
-            markup: True
-            text: '[font=Modern Pictograms][size=48]w[/size][/font] Internet connectivity is required to download data.'
-            size_hint_y: 0.1
-
-        GridLayout:
-            cols: 1
-            spacing: 5
-            row_force_default: True
-            row_default_height: self.height/4
-            padding: (0, 50)
-
-            DataManagerMenuTileButton:
-                id: rto_mo_data_button
-                background_color: C(hex_primary)
-                text: 'ISO/RTO Market and Operations Data'
-                on_release: root.manager.current = 'data_manager_rto_mo_data'
-            
-            DataManagerMenuTileButton:
-                id: utility_rate_data_button
-                background_color: C(hex_primary)
-                text: 'Utility Rate Structure Data'
-                on_release: root.manager.current = 'data_manager_rate_structure_data'
-
 <TabbedPanelHeader>:
     background_color: C(hex_cloud_dancer) if self.state == 'down' else C(hex_white)
     color: C(hex_secondary) if self.state == 'down' else C(hex_black)
@@ -100,7 +40,7 @@
                 size: self.size
                 pos: self.pos
         
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'ERCOT'
 
         BoxLayout:
@@ -109,7 +49,7 @@
             padding: (525, 0)
             size_hint_y: 0.6
 
-            DataManagerTabContentSubtitle:
+            DataManagerContentSubtitle:
                 text: 'Range of years'
             
             BoxLayout:
@@ -117,7 +57,7 @@
                 size_hint_y: 0.15
                 spacing: 10
 
-                DataManagerTabContentBodyText:
+                DataManagerBodyText:
                     text: 'Start:'
                     size_hint_x: 0.4
 
@@ -132,7 +72,7 @@
                 size_hint_y: 0.15
                 spacing: 10
 
-                DataManagerTabContentBodyText:
+                DataManagerBodyText:
                     text: 'End:'
                     size_hint_x: 0.4
 
@@ -219,7 +159,7 @@
                 size: self.size
                 pos: self.pos
         
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'ISO-NE'
 
         GridLayout:
@@ -231,7 +171,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     id: credential_help
                     text: 'Enter ISO-NE ISO Express credentials. [font=Modern Pictograms][color=00ADD0][ref=pjmSubKeyHelp]?[/ref][/color][/font]'
                     markup: True
@@ -242,7 +182,7 @@
                     size_hint_y: 0.15
                     spacing: 5
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Username'
                         size_hint_x: 0.3     
 
@@ -260,7 +200,7 @@
                     size_hint_y: 0.15
                     spacing: 5
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Password'
                         size_hint_x: 0.3     
 
@@ -280,7 +220,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Specify the range of months.'
                 
                 BoxLayout:
@@ -288,7 +228,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Start:'
                         size_hint_x: 0.3
                     
@@ -311,7 +251,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'End:'
                         size_hint_x: 0.3
                     
@@ -336,7 +276,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Pricing node ID and/or types of nodes'
                 
                 TextInput:
@@ -362,11 +302,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_hub
                             attr_name: '1'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Internal Hub'
                             size_hint_x: 0.95
                     
@@ -374,11 +314,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_zones
                             attr_name: 'hubs'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Zones'
                             size_hint_x: 0.95
         
@@ -450,7 +390,7 @@
                 size: self.size
                 pos: self.pos
         
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'MISO'
 
         BoxLayout:
@@ -459,7 +399,7 @@
             padding: (450, 0)
             size_hint_y: 0.6
 
-            DataManagerTabContentSubtitle:
+            DataManagerContentSubtitle:
                 text: 'Range of months'
             
             BoxLayout:
@@ -467,7 +407,7 @@
                 size_hint_y: 0.15
                 spacing: 10
 
-                DataManagerTabContentBodyText:
+                DataManagerBodyText:
                     text: 'Start:'
                     size_hint_x: 0.3
                 
@@ -488,7 +428,7 @@
                 size_hint_y: 0.15
                 spacing: 10
 
-                DataManagerTabContentBodyText:
+                DataManagerBodyText:
                     text: 'End:'
                     size_hint_x: 0.3
                 
@@ -577,7 +517,7 @@
                 size: self.size
                 pos: self.pos
 
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'NYISO'
         
         GridLayout:
@@ -590,7 +530,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Range of months'
 
                 BoxLayout:
@@ -598,7 +538,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Start:'
                         size_hint_x: 0.3
 
@@ -619,7 +559,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'End:'
                         size_hint_x: 0.3
 
@@ -643,7 +583,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Types of nodes'
             
                 GridLayout:
@@ -659,11 +599,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_zonal
                             attr_name: 'zone'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Zonal'
                             size_hint_x: 0.95
                     
@@ -671,11 +611,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_gens
                             attr_name: 'gens'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Generators'
                             size_hint_x: 0.95
 
@@ -749,7 +689,7 @@
                 size: self.size
                 pos: self.pos
 
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'SPP'
 
         GridLayout:
@@ -762,7 +702,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Range of months'
 
                 BoxLayout:
@@ -770,7 +710,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Start:'
                         size_hint_x: 0.3
 
@@ -791,7 +731,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'End:'
                         size_hint_x: 0.3
 
@@ -815,7 +755,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Types of nodes'
 
                 GridLayout:
@@ -831,11 +771,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_location
                             attr_name: 'location'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Location'
                             size_hint_x: 0.95
 
@@ -843,11 +783,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_bus
                             attr_name: 'bus'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Bus'
                             size_hint_x: 0.95
 
@@ -923,7 +863,7 @@
                 size: self.size
                 pos: self.pos
 
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'CAISO'
 
         GridLayout:
@@ -936,7 +876,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Range of months'
 
                 BoxLayout:
@@ -944,7 +884,7 @@
                     size_hint_y: 0.2
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Start:'
                         size_hint_x: 0.3
 
@@ -967,7 +907,7 @@
                     size_hint_y: 0.2
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'End:'
                         size_hint_x: 0.3
 
@@ -992,7 +932,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Pricing node ID and/or types of nodes'
 
                 TextInput:
@@ -1018,11 +958,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_th
                             attr_name: 'TH'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Total Hubs'
                             size_hint_x: 0.95
 
@@ -1030,11 +970,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_asp
                             attr_name: 'ASP'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'ASP'
                             size_hint_x: 0.95
         
@@ -1044,10 +984,10 @@
             spacing: 10
             padding: (150, 0)
 
-            DataManagerTabContentSubtitle:
+            DataManagerContentSubtitle:
                 text: 'Caution'
 
-            DataManagerTabContentBodyText:
+            DataManagerBodyText:
                 text: 'The CAISO API limits requests to approximately every five seconds. It may take a very long time to complete all of your download requests.'
         
         AnchorLayout:
@@ -1125,7 +1065,7 @@
                 size: self.size
                 pos: self.pos
         
-        DataManagerTabContentTitle:
+        DataManagerContentTitle:
             text: 'PJM'
 
         GridLayout:
@@ -1137,7 +1077,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Data Miner 2 API subscription key [font=Modern Pictograms][color=00ADD0][ref=pjmSubKeyHelp]?[/ref][/color][/font]'
                     markup: True
                     on_ref_press: root.open_pjm_subkey_help()
@@ -1159,7 +1099,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Range of months'
                 
                 BoxLayout:
@@ -1167,7 +1107,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'Start:'
                         size_hint_x: 0.3
                     
@@ -1190,7 +1130,7 @@
                     size_hint_y: 0.15
                     spacing: 10
 
-                    DataManagerTabContentBodyText:
+                    DataManagerBodyText:
                         text: 'End:'
                         size_hint_x: 0.3
                     
@@ -1215,7 +1155,7 @@
                 orientation: 'vertical'
                 spacing: 10
 
-                DataManagerTabContentSubtitle:
+                DataManagerContentSubtitle:
                     text: 'Pricing node ID and/or types of nodes'
                 
                 TextInput:
@@ -1241,11 +1181,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_pjm_avg
                             attr_name: '1'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'PJM (average)'
                             size_hint_x: 0.95
                     
@@ -1253,11 +1193,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_aggregate
                             attr_name: 'AGGREGATE'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Aggregate'
                             size_hint_x: 0.95
                     
@@ -1265,11 +1205,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_zone
                             attr_name: 'ZONE'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Zone'
                             size_hint_x: 0.95
                     
@@ -1277,11 +1217,11 @@
                         orientation: 'horizontal'
                         spacing: 10
 
-                        DataManagerTabCheckbox:
+                        DataManagerCheckbox:
                             id: chkbx_hub
                             attr_name: 'HUB'
 
-                        DataManagerTabContentBodyText:
+                        DataManagerBodyText:
                             text: 'Hub'
                             size_hint_x: 0.95
         
@@ -1504,621 +1444,6 @@
                 size_hint: (1, None)
                 text: "1) From anywhere on ISO-NE's [ref=isone_web][color=003359][u]website[/u][/color][/ref] click the 'sign up' link located at the top right. Fill out the required information and make sure to check the option to sign up for access to ISO Data Feeds. \n\n 2) After completing registration, you should receive two emails, one of which is for verifying the email address associated with the account you are creating. Complete the verification process. \n\n 3) Upon successful verification, your credentials should be ready to go. These credentials are what you will supply to the API for authentication. You can test them by signing in on [ref=isone_web][color=003359][u]https://www.iso-ne.com/[/u][/color][/ref] \n\n 4) Enter these account details where requested in the QuESt Data Manager ISO-NE panel and/or enter them into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
                 on_ref_press: webbrowser.open('https://www.iso-ne.com/')
-
-        AnchorLayout:
-            anchor_x: 'right'
-            anchor_y: 'bottom'
-            padding: 5
-            size_hint_y: 0.07
-
-            TileButton:
-                text: 'Got it, thanks!'
-                #font_size: stnd_font
-                size_hint_y: 1
-                size_hint_x: 0.25
-                on_release: root.dismiss()
-
-<RateStructureDataScreen>:
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 20
-        
-        BoxLayout:
-            orientation:
-
-            RateStructureScreenManager:
-
-<RateStructureUtilitySearchScreen>:
-    api_key_input: api_key_input
-    search_text_input: search_text_input
-    search_button: search_button
-    chkbx_by_name: chkbx_by_name
-    chkbx_by_zip: chkbx_by_zip
-    chkbx_by_state: chkbx_by_state
-    utility_select_bx: utility_select_bx
-    utility_rv: utility_rv
-    rate_structure_select_bx: rate_structure_select_bx
-    rate_structure_rv: rate_structure_rv
-    utility_rv_text_filter: utility_rv_text_filter
-    rate_structure_rv_text_filter: rate_structure_rv_text_filter
-    rate_structure_desc: rate_structure_desc
-    
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 5
-
-        DataManagerTitle:
-            size_hint_y: 0.05
-            text: 'Search for a utility rate structure.'
-        
-        BoxLayout:
-            orientation: 'vertical'
-            spacing: 10
-            padding: (425, 0)
-            size_hint_y: 0.2
-
-            BoxLayout:
-                orientation: 'horizontal'
-                spacing: 10
-                size_hint_y: 0.33
-
-                DataManagerTabContentBodyText:
-                    text: 'OpenEI API key [font=Modern Pictograms][color=00ADD0][ref=openEIkeyHelp]?[/ref][/color][/font]'
-                    markup: True
-                    on_ref_press: root.open_openei_key_help()
-                    size_hint_x: 0.3
-
-                TextInput:
-                    id: api_key_input
-                    multiline: False
-                    #password: True
-                    write_tab: False
-                    hint_text: 'API key'
-                    text: app.App.get_running_app().config.get('data_manager_openei', 'openei_key')
-                    size_hint_x: 0.7
-            
-            BoxLayout:
-                orientation: 'horizontal'
-                spacing: 10
-                size_hint_y: 0.33
-
-                TextInput:
-                    id: search_text_input
-                    multiline: False
-                    size_hint_x: 0.8
-                    write_tab: False
-                    hint_text: 'Search by name, zip code, or state'
-                
-                TileButton:
-                    id: search_button
-                    background_color: C(hex_primary)
-                    size_hint_x: 0.2
-                    text: 'Search'
-                    on_release: root.execute_search()
-            
-            GridLayout:
-                id: labeled_chkbx_grid
-                size_hint_y: 0.33
-                cols: 3
-                spacing: 5
-                # row_force_default: True
-                # row_default_height: self.height/8
-
-                BoxLayout:
-                    orientation: 'horizontal'
-                    spacing: 10
-
-                    DataManagerTabCheckbox:
-                        id: chkbx_by_name
-                        group: 'search_type'
-
-                    DataManagerTabContentBodyText:
-                        text: 'by name'
-                        size_hint_x: 0.95
-                
-                BoxLayout:
-                    orientation: 'horizontal'
-                    spacing: 10
-
-                    DataManagerTabCheckbox:
-                        id: chkbx_by_zip
-                        group: 'search_type'
-
-                    DataManagerTabContentBodyText:
-                        text: 'by zip'
-                        size_hint_x: 0.95
-                
-                BoxLayout:
-                    orientation: 'horizontal'
-                    spacing: 10
-
-                    DataManagerTabCheckbox:
-                        id: chkbx_by_state
-                        group: 'search_type'
-
-                    DataManagerTabContentBodyText:
-                        text: 'by state (abbr.)'
-                        size_hint_x: 0.95
-                
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: 0.7
-            spacing: 20
-            padding: (50, 0)
-
-            BoxLayout:
-                id: utility_select_bx
-                orientation: 'vertical'
-                size_hint_x: 0.3
-                spacing: 10
-                opacity: 0.05
-
-                DataManagerTabContentSubtitle:
-                    text: 'Select a utility.'
-                    color: C(hex_pms178)
-                    size_hint_y: 0.1
-                    font_size: large_font
-
-                TextInput:
-                    id: utility_rv_text_filter
-                    size_hint_y: 0.1
-                    on_text: utility_rv.filter_rv_data(self.text)
-                    hint_text: 'Filter by name'
-                    multiline: False
-
-                MyRecycleView:
-                    id: utility_rv
-                    viewclass: 'DataManagerUtilitySearchRVNodeEntry'
-                    size_hint_y: 0.8
-
-                    SelectableRecycleBoxLayout:
-                        multiselect: False
-                        touch_multiselect: False
-            
-            BoxLayout:
-                id: rate_structure_select_bx
-                orientation: 'vertical'
-                spacing: 10
-                opacity: 0.05
-                size_hint_x: 0.7
-
-                DataManagerTabContentSubtitle:
-                    text: 'Select a rate structure.'
-                    color: C(hex_pms178)
-                    size_hint_y: 0.1
-                    font_size: large_font
-
-                TextInput:
-                    id: rate_structure_rv_text_filter
-                    size_hint_y: 0.1
-                    on_text: rate_structure_rv.filter_rv_data(self.text)
-                    hint_text: 'Filter by name'
-                    multiline: False
-
-                MyRecycleView:
-                    id: rate_structure_rv
-                    viewclass: 'DataManagerRateStructureRVNodeEntry'
-                    size_hint_y: 0.4
-
-                    SelectableRecycleBoxLayout:
-                        multiselect: False
-                        touch_multiselect: False
-            
-                ScrollView:
-                    size_hint_x: 1
-                    size_hint_y: 0.4
-                    scroll_type: ['bars', 'content']
-                    effect_cls: 'OpacityScrollEffect'
-
-                    DataManagerTabContentBodyText:
-                        id: rate_structure_desc
-                        # text_size: self.size
-                        text: ''
-                        size_hint_y: None
-                        size_hint_x: 1
-                        markup: True
-                        valign: 'top'
-                        halign: 'justify'
-                        font_size: stnd_font
-                        font_name: 'Open Sans'
-                
-        AnchorLayout:
-            anchor_y: 'center'
-            anchor_x: 'center'
-            size_hint_y: 0.05
-
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_x: 0.35
-                spacing: 10
-
-                BoxLayout:
-                    size_hint_x: 0.5
-
-                TileButton:
-                    size_hint_x: 0.5
-                    background_color: C(hex_primary)
-                    text: 'Energy rate structure'
-                    on_release:
-                        root.manager.transition.duration = BASE_TRANSITION_DUR
-                        root.manager.transition.direction = 'left'
-                        root.manager.current = root.manager.next()
-
-<RateStructureEnergyRateStructureScreen>:
-    rate_structure_tier_table: rate_structure_tier_table
-    weekday_chart: weekday_chart
-    weekend_chart: weekend_chart
-
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 5
-
-        DataManagerTitle:
-            size_hint_y: 0.05
-            text: 'Verify the energy rate structure.'
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: 10
-            padding: (50, 0)
-            size_hint_y: 0.90
-
-            DataManagerRateStructureTierTable:
-                id: rate_structure_tier_table
-                cols: 1
-                spacing: 2
-                size_hint_x: 0.3
-                padding: (25, 5)
-                row_force_default: True
-                row_default_height: 28
-                
-                GridLayout:
-                    cols: 2
-                    spacing: 5
-
-                    DataManagerTabContentSubtitle:
-                        size_hint_x: 0.3
-                        # font_size: stnd_font
-                        text: 'Period'
-                    
-                    DataManagerTabContentSubtitle:
-                        size_hint_x: 0.7
-                        # font_size: stnd_font
-                        text: 'Rate [$/kWh]'
-            
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_x: 0.1
-
-                DataManagerTabContentSubtitle:
-                    text: 'Weekday'
-                
-                DataManagerTabContentSubtitle:
-                    text: 'Weekend'
-
-            BoxLayout:
-                orientation: 'vertical'
-                # spacing: 5
-                size_hint_x: 0.6
-
-                BoxLayout:
-                    orientation: 'vertical'
-                    # spacing: 5
-                    
-                    DataManagerRateStructureScheduleGrid:
-                        id: weekday_chart
-            
-                    # RateScheduleChart:
-                    #     size_hint_y: 0.9
-                    #     id: weekday_chart
-                        
-                
-                BoxLayout:
-                    orientation: 'vertical'
-                    # spacing: 5
-                    
-                    DataManagerRateStructureScheduleGrid:
-                        id: weekend_chart
-            
-                    # RateScheduleChart:
-                    #     size_hint_y: 0.9
-                    #     id: weekend_chart
-                        
-        
-        AnchorLayout:
-            anchor_y: 'center'
-            anchor_x: 'center'
-            size_hint_y: 0.05
-
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_x: 0.35
-                spacing: 10
-
-                TileButton:
-                    size_hint_x: 0.5
-                    background_color: C(hex_primary)
-                    text: 'Return to search'
-                    on_release:
-                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                        root.manager.transition.direction = 'right'
-                        root.manager.current = root.manager.previous()
-
-                TileButton:
-                    size_hint_x: 0.5
-                    background_color: C(hex_primary)
-                    text: 'Demand rate structure'
-                    on_release:
-                        root.manager.transition.duration = BASE_TRANSITION_DUR
-                        root.manager.transition.direction = 'left'
-                        root.go_to_demand_rate_schedule()
-
-<DataManagerRateStructureTierRow>:
-    cols: 2
-    spacing: 5
-
-    name: name
-    text_input: text_input
-
-    DataManagerTabContentBodyText:
-        id: name
-        size_hint_x: 0.3
-        text: ''
-        color: C(hex_black)
-        font_size: sp(16)
-
-    RateStructureRateTextInput:
-        id: text_input
-        size_hint_x: 0.7
-        on_focus: root._validate_input()
-
-<RateStructureRateTextInput>:
-    multiline: False
-    color: C(hex_black)
-    font_size: sp(16)
-    input_filter: 'float'
-    write_tab: False
-    on_focus: self.select_all() if self.focus else self.cancel_selection() 
-
-<DataManagerRateScheduleRow>:
-    cols: 25
-    spacing: 1
-    row_force_default: True
-    row_default_height: 28
-
-    name: name
-
-    DataManagerTabContentBodyText:
-        id: name
-        size_hint_x: 0.05
-        color: C(hex_black)
-        font_size: default_font
-
-<RateScheduleTextInput>:
-    size_hint_x: 1/24
-    multiline: False
-    background_color: self.get_background_color(self.text)
-    foreground_color: self.get_foreground_color(self.text)
-    font_size: sp(16)
-    input_filter: 'int'
-    write_tab: False
-    on_focus: self.select_all() if self.focus else self.cancel_selection() 
-
-<DataManagerRateStructureScheduleGrid>:
-    rows: 13
-    row_force_default: True
-    row_default_height: 28
-    spacing: 1
-
-    # GridLayout:
-    #     cols: 24
-
-    #     DataManagerTabContentBodyText:
-    #         text: '1'
-    #     DataManagerTabContentBodyText:
-    #         text: '2'
-    #     DataManagerTabContentBodyText:
-    #         text: '3'
-    #     DataManagerTabContentBodyText:
-    #         text: '4'
-    #     DataManagerTabContentBodyText:
-    #         text: '5'
-    #     DataManagerTabContentBodyText:
-    #         text: '6'
-    #     DataManagerTabContentBodyText:
-    #         text: '7'
-    #     DataManagerTabContentBodyText:
-    #         text: '8'
-    #     DataManagerTabContentBodyText:
-    #         text: '9'
-    #     DataManagerTabContentBodyText:
-    #         text: '10'
-    #     DataManagerTabContentBodyText:
-    #         text: '11'
-    #     DataManagerTabContentBodyText:
-    #         text: '12'
-    #     DataManagerTabContentBodyText:
-    #         text: '13'
-    #     DataManagerTabContentBodyText:
-    #         text: '14'
-    #     DataManagerTabContentBodyText:
-    #         text: '15'
-    #     DataManagerTabContentBodyText:
-    #         text: '16'
-    #     DataManagerTabContentBodyText:
-    #         text: '17'
-    #     DataManagerTabContentBodyText:
-    #         text: '18'
-    #     DataManagerTabContentBodyText:
-    #         text: '19'
-    #     DataManagerTabContentBodyText:
-    #         text: '20'
-    #     DataManagerTabContentBodyText:
-    #         text: '21'
-    #     DataManagerTabContentBodyText:
-    #         text: '22'
-    #     DataManagerTabContentBodyText:
-    #         text: '23'
-    #     DataManagerTabContentBodyText:
-    #         text: '24'
-
-<RateStructureDemandRateStructureScreen>:
-    rate_structure_tier_table: rate_structure_tier_table
-    weekday_chart: weekday_chart
-    weekend_chart: weekend_chart
-
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-        spacing: 5
-
-        DataManagerTitle:
-            size_hint_y: 0.05
-            text: 'Verify the demand rate structure.'
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: 10
-            padding: (50, 0)
-            size_hint_y: 0.90
-
-            DataManagerRateStructureTierTable:
-                id: rate_structure_tier_table
-                cols: 1
-                spacing: 2
-                size_hint_x: 0.3
-                padding: (25, 5)
-                row_force_default: True
-                row_default_height: 28
-                
-                GridLayout:
-                    cols: 2
-                    spacing: 5
-
-                    DataManagerTabContentSubtitle:
-                        size_hint_x: 0.3
-                        # font_size: stnd_font
-                        text: 'Period'
-                    
-                    DataManagerTabContentSubtitle:
-                        size_hint_x: 0.7
-                        # font_size: stnd_font
-                        text: 'Rate [$/kW]'
-            
-            BoxLayout:
-                orientation: 'vertical'
-                size_hint_x: 0.1
-
-                DataManagerTabContentSubtitle:
-                    text: 'Weekday'
-                
-                DataManagerTabContentSubtitle:
-                    text: 'Weekend'
-
-            BoxLayout:
-                orientation: 'vertical'
-                # spacing: 5
-                size_hint_x: 0.6
-
-                BoxLayout:
-                    orientation: 'vertical'
-                    # spacing: 5
-                    
-                    DataManagerRateStructureScheduleGrid:
-                        id: weekday_chart
-            
-                    # RateScheduleChart:
-                    #     size_hint_y: 0.9
-                    #     id: weekday_chart
-                        
-                
-                BoxLayout:
-                    orientation: 'vertical'
-                    # spacing: 5
-                    
-                    DataManagerRateStructureScheduleGrid:
-                        id: weekend_chart
-            
-                    # RateScheduleChart:
-                    #     size_hint_y: 0.9
-                    #     id: weekend_chart
-                        
-        
-        AnchorLayout:
-            anchor_y: 'center'
-            anchor_x: 'center'
-            size_hint_y: 0.05
-
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_x: 0.35
-                spacing: 10
-
-                TileButton:
-                    size_hint_x: 0.5
-                    background_color: C(hex_primary)
-                    text: 'Return to search'
-                    on_release:
-                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                        root.manager.transition.direction = 'right'
-                        root.manager.current = root.manager.previous()
-
-                TileButton:
-                    size_hint_x: 0.5
-                    background_color: C(hex_primary)
-                    text: 'Demand rate structure'
-                    on_release:
-                        root.manager.transition.duration = BASE_TRANSITION_DUR
-                        root.manager.transition.direction = 'left'
-                        root.go_to_demand_rate_schedule()
-
-<DataManagerOpenEIapiHelp>:
-    auto_dismiss: False
-    size_hint: (0.52, 0.90)
-
-    BoxLayout:
-        orientation: 'vertical'
-        spacing: 10
-        padding: (25, 10)
-
-        canvas.before:
-            Color:
-                rgb: C(hex_white)
-
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: 0.23
-
-            TitleTextBase:
-                size_hint_y: 0.1
-                text: 'Obtaining an OpenEI API key'
-            
-            BodyTextBase:
-                size_hint_y: 0.9
-                justify: True
-                markup: True
-                text: "You need an API key to access OpenEI data through the OpenEI API. This requires a quick registration. The guide here is only meant to serve as a quick reference; please refer to the Utility Rate Database page [ref=utility_rate_database_page][color=003359][u]here[/u][/color][/ref] for the most recent information."
-                on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
-            
-        ScrollView:
-            size_hint_y: 0.7
-            size_hint_x: 1
-            scroll_type: ['bars', 'content']
-            effect_cls: 'OpacityScrollEffect'
-
-            BodyTextBase:
-                #readonly: True
-                markup: True
-                size_hint: (1, None)
-                text: "1) On the OpenEI Utility Rate Database [ref=utility_rate_database][color=003359][u]page[/u][/color][/ref], find the block titled 'Utility Rate Database API' and click on the 'utility rate API' link. \n\n 2) Under a block titled 'API Key,' click on the 'Get an API Key' button. \n\n 3) Fill out the form. Upon successful completion of the form, you should be given an alphanumeric API key on the page immediately. A copy of it should also be sent to the email address you provided. \n\n 4) Enter this key where requested in the QuESt Data Manager Utility Rate Structure Data menu and/or enter it into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
-                on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
 
         AnchorLayout:
             anchor_x: 'right'
