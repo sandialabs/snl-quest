@@ -236,11 +236,11 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(ValuationWizard(name='valuation_wizard'))
     
     def launch_valuation(self):
-        # Open Loading Screen
+        """"""
         data_manager = App.get_running_app().data_manager
 
         try:
-            data_manager.scan_data_bank()
+            data_manager.scan_valuation_data_bank()
         except FileNotFoundError:
             # 'data' directory does not exist.
             no_data_popup = WarningPopup()
@@ -248,6 +248,21 @@ class QuEStScreenManager(ScreenManager):
             no_data_popup.open()
         else: 
             self.current = 'valuation_home'
+    
+    def launch_btm(self):
+        """"""
+        data_manager = App.get_running_app().data_manager
+
+        try:
+            data_manager.scan_btm_data_bank()
+        except FileNotFoundError:
+            # 'data' directory does not exist.
+            no_data_popup = WarningPopup()
+            no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"
+            no_data_popup.open()
+        else: 
+            pass
+            # self.current = 'valuation_home'
 
 
 class NavigationBar(ActionBar):

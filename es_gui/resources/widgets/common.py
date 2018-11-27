@@ -185,11 +185,12 @@ class InputError(Exception):
 
 
 class LoadingModalView(ModalView):
-    def on_open(self):
-        loading_animation = Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
+    pass
+    # def on_open(self):
+    #     loading_animation = Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
 
-        for x in range(5):
-            loading_animation += Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
-        # loading_animation.repeat = True
+    #     for x in range(5):
+    #         loading_animation += Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
+    #     # loading_animation.repeat = True
 
-        Clock.schedule_once(lambda dt: loading_animation.start(self.logo), 0)
+    #     Clock.schedule_once(lambda dt: loading_animation.start(self.logo), 0)

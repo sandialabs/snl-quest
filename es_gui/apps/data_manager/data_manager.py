@@ -43,14 +43,63 @@ class DataManager(EventDispatcher):
     def data_bank_root(self, value):
         self._data_bank_root = value
     
+    def scan_btm_data_bank(self):
+        """Scans the behind-the-meter data bank to determine what data has been downloaded."""
+        # Check if data bank exists.
+        try:
+            os.listdir(self.data_bank_root)
+        except FileNotFoundError:
+            return
+
+        # Open loading screen.
+        self.loading_screen = LoadingModalView()
+        self.loading_screen.loading_text.text = 'Scanning data files...'
+        self.loading_screen.open()
+
+        self.n_threads_scanning = 1
+
+        def _scan_btm_data_bank():
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
+
+            self._scan_rate_structure_data_bank()
+
+            self.n_threads_scanning -= 1
+        
+        thread = threading.Thread(target=_scan_btm_data_bank)
+        thread.start()       
+    
+    def _scan_rate_structure_data_bank(self):
+        """Scans the saved rate structure data bank."""
+        rate_structure_root = os.path.join(self.data_bank_root, 'rate_structures')
+        rate_structure_data_bank = {}
+
+        for rate_structure_file in os.scandir(rate_structure_root):
+            if not rate_structure_file.name.startswith('.'):
+                with open(rate_structure_file.path) as f:
+                    rate_structure = json.load(f)
+                
+                rate_structure_data_bank[rate_structure['name']] = rate_structure
+        
+        self.data_bank['rate structures'] = rate_structure_data_bank
+    
+    def get_rate_structures(self):
+        """Returns a dictionary of all of the rate structures saved to the data bank."""
+        # Sort by name alphabetically before returning.
+        return_dict = collections.OrderedDict(sorted(self.data_bank['rate structures'].items(), key=lambda t: t[0]))
+        
+        return return_dict
+    
     def get_markets(self):
         """Returns a keys view of all of the markets for valuation available."""
-        # self.scan_data_bank()
+        # self.scan_valuation_data_bank()
 
         return self.data_bank.keys()
 
-    def scan_data_bank(self):
-        """Scans the data bank to determine what data has been downloaded."""
+    def scan_valuation_data_bank(self):
+        """Scans the valuation data bank to determine what data has been downloaded."""
         # Check if data bank exists.
         try:
             os.listdir(self.data_bank_root)
@@ -71,7 +120,7 @@ class DataManager(EventDispatcher):
 
         self.n_threads_scanning = 1
 
-        def _scan_data_bank():
+        def _scan_valuation_data_bank():
             # Quit?
             if App.get_running_app().root.stop.is_set():
                 # Stop running this thread so the main Python process can exit.
@@ -135,7 +184,7 @@ class DataManager(EventDispatcher):
 
             self.n_threads_scanning -= 1
         
-        thread = threading.Thread(target=_scan_data_bank)
+        thread = threading.Thread(target=_scan_valuation_data_bank)
         thread.start()            
     
     def _scan_pjm_data_bank(self):
@@ -1014,12 +1063,13 @@ class DataManagerException(Exception):
 
 if __name__ == '__main__':
     dm = DataManager()
-    print('cwd: ', os.getcwd())
-    dm.scan_data_bank()
+    dm.scan_btm_data_bank()
+    # print('cwd: ', os.getcwd())
+    # dm.scan_valuation_data_bank()
 
-    market_area = 'PJM'
-    node = '113745'
-    rev_streams = 'Arbitrage and regulation'
+    # market_area = 'PJM'
+    # node = '113745'
+    # rev_streams = 'Arbitrage and regulation'
 
     #print(dm.get_historical_datasets(market_area, node, rev_streams))
 

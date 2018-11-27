@@ -387,11 +387,14 @@
         spacing: 5
         size_hint_x: 0.1
 
-        Button:
+        TileButton:
             id: copy_down_button
-            text: 'v'
+            background_color: C(hex_cloud_dancer)
+            color: C(hex_black)
+            text: 'D'
+            font_name: 'Modern Pictograms'
             # size_hint_x: 0.25
-            font_size: sp(16)
+            font_size: large_font
             on_release: root.copy_text_down()
         
         # DataManagerBodyText:
