@@ -7,6 +7,7 @@ import datetime
 import logging
 import threading
 import datetime as dt
+import json
 
 import requests
 import pandas as pd
@@ -26,7 +27,7 @@ import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction
-from es_gui.apps.data_manager.data_manager import DataManagerException
+from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
 
@@ -82,7 +83,7 @@ class RateStructureUtilitySearchScreen(Screen):
         open_ei_help_view = RateStructureOpenEIapiHelp()
         open_ei_help_view.open()
     
-    def _reset_screen(self):
+    def reset_screen(self):
         """Resets the screen to its initial state."""
         self.utility_select_bx.opacity = 0.05
         self.rate_structure_select_bx.opacity = 0.05
@@ -233,7 +234,7 @@ class RateStructureUtilitySearchScreen(Screen):
             popup.open()
         else:
             # Reset screen.
-            self._reset_screen()
+            self.reset_screen()
             self.search_button.disabled = True
 
             def _execute_search():
@@ -405,8 +406,12 @@ class RateStructureUtilitySearchScreen(Screen):
         except ValueError:
             pass
     
+    def get_selections(self):
+        """Retrieves UI selections."""
+        return self.utility_selected, self.rate_structure_selected
+    
     def next_screen(self):
-        self.manager.current = 'energy_rate_structure'
+        self.manager.current = self.manager.next()
 
 
 class UtilitySearchRVEntry(RecycleViewRow):
@@ -515,11 +520,22 @@ class RateStructureEnergyRateStructureScreen(Screen):
             raise(InputError('Impermissible entries ({0}) in the Weekend Rate Schedule found.'.format(set_diff)))
         
         return weekday_schedule, weekend_schedule, rates_dict
+    
+    def get_selections(self):
+        """Retrieves UI selections."""
+        try:
+            weekday_schedule, weekend_schedule, rates_dict = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return weekday_schedule.tolist(), weekend_schedule.tolist(), rates_dict
 
     def next_screen(self):
         """Check if all input data is valid before proceeding to the next demand rate structure screen."""
         try:
-            weekday_schedule, weekend_schedule, rates_dict = self._validate_inputs()
+            self.get_selections()
         except InputError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
@@ -560,6 +576,9 @@ class RateStructureDemandRateStructureScreen(Screen):
         
         if type(flat_demand_months) == float:
             flat_demand_months = np.zeros(shape=(12, 1), dtype=int)
+        
+        if type(tou_demand_rates) == float:
+            tou_demand_rates = [[{'rate': 0}]]
 
         # Populate the period/rate tables.
         # Flat demand rate by month.
@@ -647,11 +666,22 @@ class RateStructureDemandRateStructureScreen(Screen):
         flat_rates_dict = self.flat_period_table.get_rates()
         
         return weekday_schedule, weekend_schedule, tou_rates_dict, flat_rates_dict
+    
+    def get_selections(self):
+        """Retrieves UI selections."""
+        try:
+            weekday_schedule, weekend_schedule, tou_rates_dict, flat_rates_dict = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return weekday_schedule.tolist(), weekend_schedule.tolist(), tou_rates_dict, flat_rates_dict
 
     def next_screen(self):
         """Check if all input data is valid before proceeding to the net metering screen."""
         try:
-            weekday_schedule, weekend_schedule, tou_rates_dict, flat_rates_dict = self._validate_inputs()
+            self.get_selections()
         except InputError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
@@ -663,9 +693,94 @@ class RateStructureDemandRateStructureScreen(Screen):
 
 class RateStructureNetMeteringSaveScreen(Screen):
     """"""
+    def _validate_inputs(self):
+        net_metering_type = self.net_metering_2_toggle.state == 'down'
+        sell_price = self.net_metering_sell_price_field if self.net_metering_1_toggle.state == 'down' else None
+
+        return net_metering_type, sell_price
+    
+    def get_selections(self):
+        """Retrieves UI selections."""
+        try:
+            net_metering_type, sell_price = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return net_metering_type, sell_price
+
+    def save_rate_structure(self):
+        """Saves the rate structure details to an object on disk."""
+        # Retrieve selections from other screens.
+        utility_search_screen = self.manager.get_screen('start')
+        utility_selected, rate_structure_selected = utility_search_screen.get_selections()
+
+        energy_rate_screen = self.manager.get_screen('energy_rate_structure')
+        energy_weekday_schedule, energy_weekend_schedule, energy_rates_dict = energy_rate_screen.get_selections()
+
+        demand_rate_screen = self.manager.get_screen('demand_rate_structure')
+        demand_weekday_schedule, demand_weekend_schedule, demand_tou_rates_dict, demand_flat_rates_dict = demand_rate_screen.get_selections()
+
+        net_metering_type, sell_price = self.get_selections()
+
+        # Form dictionary object for saving.
+        rate_structure_object = {}
+        
+        if not self.save_name_field.text:
+            rate_structure_object['name'] = 'example'
+        else:
+            rate_structure_object['name'] = self.save_name_field.text
+
+        rate_structure_object['utility'] = {
+            'utility name': utility_selected['utility_name'],
+            'rate structure name': rate_structure_selected['name']
+        }
+
+        rate_structure_object['energy rate structure'] = {
+            'weekday schedule': energy_weekday_schedule,
+            'weekend schedule': energy_weekend_schedule,
+            'energy rates': energy_rates_dict
+        }
+
+        rate_structure_object['demand rate structure'] = {
+            'weekday schedule': demand_weekday_schedule,
+            'weekend schedule': demand_weekend_schedule,
+            'time of use rates': demand_tou_rates_dict,
+            'flat rates': demand_flat_rates_dict
+        }
+
+        rate_structure_object['net metering'] = {
+            'type': net_metering_type,
+            'energy sell price': sell_price
+        }
+
+        # Save to JSON.
+        # Strip non-alphanumeric chars from given name for filename.
+        delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
+        fname = rate_structure_object['name'].translate({ord(i): None for i in delchars})
+
+        destination_dir = os.path.join(DATA_HOME, 'rate_structures')
+        os.makedirs(destination_dir, exist_ok=True)
+        destination_file = os.path.join(destination_dir, fname + '.json')
+
+        if not os.path.exists(destination_file):
+            with open(destination_file, 'w') as outfile:
+                json.dump(rate_structure_object, outfile)
+            
+            popup = WarningPopup()
+            popup.title = 'Success!'
+            popup.popup_text.text = 'Rate structure data successfully saved.'
+            popup.open()
+        else:
+            # File already exists with same name.
+            popup = WarningPopup()
+            popup.popup_text.text = 'A rate structure with the provided name already exists. Please specify a new name.'
+            popup.open()
 
     def next_screen(self):
-        pass
+        self.manager.get_screen(self.manager.next()).reset_screen()
+        self.manager.current = self.manager.next()
 
 
 class RateStructurePeriodTable(GridLayout):
@@ -693,6 +808,7 @@ class RateStructurePeriodTable(GridLayout):
         return rate_dict
     
     def get_rates(self):
+        """Retrieves table data into a dictionary format."""
         rate_dict = self._validate_inputs()
 
         return rate_dict
@@ -773,7 +889,7 @@ class RateStructureScheduleGrid(GridLayout):
             self.schedule_rows.append(schedule_row)
     
     def _validate_inputs(self):
-        schedule_array = np.empty((12, 24))
+        schedule_array = np.empty((12, 24), dtype=int)
 
         try:
             for ix, month_row in enumerate(self.schedule_rows, start=0):

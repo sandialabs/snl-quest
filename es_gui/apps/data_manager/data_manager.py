@@ -17,6 +17,9 @@ from kivy.properties import NumericProperty
 from es_gui.resources.widgets.common import LoadingModalView
 
 
+DATA_HOME = 'data'
+
+
 class DataManager(EventDispatcher):
     data_bank = {}
     n_threads_scanning = NumericProperty(0)

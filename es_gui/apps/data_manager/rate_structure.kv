@@ -535,7 +535,7 @@
                         DataManagerContentSubtitle:
                             size_hint_x: 0.7
                             # font_size: stnd_font
-                            text: 'Time of Use Rate [$/kW]'
+                            text: 'Time-of-Use Rate [$/kW]'
                 
                 RateStructurePeriodTable:
                     id: flat_period_table
@@ -631,6 +631,9 @@
 <RateStructureNetMeteringSaveScreen>:
     net_metering_1_toggle: net_metering_1_toggle
     net_metering_2_toggle: net_metering_2_toggle
+    net_metering_sell_price_field: net_metering_sell_price_field
+    save_name_field: save_name_field
+    save_button: save_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -679,6 +682,7 @@
                             size_hint_x: 0.6
                         
                         TextInput:
+                            id: net_metering_sell_price_field
                             size_hint_x: 0.4
                             disabled: False if net_metering_1_toggle.state == 'down' else True
                 
@@ -693,7 +697,7 @@
                         state: 'down'
                     
                     DataManagerBodyText:
-                        text: 'Energy is sold at the Time of Use energy price.'
+                        text: 'Energy is sold at the time-of-use energy price.'
                     
                     BoxLayout:
                         orientation: 'vertical'
@@ -701,7 +705,7 @@
         BoxLayout:
             orientation: 'vertical'
             spacing: 10
-            padding: (400, 0)
+            padding: (450, 0)
             size_hint_y: 0.6
 
             DataManagerContentTitle:
@@ -709,10 +713,26 @@
                 size_hint_y: 0.1
             
             BoxLayout:
-                orientation: 'vertical'
-                size_hint_y: 0.9
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.1
 
-
+                TextInput:
+                    id: save_name_field
+                    multiline: False
+                    size_hint_x: 0.8
+                    write_tab: False
+                    hint_text: 'Enter a name for the rate structure'
+                
+                TileButton:
+                    id: save_button
+                    background_color: C(hex_primary)
+                    size_hint_x: 0.2
+                    text: 'Save'
+                    on_release: root.save_rate_structure()
+            
+            BoxLayout:
+                size_hint_y: 0.8
         
         AnchorLayout:
             anchor_y: 'center'
@@ -736,7 +756,7 @@
                 TileButton:
                     size_hint_x: 0.5
                     background_color: C(hex_primary)
-                    text: 'Continue'
+                    text: 'Start over'
                     on_release:
                         root.manager.transition.duration = BASE_TRANSITION_DUR
                         root.manager.transition.direction = 'left'
