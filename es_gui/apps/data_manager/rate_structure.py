@@ -58,6 +58,7 @@ class RateStructureScreenManager(ScreenManager):
         self.add_widget(RateStructureUtilitySearchScreen(name='start'))
         self.add_widget(RateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
         self.add_widget(RateStructureDemandRateStructureScreen(name='demand_rate_structure'))
+        self.add_widget(RateStructureNetMeteringSaveScreen(name='net_metering'))
 
 class RateStructureOpenEIapiHelp(ModalView):
     """ModalView to display instructions on how to get an OpenEI API key."""
@@ -73,8 +74,8 @@ class RateStructureUtilitySearchScreen(Screen):
     def __init__(self, **kwargs):
         super(RateStructureUtilitySearchScreen, self).__init__(**kwargs)
 
-        DataManagerUtilitySearchRVNodeEntry.host_screen = self
-        DataManagerRateStructureRVNodeEntry.host_screen = self
+        UtilitySearchRVEntry.host_screen = self
+        RateStructureRVEntry.host_screen = self
 
     def open_openei_key_help(self):
         """Opens the OpenEI API key ModalView."""
@@ -184,14 +185,22 @@ class RateStructureUtilitySearchScreen(Screen):
             raise (InputError('Please enter a search query.'))
 
         # Check if a search type has been specified.
-        if self.chkbx_by_name.active:
+        if self.by_name_toggle.state == 'down':
             search_type = 'utility_name'
-        elif self.chkbx_by_zip.active:
+        elif self.by_zip_toggle.state == 'down':
             search_type = 'zip'
-        elif self.chkbx_by_state.active:
+        elif self.by_state_toggle.state == 'down':
             search_type = 'state'
         else:
             raise(InputError('Please select a search type. (by name, by zip, or by state)'))
+        # if self.chkbx_by_name.active:
+        #     search_type = 'utility_name'
+        # elif self.chkbx_by_zip.active:
+        #     search_type = 'zip'
+        # elif self.chkbx_by_state.active:
+        #     search_type = 'state'
+        # else:
+        #     raise(InputError('Please select a search type. (by name, by zip, or by state)'))
         
         return api_key, search_query, search_type
 
@@ -238,9 +247,12 @@ class RateStructureUtilitySearchScreen(Screen):
                         self._download_utility_ref_table()
                     except requests.ConnectionError:
                         popup = WarningPopup()
-                        popup.popup_text.text = 'There was an issue connecting and downloading list of utilities.'
+                        popup.popup_text.text = 'There was an issue connecting and downloading the list of utilities. Check your connection settings and try again.'
                         popup.open()
                         return
+                    finally:
+                        self.search_button.disabled = False
+
                 
                 # Filter DataFrame by search type/query and drop duplicate entries.
                 if not search_type == 'zip': 
@@ -266,7 +278,6 @@ class RateStructureUtilitySearchScreen(Screen):
 
                 # Animation.stop_all(self.loading_screen.logo, 'opacity')
                 # self.loading_screen.dismiss()
-                self.search_button.disabled = False
 
             thread_query = threading.Thread(target=_execute_search)
             thread_query.start()
@@ -302,8 +313,18 @@ class RateStructureUtilitySearchScreen(Screen):
         api_root = APIROOT_OPENEI + VERSION_OPENEI + REQUEST_FMT_OPENEI + DETAIL_OPENEI
         api_query = api_root + '&api_key=' + self.api_key + '&eia=' + eia_id
 
-        thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
-        thread_query.start()
+        try:
+            thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
+            thread_query.start()
+        except requests.ConnectionError:
+            popup = WarningPopup()
+            popup.popup_text.text = 'There was an issue querying the OpenEI database. Check your connection settings and try again.'
+            popup.open()
+        finally:
+            self.search_button.disabled = False
+
+        # thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
+        # thread_query.start()
 
         # Open loading screen.
         self.loading_screen = LoadingModalView()
@@ -325,41 +346,23 @@ class RateStructureUtilitySearchScreen(Screen):
                     http_request.raise_for_status()
         except requests.HTTPError as e:
             logging.error('DMUtilitySearch: {0}'.format(repr(e)))
-
-            popup = WarningPopup()
-            popup.popup_text.text = repr(e)
-            popup.open()
+            raise requests.ConnectionError
         except requests.exceptions.ProxyError:
             logging.error('DMUtilitySearch: Could not connect to proxy.')
-
-            popup = WarningPopup()
-            popup.popup_text.text = 'Could not connect to proxy.'
-            popup.open()
+            raise requests.ConnectionError
         except requests.ConnectionError as e:
             logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
-
-            popup = WarningPopup()
-            popup.popup_text.text = 'Failed to establish a connection to the host server.'
-            popup.open()
+            raise requests.ConnectionError
         except requests.Timeout as e:
             logging.error('DMUtilitySearch: The connection timed out.')
-
-            popup = WarningPopup()
-            popup.popup_text.text = 'The connection timed out.'
-            popup.open()
+            raise requests.ConnectionError
         except requests.RequestException as e:
             logging.error('DMUtilitySearch: {0}'.format(repr(e)))
-
-            popup = WarningPopup()
-            popup.popup_text.text = repr(e)
-            popup.open()
+            raise requests.ConnectionError
         except Exception as e:
             # Something else went wrong.
             logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
-
-            popup = WarningPopup()
-            popup.popup_text.text = 'An unexpected error has occurred. ({0})'.format(repr(e))
-            popup.open()
+            raise requests.ConnectionError
         else:
             structure_list = http_request.json()['items']
 
@@ -383,9 +386,9 @@ class RateStructureUtilitySearchScreen(Screen):
             self.rate_structure_rv.unfiltered_data = records
 
             logging.info('RateStructureDM: Retrieved utility rate structures.')
-            self.loading_screen.dismiss()
-
             bx_anim.start(self.rate_structure_select_bx)
+        finally:
+            self.loading_screen.dismiss()
     
     def on_rate_structure_selected(self, instance, value):
         try:
@@ -401,25 +404,28 @@ class RateStructureUtilitySearchScreen(Screen):
             self.rate_structure_desc.text = value.get('description', 'No description provided.')
         except ValueError:
             pass
+    
+    def next_screen(self):
+        self.manager.current = 'energy_rate_structure'
 
 
-class DataManagerUtilitySearchRVNodeEntry(RecycleViewRow):
+class UtilitySearchRVEntry(RecycleViewRow):
     host_screen = None
 
     def apply_selection(self, rv, index, is_selected):
         """Respond to the selection of items in the view."""
-        super(DataManagerUtilitySearchRVNodeEntry, self).apply_selection(rv, index, is_selected)
+        super(UtilitySearchRVEntry, self).apply_selection(rv, index, is_selected)
 
         if is_selected:
             self.host_screen.utility_selected = rv.data[self.index]['record']
 
 
-class DataManagerRateStructureRVNodeEntry(RecycleViewRow):
+class RateStructureRVEntry(RecycleViewRow):
     host_screen = None
 
     def apply_selection(self, rv, index, is_selected):
         """Respond to the selection of items in the view."""
-        super(DataManagerRateStructureRVNodeEntry, self).apply_selection(rv, index, is_selected)
+        super(RateStructureRVEntry, self).apply_selection(rv, index, is_selected)
 
         if is_selected:
             self.host_screen.rate_structure_selected = rv.data[self.index]['record']
@@ -492,7 +498,7 @@ class RateStructureEnergyRateStructureScreen(Screen):
 
         # Get period/rates from table.
         rates_dict = self.rate_structure_period_table.get_rates()
-        periods = set(rates_dict.keys())
+        periods = set([int(period) for period in rates_dict.keys()])
 
         # Determine if any values in schedule are not in period list.
         weekday_periods = set(np.unique(weekday_schedule))
@@ -510,7 +516,7 @@ class RateStructureEnergyRateStructureScreen(Screen):
         
         return weekday_schedule, weekend_schedule, rates_dict
 
-    def go_to_demand_rate_schedule(self):
+    def next_screen(self):
         """Check if all input data is valid before proceeding to the next demand rate structure screen."""
         try:
             weekday_schedule, weekend_schedule, rates_dict = self._validate_inputs()
@@ -604,7 +610,7 @@ class RateStructureDemandRateStructureScreen(Screen):
                 logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
                 weekend_schedule_data = np.zeros(shape=(12, 24), dtype=int)
 
-        print(self.rate_structure)
+        # print(self.rate_structure)
 
         # Weekday chart.
         for ix, month_row in enumerate(self.weekday_chart.schedule_rows, start=0):
@@ -615,6 +621,51 @@ class RateStructureDemandRateStructureScreen(Screen):
         for ix, month_row in enumerate(self.weekend_chart.schedule_rows, start=0):
             for iy, text_input in enumerate(month_row.text_inputs, start=0):
                 text_input.text = str(weekend_schedule_data[ix][iy])
+    
+    def _validate_inputs(self):
+        weekday_schedule = self.weekday_chart.get_schedule()
+        weekend_schedule = self.weekend_chart.get_schedule()
+
+        # Get period/rates from table.
+        tou_rates_dict = self.tou_period_table.get_rates()
+        periods = set([int(period) for period in tou_rates_dict.keys()])
+
+        # Determine if any values in schedule are not in period list.
+        weekday_periods = set(np.unique(weekday_schedule))
+        weekend_periods = set(np.unique(weekend_schedule))
+
+        if not weekday_periods.issubset(periods):
+            set_diff = ', '.join(['{:d}'.format(int(x)) for x in sorted(weekday_periods.difference(periods))])
+
+            raise(InputError('Impermissible entries ({0}) in the Weekday Rate Schedule found.'.format(set_diff)))
+
+        if not weekend_periods.issubset(periods):
+            set_diff = ', '.join(['{:d}'.format(int(x)) for x in sorted(weekend_periods.difference(periods))])
+
+            raise(InputError('Impermissible entries ({0}) in the Weekend Rate Schedule found.'.format(set_diff)))
+        
+        flat_rates_dict = self.flat_period_table.get_rates()
+        
+        return weekday_schedule, weekend_schedule, tou_rates_dict, flat_rates_dict
+
+    def next_screen(self):
+        """Check if all input data is valid before proceeding to the net metering screen."""
+        try:
+            weekday_schedule, weekend_schedule, tou_rates_dict, flat_rates_dict = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            logging.info('DemandRateSchedule: All seems well.')
+            self.manager.current = self.manager.next()
+
+
+class RateStructureNetMeteringSaveScreen(Screen):
+    """"""
+
+    def next_screen(self):
+        pass
 
 
 class RateStructurePeriodTable(GridLayout):
@@ -634,7 +685,7 @@ class RateStructurePeriodTable(GridLayout):
     
     def _validate_inputs(self):
         try:
-            rate_dict = {int(rate.desc['period']): float(rate.text_input.text) for rate in self.period_rows}
+            rate_dict = {rate.desc['period']: float(rate.text_input.text) for rate in self.period_rows}
         except ValueError:
             # An empty input.
             raise(InputError('All rates in the rate table must be specified.'))
@@ -645,6 +696,18 @@ class RateStructurePeriodTable(GridLayout):
         rate_dict = self._validate_inputs()
 
         return rate_dict
+    
+    def copy_text_down(self, instance):
+        """Copies the text from the text input to the next row."""
+        # Find calling instance's position.
+        ix = self.period_rows.index(instance)
+        txt = instance.text_input.text
+
+        try:
+            ix_update = ix + 1
+            self.period_rows[ix_update].text_input.text = txt
+        except IndexError:
+            pass
         
 
 class RateStructureTableRow(GridLayout):
@@ -656,6 +719,10 @@ class RateStructureTableRow(GridLayout):
 
         self.name.text = self.desc['period']
         self.text_input.text = self.desc['rate']
+    
+    def copy_text_down(self):
+        # Pass to parent table.
+        self.parent.copy_text_down(self)
 
     def _validate_input(self):
         """Validate entry when unfocusing text input."""
@@ -724,8 +791,6 @@ class RateStructureScheduleGrid(GridLayout):
 
         return schedule_array
     
-    
-
 
 class RateScheduleRow(GridLayout):
     """A labeled row of TextInput fields for the rate schedule table."""
