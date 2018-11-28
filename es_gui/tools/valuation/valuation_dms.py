@@ -20,8 +20,8 @@ class ValuationDMS(DataManagementSystem):
 
         self.home_path = home_path
 
-        with open(os.path.abspath(os.path.join(self.home_path, '..', 'es_gui', 'apps', 'valuation', 'definitions', 'nodes.json')), 'r') as fp:
-            self.NODES = json.load(fp)
+        # with open(os.path.abspath(os.path.join(self.home_path, '..', 'es_gui', 'apps', 'valuation', 'definitions', 'nodes.json')), 'r') as fp:
+        #     self.NODES = json.load(fp)
 
         #self.node_names = pd.read_excel(self.home_path+'nodeid.xlsx', sheetname=None)
         self.delimiter = ' @ '  # delimiter used to split information in id_key

@@ -18,6 +18,8 @@
 #:set TWO_ABC_WIDTH 800
 #:set THREE_ABC_WIDTH 1200
 
+#:set WIZ_PADDING_X 170
+
 # Animation durations.
 #:set BASE_TRANSITION_DUR 0.600
 
@@ -60,7 +62,7 @@
     font_name: 'Exo 2'
 
 # This is a label template for left-aligned text. It includes options to prevent text from overflowing.
-<LeftAlignedText@Label>:
+<LeftAlignedText>:
     text_size: self.width, None
     height: self.texture_size[1]
     halign: 'left'
@@ -73,7 +75,7 @@
     bold: True
 
 # Text style for body text labels.
-<BodyTextBase@LeftAlignedText>:
+<BodyTextBase>:
     font_name: 'Open Sans'
     font_size: stnd_font
     color: C(hex_black)

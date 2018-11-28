@@ -102,6 +102,9 @@ Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'reportin
 from es_gui.apps.btm.home import BehindTheMeterHomeScreen
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'btm', 'home.kv'))
 
+from es_gui.apps.btm.cost_savings import CostSavingsWizard
+Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'btm', 'cost_savings.kv'))
+
 # Font registration.
 LabelBase.register(name='Exo 2',
                    fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Regular.ttf'),
@@ -241,6 +244,7 @@ class QuEStScreenManager(ScreenManager):
 
         # Behind-the-meter applications.
         self.add_widget(BehindTheMeterHomeScreen(name='btm_home'))
+        self.add_widget(CostSavingsWizard(name='cost_savings_wizard'))
     
     def launch_valuation(self):
         """"""
@@ -285,6 +289,7 @@ class NavigationBar(ActionBar):
                      'data_manager_rto_mo_data': 'data_manager_home',
                      'data_manager_rate_structure_data': 'data_manager_home',
                      'btm_home': 'index',
+                     'cost_savings_wizard': 'btm_home',
                      }
 
     def __init__(self, sm):

@@ -96,7 +96,7 @@ class DataManager(EventDispatcher):
         """Returns a keys view of all of the markets for valuation available."""
         # self.scan_valuation_data_bank()
 
-        return self.data_bank.keys()
+        return self.data_bank['valuation'].keys()
 
     def scan_valuation_data_bank(self):
         """Scans the valuation data bank to determine what data has been downloaded."""
@@ -111,6 +111,7 @@ class DataManager(EventDispatcher):
         self.loading_screen.loading_text.text = 'Scanning data files...'
         self.loading_screen.open()
 
+        self.data_bank['valuation'] = {}
         market_names = []
 
         # Determine the market areas that have downloaded data.
@@ -259,7 +260,7 @@ class DataManager(EventDispatcher):
                             month = yyyymm[-2:]
                             pjm_data_bank['MILEAGE'][year].append(month)
         
-        self.data_bank['PJM'] = pjm_data_bank
+        self.data_bank['valuation']['PJM'] = pjm_data_bank
     
     def _scan_miso_data_bank(self):
         """Scans the MISO data bank."""
@@ -322,7 +323,7 @@ class DataManager(EventDispatcher):
                             if n_files == n_days_month:
                                 miso_data_bank['MCP'][year].append(month)
         
-        self.data_bank['MISO'] = miso_data_bank
+        self.data_bank['valuation']['MISO'] = miso_data_bank
     
     def _scan_ercot_data_bank(self):
         """Scans the ERCOT data bank."""
@@ -367,7 +368,7 @@ class DataManager(EventDispatcher):
                     if os.listdir(year_dir):
                         ercot_data_bank['CCP'][year].extend([str(x+1).zfill(2) for x in range(0, 12)])
         
-        self.data_bank['ERCOT'] = ercot_data_bank
+        self.data_bank['valuation']['ERCOT'] = ercot_data_bank
     def _scan_nyiso_data_bank(self):
         """Scans the NYISO data bank."""
         nyiso_root = os.path.join(self.data_bank_root, 'NYISO')
@@ -468,7 +469,7 @@ class DataManager(EventDispatcher):
                             if n_files == n_days_month:
                                 nyiso_data_bank['ASP'][year].append(month)
 
-        self.data_bank['NYISO'] = nyiso_data_bank
+        self.data_bank['valuation']['NYISO'] = nyiso_data_bank
 
     def _scan_isone_data_bank(self):
         """Scans the ISONE data bank."""
@@ -522,7 +523,7 @@ class DataManager(EventDispatcher):
                             month = yyyymm[-2:]
                             isone_data_bank['RCP'][year].append(month)
 
-        self.data_bank['ISONE'] = isone_data_bank
+        self.data_bank['valuation']['ISONE'] = isone_data_bank
 
     def _scan_spp_data_bank(self):
         """Scans the SPP data bank."""
@@ -627,7 +628,7 @@ class DataManager(EventDispatcher):
                             if n_files == n_days_month:
                                 spp_data_bank['MCP'][year].append(month)
 
-        self.data_bank['SPP'] = spp_data_bank
+        self.data_bank['valuation']['SPP'] = spp_data_bank
     def _scan_caiso_data_bank(self):
         """Scans the CAISO data bank."""
         caiso_root = os.path.join(self.data_bank_root, 'CAISO')
@@ -700,7 +701,7 @@ class DataManager(EventDispatcher):
                             month = yyyymm[-2:]
                             caiso_data_bank['MILEAGE'][year].append(month)
 
-        self.data_bank['CAISO'] = caiso_data_bank
+        self.data_bank['valuation']['CAISO'] = caiso_data_bank
     
     def get_nodes(self, market_area):
         """Retrieves all available pricing nodes for the given market_area."""
@@ -717,7 +718,7 @@ class DataManager(EventDispatcher):
             node_mapping = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
             # Reads keys of PJM LMP data bank.
-            node_id_list = self.data_bank['PJM']['LMP'].keys()
+            node_id_list = self.data_bank['valuation']['PJM']['LMP'].keys()
             node_dict = {node_id: node_mapping.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'MISO':
             # Reads static node ID list.
@@ -732,7 +733,7 @@ class DataManager(EventDispatcher):
             node_mapping = {row[0]: row[1] for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
             # Reads keys of NYISO LBMP data bank.
-            node_id_list = self.data_bank['NYISO']['LBMP'].keys()
+            node_id_list = self.data_bank['valuation']['NYISO']['LBMP'].keys()
             node_dict = {node_id: node_mapping.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'ISONE':
             # Reads static node ID list.
@@ -742,7 +743,7 @@ class DataManager(EventDispatcher):
             node_dict = {str(row[0]): '{nodename} ({nodeid})'.format(nodename=row[1], nodeid=row[0]) for row in zip(node_df['Node ID'], node_df['Node Name'])}
 
             # Reads keys of PJM LMP data bank.
-            node_id_list = self.data_bank['ISONE']['LMP'].keys()
+            node_id_list = self.data_bank['valuation']['ISONE']['LMP'].keys()
             node_dict = {node_id: node_dict.get(node_id, node_id) for node_id in node_id_list}
         elif market_area == 'SPP':
             # Reads static node ID list.
@@ -755,7 +756,7 @@ class DataManager(EventDispatcher):
             static_caiso_node_list = os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nodes_caiso.csv')
             node_df = pd.read_csv(static_caiso_node_list)
 
-            node_id_list = self.data_bank['CAISO']['LMP'].keys()
+            node_id_list = self.data_bank['valuation']['CAISO']['LMP'].keys()
             node_dict = {node_x: node_x for node_x in node_id_list}
         # Use the PJM pattern of reading data_bank node keys to generate the node_dict (key = value) if no CSV LUT exists.
         else:
@@ -774,7 +775,7 @@ class DataManager(EventDispatcher):
             rev_stream_defs = json.load(fp).get(market_area, {})
 
         if market_area == 'ERCOT':
-            ercot_data_bank = self.data_bank['ERCOT']
+            ercot_data_bank = self.data_bank['valuation']['ERCOT']
 
             spp_data = ercot_data_bank['SPP'].get(node, [])
             ccp_data = ercot_data_bank.get('CCP', [])
@@ -786,7 +787,7 @@ class DataManager(EventDispatcher):
                 # Arbitrage and regulation is available.
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
         elif market_area == 'PJM':
-            pjm_data_bank = self.data_bank['PJM']
+            pjm_data_bank = self.data_bank['valuation']['PJM']
 
             lmp_data = pjm_data_bank['LMP'].get(node, [])
             reg_data = pjm_data_bank.get('REG', [])
@@ -799,7 +800,7 @@ class DataManager(EventDispatcher):
                 # Arbitrage and regulation is available.
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
         elif market_area == 'MISO':
-            miso_data_bank = self.data_bank['MISO']
+            miso_data_bank = self.data_bank['valuation']['MISO']
 
             lmp_data = miso_data_bank['LMP'].get(node, [])
             reg_data = miso_data_bank.get('MCP', [])
@@ -812,7 +813,7 @@ class DataManager(EventDispatcher):
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
         elif market_area == 'NYISO':
             # print("NYISO case data manager")
-            nyiso_data_bank = self.data_bank['NYISO']
+            nyiso_data_bank = self.data_bank['valuation']['NYISO']
 
             lbmp_data = nyiso_data_bank['LBMP'].get(node, [])
             asp_data = nyiso_data_bank.get('ASP', [])
@@ -828,7 +829,7 @@ class DataManager(EventDispatcher):
 
         elif market_area == 'ISONE':
             # print("ISONE case data manager 1")
-            isone_data_bank = self.data_bank['ISONE']
+            isone_data_bank = self.data_bank['valuation']['ISONE']
 
             lmp_data = isone_data_bank['LMP'].get(node, [])
             rcp_data = isone_data_bank.get('RCP', [])
@@ -842,7 +843,7 @@ class DataManager(EventDispatcher):
                 # print("ISONE case data manager")
                 # print(rev_stream_dict)
         elif market_area == 'SPP':
-            spp_data_bank = self.data_bank['SPP']
+            spp_data_bank = self.data_bank['valuation']['SPP']
 
             lmp_data = spp_data_bank['LMP'].get(node, [])
             mcp_data = spp_data_bank.get('MCP', [])
@@ -854,7 +855,7 @@ class DataManager(EventDispatcher):
                 # Arbitrage and regulation is available.
                 rev_stream_dict['Arbitrage and regulation'] = rev_stream_defs['Arbitrage and regulation']
         elif market_area == 'CAISO':
-            caiso_data_bank = self.data_bank['CAISO']
+            caiso_data_bank = self.data_bank['valuation']['CAISO']
 
             lmp_data = caiso_data_bank['LMP'].get(node, [])
             asp_data = caiso_data_bank.get('ASP', [])
@@ -891,7 +892,7 @@ class DataManager(EventDispatcher):
         hist_data_options = {}
 
         if market_area == 'ERCOT':
-            ercot_data_bank = self.data_bank['ERCOT']
+            ercot_data_bank = self.data_bank['valuation']['ERCOT']
 
             spp_data = ercot_data_bank['SPP'].get(node, {})
 
@@ -910,7 +911,7 @@ class DataManager(EventDispatcher):
             else:
                 hist_data_options = spp_data
         elif market_area == 'PJM':
-            pjm_data_bank = self.data_bank['PJM']
+            pjm_data_bank = self.data_bank['valuation']['PJM']
 
             lmp_data = pjm_data_bank['LMP'].get(node, {})
 
@@ -931,7 +932,7 @@ class DataManager(EventDispatcher):
             else:
                 hist_data_options = lmp_data
         elif market_area == 'MISO':
-            miso_data_bank = self.data_bank['MISO']
+            miso_data_bank = self.data_bank['valuation']['MISO']
 
             lmp_data = miso_data_bank['LMP'].get(node, {})
 
@@ -950,7 +951,7 @@ class DataManager(EventDispatcher):
             else:
                 hist_data_options = lmp_data
         elif market_area == 'NYISO':
-            nyiso_data_bank = self.data_bank['NYISO']
+            nyiso_data_bank = self.data_bank['valuation']['NYISO']
 
             lbmp_data = nyiso_data_bank['LBMP'].get(node, {})
 
@@ -969,7 +970,7 @@ class DataManager(EventDispatcher):
             else:
                 hist_data_options = lbmp_data
         elif market_area == 'ISONE':
-            isone_data_bank = self.data_bank['ISONE']
+            isone_data_bank = self.data_bank['valuation']['ISONE']
 
             lmp_data = isone_data_bank['LMP'].get(node, {})
 
@@ -988,7 +989,7 @@ class DataManager(EventDispatcher):
             else:
                 hist_data_options = lmp_data
         elif market_area == 'SPP':
-            spp_data_bank = self.data_bank['SPP']
+            spp_data_bank = self.data_bank['valuation']['SPP']
 
             lmp_data = spp_data_bank['LMP'].get(node, {})
 
@@ -1008,7 +1009,7 @@ class DataManager(EventDispatcher):
                 hist_data_options = lmp_data
 
         elif market_area == 'CAISO':
-            caiso_data_bank = self.data_bank['CAISO']
+            caiso_data_bank = self.data_bank['valuation']['CAISO']
 
             lmp_data = caiso_data_bank['LMP'].get(node, {})
             print(lmp_data)

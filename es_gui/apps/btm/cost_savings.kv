@@ -1,0 +1,190 @@
+<CostSavingsWizard>:
+    content: content
+    sm: sm
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+
+        CostSavingsWizardScreenManager:
+            id: sm
+
+<FlatDemandRateTable>:
+    rows: 2
+    spacing: 10
+    col_headers: col_headers
+    row_label_box: row_label_box
+    data_grid: data_grid
+
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.2
+
+        GridLayout:
+            id: col_headers
+            size_hint_x: 0.8
+            cols: 12
+    
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BoxLayout:
+            id: row_label_box
+            size_hint_x: 0.2
+
+        GridLayout:
+            id: data_grid
+            size_hint_x: 0.8
+            cols: 12      
+
+<NetMeteringTable>:
+    rows: 1
+    spacing: 10
+    net_metering_type_label_box: net_metering_type_label_box
+    net_metering_type_box: net_metering_type_box
+    energy_sell_price_label_box: energy_sell_price_label_box
+    energy_sell_price_box: energy_sell_price_box
+
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BoxLayout:
+            id: net_metering_type_label_box
+            size_hint_x: 0.8
+
+        BoxLayout:
+            id: net_metering_type_box
+            size_hint_x: 0.2
+    
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BoxLayout:
+            id: energy_sell_price_label_box
+            size_hint_x: 0.8
+
+        BoxLayout:
+            id: energy_sell_price_box
+            size_hint_x: 0.2    
+
+<CostSavingsWizardStart>:
+    next_button: next_button
+    content: content
+    rate_structure_rv: rate_structure_rv
+    rate_structure_rv_text_filter: rate_structure_rv_text_filter
+    energy_weekday_chart: energy_weekday_chart
+    energy_weekend_chart: energy_weekend_chart
+    demand_weekday_chart: demand_weekday_chart
+    demand_weekend_chart: demand_weekend_chart
+    flat_demand_rates_table: flat_demand_rates_table
+    net_metering_table: net_metering_table
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Select a rate structure.'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            id: content
+            spacing: 10
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.2
+                spacing: 10
+                opacity: 1
+
+                TextInput:
+                    id: rate_structure_rv_text_filter
+                    size_hint_y: 0.07
+                    on_text: rate_structure_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: rate_structure_rv
+                    viewclass: 'CostSavingsRateStructureRVEntry'
+                    size_hint_y: 0.9
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.8
+                spacing: 10
+            
+                GridLayout:
+                    cols: 2
+                    size_hint_y: 0.9
+
+                    GridLayout:
+                        cols: 1
+
+                        TitleTextBase:
+                            size_hint_y: 0.05
+                            color: C(hex_secondary)
+                            text: 'Energy'
+                            font_size: large_font
+
+                        RateScheduleChart:
+                            id: energy_weekday_chart
+                            legend_width: 100
+                            # do_animation: False
+
+                        RateScheduleChart:
+                            id: energy_weekend_chart
+                            legend_width: 100
+                            # do_animation: False
+                    
+                    GridLayout:
+                        cols: 1
+
+                        TitleTextBase:
+                            size_hint_y: 0.05
+                            color: C(hex_secondary)
+                            text: 'Demand'
+                            font_size: large_font
+
+                        RateScheduleChart:
+                            id: demand_weekday_chart
+                            legend_width: 100
+                            # do_animation: False
+                        
+                        RateScheduleChart:
+                            id: demand_weekend_chart
+                            legend_width: 100
+                            # do_animation: False
+                
+                FlatDemandRateTable:
+                    id: flat_demand_rates_table
+                    size_hint_y: 0.05
+                
+                NetMeteringTable:
+                    id: net_metering_table
+                    size_hint_y: 0.05      
+                    size_hint_x: 0.6    
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                ValuationWizardNextButton:
+                    id: next_button
+                    text: 'Continue'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        # root._next_screen()

@@ -1,5 +1,19 @@
 # Master branch changelog
 
+## Patch 1.2
+
+### QuESt
+#### QuESt Data Manager
+* A tool for downloading utility rate structure data has been implemented.
+    * This tool is designed for use in behind-the-meter applications, especially for cost savings for time-of-use and net-metering customers.
+    * This tool leverages the [OpenEI](https://openei.org) database through their API.
+        * An API key, available through the OpenEI website, is required to use this tool.
+    * Search for a utility in the U.S. Utility Rate Database and select a rate structure.
+    * The time-of-use energy and demand rate schedules are retrieved from the database, in addition to the monthly flat demand schedule.
+        * Modify the period rates or rate schedules as desired.
+    * Specify the net-metering scheme.
+    * Save the rate structure for use in other QuESt applications.
+
 ## Patch 1.1
 This patch provides a number of content and quality of life updates for QuESt Data Manager and QuESt Valuation. 
 

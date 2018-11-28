@@ -20,6 +20,7 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import SpinnerOption, Spinner
+from kivy.uix.label import Label
 
 cwd = os.getcwd()
 
@@ -51,6 +52,16 @@ def rgba_to_fraction(rgba):
         return float(rgba[0])/255, float(rgba[1])/255, float(rgba[2])/255, 1
 
 
+class LeftAlignedText(Label):
+    """"""
+    pass
+
+
+class BodyTextBase(LeftAlignedText):
+    """"""
+    pass
+
+
 class TileButton(Button):
     pass
 
@@ -67,7 +78,7 @@ class RecycleViewRow(RecycleDataViewBehavior, BoxLayout):
     selected = BooleanProperty(False)
     selectable = BooleanProperty(True)
 
-    run_selector = None
+    # run_selector = None
 
     def refresh_view_attrs(self, rv, index, data):
         """

@@ -939,7 +939,7 @@ class PieSlice(Widget):
 
 
 class ChartLegend(GridLayout):
-    def __init__(self, position, key_height=30, **kwargs):
+    def __init__(self, position, key_height=30, font_size=20, **kwargs):
         super(ChartLegend, self).__init__(**kwargs)
 
         # Layout properties
@@ -949,6 +949,7 @@ class ChartLegend(GridLayout):
 
         self.pos = position
         self.key_height = key_height
+        self.font_size = font_size
 
         #self.leg_pos = position
 
@@ -972,6 +973,7 @@ class ChartLegend(GridLayout):
             leg_entry = LegendEntry(color=color, text=legend_text,
                                     key_height=self.key_height,
                                     legend_width=self.size[0],
+                                    font_size=self.font_size,
                                     )
 
             self.row_default_height = self.key_height
@@ -981,7 +983,7 @@ class ChartLegend(GridLayout):
 
 
 class LegendEntry(RelativeLayout):
-    def __init__(self, color, text, key_height, legend_width, **kwargs):
+    def __init__(self, color, text, key_height, legend_width, font_size=20, **kwargs):
         super(LegendEntry, self).__init__(**kwargs)
 
         self.key_color = color
@@ -1004,6 +1006,7 @@ class LegendEntry(RelativeLayout):
                          halign='left',
                          width=self.key_width - self.key_height,
                          height=self.key_height,
+                         font_size=font_size,
                          )
 
         #col_text.size = col_text.texture_size
@@ -1065,8 +1068,8 @@ class RateScheduleChart(Chart):
 
         # Iterate over each tile
         for iy, row in enumerate(schedule_data, start=0):
-            row_label = Label(pos=(0.75*x0 - self.width/2, self.max_height/2 - iy*(self.tile_height + self.tile_spacing)),
-            text=labels[iy], color=[0, 0, 0, 1])
+            row_label = Label(pos=(0.80*x0 - self.width/2, self.max_height/2 - (iy+0.5)*(self.tile_height + self.tile_spacing)),
+            text=labels[iy], color=[0, 0, 0, 1], font_size=12, height=self.tile_height)
             self.add_widget(row_label)
 
             for ix, tile_value in enumerate(row, start=0):
@@ -1082,19 +1085,19 @@ class RateScheduleChart(Chart):
                 if iy == 0:
                     # Column labels for hours.
                     col_label = Label(pos=(x0 - (self.width - self.tile_width)/2 + ix*(self.tile_width + self.tile_spacing), self.max_height/2 + self.y_padding/2),
-                              text=str(ix+1), color=[0, 0, 0, 1])
+                              text=str(ix+1), color=[0, 0, 0, 1], font_size=12)
                     self.add_widget(col_label)
 
-    def draw_chart(self, schedule_data, category_colors, labels):
+    def draw_chart(self, schedule_data, category_colors, labels, legend_labels=None):
         """Draws the RateScheduleChart."""
         # Clear all widgets from the RateScheduleChart.
         while len(self.children) > 0:
             for widget in self.children:
                 self.remove_widget(widget)
 
-        with self.canvas.before:
-            Color(1, 1, 1, 1)
-            Rectangle(size=self.size, pos=self.pos)
+        # with self.canvas.before:
+        #     Color(1, 1, 1, 1)
+        #     Rectangle(size=self.size, pos=self.pos)
 
         self.generate_tiles(schedule_data, category_colors, labels)
 
@@ -1116,11 +1119,14 @@ class RateScheduleChart(Chart):
         leg_pos = (0, 0)
         leg_size = (self.legend_width, self.height)
 
-        self.legend = ChartLegend(leg_pos, size=leg_size, opacity=0, key_height=20)
+        self.legend = ChartLegend(leg_pos, size=leg_size, opacity=0, key_height=15, font_size=10)
         self.add_widget(self.legend)
 
         # Form the legend input [[name, rgba] for each entry.
-        legend_data = [[str(ix), color] for ix, color in enumerate(category_colors)]
+        if not legend_labels:
+            legend_data = [[str(ix), color] for ix, color in enumerate(category_colors)]
+        else:
+            legend_data = [[legend_labels[ix], color] for ix, color in enumerate(category_colors)]
 
         self.legend.gen_legend(legend_data)
 
@@ -1134,7 +1140,10 @@ class RateScheduleChart(Chart):
             anim.start(legend)
 
         # Animate the legend opacity
-        Clock.schedule_once(partial(_anim_legend, self.legend), len(self.tiles)*TILE_ANIM_LENGTH)
+        if self._do_animation:
+            Clock.schedule_once(partial(_anim_legend, self.legend), len(self.tiles)*TILE_ANIM_LENGTH)
+        else:
+            self.legend.opacity = 1
 
 
 class ScheduleTile(Widget):
