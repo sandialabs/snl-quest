@@ -98,6 +98,10 @@ Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'wizard.k
 from es_gui.apps.valuation.reporting import Report
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'reporting.kv'))
 
+# Behind-the-meter
+from es_gui.apps.btm.home import BehindTheMeterHomeScreen
+Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'btm', 'home.kv'))
+
 # Font registration.
 LabelBase.register(name='Exo 2',
                    fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Regular.ttf'),
@@ -234,6 +238,9 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(LoadDataScreen(name='load_data'))
         self.add_widget(PlotScreen(name='plot'))
         self.add_widget(ValuationWizard(name='valuation_wizard'))
+
+        # Behind-the-meter applications.
+        self.add_widget(BehindTheMeterHomeScreen(name='btm_home'))
     
     def launch_valuation(self):
         """"""
@@ -261,8 +268,7 @@ class QuEStScreenManager(ScreenManager):
             no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"
             no_data_popup.open()
         else: 
-            pass
-            # self.current = 'valuation_home'
+            self.current = 'btm_home'
 
 
 class NavigationBar(ActionBar):
@@ -278,6 +284,7 @@ class NavigationBar(ActionBar):
                      'data_manager_home': 'index',
                      'data_manager_rto_mo_data': 'data_manager_home',
                      'data_manager_rate_structure_data': 'data_manager_home',
+                     'btm_home': 'index',
                      }
 
     def __init__(self, sm):
