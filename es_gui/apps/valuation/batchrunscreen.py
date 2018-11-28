@@ -17,11 +17,10 @@ from kivy.app import App
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, ValuationRunCompletePopup, RecycleViewRow, FADEIN_DUR
+from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, ValuationRunCompletePopup, RecycleViewRow, FADEIN_DUR, fade_in_animation
 from es_gui.tools.valuation.valuation_optimizer import BadParameterException
 from es_gui.apps.data_manager.data_manager import DataManagerException
 
-bx_anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
 
 class ValuationBatchRunScreenManager(ScreenManager):
     def __init__(self, **kwargs):
@@ -232,7 +231,7 @@ class BatchRunDataScreen(Screen):
             node_options = [{}]
         else:
             # Enable node selector.
-            bx_anim.start(self.node_select_bx)
+            fade_in_animation.start(self.node_select_bx)
 
     def on_iso(self, instance, value):
         logging.info('ValuationBatch: ISO changed to {0}.'.format(value))
@@ -257,7 +256,7 @@ class BatchRunDataScreen(Screen):
                 historical_data_opts.extend(month_options)
             
             self.month_rv.data = historical_data_opts
-            bx_anim.start(self.months_select_bx)
+            fade_in_animation.start(self.months_select_bx)
 
     def on_rev_streams(self, instance, value):
         if value:
@@ -280,7 +279,7 @@ class BatchRunDataScreen(Screen):
                 self.revstreams_select.values = []
             else:
                 # Enable revenue stream selector and reset it.
-                bx_anim.start(self.revstreams_select)
+                fade_in_animation.start(self.revstreams_select)
                 self.revstreams_select.text = 'Select revenue streams'
                 self.revstreams_select.disabled = False
             

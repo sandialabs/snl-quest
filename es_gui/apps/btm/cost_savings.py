@@ -6,6 +6,7 @@ import webbrowser
 import calendar
 import os
 import numpy as np
+import threading
 
 from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition, ScreenManagerException
 from kivy.uix.label import Label
@@ -28,7 +29,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
-from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER,FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction
+from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation
 
 
 class CostSavingsWizard(Screen):
@@ -49,7 +50,7 @@ class CostSavingsWizard(Screen):
 
 
 class CostSavingsWizardScreenManager(ScreenManager):
-    """The screen manager for the valuation wizard screens."""
+    """The screen manager for the cost savings wizard screens."""
     def __init__(self, **kwargs):
         super(CostSavingsWizardScreenManager, self).__init__(**kwargs)
 
@@ -68,7 +69,7 @@ class CostSavingsWizardScreenManager(ScreenManager):
 
 
 class CostSavingsWizardStart(Screen):
-    """The starting/welcome screen for the valuation wizard."""
+    """The starting/welcome screen for the cost savings wizard."""
     rate_structure_selected = DictProperty()
 
     def __init__(self, **kwargs):
@@ -83,25 +84,36 @@ class CostSavingsWizardStart(Screen):
             logging.info('CostSavings: Rate structure selection reset.')
             self.rate_structure_desc.text = ''
         else:
-            self.generate_schedule_charts()
-            self.generate_flat_demand_rate_table()
-            # self.flat_demand_rates.text = repr(value['demand rate structure'].get('flat rates', ''))
-            # self.net_metering.text = repr(value['net metering'])
-    
+            Animation.stop_all(self.preview_box, 'opacity')
+            self.preview_box.opacity = 0
+
+            def _generate_preview():
+                self.generate_schedule_charts()
+                self.generate_flat_demand_rate_table()
+                self.generate_net_metering_table()
+
+                Clock.schedule_once(partial(fade_in_animation, self.preview_box), 0)
+            
+            thread_preview = threading.Thread(target=_generate_preview)
+            thread_preview.start()            
+
     def generate_flat_demand_rate_table(self):
-        """"""
+        """Generates the preview table for the flat demand rate structure."""
         flat_demand_rates = self.rate_structure_selected['demand rate structure'].get('flat rates', {})
 
         table_data = [str(flat_demand_rates.get(month, '')) for month in calendar.month_abbr[1:]]
         self.flat_demand_rates_table.populate_table(table_data)
+        
+    def generate_net_metering_table(self):
+        """Generates the preview table for the net metering information."""
         self.net_metering_table.populate_table(self.rate_structure_selected['net metering'])
 
     def generate_schedule_charts(self, *args):
-        """Draws the weekday and weekend rate schedule charts."""
+        """Generates the preview for the weekday and weekend rate schedule charts."""
         weekday_schedule_data = self.rate_structure_selected['energy rate structure'].get('weekday schedule', [])
         weekend_schedule_data = self.rate_structure_selected['energy rate structure'].get('weekend schedule', [])
 
-        legend_labels = ['${0}/kWh'.format(v) for k,v in self.rate_structure_selected['energy rate structure'].get('energy rates').items()]
+        legend_labels = ['${0}/kWh'.format(v) for _,v in self.rate_structure_selected['energy rate structure'].get('energy rates').items()]
 
         if weekday_schedule_data and weekend_schedule_data:
             n_tiers = len(np.unique(weekday_schedule_data))
@@ -115,7 +127,7 @@ class CostSavingsWizardStart(Screen):
         weekday_schedule_data = self.rate_structure_selected['demand rate structure'].get('weekday schedule', [])
         weekend_schedule_data = self.rate_structure_selected['demand rate structure'].get('weekend schedule', [])
 
-        legend_labels = ['${0}/kW'.format(v) for k,v in self.rate_structure_selected['demand rate structure'].get('time of use rates').items()]
+        legend_labels = ['${0}/kW'.format(v) for _,v in self.rate_structure_selected['demand rate structure'].get('time of use rates').items()]
 
         if weekday_schedule_data and weekend_schedule_data:
             n_tiers = len(np.unique(weekday_schedule_data))
@@ -159,23 +171,20 @@ class CostSavingsRateStructureRVEntry(RecycleViewRow):
 
 
 class FlatDemandRateTable(GridLayout):
-    """"""
+    """A preview table to show the monthly flat demand rate structure."""
     def reset_table(self):
+        """Builds the table column headers if necessary and removes all data entries."""
         if not self.col_headers.children:
             for month in calendar.month_abbr[1:]:
                 col_header = BodyTextBase(text=month, color=rgba_to_fraction(PALETTE[1]), font_size=20)
                 self.col_headers.add_widget(col_header)
-        
-        if not self.row_label_box.children:
-            row_label = BodyTextBase(text='Flat Demand Rate [$/kW]', color=rgba_to_fraction(PALETTE[1]), font_size=20)
-            self.row_label_box.add_widget(row_label)
         
         while len(self.data_grid.children) > 0:
             for widget in self.data_grid.children:
                 self.data_grid.remove_widget(widget)
     
     def populate_table(self, data):
-        """"""
+        """Populates the data entries."""
         self.reset_table()
 
         for datum in data:
@@ -184,16 +193,9 @@ class FlatDemandRateTable(GridLayout):
 
 
 class NetMeteringTable(GridLayout):
-    """"""
+    """A preview table for the net metering information."""
     def reset_table(self):
-        if not self.net_metering_type_label_box.children:
-            net_metering_label = BodyTextBase(text='Net Metering Type', color=rgba_to_fraction(PALETTE[1]), font_size=20)
-            self.net_metering_type_label_box.add_widget(net_metering_label)
-        
-        if not self.energy_sell_price_label_box.children:
-            energy_sell_price_label = BodyTextBase(text='Energy Sell Price [$/kWh]', color=rgba_to_fraction(PALETTE[1]), font_size=20)
-            self.energy_sell_price_label_box.add_widget(energy_sell_price_label)
-        
+        """Removes all data entries."""        
         while len(self.net_metering_type_box.children) > 0:
             for widget in self.net_metering_type_box.children:
                 self.net_metering_type_box.remove_widget(widget)
@@ -203,7 +205,7 @@ class NetMeteringTable(GridLayout):
                 self.energy_sell_price_box.remove_widget(widget)
     
     def populate_table(self, net_metering_dict):
-        """"""
+        """Populates the table with data from the net metering dictionary."""
         self.reset_table()
 
         net_metering_type = '2.0' if net_metering_dict['type'] else '1.0'

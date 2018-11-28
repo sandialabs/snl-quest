@@ -51,18 +51,34 @@ def rgba_to_fraction(rgba):
     else:
         return float(rgba[0])/255, float(rgba[1])/255, float(rgba[2])/255, 1
 
+def fade_in_animation(content, *args):
+    """Fade in animation (on opacity); to be used with Clock scheduler."""
+    anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
+    anim.start(content)
+
 
 class LeftAlignedText(Label):
-    """"""
+    """Label subclass for left-aligned text labels."""
     pass
 
 
 class BodyTextBase(LeftAlignedText):
-    """"""
+    """Base class for body text labels."""
+    pass
+
+
+class TitleTextBase(LeftAlignedText):
+    """Base class for title text labels."""
     pass
 
 
 class TileButton(Button):
+    """Button subclass for the tile buttons used throughout the application."""
+    pass
+
+
+class MenuTileButton(TileButton):
+    """Large tile button used for main menus."""
     pass
 
 

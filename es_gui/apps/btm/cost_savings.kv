@@ -13,7 +13,6 @@
     rows: 2
     spacing: 10
     col_headers: col_headers
-    row_label_box: row_label_box
     data_grid: data_grid
 
     BoxLayout:
@@ -31,9 +30,11 @@
     BoxLayout:
         orientation: 'horizontal'
 
-        BoxLayout:
-            id: row_label_box
+        BodyTextBase:
             size_hint_x: 0.2
+            color: C(hex_secondary)
+            font_size: default_font
+            text: 'Flat demand rate [$/kW]'
 
         GridLayout:
             id: data_grid
@@ -43,17 +44,17 @@
 <NetMeteringTable>:
     rows: 1
     spacing: 10
-    net_metering_type_label_box: net_metering_type_label_box
     net_metering_type_box: net_metering_type_box
-    energy_sell_price_label_box: energy_sell_price_label_box
     energy_sell_price_box: energy_sell_price_box
 
     BoxLayout:
         orientation: 'horizontal'
 
-        BoxLayout:
-            id: net_metering_type_label_box
+        BodyTextBase:
             size_hint_x: 0.8
+            color: C(hex_secondary)
+            font_size: default_font
+            text: 'Net metering type'
 
         BoxLayout:
             id: net_metering_type_box
@@ -61,10 +62,12 @@
     
     BoxLayout:
         orientation: 'horizontal'
-
-        BoxLayout:
-            id: energy_sell_price_label_box
+            
+        BodyTextBase:
             size_hint_x: 0.8
+            color: C(hex_secondary)
+            font_size: default_font
+            text: 'Energy sell price [$/kWh]'
 
         BoxLayout:
             id: energy_sell_price_box
@@ -81,6 +84,7 @@
     demand_weekend_chart: demand_weekend_chart
     flat_demand_rates_table: flat_demand_rates_table
     net_metering_table: net_metering_table
+    preview_box: preview_box
 
     BoxLayout:
         orientation: 'vertical'
@@ -119,9 +123,11 @@
                         touch_multiselect: False
             
             BoxLayout:
+                id: preview_box
                 orientation: 'vertical'
                 size_hint_x: 0.8
                 spacing: 10
+                opacity: 0
             
                 GridLayout:
                     cols: 2
@@ -139,12 +145,12 @@
                         RateScheduleChart:
                             id: energy_weekday_chart
                             legend_width: 100
-                            # do_animation: False
+                            do_animation: False
 
                         RateScheduleChart:
                             id: energy_weekend_chart
                             legend_width: 100
-                            # do_animation: False
+                            do_animation: False
                     
                     GridLayout:
                         cols: 1
@@ -158,12 +164,12 @@
                         RateScheduleChart:
                             id: demand_weekday_chart
                             legend_width: 100
-                            # do_animation: False
+                            do_animation: False
                         
                         RateScheduleChart:
                             id: demand_weekend_chart
                             legend_width: 100
-                            # do_animation: False
+                            do_animation: False
                 
                 FlatDemandRateTable:
                     id: flat_demand_rates_table
@@ -172,7 +178,7 @@
                 NetMeteringTable:
                     id: net_metering_table
                     size_hint_y: 0.05      
-                    size_hint_x: 0.6    
+                    size_hint_x: 0.6
     
         BoxLayout:
             size_hint_y: 0.05

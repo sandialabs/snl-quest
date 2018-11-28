@@ -26,7 +26,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, St
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction
+from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
@@ -40,7 +40,7 @@ VERSION_OPENEI = "version=latest"
 REQUEST_FMT_OPENEI = "&format=json"
 DETAIL_OPENEI = "&detail=full"
 
-bx_anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
+fade_in_animation = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
 
 class RateStructureDataScreen(Screen):
     """"""
@@ -274,7 +274,7 @@ class RateStructureUtilitySearchScreen(Screen):
                     popup.open()
 
                 # Enable search results selector.
-                bx_anim.start(self.utility_select_bx)
+                fade_in_animation.start(self.utility_select_bx)
                 self._populate_utility_selector(utility_data_filtered)
 
                 # Animation.stop_all(self.loading_screen.logo, 'opacity')
@@ -387,7 +387,7 @@ class RateStructureUtilitySearchScreen(Screen):
             self.rate_structure_rv.unfiltered_data = records
 
             logging.info('RateStructureDM: Retrieved utility rate structures.')
-            bx_anim.start(self.rate_structure_select_bx)
+            fade_in_animation.start(self.rate_structure_select_bx)
         finally:
             self.loading_screen.dismiss()
     

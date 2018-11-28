@@ -40,7 +40,7 @@ from kivy.core.text import LabelBase
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction
+from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
 from es_gui.apps.data_manager.data_manager import DataManagerException
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
@@ -56,8 +56,6 @@ APIROOT_OPENEI = "https://api.openei.org/utility_rates?"
 VERSION_OPENEI = "version=latest"
 REQUEST_FMT_OPENEI = "&format=json"
 DETAIL_OPENEI = "&detail=full"
-
-bx_anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
 
 
 class DataManagerRTOMOdataScreen(Screen):
