@@ -632,10 +632,12 @@
                         root.manager.transition.direction = 'left'
                         root.next_screen()
 
-<RateStructureNetMeteringSaveScreen>:
+<RateStructureFinishScreen>:
     net_metering_1_toggle: net_metering_1_toggle
     net_metering_2_toggle: net_metering_2_toggle
     net_metering_sell_price_field: net_metering_sell_price_field
+    peak_kw_min_field: peak_kw_min_field
+    peak_kw_max_field: peak_kw_max_field
     save_name_field: save_name_field
     save_button: save_button
 
@@ -647,6 +649,50 @@
         DataManagerTitle:
             size_hint_y: 0.05
             text: 'Finishing up.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (450, 75)
+            size_hint_y: 0.3
+
+            DataManagerContentTitle:
+                text: 'Peak demand'
+                size_hint_y: 0.1
+            
+            GridLayout:
+                cols: 2
+                spacing: 50
+                size_hint_y: 0.1
+                    
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 5
+
+                    DataManagerBodyText:
+                        text: 'minimum [kW]'
+                        size_hint_x: 0.6
+                    
+                    RateStructureRateTextInput:
+                        id: peak_kw_min_field
+                        size_hint_x: 0.4
+                        input_filter: 'int'
+                        font_size: default_font
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 5
+
+                    DataManagerBodyText:
+                        text: 'maximum [kW]'
+                        size_hint_x: 0.6
+                    
+                    RateStructureRateTextInput:
+                        id: peak_kw_max_field
+                        size_hint_x: 0.4
+                        input_filter: 'int'
+                        font_size: default_font
+            
         
         BoxLayout:
             orientation: 'vertical'
@@ -685,10 +731,11 @@
                             text: 'sell price [$/kWh]'
                             size_hint_x: 0.6
                         
-                        TextInput:
+                        RateStructureRateTextInput:
                             id: net_metering_sell_price_field
                             size_hint_x: 0.4
                             disabled: False if net_metering_1_toggle.state == 'down' else True
+                            input_filter: 'float'
                 
                 GridLayout:
                     rows: 3
@@ -709,8 +756,8 @@
         BoxLayout:
             orientation: 'vertical'
             spacing: 10
-            padding: (450, 0)
-            size_hint_y: 0.6
+            padding: (450, 75)
+            size_hint_y: 0.3
 
             DataManagerContentTitle:
                 text: 'Save rate structure'
@@ -726,7 +773,7 @@
                     multiline: False
                     size_hint_x: 0.8
                     write_tab: False
-                    hint_text: 'Enter a name for the rate structure'
+                    hint_text: 'Enter a name for this rate structure'
                 
                 TileButton:
                     id: save_button
@@ -734,9 +781,6 @@
                     size_hint_x: 0.2
                     text: 'Save'
                     on_release: root.save_rate_structure()
-            
-            BoxLayout:
-                size_hint_y: 0.8
         
         AnchorLayout:
             anchor_y: 'center'
@@ -759,7 +803,7 @@
 
                 TileButton:
                     size_hint_x: 0.5
-                    background_color: C(hex_primary)
+                    background_color: C(hex_pms178)
                     text: 'Start over'
                     on_release:
                         root.manager.transition.duration = BASE_TRANSITION_DUR

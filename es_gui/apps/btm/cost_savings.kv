@@ -41,11 +41,39 @@
             size_hint_x: 0.8
             cols: 12      
 
-<NetMeteringTable>:
+<MiscRateStructureDataTable>:
     rows: 1
     spacing: 10
+    peak_min_box: peak_min_box
+    peak_max_box: peak_max_box
     net_metering_type_box: net_metering_type_box
     energy_sell_price_box: energy_sell_price_box
+
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BodyTextBase:
+            size_hint_x: 0.8
+            color: C(hex_secondary)
+            font_size: default_font
+            text: 'Peak demand min. [kW]'
+
+        BoxLayout:
+            id: peak_min_box
+            size_hint_x: 0.2
+    
+    BoxLayout:
+        orientation: 'horizontal'
+
+        BodyTextBase:
+            size_hint_x: 0.8
+            color: C(hex_secondary)
+            font_size: default_font
+            text: 'Peak demand max. [kW]'
+
+        BoxLayout:
+            id: peak_max_box
+            size_hint_x: 0.2
 
     BoxLayout:
         orientation: 'horizontal'
@@ -83,7 +111,7 @@
     demand_weekday_chart: demand_weekday_chart
     demand_weekend_chart: demand_weekend_chart
     flat_demand_rates_table: flat_demand_rates_table
-    net_metering_table: net_metering_table
+    misc_data_table: misc_data_table
     preview_box: preview_box
 
     BoxLayout:
@@ -175,10 +203,10 @@
                     id: flat_demand_rates_table
                     size_hint_y: 0.05
                 
-                NetMeteringTable:
-                    id: net_metering_table
+                MiscRateStructureDataTable:
+                    id: misc_data_table
                     size_hint_y: 0.05      
-                    size_hint_x: 0.6
+                    size_hint_x: 1.0
     
         BoxLayout:
             size_hint_y: 0.05

@@ -90,7 +90,7 @@ class CostSavingsWizardStart(Screen):
             def _generate_preview():
                 self.generate_schedule_charts()
                 self.generate_flat_demand_rate_table()
-                self.generate_net_metering_table()
+                self.generate_misc_table()
 
                 Clock.schedule_once(partial(fade_in_animation, self.preview_box), 0)
             
@@ -104,9 +104,9 @@ class CostSavingsWizardStart(Screen):
         table_data = [str(flat_demand_rates.get(month, '')) for month in calendar.month_abbr[1:]]
         self.flat_demand_rates_table.populate_table(table_data)
         
-    def generate_net_metering_table(self):
-        """Generates the preview table for the net metering information."""
-        self.net_metering_table.populate_table(self.rate_structure_selected['net metering'])
+    def generate_misc_table(self):
+        """Generates the preview table for the miscellaneous information."""
+        self.misc_data_table.populate_table(self.rate_structure_selected)
 
     def generate_schedule_charts(self, *args):
         """Generates the preview for the weekday and weekend rate schedule charts."""
@@ -192,10 +192,18 @@ class FlatDemandRateTable(GridLayout):
             self.data_grid.add_widget(rate_label)
 
 
-class NetMeteringTable(GridLayout):
-    """A preview table for the net metering information."""
+class MiscRateStructureDataTable(GridLayout):
+    """A preview table for miscellaneous rate structure information."""
     def reset_table(self):
-        """Removes all data entries."""        
+        """Removes all data entries."""
+        while len(self.peak_min_box.children) > 0:
+            for widget in self.peak_min_box.children:
+                self.peak_min_box.remove_widget(widget)
+
+        while len(self.peak_max_box.children) > 0:
+            for widget in self.peak_max_box.children:
+                self.peak_max_box.remove_widget(widget)
+                
         while len(self.net_metering_type_box.children) > 0:
             for widget in self.net_metering_type_box.children:
                 self.net_metering_type_box.remove_widget(widget)
@@ -204,12 +212,22 @@ class NetMeteringTable(GridLayout):
             for widget in self.energy_sell_price_box.children:
                 self.energy_sell_price_box.remove_widget(widget)
     
-    def populate_table(self, net_metering_dict):
-        """Populates the table with data from the net metering dictionary."""
+    def populate_table(self, rate_structure_dict):
+        """Populates the table with data from the rate structure dictionary."""
         self.reset_table()
 
-        net_metering_type = '2.0' if net_metering_dict['type'] else '1.0'
+        net_metering_dict = rate_structure_dict['net metering']
+        demand_structure_dict = rate_structure_dict['demand rate structure']
 
+        peak_kw_min = str(demand_structure_dict.get('minimum peak demand', '0'))
+        peak_kw_min_label = TextInput(text=peak_kw_min, font_size=20, readonly=True)
+        self.peak_min_box.add_widget(peak_kw_min_label)
+
+        peak_kw_max = str(demand_structure_dict.get('maximum peak demand', 'None'))
+        peak_kw_max_label = TextInput(text=peak_kw_max, font_size=20, readonly=True)
+        self.peak_max_box.add_widget(peak_kw_max_label)
+
+        net_metering_type = '2.0' if net_metering_dict['type'] else '1.0'
         net_metering_type_label = TextInput(text=net_metering_type, font_size=20, readonly=True)
         self.net_metering_type_box.add_widget(net_metering_type_label)
 

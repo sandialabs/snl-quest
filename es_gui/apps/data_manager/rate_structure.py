@@ -59,7 +59,7 @@ class RateStructureScreenManager(ScreenManager):
         self.add_widget(RateStructureUtilitySearchScreen(name='start'))
         self.add_widget(RateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
         self.add_widget(RateStructureDemandRateStructureScreen(name='demand_rate_structure'))
-        self.add_widget(RateStructureNetMeteringSaveScreen(name='net_metering'))
+        self.add_widget(RateStructureFinishScreen(name='finish'))
 
 class RateStructureOpenEIapiHelp(ModalView):
     """ModalView to display instructions on how to get an OpenEI API key."""
@@ -400,18 +400,34 @@ class RateStructureUtilitySearchScreen(Screen):
         else:
             self.manager.get_screen('energy_rate_structure').populate_rate_schedules(value)
             self.manager.get_screen('demand_rate_structure').populate_rate_schedules(value)
+            self.manager.get_screen('finish').populate_peak_demand_limits(value)
         
         try:
+            # print(value)
             self.rate_structure_desc.text = value.get('description', 'No description provided.')
         except ValueError:
             pass
     
     def get_selections(self):
         """Retrieves UI selections."""
+        if not self.utility_selected:
+            raise(InputError('Please select a utility before proceeding.'))
+        
+        if not self.rate_structure_selected:
+            raise(InputError('Please select a rate structure before proceeding.'))
+
         return self.utility_selected, self.rate_structure_selected
     
     def next_screen(self):
-        self.manager.current = self.manager.next()
+        try:
+            self.get_selections()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            logging.info('UtilityRateSearch: All seems well.')
+            self.manager.current = self.manager.next()
 
 
 class UtilitySearchRVEntry(RecycleViewRow):
@@ -691,24 +707,60 @@ class RateStructureDemandRateStructureScreen(Screen):
             self.manager.current = self.manager.next()
 
 
-class RateStructureNetMeteringSaveScreen(Screen):
+class RateStructureFinishScreen(Screen):
     """"""
-    def _validate_inputs(self):
-        net_metering_type = self.net_metering_2_toggle.state == 'down'
-        sell_price = self.net_metering_sell_price_field if self.net_metering_1_toggle.state == 'down' else None
+    def populate_peak_demand_limits(self, rate_structure):
+        """Fills in the values for peak demand minimum and maximum, if available."""
+        peak_minimum = rate_structure.get('peakkwcapacitymin', 0)
+        peak_maximum = rate_structure.get('peakkwcapacitymax', np.nan)
 
-        return net_metering_type, sell_price
+        if np.isnan(peak_minimum):
+            self.peak_kw_min_field.text = '0'
+        else:
+            self.peak_kw_min_field.text = str(int(peak_minimum))
+
+        
+        if np.isnan(peak_maximum):
+            self.peak_kw_max_field.text = ''
+        else:
+            self.peak_kw_max_field.text = str(int(peak_maximum))
+
+    def _validate_inputs(self):
+        if not self.peak_kw_min_field.text:
+            raise(InputError('The peak demand minimum must be specified. If there is no minimum, please set it to 0.'))
+        else:
+            peak_kw_min = int(self.peak_kw_min_field.text)
+        
+        if self.peak_kw_max_field.text:
+            if peak_kw_min > int(self.peak_kw_max_field.text):
+                raise(InputError('The peak demand minimum must be less than the maximum.'))
+            else:
+                peak_kw_max = int(self.peak_kw_max_field.text)
+        else:
+            peak_kw_max = np.inf
+        
+        if not any([self.net_metering_1_toggle.state == 'down', self.net_metering_2_toggle.state == 'down']):
+            raise(InputError('Please specify a net energy metering type.'))
+        else:
+            net_metering_type = self.net_metering_2_toggle.state == 'down'
+        
+        if self.net_metering_1_toggle.state == 'down' and not self.net_metering_sell_price_field.text:
+            raise(InputError('Please specify an energy sell price when selecting "Net metering 1.0."'))
+        else:
+            sell_price = self.net_metering_sell_price_field if self.net_metering_1_toggle.state == 'down' else None        
+
+        return peak_kw_min, peak_kw_max, net_metering_type, sell_price
     
     def get_selections(self):
         """Retrieves UI selections."""
         try:
-            net_metering_type, sell_price = self._validate_inputs()
+            peak_kw_min, peak_kw_max, net_metering_type, sell_price = self._validate_inputs()
         except InputError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
             popup.open()
         else:
-            return net_metering_type, sell_price
+            return peak_kw_min, peak_kw_max, net_metering_type, sell_price
 
     def save_rate_structure(self):
         """Saves the rate structure details to an object on disk."""
@@ -722,7 +774,10 @@ class RateStructureNetMeteringSaveScreen(Screen):
         demand_rate_screen = self.manager.get_screen('demand_rate_structure')
         demand_weekday_schedule, demand_weekend_schedule, demand_tou_rates_dict, demand_flat_rates_dict = demand_rate_screen.get_selections()
 
-        net_metering_type, sell_price = self.get_selections()
+        try:
+            peak_kw_min, peak_kw_max, net_metering_type, sell_price = self.get_selections()
+        except TypeError:
+            return
 
         # Form dictionary object for saving.
         rate_structure_object = {}
@@ -747,7 +802,9 @@ class RateStructureNetMeteringSaveScreen(Screen):
             'weekday schedule': demand_weekday_schedule,
             'weekend schedule': demand_weekend_schedule,
             'time of use rates': demand_tou_rates_dict,
-            'flat rates': demand_flat_rates_dict
+            'flat rates': demand_flat_rates_dict,
+            'minimum peak demand': peak_kw_min,
+            'maximum peak demand': peak_kw_max
         }
 
         rate_structure_object['net metering'] = {
@@ -779,7 +836,7 @@ class RateStructureNetMeteringSaveScreen(Screen):
             popup.open()
 
     def next_screen(self):
-        self.manager.get_screen(self.manager.next()).reset_screen()
+        # self.manager.get_screen(self.manager.next()).reset_screen()
         self.manager.current = self.manager.next()
 
 

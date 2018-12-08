@@ -26,14 +26,20 @@
             DataManagerMenuTileButton:
                 id: rto_mo_data_button
                 background_color: C(hex_primary)
-                text: 'ISO/RTO Market and Operations Data'
+                text: 'ISO/RTO Market and Operations'
                 on_release: root.manager.current = 'data_manager_rto_mo_data'
             
             DataManagerMenuTileButton:
                 id: utility_rate_data_button
                 background_color: C(hex_primary)
-                text: 'Utility Rate Structure Data'
+                text: 'Utility Rate Structures'
                 on_release: root.manager.current = 'data_manager_rate_structure_data'
+            
+            DataManagerMenuTileButton:
+                id: hourly_load_data_button
+                background_color: C(hex_primary)
+                text: 'Commercial/Residential Building Load Data'
+                on_release: root.manager.current = 'data_manager_load_home'
 
 <DataManagerMenuTileButton@MenuTileButton>:
     font: huge_font
