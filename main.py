@@ -73,7 +73,7 @@ Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'widge
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'rate_structure.kv'))
 
-from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen
+from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
 Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'load.kv'))
 
 # Valuation
@@ -237,6 +237,7 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(RateStructureDataScreen(name='data_manager_rate_structure_data'))
         self.add_widget(DataManagerLoadHomeScreen(name='data_manager_load_home'))
         self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
+        self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
 
         # Energy storage valuation.
         #self.add_widget(ValuationScreen(name='valuation_advanced'))
@@ -295,6 +296,7 @@ class NavigationBar(ActionBar):
                      'data_manager_rate_structure_data': 'data_manager_home',
                      'data_manager_load_home': 'data_manager_home',
                      'data_manager_commercial_load': 'data_manager_load_home',
+                     'data_manager_residential_load': 'data_manager_load_home',
                      'btm_home': 'index',
                      'cost_savings_wizard': 'btm_home',
                      }

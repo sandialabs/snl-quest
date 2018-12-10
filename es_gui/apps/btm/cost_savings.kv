@@ -51,6 +51,7 @@
 
     BoxLayout:
         orientation: 'horizontal'
+        size_hint_x: 0.25
 
         BodyTextBase:
             size_hint_x: 0.8
@@ -64,6 +65,7 @@
     
     BoxLayout:
         orientation: 'horizontal'
+        size_hint_x: 0.25
 
         BodyTextBase:
             size_hint_x: 0.8
@@ -77,6 +79,7 @@
 
     BoxLayout:
         orientation: 'horizontal'
+        size_hint_x: 0.2
 
         BodyTextBase:
             size_hint_x: 0.8
@@ -90,16 +93,17 @@
     
     BoxLayout:
         orientation: 'horizontal'
+        size_hint_x: 0.3
             
         BodyTextBase:
-            size_hint_x: 0.8
+            size_hint_x: 0.75
             color: C(hex_secondary)
             font_size: default_font
             text: 'Energy sell price [$/kWh]'
 
         BoxLayout:
             id: energy_sell_price_box
-            size_hint_x: 0.2    
+            size_hint_x: 0.25    
 
 <CostSavingsWizardStart>:
     next_button: next_button
