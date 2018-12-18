@@ -106,7 +106,56 @@
             size_hint_x: 0.25    
 
 <CostSavingsWizardStart>:
-    next_button: next_button
+    content: content
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Welcome to the time-of-use cost savings wizard!'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                size_hint_y: 0.4
+                text: 'This wizard will guide you through the process of estimating the cost savings for time-of-use and net metering customers using behind-the-meter energy storage systems. We will set up an optimization problem using a specific utility rate structure and demand profile data. We will then solve for the optimal state of charge management policy that minimizes energy and demand charges and determine the savings from using energy storage systems.'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.6
+                spacing: 10
+                padding: 10
+
+                Image:
+                    source: 'es_gui/resources/images/tou_sched.png'
+
+                Image:
+                    source: 'es_gui/resources/images/report_multisetbar.png'
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    text: 'Get started'
+                    size_hint_x: 0.15
+
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<CostSavingsWizardRateSelect>:
     content: content
     rate_structure_rv: rate_structure_rv
     rate_structure_rv_text_filter: rate_structure_rv_text_filter
@@ -216,12 +265,20 @@
             size_hint_y: 0.05
 
             AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
                 anchor_x: 'right'
                 anchor_y: 'center'
 
-                ValuationWizardNextButton:
-                    id: next_button
-                    text: 'Continue'
+                WizardNextButton:
                     on_release:
                         root.manager.transition.duration = BASE_TRANSITION_DUR
                         root.manager.transition.direction = 'left'

@@ -39,7 +39,7 @@ class CostSavingsWizard(Screen):
         ab.reset_nav_bar()
         ab.set_title('TOU/NEM Cost Savings')
 
-        self.sm.generate_start()
+        # self.sm.generate_start()
 
     def on_leave(self):
         # Reset wizard to initial state by removing all screens except the first.
@@ -70,12 +70,33 @@ class CostSavingsWizardScreenManager(ScreenManager):
 
 class CostSavingsWizardStart(Screen):
     """The starting/welcome screen for the cost savings wizard."""
+    def _next_screen(self):
+        if not self.manager.has_screen('rate_select'):
+            screen = CostSavingsWizardRateSelect(name='rate_select')
+            self.manager.add_widget(screen)
+
+        self.manager.transition.duration = BASE_TRANSITION_DUR
+        self.manager.transition.direction = 'left'
+        self.manager.current = 'rate_select'
+
+
+class CostSavingsWizardRateSelect(Screen):
+    """The starting/welcome screen for the cost savings wizard."""
     rate_structure_selected = DictProperty()
 
     def __init__(self, **kwargs):
-        super(CostSavingsWizardStart, self).__init__(**kwargs)
+        super(CostSavingsWizardRateSelect, self).__init__(**kwargs)
 
         CostSavingsRateStructureRVEntry.host_screen = self
+    
+    def on_enter(self):
+        try:
+            data_manager = App.get_running_app().data_manager
+            rate_structure_options = [rs[1] for rs in data_manager.get_rate_structures().items()]
+            self.rate_structure_rv.data = rate_structure_options
+            self.rate_structure_rv.unfiltered_data = rate_structure_options
+        except Exception as e:
+            print(e)
     
     def on_rate_structure_selected(self, instance, value):
         try:
@@ -148,15 +169,6 @@ class CostSavingsWizardStart(Screen):
     #     self.manager.transition.duration = BASE_TRANSITION_DUR
     #     self.manager.transition.direction = 'left'
     #     self.manager.current = 'iso_select'
-
-    # def on_enter(self):
-    #     try:
-    #         data_manager = App.get_running_app().data_manager
-    #         rate_structure_options = [rs[1] for rs in data_manager.get_rate_structures().items()]
-    #         self.rate_structure_rv.data = rate_structure_options
-    #         self.rate_structure_rv.unfiltered_data = rate_structure_options
-    #     except Exception as e:
-    #         print(e)
 
 
 class CostSavingsRateStructureRVEntry(RecycleViewRow):

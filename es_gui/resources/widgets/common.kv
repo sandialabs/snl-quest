@@ -94,6 +94,19 @@
     halign: 'center'
     markup: True
 
+# These are the previous and continue tile buttons for wizards.
+<WizardPrevButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Previous'
+    size_hint_x: 0.30
+
+<WizardNextButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Next'
+    size_hint_x: 0.30
+
 # This is a TileButton with toggle button behavior.
 <ToggleTileButton>:
     background_down: os.path.join('es_gui', 'resources', 'images', 'button_normal.png')
