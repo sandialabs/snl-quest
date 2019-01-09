@@ -27,7 +27,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.textinput import TextInput
 
 from es_gui.apps.valuation.reporting import Report
-from es_gui.resources.widgets.common import MyPopup, WarningPopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER,FADEIN_DUR, SLIDER_DUR
+from es_gui.resources.widgets.common import MyPopup, WarningPopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER,FADEIN_DUR, SLIDER_DUR, fade_in_animation
 
 
 class ValuationWizard(Screen):
@@ -112,9 +112,6 @@ class ValuationWizardISOSelect(Screen):
 
         WizardISOTileButton.iso_screen = self
 
-        # for iso in ISO_OPTIONS:
-        #     iso_button = WizardISOTileButton(name=iso, text=iso, group='iso')
-        #     self.iso_select.add_widget(iso_button)
     def on_pre_enter(self):
         while len(self.iso_select.children) > 0:
             for widget in self.iso_select.children:
@@ -122,16 +119,13 @@ class ValuationWizardISOSelect(Screen):
                     self.iso_select.remove_widget(widget)
         
         ISO_OPTIONS = App.get_running_app().data_manager.get_markets()
-        # print("In the ValuationWizardISOSelect")
-        # print(ISO_OPTIONS)
 
         for iso in ISO_OPTIONS:
             iso_button = WizardISOTileButton(name=iso, text=iso, group='iso')
             self.iso_select.add_widget(iso_button)
 
     def on_enter(self):
-        anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
-        anim.start(self.content)
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
 
         def _fade_in_buttons(button, *args):
             anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
@@ -184,8 +178,7 @@ class ValuationWizardNodeSelect(Screen):
         self.iso = self.manager.get_screen('iso_select').iso
 
     def on_enter(self):
-        anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
-        anim.start(self.content)
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
 
     def on_leave(self):
         Animation.stop_all(self.content, 'opacity')
@@ -305,8 +298,7 @@ class ValuationWizardRevenueSelect(Screen):
         self.iso = self.manager.get_screen('iso_select').iso
 
     def on_enter(self):
-        anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
-        anim.start(self.content)
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
 
         def _fly_in_buttons(button, *args):
             button_anim = Animation(transition='out_expo', duration=1, opacity=1)
@@ -339,7 +331,6 @@ class ValuationWizardRevenueSelect(Screen):
                 if isinstance(widget, WizardRevToggleButton):
                     self.rev_select.remove_widget(widget)
 
-        #market_formulations = REV_STREAMS.get(value, [])
         node = self.manager.get_screen('node_select').node['nodeid']
         data_manager = App.get_running_app().data_manager
         market_models_available = data_manager.get_valuation_revstreams(value, node)
@@ -425,8 +416,7 @@ class ValuationWizardDataSelect(Screen):
         self.iso = self.manager.get_screen('iso_select').iso
 
     def on_enter(self):
-        anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
-        anim.start(self.content)
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
 
         self.data_desc.text = ''
         while len(self.data_select.children) > 0:
@@ -641,8 +631,7 @@ class ValuationWizardDeviceSelect(Screen):
         WizardDeviceTileButton.param_widget = self.param_widget
 
     def on_enter(self):
-        anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
-        anim.start(self.content)
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
 
         def _fade_in_buttons(button, *args):
             button_anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
@@ -787,8 +776,7 @@ class ValuationWizardSelectionSummary(Screen):
     #         pass
 
     def on_enter(self):
-        anim = Animation(transition='out_expo', duration=2, opacity=1)
-        anim.start(self.content)
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
 
         # clear widgets
         # while len(self.content.children) > 0:

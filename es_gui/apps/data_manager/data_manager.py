@@ -65,6 +65,7 @@ class DataManager(EventDispatcher):
                 return
 
             self._scan_rate_structure_data_bank()
+            self._scan_btm_load_profile_data_bank()
 
             self.n_threads_scanning -= 1
         
@@ -85,12 +86,73 @@ class DataManager(EventDispatcher):
         
         self.data_bank['rate structures'] = rate_structure_data_bank
     
+    def _scan_btm_load_profile_data_bank(self):
+        """Scans the saved load profile data bank."""
+        load_profile_root = os.path.join(self.data_bank_root, 'load')
+        load_profile_data_bank = {}
+
+        # TODO: Create more readable names?
+
+        # Commercial load profiles.
+        if 'commercial' in os.listdir(load_profile_root):
+            commercial_root = os.path.join(load_profile_root, 'commercial')
+
+            for location_dir in os.scandir(commercial_root):
+                if not location_dir.name.startswith('.'):
+                    location_root = location_dir.path
+
+                    for load_profile in os.scandir(location_root):
+                        if not load_profile.name.startswith('.'):
+                            profile_key = '/'.join(['commercial', load_profile.name])
+                            profile_path = '/'.join(['commercial', location_dir.name, load_profile.name])
+
+                            load_profile_data_bank[profile_key] = profile_path
+        
+        # Residential load profiles.
+        if 'residential' in os.listdir(load_profile_root):
+            residential_root = os.path.join(load_profile_root, 'residential')
+
+            for load_level_dir in os.scandir(residential_root):
+                if not load_level_dir.name.startswith('.'):
+                    level_root = load_level_dir.path
+
+                    for load_profile in os.scandir(level_root):
+                        if not load_profile.name.startswith('.'):
+                            profile_key = '/'.join(['residential', load_profile.name])
+                            profile_path = '/'.join(['residential', load_level_dir.name, load_profile.name])
+
+                            load_profile_data_bank[profile_key] = profile_path
+            
+        self.data_bank['load profiles'] = load_profile_data_bank
+    
+    def _scan_btm_pv_profile_data_bank(self):
+        """Scans the saved PV profile data bank."""
+        # TODO: When implement PVWatt API
+
+        self.data_bank['PV profiles'] = {}
+    
     def get_rate_structures(self):
         """Returns a dictionary of all of the rate structures saved to the data bank."""
         # Sort by name alphabetically before returning.
         return_dict = collections.OrderedDict(sorted(self.data_bank['rate structures'].items(), key=lambda t: t[0]))
         
         return return_dict
+    
+    def get_load_profiles(self):
+        """Returns a dictionary of all of the load profiles saved to the data bank."""
+        # Sort by name alphabetically before returning.
+        return_dict = collections.OrderedDict(sorted(self.data_bank['load profiles'].items(), key=lambda t: t[0]))
+        
+        return return_dict
+    
+    def get_pv_profiles(self):
+        """Returns a dictionary of all of the PV profiles saved to the data bank."""
+        # Sort by name alphabetically before returning.
+        # return_dict = collections.OrderedDict(sorted(self.data_bank['load profiles'].items(), key=lambda t: t[0]))
+        return_dict = {}
+
+        return return_dict
+
     
     def get_markets(self):
         """Returns a keys view of all of the markets for valuation available."""
@@ -1057,6 +1119,13 @@ class DataManager(EventDispatcher):
         model_params = model_params_all.get(market_area, {})
 
         return model_params
+    
+    def get_btm_cost_savings_model_params(self):
+        """Returns the list of dictionaries of parameters for the energy storage system model in the BTM cost savings application."""
+        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'btm_cost_savings_model_params.json'), 'r') as fp:
+            model_params_all = json.load(fp)
+
+        return model_params_all
 
 class DataManagerException(Exception):
     pass

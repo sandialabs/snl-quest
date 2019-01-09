@@ -191,7 +191,7 @@ class BtmOptimizer(optimizer.Optimizer):
         # Check if params common to all formulations are set.
         if not hasattr(m, 'Transfomer_rating'):
             # Transformer rating; equivalently, the maximum power can be exchanged [kW].
-            logging.debug('ValuationOptimizer: No Power_rating provided, setting default...')
+            logging.debug('ValuationOptimizer: No Transformer_rating provided, setting default...')
             m.Transformer_rating = 1000000
             
         if not hasattr(m, 'Power_rating'):
@@ -207,8 +207,7 @@ class BtmOptimizer(optimizer.Optimizer):
         if not hasattr(m, 'Self_discharge_efficiency'):
             # Fraction of energy maintained over one time period.
             logging.debug('ValuationOptimizer: No Self_discharge_efficiency provided, setting default...')
-            m.Self_discharge_efficiency = 1.00
-            
+            m.Self_discharge_efficiency = 1.00     
         elif getattr(m, 'Self_discharge_efficiency') > 1.0:
             logging.warning('ValuationOptimizer: Self_discharge_efficiency provided is greater than 1.0, interpreting as percentage...')
             m.Self_discharge_efficiency = m.Self_discharge_efficiency/100
@@ -217,7 +216,6 @@ class BtmOptimizer(optimizer.Optimizer):
             # Fraction of input energy that gets stored over one time period.
             logging.debug('ValuationOptimizer: No Round_trip_efficiency provided, setting default...')
             m.Round_trip_efficiency = 0.85
-            
         elif getattr(m, 'Round_trip_efficiency') > 1.0:
             logging.warning('ValuationOptimizer: Round_trip_efficiency provided is greater than 1.0, interpreting as percentage...')
             m.Round_trip_efficiency = m.Round_trip_efficiency/100
@@ -226,7 +224,6 @@ class BtmOptimizer(optimizer.Optimizer):
             # Fraction of energy capacity to increase state of charge minimum by.
             logging.debug('ValuationOptimizer: No Reserve_charge_min provided, setting default...')
             m.Reserve_charge_min = 0
-        
         elif getattr(m, 'Reserve_charge_min') > 1.0:
             logging.warning('ValuationOptimizer: Reserve_charge_min provided is greater than 1.0, interpreting as percentage...')
             m.Reserve_charge_min = m.Reserve_charge_min/100
@@ -235,7 +232,6 @@ class BtmOptimizer(optimizer.Optimizer):
             # Fraction of energy capacity to decrease state of charge maximum by.
             logging.debug('ValuationOptimizer: No Reserve_charge_max provided, setting default...')
             m.Reserve_charge_max = 1
-        
         elif getattr(m, 'Reserve_charge_max') > 1.0:
             logging.warning('ValuationOptimizer: Reserve_charge_max provided is greater than 1.0, interpreting as percentage...')
             m.Reserve_charge_max = m.Reserve_charge_max/100

@@ -166,6 +166,7 @@
     flat_demand_rates_table: flat_demand_rates_table
     misc_data_table: misc_data_table
     preview_box: preview_box
+    next_button: next_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -179,7 +180,8 @@
             orientation: 'horizontal'
             size_hint_y: 0.85
             id: content
-            spacing: 10
+            opacity: 0
+            spacing: 5
 
             BoxLayout:
                 orientation: 'vertical'
@@ -279,7 +281,293 @@
                 anchor_y: 'center'
 
                 WizardNextButton:
+                    id: next_button
+                    disabled: True
                     on_release:
                         root.manager.transition.duration = BASE_TRANSITION_DUR
                         root.manager.transition.direction = 'left'
-                        # root._next_screen()
+                        root._next_screen()
+
+<CostSavingsWizardLoadSelect>:
+    content: content
+    load_profile_rv: load_profile_rv
+    next_button: next_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Select a load profile.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                size_hint_y: 0.1
+                text: 'Select a load profile to represent the demand connected to the energy storage system.'
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 0.9
+                spacing: 10
+                padding: (0, 10)
+
+                TextInput:
+                    size_hint_y: 0.1
+                    on_text: load_profile_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: load_profile_rv
+                    viewclass: 'LoadProfileRecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    id: next_button
+                    disabled: True
+                    
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<CostSavingsWizardPVSelect>:
+    content: content
+    pv_profile_rv: pv_profile_rv
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Select a PV power profile.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                size_hint_y: 0.05
+                text: "Select a PV power profile to represent the PV connected to the energy storage system."
+            
+            WizardBodyText:
+                size_hint_y: 0.05
+                color: C(hex_pms178)
+                text: "If there is no PV connected, feel free to skip this step."
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 0.9
+                spacing: 10
+                padding: (0, 10)
+
+                TextInput:
+                    size_hint_y: 0.1
+                    on_text: pv_profile_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: pv_profile_rv
+                    viewclass: 'PVProfileRecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<CostSavingsWizardSystemParameters>:
+    content: content
+    param_widget: param_widget
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Specify the energy storage system parameters.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+            
+            CostSavingsParameterWidget:
+                id: param_widget
+                # size_hint_y: 0.60
+                padding: (WIZ_PADDING_X, 0)
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<CostSavingsParameterWidget>:
+    cols: 1
+    row_force_default: True
+    row_default_height: 40
+    spacing: (125, 50)
+
+<CostSavingsParameterRow>:
+    rows: 1
+    spacing: 20
+
+    name: name
+    notes: notes
+    text_input: text_input
+    units: units
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.25
+        text: ''
+        color: C(hex_secondary)
+        font_size: stnd_font
+        bold: True
+    
+    BodyTextBase:
+        id: notes
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    CostSavingsParamTextInput:
+        id: text_input
+        size_hint_x: 0.1
+        color: C(hex_black)
+        font_size: stnd_font
+    
+    BodyTextBase:
+        id: units
+        size_hint_x: 0.1
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+<CostSavingsParamTextInput>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+    on_focus: self.select_all() if self.focus else self.cancel_selection()
+
+<CostSavingsWizardSummary>:
+    content: content
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Summary of selections.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()

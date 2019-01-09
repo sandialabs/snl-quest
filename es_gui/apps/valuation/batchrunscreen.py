@@ -5,9 +5,11 @@ import collections
 import logging
 import copy
 import calendar
+from functools import partial
 
 import numpy as np
 
+from kivy.clock import Clock
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -231,7 +233,7 @@ class BatchRunDataScreen(Screen):
             node_options = [{}]
         else:
             # Enable node selector.
-            fade_in_animation.start(self.node_select_bx)
+            Clock.schedule_once(partial(fade_in_animation, self.node_select_bx), 0)
 
     def on_iso(self, instance, value):
         logging.info('ValuationBatch: ISO changed to {0}.'.format(value))
@@ -256,7 +258,7 @@ class BatchRunDataScreen(Screen):
                 historical_data_opts.extend(month_options)
             
             self.month_rv.data = historical_data_opts
-            fade_in_animation.start(self.months_select_bx)
+            Clock.schedule_once(partial(fade_in_animation, self.months_select_bx), 0)
 
     def on_rev_streams(self, instance, value):
         if value:
@@ -279,7 +281,7 @@ class BatchRunDataScreen(Screen):
                 self.revstreams_select.values = []
             else:
                 # Enable revenue stream selector and reset it.
-                fade_in_animation.start(self.revstreams_select)
+                Clock.schedule_once(partial(fade_in_animation, self.revstreams_select), 0)
                 self.revstreams_select.text = 'Select revenue streams'
                 self.revstreams_select.disabled = False
             

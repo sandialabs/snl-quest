@@ -29,7 +29,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
-from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation
+from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation
 
 
 class CostSavingsWizard(Screen):
@@ -83,6 +83,7 @@ class CostSavingsWizardStart(Screen):
 class CostSavingsWizardRateSelect(Screen):
     """The starting/welcome screen for the cost savings wizard."""
     rate_structure_selected = DictProperty()
+    has_selection = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(CostSavingsWizardRateSelect, self).__init__(**kwargs)
@@ -97,6 +98,12 @@ class CostSavingsWizardRateSelect(Screen):
             self.rate_structure_rv.unfiltered_data = rate_structure_options
         except Exception as e:
             print(e)
+        
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
+    
+    def on_leave(self):
+        Animation.stop_all(self.content, 'opacity')
+        self.content.opacity = 0
     
     def on_rate_structure_selected(self, instance, value):
         try:
@@ -104,6 +111,7 @@ class CostSavingsWizardRateSelect(Screen):
         except KeyError:
             logging.info('CostSavings: Rate structure selection reset.')
             self.rate_structure_desc.text = ''
+            self.has_selection = False
         else:
             Animation.stop_all(self.preview_box, 'opacity')
             self.preview_box.opacity = 0
@@ -114,9 +122,13 @@ class CostSavingsWizardRateSelect(Screen):
                 self.generate_misc_table()
 
                 Clock.schedule_once(partial(fade_in_animation, self.preview_box), 0)
+                self.has_selection = True
             
             thread_preview = threading.Thread(target=_generate_preview)
-            thread_preview.start()            
+            thread_preview.start()
+
+    def on_has_selection(self, instance, value):
+        self.next_button.disabled = not value            
 
     def generate_flat_demand_rate_table(self):
         """Generates the preview table for the flat demand rate structure."""
@@ -160,15 +172,37 @@ class CostSavingsWizardRateSelect(Screen):
             # Draw charts.
             self.demand_weekday_chart.draw_chart(np.array(weekday_schedule_data), palette, labels, legend_labels=legend_labels)
             self.demand_weekend_chart.draw_chart(np.array(weekend_schedule_data), palette, labels, legend_labels=legend_labels)
+    
+    def _validate_inputs(self):
+        # TODO: Progress already impeded until a structure is selected so...
+        return self.rate_structure_selected
+    
+    def get_selections(self):
+        """Retrieves screen's selections."""
+        try:
+            rate_structure_selected = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return rate_structure_selected
 
-    # def _next_screen(self):
-    #     if not self.manager.has_screen('iso_select'):
-    #         screen = ValuationWizardISOSelect(name='iso_select')
-    #         self.manager.add_widget(screen)
-
-    #     self.manager.transition.duration = BASE_TRANSITION_DUR
-    #     self.manager.transition.direction = 'left'
-    #     self.manager.current = 'iso_select'
+    def _next_screen(self):
+        if not self.manager.has_screen('load_profile_select'):
+            screen = CostSavingsWizardLoadSelect(name='load_profile_select')
+            self.manager.add_widget(screen)
+        
+        try:
+            self.get_selections()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            self.manager.transition.duration = BASE_TRANSITION_DUR
+            self.manager.transition.direction = 'left'
+            self.manager.current = 'load_profile_select'
 
 
 class CostSavingsRateStructureRVEntry(RecycleViewRow):
@@ -247,3 +281,227 @@ class MiscRateStructureDataTable(GridLayout):
         energy_sell_price_label = TextInput(text=energy_sell_price, font_size=20, readonly=True)
         self.energy_sell_price_box.add_widget(energy_sell_price_label)
         
+
+class CostSavingsWizardLoadSelect(Screen):
+    """The load profile selection screen for the cost savings wizard."""
+    load_profile_selected = DictProperty()
+    has_selection = BooleanProperty(False)
+
+    def __init__(self, **kwargs):
+        super(CostSavingsWizardLoadSelect, self).__init__(**kwargs)
+
+        LoadProfileRecycleViewRow.load_profile_screen = self
+
+    def on_enter(self):
+        try:
+            data_manager = App.get_running_app().data_manager
+
+            load_profile_options = [{'name': x[0], 'path': x[1]} for x in data_manager.get_load_profiles().items()]
+            self.load_profile_rv.data = load_profile_options
+            self.load_profile_rv.unfiltered_data = load_profile_options
+        except Exception as e:
+            print(e)
+        
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
+    
+    def on_leave(self):
+        Animation.stop_all(self.content, 'opacity')
+        self.content.opacity = 0
+    
+    def on_load_profile_selected(self, instance, value):
+        try:
+            logging.info('CostSavings: Load profile selection changed to {0}.'.format(value['name']))
+        except KeyError:
+            logging.info('CostSavings: Load profile selection reset.')
+            self.has_selection = False
+        else:
+            self.has_selection = True
+
+    def on_has_selection(self, instance, value):
+        self.next_button.disabled = not value
+    
+    def _validate_inputs(self):
+        # TODO: Progress already impeded until a profile is selected so...
+        return self.load_profile_selected
+    
+    def get_selections(self):
+        """Retrieves screen's selections."""
+        try:
+            load_profile_selected = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return load_profile_selected
+    
+    def _next_screen(self):
+        if not self.manager.has_screen('pv_profile_select'):
+            screen = CostSavingsWizardPVSelect(name='pv_profile_select')
+            self.manager.add_widget(screen)
+        
+        try:
+            self.get_selections()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            self.manager.transition.duration = BASE_TRANSITION_DUR
+            self.manager.transition.direction = 'left'
+            self.manager.current = 'pv_profile_select'
+
+
+class LoadProfileRecycleViewRow(RecycleViewRow):
+    """The representation widget for node in the load profile selector RecycleView."""
+    load_profile_screen = None
+
+    def on_touch_down(self, touch):
+        """Add selection on touch down."""
+        if super(LoadProfileRecycleViewRow, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        """Respond to the selection of items in the view."""
+        self.selected = is_selected
+
+        if is_selected:
+            self.load_profile_screen.load_profile_selected = rv.data[self.index]
+
+
+class CostSavingsWizardPVSelect(Screen):
+    """"""
+    pv_profile = DictProperty()
+
+    def __init__(self, **kwargs):
+        super(CostSavingsWizardPVSelect, self).__init__(**kwargs)
+
+        PVProfileRecycleViewRow.pv_profile_screen = self
+
+    def on_enter(self):
+        try:
+            data_manager = App.get_running_app().data_manager
+
+            load_profile_options = [{'name': x[0], 'path': x[1]} for x in data_manager.get_pv_profiles().items()]
+            self.pv_profile_rv.data = load_profile_options
+            self.pv_profile_rv.unfiltered_data = load_profile_options
+        except Exception as e:
+            print(e)
+        
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
+        
+    def on_leave(self):
+        Animation.stop_all(self.content, 'opacity')
+        self.content.opacity = 0
+    
+    def _next_screen(self):
+        if not self.manager.has_screen('system_parameters'):
+            screen = CostSavingsWizardSystemParameters(name='system_parameters')
+            self.manager.add_widget(screen)
+
+        self.manager.transition.duration = BASE_TRANSITION_DUR
+        self.manager.transition.direction = 'left'
+        self.manager.current = 'system_parameters'
+
+
+class PVProfileRecycleViewRow(RecycleViewRow):
+    """The representation widget for node in the PV profile selector RecycleView."""
+    pv_profile_screen = None
+
+    def on_touch_down(self, touch):
+        """Add selection on touch down."""
+        if super(PVProfileRecycleViewRow, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        """Respond to the selection of items in the view."""
+        self.selected = is_selected
+
+        if is_selected:
+            self.pv_profile_screen.load_profile = rv.data[self.index]
+
+
+class CostSavingsWizardSystemParameters(Screen):
+    """"""
+    def on_pre_enter(self):
+        while len(self.param_widget.children) > 0:
+            for widget in self.param_widget.children:
+                if isinstance(widget, CostSavingsParameterRow):
+                    self.param_widget.remove_widget(widget)
+    
+        self.param_widget.build()
+    
+    def on_enter(self):
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
+    
+    def on_leave(self):
+        Animation.stop_all(self.content, 'opacity')
+        self.content.opacity = 0
+    
+    def _next_screen(self):
+        if not self.manager.has_screen('summary'):
+            screen = CostSavingsWizardSummary(name='summary')
+            self.manager.add_widget(screen)
+
+        self.manager.transition.duration = BASE_TRANSITION_DUR
+        self.manager.transition.direction = 'left'
+        self.manager.current = 'summary'
+
+
+class CostSavingsParameterWidget(GridLayout):
+    """Grid layout containing rows of parameter adjustment widgets."""
+    def __init__(self, **kwargs):
+        super(CostSavingsParameterWidget, self).__init__(**kwargs)
+
+    def build(self):
+        # Build the widget by creating a row for each parameter.
+        data_manager = App.get_running_app().data_manager
+        MODEL_PARAMS = data_manager.get_btm_cost_savings_model_params()
+
+        for param in MODEL_PARAMS:
+            row = CostSavingsParameterRow(desc=param)
+            self.add_widget(row)
+            setattr(self, param['attr name'], row)
+
+
+class CostSavingsParameterRow(GridLayout):
+    """Grid layout containing parameter name, description, text input, and units."""
+    def __init__(self, desc, **kwargs):
+        super(CostSavingsParameterRow, self).__init__(**kwargs)
+
+        self._desc = desc
+
+        self.name.text = self.desc.get('name', '')
+        self.notes.text = self.desc.get('notes', '')
+        self.text_input.hint_text = str(self.desc.get('default', ''))
+        self.units.text = self.desc.get('units', '')
+
+    @property
+    def desc(self):
+        return self._desc
+
+    @desc.setter
+    def desc(self, value):
+        self._desc = value
+
+
+class CostSavingsParamTextInput(TextInput):
+    """
+    A TextInput field for entering parameter values. Limited to float values.
+    """
+    def insert_text(self, substring, from_undo=False):
+        # limit to 8 chars
+        substring = substring[:8 - len(self.text)]
+        return super(CostSavingsParamTextInput, self).insert_text(substring, from_undo=from_undo)
+
+
+class CostSavingsWizardSummary(Screen):
+    """"""
+    def _next_screen(self):
+        pass
+
+    pass
