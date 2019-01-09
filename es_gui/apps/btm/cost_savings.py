@@ -395,6 +395,7 @@ class CostSavingsWizardPVSelect(Screen):
     def on_leave(self):
         Animation.stop_all(self.content, 'opacity')
         self.content.opacity = 0
+        
     
     def _next_screen(self):
         if not self.manager.has_screen('system_parameters'):
