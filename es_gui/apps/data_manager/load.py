@@ -183,7 +183,7 @@ class DataManagerCommercialLoadScreen(Screen):
             data_down = http_request.content.decode(http_request.encoding)
             csv_data = pd.read_csv(io.StringIO(data_down))
 
-            electricity_data = csv_data['Electricity:Facility [kW](Hourly)']
+            electricity_data = csv_data[['Date/Time', 'Electricity:Facility [kW](Hourly)']]
 
             # Save to persistent object on disk.
             url_split = csv_link.split('/')
@@ -385,7 +385,7 @@ class DataManagerResidentialLoadScreen(Screen):
             data_down = http_request.content.decode(http_request.encoding)
             csv_data = pd.read_csv(io.StringIO(data_down))
 
-            electricity_data = csv_data['Electricity:Facility [kW](Hourly)']
+            electricity_data = csv_data[['Date/Time', 'Electricity:Facility [kW](Hourly)']]
 
             # Save to persistent object on disk.
             url_split = csv_link.split('/')

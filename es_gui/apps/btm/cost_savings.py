@@ -372,8 +372,8 @@ class LoadProfileRecycleViewRow(RecycleViewRow):
 
 
 class CostSavingsWizardPVSelect(Screen):
-    """"""
-    pv_profile = DictProperty()
+    """The optional PV profile selection screen for the cost savings wizard."""
+    pv_profile_selected = DictProperty()
 
     def __init__(self, **kwargs):
         super(CostSavingsWizardPVSelect, self).__init__(**kwargs)
@@ -395,7 +395,29 @@ class CostSavingsWizardPVSelect(Screen):
     def on_leave(self):
         Animation.stop_all(self.content, 'opacity')
         self.content.opacity = 0
-        
+    
+    def on_load_profile_selected(self, instance, value):
+        try:
+            logging.info('CostSavings: Load profile selection changed to {0}.'.format(value['name']))
+        except KeyError:
+            logging.info('CostSavings: Load profile selection reset.')
+            self.has_selection = False
+        else:
+            self.has_selection = True
+    
+    def _validate_inputs(self):
+        return self.pv_profile_selected
+    
+    def get_selections(self):
+        """Retrieves screen's selections."""
+        try:
+            pv_profile_selected = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return pv_profile_selected
     
     def _next_screen(self):
         if not self.manager.has_screen('system_parameters'):
@@ -429,12 +451,12 @@ class PVProfileRecycleViewRow(RecycleViewRow):
 class CostSavingsWizardSystemParameters(Screen):
     """"""
     def on_pre_enter(self):
-        while len(self.param_widget.children) > 0:
-            for widget in self.param_widget.children:
-                if isinstance(widget, CostSavingsParameterRow):
-                    self.param_widget.remove_widget(widget)
-    
-        self.param_widget.build()
+        if not self.param_widget.children:
+            self.param_widget.build()
+        # while len(self.param_widget.children) > 0:
+        #     for widget in self.param_widget.children:
+        #         if isinstance(widget, CostSavingsParameterRow):
+        #             self.param_widget.remove_widget(widget)
     
     def on_enter(self):
         Clock.schedule_once(partial(fade_in_animation, self.content), 0)
@@ -443,21 +465,41 @@ class CostSavingsWizardSystemParameters(Screen):
         Animation.stop_all(self.content, 'opacity')
         self.content.opacity = 0
     
+    def _validate_inputs(self):
+        params = self.param_widget.get_inputs()
+
+        return params
+    
+    def get_selections(self):
+        """Retrieves screen's selections."""
+        try:
+            params = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return params
+    
     def _next_screen(self):
         if not self.manager.has_screen('summary'):
             screen = CostSavingsWizardSummary(name='summary')
             self.manager.add_widget(screen)
-
-        self.manager.transition.duration = BASE_TRANSITION_DUR
-        self.manager.transition.direction = 'left'
-        self.manager.current = 'summary'
+        
+        try:
+            self.get_selections()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            self.manager.transition.duration = BASE_TRANSITION_DUR
+            self.manager.transition.direction = 'left'
+            self.manager.current = 'summary'
 
 
 class CostSavingsParameterWidget(GridLayout):
     """Grid layout containing rows of parameter adjustment widgets."""
-    def __init__(self, **kwargs):
-        super(CostSavingsParameterWidget, self).__init__(**kwargs)
-
     def build(self):
         # Build the widget by creating a row for each parameter.
         data_manager = App.get_running_app().data_manager
@@ -467,6 +509,34 @@ class CostSavingsParameterWidget(GridLayout):
             row = CostSavingsParameterRow(desc=param)
             self.add_widget(row)
             setattr(self, param['attr name'], row)
+    
+    def _validate_inputs(self):
+        params = []
+        param_set = {}
+
+        for row in self.children:
+            attr_name = row.desc['attr name']
+
+            if not row.text_input.text:
+                attr_val = row.text_input.hint_text
+            else:
+                attr_val = row.text_input.text
+            
+            param_set[attr_name] = float(attr_val)
+        
+        params.append(param_set)
+
+        return params
+    
+    def get_inputs(self):
+        try:
+            params = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return params
 
 
 class CostSavingsParameterRow(GridLayout):
@@ -502,7 +572,105 @@ class CostSavingsParamTextInput(TextInput):
 
 class CostSavingsWizardSummary(Screen):
     """"""
+    def get_selections(self):
+        sm = self.manager
+
+        op_handler_requests = {}
+
+        op_handler_requests['rate_structure'] = sm.get_screen('rate_select').get_selections()
+        op_handler_requests['load_profile'] = sm.get_screen('load_profile_select').get_selections()
+        op_handler_requests['pv_profile'] = sm.get_screen('pv_profile_select').get_selections()
+        op_handler_requests['params'] = sm.get_screen('system_parameters').get_selections()
+
+        return op_handler_requests
+
+    def on_enter(self):
+        Clock.schedule_once(partial(fade_in_animation, self.content), 0)
+
+        op_handler_requests = self.get_selections()
+
+        print(op_handler_requests)
+    
+    def on_leave(self):
+        Animation.stop_all(self.content, 'opacity')
+        self.content.opacity = 0
+
     def _next_screen(self):
+        if not self.manager.has_screen('execute'):
+            screen = CostSavingsWizardExecute(name='execute')
+            self.manager.add_widget(screen)
+        
+        self.manager.transition.duration = BASE_TRANSITION_DUR
+        self.manager.transition.direction = 'left'
+        self.manager.current = 'execute'
+
+
+class CostSavingsWizardExecute(Screen):
+    """The screen for executing the prescribed optimizations for the cost savings wizard."""
+    solved_ops = []
+    report_attributes = {}
+
+    def on_enter(self):
+        self.execute_run()
+
+    # def on_leave(self):
+    #     self.progress_label.text = 'This may take a while. Please wait patiently!'
+
+    def execute_run(self):
+        btm_home = self.manager.parent.parent.manager.get_screen('btm_home')
+        ss = self.manager.get_screen('summary')
+
+        op_handler_requests = ss.get_selections()
+
+        # Send requests to handler.
+        handler = btm_home.handler
+        handler.solver_name = App.get_running_app().config.get('optimization', 'solver')
+        self.solved_ops, handler_status = handler.process_requests(op_handler_requests)
+
+        # If no optimizations were solved successfully, bail out.
+        if not self.solved_ops:
+            popup = CostSavingsWizardCompletePopup()
+
+            popup.title = "Hmm..."
+            popup.popup_text.text = "Unfortunately, none of the models were able to be solved."
+            popup.results_button.text = "Take me back"
+            popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to BTM Home
+            popup.open()
+            return
+
+        # # Save selection summary details to pass to report generator.
+        # deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children
+        # selectedDeviceName = [x.text for x in deviceSelectionButtons if x.state == "down"][0]
+
+        # self.report_attributes = {'market area': iso,
+        #                           'pricing node': node,
+        #                           'selected device': selectedDeviceName,
+        #                           'dates analyzed': ' to '.join([
+        #                               ' '.join([calendar.month_name[int(hist_data[0]['month'])], hist_data[0]['year']]),
+        #                               ' '.join([calendar.month_name[int(hist_data[-1]['month'])], hist_data[-1]['year']]),
+        #                               ]),
+        #                           'revenue streams': wiz_selections['rev_streams'],
+        #                           'market type': rev_streams,
+        #                          }
+
+        # for param in device:
+        #     self.report_attributes[param.desc['attr name']] = param.param_slider.value
+
+        popup = CostSavingsWizardCompletePopup()
+
+        if not handler_status:
+            popup.title = "Success!*"
+            popup.popup_text.text = "All calculations finished. Press 'OK' to proceed to the results.\n\n*At least one model (month) had issues being built and/or solved. Any such model will be omitted from the results."
+
+        popup.bind(on_dismiss=self._next_screen)
+        popup.open()
+
+    def _next_screen(self, *args):
+        """Adds the report screen if it does not exist and changes screens to it."""
+        # report = Report(name='report', chart_data=self.solved_ops, market=self.report_attributes['market type'], report_attributes=self.report_attributes)
+        # self.manager.switch_to(report, direction='left', duration=BASE_TRANSITION_DUR)
         pass
 
+
+class CostSavingsWizardCompletePopup(MyPopup):
     pass

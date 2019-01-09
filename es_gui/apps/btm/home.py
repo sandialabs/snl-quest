@@ -8,7 +8,7 @@ from kivy.app import App
 
 # from es_gui.tools.valuation.valuation_dms import ValuationDMS
 from es_gui.resources.widgets.common import WarningPopup
-# from .op_handler import ValuationOptimizerHandler
+from .op_handler import BtmOptimizerHandler
 
 
 class BehindTheMeterHomeScreen(Screen):
@@ -23,7 +23,7 @@ class BehindTheMeterHomeScreen(Screen):
         #                         save_data=bool(App.get_running_app().config.getint('valuation', 'valuation_dms_save')),
         #                         save_name='valuation_dms.p',
         #                         home_path='data')
-        # self.handler = ValuationOptimizerHandler(App.get_running_app().config.get('optimization', 'solver'))
+        self.handler = BtmOptimizerHandler(App.get_running_app().config.get('optimization', 'solver'))
         # self.handler.dms = self.dms
 
     def on_enter(self):

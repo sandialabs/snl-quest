@@ -104,7 +104,7 @@ class DataManager(EventDispatcher):
                     for load_profile in os.scandir(location_root):
                         if not load_profile.name.startswith('.'):
                             profile_key = '/'.join(['commercial', load_profile.name])
-                            profile_path = '/'.join(['commercial', location_dir.name, load_profile.name])
+                            profile_path = load_profile.path
 
                             load_profile_data_bank[profile_key] = profile_path
         
@@ -119,7 +119,7 @@ class DataManager(EventDispatcher):
                     for load_profile in os.scandir(level_root):
                         if not load_profile.name.startswith('.'):
                             profile_key = '/'.join(['residential', load_profile.name])
-                            profile_path = '/'.join(['residential', load_level_dir.name, load_profile.name])
+                            profile_path = load_profile.path
 
                             load_profile_data_bank[profile_key] = profile_path
             
