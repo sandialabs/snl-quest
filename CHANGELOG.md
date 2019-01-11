@@ -14,6 +14,9 @@
     * Specify the net-metering scheme.
     * Save the rate structure for use in other QuESt applications.
 
+#### QuESt Valuation
+* The appearance of the Valuation Wizard has been slightly adjusted.
+
 ## Patch 1.1
 This patch provides a number of content and quality of life updates for QuESt Data Manager and QuESt Valuation. 
 

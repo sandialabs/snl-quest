@@ -14,19 +14,40 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.stencilview import StencilView
 
 
+def format_dollar_string(value):
+    """Formats a float representing USD with comma separators, dollar sign, cents precision, and proper negative sign placement."""
+    if value >= 0:
+        return_str = "${0:,.2f}".format(value)
+    else:
+        return_str = "-${0:,.2f}".format(-value)
+    
+    return return_str
+
+
 class Chart(RelativeLayout):
     def __init__(self, do_animation=True, **kwargs):
         super(Chart, self).__init__(**kwargs)
 
         self._do_animation = do_animation
+        self._is_drawn = False
 
     @property
     def do_animation(self):
+        """Set to True to animate the chart when the draw_chart() method is called."""
         return self._do_animation
 
     @do_animation.setter
     def do_animation(self, value):
         self._do_animation = value
+    
+    @property
+    def is_drawn(self):
+        """Returns True if a chart has been drawn."""
+        return self._is_drawn
+    
+    @is_drawn.setter
+    def is_drawn(self, value):
+        self._is_drawn = value
 
     @abstractmethod
     def draw_chart(self, data):
@@ -250,6 +271,8 @@ class StackedBarChart(Chart):
         # animate the legend opacity after all bars have been built
         Clock.schedule_once(partial(_anim_legend, self.legend), t_anim*n_stack_comp)
 
+        self.is_drawn = True
+
 
 class MultisetBarChart(StackedBarChart):
     def __init__(self, y_axis_format=None, bar_spacing=50, legend_width=160, x_padding=50, y_padding=50, **kwargs):
@@ -319,7 +342,7 @@ class MultisetBarChart(StackedBarChart):
 
         # compute bar height:value ratio
         try:
-            dydv = self.max_height / (max_value - min(0, min_value))
+            dydv = self.max_height/(max(0, max_value) - min(0, min_value))
         except ZeroDivisionError:
             dydv = 1
 
@@ -328,6 +351,9 @@ class MultisetBarChart(StackedBarChart):
             y0 = self.y_padding + abs(min_value) * dydv
         else:
             y0 = self.y_padding
+        
+        if max_value < 0:
+            y0 = self.max_height + self.y_padding
 
         # iterate over each bar group
         for ix, bar_list in enumerate(bars.items(), start=0):
@@ -360,20 +386,32 @@ class MultisetBarChart(StackedBarChart):
                 initial_pos = (initial_pos[0] + self.bar_width, initial_pos[1])
 
         # create y-axis label for maximum value in chart
-        max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height + self.y_padding - self.height/2),
-                              text=self.y_axis_format.format(max_value), halign='right', color=[0, 0, 0, 1])
-        self.add_widget(max_label)
+        if max_value > 0:
+            max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height + self.y_padding - self.height/2),
+                                text=self.y_axis_format.format(max_value), halign='right', color=[0, 0, 0, 1])
+            self.add_widget(max_label)
 
-        # line across chart to indicate maximum value
-        with self.canvas:
-            Color(0, 0, 0, 1)
-            Line(points=[x0, self.max_height + self.y_padding,
-                         self.width - self.x_padding, self.max_height + self.y_padding],
-                 width=1,)
+            # line across chart to indicate maximum value
+            with self.canvas:
+                Color(0, 0, 0, 1)
+                Line(points=[x0, self.max_height + self.y_padding,
+                            self.width - self.x_padding, self.max_height + self.y_padding],
+                    width=1,)
 
-        # create y-axis label for y=0
-        zero_label = Label(pos=(0.75*x0 - self.width/2, self.max_height - max_value*dydv + self.y_padding - self.height/2),
-                           text='0', halign='right', color=[0, 0, 0, 1])
+            # create y-axis label for y=0
+            zero_label = Label(pos=(0.75*x0 - self.width/2, self.max_height - max_value*dydv + self.y_padding - self.height/2),
+                            text='0', halign='right', color=[0, 0, 0, 1])
+        else:
+            with self.canvas:
+                # line to indicate zero value
+                Color(0, 0, 0, 1)
+                Line(points=[x0, self.max_height + self.y_padding,
+                            self.width - self.x_padding, self.max_height + self.y_padding],
+                    width=1,)
+
+            zero_label = Label(pos=(0.75*x0 - self.width/2, self.max_height + self.y_padding - self.height/2),
+                           text='0', halign='right',color=[0, 0, 0, 1])  
+                           
         self.add_widget(zero_label)
 
         # label y=0 if minimum value < 0
@@ -451,12 +489,18 @@ class BarChart(Chart):
         self.bar_width = (self.width - x0 - self.x_padding - self.bar_spacing*(len(bars) - 1))/len(bars)
 
         # compute bar height:value ratio
-        dydv = self.max_height/(max_value - min(0, min_value))  # ensure that y=0 is included in chart
+        try:
+            dydv = self.max_height/(max(0, max_value) - min(0, min_value))  # ensure that y=0 is included in chart
+        except ZeroDivisionError:
+            dydv = 1
 
         if min_value < 0:
             y0 = self.y_padding + abs(min_value)*dydv
         else:
             y0 = self.y_padding
+        
+        if max_value < 0:
+            y0 = self.max_height + self.y_padding
 
         self.bars = []
 
@@ -476,34 +520,37 @@ class BarChart(Chart):
             self.add_widget(bar_label)
 
         # create y-axis label for maximum value in chart
-        max_label = Label(pos=(0.5*x0 - self.width/2, self.max_height + self.y_padding - self.height/2),
-                          text=self.y_axis_format.format(max_value), halign='right', color=[0, 0, 0, 1])
-        self.add_widget(max_label)
+        if max_value > 0:
+            max_label = Label(pos=(0.5*x0 - self.width/2, self.max_height + self.y_padding - self.height/2),
+                            text=self.y_axis_format.format(max_value), halign='right', color=[0, 0, 0, 1])
+            self.add_widget(max_label)
 
-        # line across chart to indicate maximum value
-        with self.canvas:
-            Color(0, 0, 0, 1)
-            Line(points=[x0, self.max_height + self.y_padding,
-                         self.width - self.x_padding, self.max_height + self.y_padding],
-                 width=1,)
+            # line across chart to indicate maximum value
+            with self.canvas:
+                Color(0, 0, 0, 1)
+                Line(points=[x0, self.max_height + self.y_padding,
+                            self.width - self.x_padding, self.max_height + self.y_padding],
+                    width=1,)
 
-        # create y-axis label for y=0
-        zero_label = Label(pos=(0.5*x0 - self.width/2, self.max_height - max_value*dydv + self.y_padding - self.height/2),
+            zero_label = Label(pos=(0.5*x0 - self.width/2, self.max_height - max_value*dydv + self.y_padding - self.height/2),
                            text='0', halign='right',color=[0, 0, 0, 1])
-        self.add_widget(zero_label)
+        else:
+            with self.canvas:
+                # line to indicate zero value
+                Color(0, 0, 0, 1)
+                Line(points=[x0, self.max_height + self.y_padding,
+                            self.width - self.x_padding, self.max_height + self.y_padding],
+                    width=1,)
 
-        # with self.canvas:
-        #     # line to indicate zero value
-        #     Color(0, 0, 0, 1)
-        #     Line(points=[x0, max_height - max_value*dydv + self.y_padding,
-        #                  self.width - self.x_padding, max_height - max_value*dydv + self.y_padding],
-        #          width=1,)
+            zero_label = Label(pos=(0.5*x0 - self.width/2, self.max_height + self.y_padding - self.height/2),
+                           text='0', halign='right',color=[0, 0, 0, 1])        
+
+        self.add_widget(zero_label)
 
         # label y=0 if minimum value < 0
         if min_value < 0:
             # fix y_axis_format specification for proper $ representation for negative values
             if self.y_axis_format[0] == '$':
-
                 label_text = '-' + self.y_axis_format.format(-min_value)
             else:
                 label_text = self.y_axis_format.format(min_value)
@@ -548,6 +595,8 @@ class BarChart(Chart):
                     Clock.schedule_once(partial(_anim_bar, bar, bar.height_final), ix*0.05)
                 else:
                     bar.height = bar.height_final
+        
+        self.is_drawn = True
 
 
 class DonutChart(Chart):
@@ -630,6 +679,8 @@ class DonutChart(Chart):
             anim.start(legend)
 
         Clock.schedule_once(partial(_anim_legend, self.legend), t_anim * n_slices)
+
+        self.is_drawn = True
 
         # # generate legend
         # hole_proportion = 0.33
@@ -732,6 +783,8 @@ class PieChart(Chart):
             anim = Animation(opacity=1, duration=t_anim_legend, t='out_circ')
             anim.start(legend)
         Clock.schedule_once(partial(_anim_legend, self.legend), t_anim*n_slices)
+
+        self.is_drawn = True
 
 
 class Pie(Widget):
@@ -1147,6 +1200,8 @@ class RateScheduleChart(Chart):
             Clock.schedule_once(partial(_anim_legend, self.legend), len(self.tiles)*TILE_ANIM_LENGTH)
         else:
             self.legend.opacity = 1
+            
+        self.is_drawn = True
 
 
 class ScheduleTile(Widget):

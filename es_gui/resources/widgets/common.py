@@ -3,6 +3,7 @@ import collections
 import os
 import copy
 from functools import partial
+from random import choice
 
 from kivy.app import App
 from kivy.clock import Clock
@@ -22,6 +23,7 @@ from kivy.uix.popup import Popup
 from kivy.uix.spinner import SpinnerOption, Spinner
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
+from kivy.uix.togglebutton import ToggleButton
 
 cwd = os.getcwd()
 
@@ -225,4 +227,23 @@ class LoadingModalView(ModalView):
 
 
 class ReportScreen(Screen):
+    pass
+
+
+class WizardCompletePopup(MyPopup):
+    pass
+
+
+class WizardReportInterface(Screen):
+    def on_enter(self):
+        # Randomly open one chart.
+        def _random_start(*args):
+            random_report = choice(self.chart_type_toggle.children)
+            random_report.state = 'down'
+
+        if not any([button.state == 'down' for button in self.chart_type_toggle.children]):
+            Clock.schedule_once(lambda dt: _random_start(), 0.25)
+
+
+class ReportChartToggle(ToggleButton, TileButton):
     pass

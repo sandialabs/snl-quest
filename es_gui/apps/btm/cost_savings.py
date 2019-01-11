@@ -30,7 +30,7 @@ from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
 from .reporting import BtmCostSavingsReport
-from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation
+from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup
 
 
 class CostSavingsWizard(Screen):
@@ -659,7 +659,7 @@ class CostSavingsWizardExecute(Screen):
         # for param in device:
         #     self.report_attributes[param.desc['attr name']] = param.param_slider.value
 
-        popup = CostSavingsWizardCompletePopup()
+        popup = WizardCompletePopup()
 
         if not handler_status:
             popup.title = "Success!*"
@@ -673,7 +673,3 @@ class CostSavingsWizardExecute(Screen):
         report = BtmCostSavingsReport(name='report', chart_data=self.solved_ops, report_attributes=self.report_attributes)
         self.manager.switch_to(report, direction='left', duration=BASE_TRANSITION_DUR)
         # pass
-
-
-class CostSavingsWizardCompletePopup(MyPopup):
-    pass

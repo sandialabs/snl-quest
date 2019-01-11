@@ -587,7 +587,7 @@
 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             padding: (self.width/16, self.height/12)
             spacing: 10
@@ -601,31 +601,5 @@
                     text: 'This may take a while. Please wait patiently!'
                     size_hint: 1, None
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
-
-<CostSavingsWizardCompletePopup>:
-    popup_text: popup_text
-    results_button: results_button
-    title: 'Success!'
-
     BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-
-        PopupLabel:
-            id: popup_text
-            text: "All calculations finished. Let's check out the results!"
-
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: 0.2
-
-            Button:
-                id: results_button
-                text: 'OK'
-                font_size: stnd_font
-                on_release: root.dismiss()
+        size_hint_y: 0.05

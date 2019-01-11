@@ -40,6 +40,15 @@ class BtmOptimizer(optimizer.Optimizer):
 #        self._cost_charge = cost_charge
 #        self._cost_discharge = cost_discharge
         self._results = None
+
+        self._total_bill_with_es = 0
+        self._total_bill_without_es = 0
+        self._energy_charge_with_es = 0
+        self._energy_charge_without_es = 0
+        self._demand_charge_with_es = 0
+        self._demand_charge_without_es = 0
+        self._nem_charge_with_es = 0
+        self._nem_charge_without_es = 0
         
  #---------------------------------------------------   
     @property
@@ -468,6 +477,27 @@ class BtmOptimizer(optimizer.Optimizer):
     def get_results(self):
         """Returns the decision variables and derived quantities in a DataFrame"""
         return self.results
+    
+    def has_energy_charges(self):
+        """Returns True if there are energy charges (savings)."""
+        if abs(self.energy_charge_with_es - self.energy_charge_without_es) > 1e-4:
+            return True
+        else:
+            return False
+    
+    def has_demand_charges(self):
+        """Returns True if there are demand charges (savings)."""
+        if abs(self.demand_charge_with_es - self.demand_charge_without_es) > 1e-4:
+            return True
+        else:
+            return False
+    
+    def has_nem_charges(self):
+        """Returns True if there are net metering charges (savings)."""
+        if abs(self.nem_charge_with_es - self.nem_charge_without_es) > 1e-4:
+            return True
+        else:
+            return False
 
 
 class BadParameterException(Exception):

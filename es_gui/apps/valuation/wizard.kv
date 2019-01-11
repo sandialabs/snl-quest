@@ -19,29 +19,6 @@
     text: 'Continue'
     size_hint_x: 0.15
 
-<ValWizardCompletePopup>:
-    popup_text: popup_text
-    results_button: results_button
-    title: 'Success!'
-
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-
-        PopupLabel:
-            id: popup_text
-            text: "All calculations finished. Let's check out the results!"
-
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: 0.2
-
-            Button:
-                id: results_button
-                text: 'OK'
-                font_size: stnd_font
-                on_release: root.dismiss()
-
 <ValuationWizard>:
     content: content
     sm: sm
@@ -54,7 +31,6 @@
             id: sm
 
 <ValuationWizardStart>:
-    next_button: next_button
     content: content
 
     BoxLayout:
@@ -67,7 +43,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             padding: (WIZ_PADDING_X, 0)
             spacing: 10
@@ -87,20 +63,21 @@
 
                 Image:
                     source: 'es_gui/resources/images/report_multisetbar.png'
+        
+        BoxLayout:
+            size_hint_y: 0.05
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
 
-        ValuationWizardNextButton:
-            id: next_button
-            text: 'Get started'
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR
-                root.manager.transition.direction = 'left'
-                root._next_screen()
+                WizardNextButton:
+                    size_hint_x: 0.15
+                    text: 'Get started'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
 
 <ValuationWizardISOSelect>:
     content: content
@@ -117,7 +94,7 @@
 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             opacity: 0
             padding: (60, 0)
@@ -144,29 +121,28 @@
                     size_hint_y: 0.75
                     spacing: 5
                     padding: 50
+    
+        BoxLayout:
+            size_hint_y: 0.05
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
 
-        ValuationWizardPrevButton:
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
 
-        ValuationWizardNextButton:
-            id: next_button
-            on_release: root._next_screen()
-            disabled: True
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
 
 <WizardISOTileButton>:
     font_size: large_font
@@ -198,7 +174,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             opacity: 0
             padding: (WIZ_PADDING_X, 0)
@@ -238,29 +214,28 @@
                         valign: 'top'
                         halign: 'justify'
                         font_size: stnd_font
+        
+        BoxLayout:
+            size_hint_y: 0.05
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
 
-        ValuationWizardPrevButton:
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
 
-        ValuationWizardNextButton:
-            id: next_button
-            on_release: root._next_screen()
-            disabled: True
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
 
 <WizardDeviceTileButton>:
     font_size: stnd_font if self.height < 150 else large_font
@@ -330,7 +305,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             #padding: (self.width/16, 0)
             spacing: 10
@@ -372,30 +347,29 @@
             BoxLayout:
                 orientation: 'vertical'
                 size_hint_y: 0.1
+        
+        BoxLayout:
+            size_hint_y: 0.05
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
 
-        ValuationWizardPrevButton:
-            id: prev_button
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
+                WizardPrevButton:
+                    id: prev_button
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
 
-        ValuationWizardNextButton:
-            id: next_button
-            on_release: root._next_screen()
-            disabled: True
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
 
 <WizardDataTileButton>:
     font_size: stnd_font if self.height < 150 else large_font
@@ -421,7 +395,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             opacity: 0
             padding: (WIZ_PADDING_X, 0)
@@ -469,30 +443,29 @@
                             text_size: self.size
                             markup: True
                             valign: 'top'
+        
+        BoxLayout:
+            size_hint_y: 0.05
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
 
-        ValuationWizardPrevButton:
-            id: prev_button
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
+                WizardPrevButton:
+                    id: prev_button
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
 
-        ValuationWizardNextButton:
-            id: next_button
-            on_release: root._next_screen()
-            disabled: True
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
 
 <ValuationWizardNodeSelect>:
     prev_button: prev_button
@@ -513,7 +486,7 @@
 
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             opacity: 0
             padding: (WIZ_PADDING_X, 0)
@@ -566,30 +539,29 @@
                 #             valign: 'top'
                 #             markup: True
                 #             color: C(hex_black)
+        
+        BoxLayout:
+            size_hint_y: 0.05
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
 
-        ValuationWizardPrevButton:
-            id: prev_button
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
+                WizardPrevButton:
+                    id: prev_button
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
 
-        ValuationWizardNextButton:
-            id: next_button
-            on_release: root._next_screen()
-            disabled: True
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
 
 #<NodeOption>:
 #    canvas.before:
@@ -709,7 +681,6 @@
 
 
 <ValuationWizardSelectionSummary>:
-    prev_button: prev_button
     top_desc: top_desc
     content: content
     isolabel: isolabel
@@ -729,7 +700,7 @@
 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             spacing: 10
 
@@ -802,34 +773,28 @@
     #                markup: True
                     color: C(hex_black)
 
+        BoxLayout:
+            size_hint_y: 0.05
 
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
 
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
 
-        ValuationWizardPrevButton:
-            id: prev_button
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
 
-    AnchorLayout:
-        anchor_x: 'right'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
-
-        ValuationWizardNextButton:
-            id: next_button
-            on_release: root._next_screen()
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
 
 <ValuationWizardExecute>:
-    prev_button: prev_button
-    #next_button: next_button
     top_desc: top_desc
     content: content
     progress_label: progress_label
@@ -845,7 +810,7 @@
 
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.8
+            size_hint_y: 0.85
             id: content
             padding: (self.width/16, self.height/12)
             spacing: 10
@@ -867,31 +832,9 @@
                     id: progress_label
                     text: 'This may take a while. Please wait patiently!'
                     size_hint: 1, None
-
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
-        size_hint_y: 0.1
-        padding: 10
-
-        ValuationWizardPrevButton:
-            id: prev_button
-            on_release:
-                root.manager.transition.duration = BASE_TRANSITION_DUR/2
-                root.manager.transition.direction = 'right'
-                root.manager.current = root.manager.previous()
-
-#    AnchorLayout:
-#        anchor_x: 'right'
-#        anchor_y: 'bottom'
-#        size_hint_y: 0.1
-#        padding: 10
-#
-#        ValuationWizardNextButton:
-#            id: next_button
-#            text: 'View Report'
-#            on_release: root._next_screen()
-#            disabled: True
+        
+        BoxLayout:
+            size_hint_y: 0.05
 
 ###########################################################################################
 

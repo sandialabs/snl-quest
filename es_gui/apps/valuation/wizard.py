@@ -26,8 +26,8 @@ from kivy.uix.image import Image
 from kivy.uix.modalview import ModalView
 from kivy.uix.textinput import TextInput
 
-from es_gui.apps.valuation.reporting import Report
-from es_gui.resources.widgets.common import MyPopup, WarningPopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER,FADEIN_DUR, SLIDER_DUR, fade_in_animation
+from es_gui.apps.valuation.reporting import ValuationReport
+from es_gui.resources.widgets.common import MyPopup, WarningPopup, WizardCompletePopup, TileButton, RecycleViewRow, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER,FADEIN_DUR, SLIDER_DUR, fade_in_animation
 
 
 class ValuationWizard(Screen):
@@ -956,7 +956,7 @@ class ValuationWizardExecute(Screen):
 
         # If no optimizations were solved successfully, bail out.
         if not self.solved_ops:
-            popup = ValWizardCompletePopup()
+            popup = WizardCompletePopup()
 
             popup.title = "Hmm..."
             popup.popup_text.text = "Unfortunately, none of the models were able to be solved. This is likely due to no data being available for the node selected. Try selecting another pricing node next time. (You selected {0}.)".format(node)
@@ -983,7 +983,7 @@ class ValuationWizardExecute(Screen):
         for param in device:
             self.report_attributes[param.desc['attr name']] = param.param_slider.value
 
-        popup = ValWizardCompletePopup()
+        popup = WizardCompletePopup()
 
         if not handler_status:
             popup.title = "Success!*"
@@ -994,9 +994,6 @@ class ValuationWizardExecute(Screen):
 
     def _next_screen(self, *args):
         """Adds the report screen if it does not exist and changes screens to it."""
-        report = Report(name='report', chart_data=self.solved_ops, market=self.report_attributes['market type'], report_attributes=self.report_attributes)
+        report = ValuationReport(name='report', chart_data=self.solved_ops, market=self.report_attributes['market type'], report_attributes=self.report_attributes)
         self.manager.switch_to(report, direction='left', duration=BASE_TRANSITION_DUR)
 
-
-class ValWizardCompletePopup(MyPopup):
-    pass

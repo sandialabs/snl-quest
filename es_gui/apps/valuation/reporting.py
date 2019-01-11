@@ -16,18 +16,10 @@ from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
 
 from es_gui.tools.charts import BarChart, StackedBarChart, MultisetBarChart, PieChart, DonutChart
-from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPopup, ReportScreen, PALETTE
+from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPopup, ReportScreen, PALETTE, WizardReportInterface, ReportChartToggle
 
 
-class TileButton(Button):
-    pass
-
-
-class ReportChartToggle(ToggleButton, TileButton):
-    pass
-
-
-class Report(Screen):
+class ValuationReport(WizardReportInterface):
     chart_types = OrderedDict({'Revenue (by month)': 'revenue_bar',
                    'Revenue (by stream)': 'revenue_multisetbar',
                    'Participation (total)': 'activity_donut',
@@ -36,7 +28,7 @@ class Report(Screen):
                    })
 
     def __init__(self, chart_data, report_attributes, market=None, **kwargs):
-        super(Report, self).__init__(**kwargs)
+        super(ValuationReport, self).__init__(**kwargs)
 
         self.chart_type = type
         self.chart_data = chart_data
@@ -54,15 +46,6 @@ class Report(Screen):
             screen = ValuationReportScreen(type=opt[1], chart_data=self.chart_data, market=self.market, name=opt[1])
             sm.add_widget(screen)
 
-    def on_enter(self):
-        # randomly open one chart
-        def _random_start(*args):
-            random_report = choice(self.chart_type_toggle.children)
-            random_report.state = 'down'
-
-        if not any([button.state == 'down' for button in self.chart_type_toggle.children]):
-            Clock.schedule_once(lambda dt: _random_start(), 0.25)
-
     def add_report(self, chart_type, *args):
         # adds a ReportScreen of type chart_type to the screen manager
         sm = self.report_sm
@@ -73,7 +56,7 @@ class Report(Screen):
             sm.add_widget(screen)
 
         sm.current = chart_type
-
+    
     def open_generate_report_menu(self):
         GenerateReportMenu.host_report = self
         gen_report_menu = GenerateReportMenu()
@@ -110,7 +93,7 @@ class ValuationReportScreen(ReportScreen):
     regulation_def['caiso_pfp'] = ['regulation up', 'regulation down', ]
 
     def __init__(self, type, chart_data, market=None, do_animation=True, **kwargs):
-        super(ReportScreen, self).__init__(**kwargs)
+        super(ValuationReportScreen, self).__init__(**kwargs)
 
         self.chart_type = type
         self.chart_data = chart_data
