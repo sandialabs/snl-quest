@@ -16,46 +16,43 @@ from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
 
 from es_gui.tools.charts import BarChart, StackedBarChart, MultisetBarChart, PieChart, DonutChart
-from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPopup, ReportScreen, PALETTE
-
-
-class TileButton(Button):
-    pass
+from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPopup, TileButton, PALETTE, rgba_to_fraction, ReportScreen
 
 
 class ReportChartToggle(ToggleButton, TileButton):
     pass
 
 
-class Report(Screen):
-    chart_types = OrderedDict({'Revenue (by month)': 'revenue_bar',
-                   'Revenue (by stream)': 'revenue_multisetbar',
-                   'Participation (total)': 'activity_donut',
-                   #'Activity (by source)': 'activity_stackedbar',
-                   'Participation (by month)': 'activity_stackedbar_normalized'
+class BtmCostSavingsReport(Screen):
+    chart_types = OrderedDict({
+        'Total bill (by month)': 'total_bill_bar',
+        'Total bill comparison': 'total_bill_comparison_multiset',
+        'Demand charge comparison': 'demand_charge_comparison_multiset',
+        'Energy charge comparison': 'energy_charge_comparison_multiset',
+        'NEM charge comparison': 'nem_charge_comparison_multiset',
+        'Total savings': 'total_savings_donut',
                    })
 
-    def __init__(self, chart_data, report_attributes, market=None, **kwargs):
-        super(Report, self).__init__(**kwargs)
+    def __init__(self, chart_data, report_attributes, **kwargs):
+        super(BtmCostSavingsReport, self).__init__(**kwargs)
 
         self.chart_type = type
         self.chart_data = chart_data
         self.report_attributes = report_attributes
-        self.market = market
 
         sm = self.report_sm
 
-        # build chart type selection buttons and corresponding ReportScreens
+        # Build chart type selection buttons and corresponding report screens.
         for opt in self.chart_types.items():
             button = ReportChartToggle(text=opt[0])
             button.bind(state=partial(self.add_report, opt[1]))
             self.chart_type_toggle.add_widget(button)
 
-            screen = ValuationReportScreen(type=opt[1], chart_data=self.chart_data, market=self.market, name=opt[1])
+            screen = BtmCostSavingsReportScreen(type=opt[1], chart_data=self.chart_data, name=opt[1])
             sm.add_widget(screen)
 
     def on_enter(self):
-        # randomly open one chart
+        # Randomly opens one chart.
         def _random_start(*args):
             random_report = choice(self.chart_type_toggle.children)
             random_report.state = 'down'
@@ -64,12 +61,12 @@ class Report(Screen):
             Clock.schedule_once(lambda dt: _random_start(), 0.25)
 
     def add_report(self, chart_type, *args):
-        # adds a ReportScreen of type chart_type to the screen manager
+        # Adds a ReportScreen of type chart_type to the screen manager.
         sm = self.report_sm
         sm.transition = WipeTransition(duration=0.8, clearcolor=[1, 1, 1, 1])
 
         if not sm.has_screen(chart_type):
-            screen = ValuationReportScreen(type=chart_type, chart_data=self.chart_data, market=self.market, name=chart_type)
+            screen = BtmCostSavingsReportScreen(type=chart_type, chart_data=self.chart_data, name=chart_type)
             sm.add_widget(screen)
 
         sm.current = chart_type
@@ -84,109 +81,97 @@ class ReportScreenManager(ScreenManager):
     transition = WipeTransition(duration=0.8, clearcolor=[1, 1, 1, 1])
 
 
-class ValuationReportScreen(ReportScreen):
-    """"""
+class BtmCostSavingsReportScreen(ReportScreen):
+    """A report screen for the BTM Cost Savings Wizard."""
 
-    # lookup table for decision variables for each model formulation
-    activities = dict()
-    activities['arbitrage'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'),]
-    activities['pjm_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
-    activities['ercot_arbreg'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
-    activities['miso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
-    activities['isone_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
-    activities['nyiso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_reg', 'regulation'), ]
-    activities['spp_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
-    activities['caiso_pfp'] = [('q_r', 'buy (arbitrage)'), ('q_d', 'sell (arbitrage)'), ('q_ru', 'regulation up'), ('q_rd', 'regulation down'), ]
-
-    # lookup table for actions that constitute regulation services for each model formulation
-    regulation_def = dict()
-    regulation_def['arbitrage'] = []
-    regulation_def['pjm_pfp'] = ['regulation', ]
-    regulation_def['ercot_arbreg'] = ['regulation up', 'regulation down', ]
-    regulation_def['miso_pfp'] = ['regulation', ]
-    regulation_def['isone_pfp'] = ['regulation', ]
-    regulation_def['nyiso_pfp'] = ['regulation', ]
-    regulation_def['spp_pfp'] = ['regulation up', 'regulation down', ]
-    regulation_def['caiso_pfp'] = ['regulation up', 'regulation down', ]
-
-    def __init__(self, type, chart_data, market=None, do_animation=True, **kwargs):
-        super(ReportScreen, self).__init__(**kwargs)
+    def __init__(self, type, chart_data, do_animation=True, **kwargs):
+        super(BtmCostSavingsReportScreen, self).__init__(**kwargs)
 
         self.chart_type = type
         self.chart_data = chart_data
         self.do_animation = do_animation
 
-        # if not market:
-        #     # infer market type from Optimizer property
-        #     market = self.chart_data[0][1].market_type
-
-        if self.chart_type == 'revenue_bar':
-            # bar chart for revenue by month
+        if self.chart_type == 'total_bill_bar':
             self.chart_bx.orientation = 'vertical'
 
             #self.desc.width = THREE_ABC_WIDTH
             self.desc_bx.size_hint_y = 0.33
 
             self.chart = BarChart(bar_spacing=25, y_axis_format='${0:,.0f}', size_hint_x=1.0, do_animation=self.do_animation)
-            self.bind(on_enter=self.generate_revenue_bar_chart)
-        elif self.chart_type == 'revenue_multisetbar':
-            # multiset bar chart for revenue by month by revenue stream
+            self.bind(on_enter=self.generate_total_bill_bar_chart)
+        elif self.chart_type == 'total_bill_comparison_multiset':
             self.chart_bx.orientation = 'vertical'
 
             #self.desc.width = THREE_ABC_WIDTH
             self.desc_bx.size_hint_y = 0.33
 
             self.chart = MultisetBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='${0:,.0f}', size_hint_x=1.0, do_animation=self.do_animation)
-            self.bind(on_enter=self.generate_revenue_multisetbar_chart)
-        elif self.chart_type == 'activity_donut':
-            # donut chart for overall device activity
+            self.bind(on_enter=self.generate_total_bill_comparison_chart)
+        elif self.chart_type == 'demand_charge_comparison_multiset':
+            self.chart_bx.orientation = 'vertical'
+
+            #self.desc.width = THREE_ABC_WIDTH
+            self.desc_bx.size_hint_y = 0.33
+
+            self.chart = MultisetBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='${0:,.0f}', size_hint_x=1.0, do_animation=self.do_animation)
+            self.bind(on_enter=self.generate_demand_charge_comparison_chart)
+        elif self.chart_type == 'energy_charge_comparison_multiset':
+            self.chart_bx.orientation = 'vertical'
+
+            #self.desc.width = THREE_ABC_WIDTH
+            self.desc_bx.size_hint_y = 0.33
+
+            self.chart = MultisetBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='${0:,.0f}', size_hint_x=1.0, do_animation=self.do_animation)
+            self.bind(on_enter=self.generate_energy_charge_comparison_chart)
+        elif self.chart_type == 'nem_charge_comparison_multiset':
+            self.chart_bx.orientation = 'vertical'
+
+            #self.desc.width = THREE_ABC_WIDTH
+            self.desc_bx.size_hint_y = 0.33
+
+            self.chart = MultisetBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='${0:,.0f}', size_hint_x=1.0, do_animation=self.do_animation)
+            self.bind(on_enter=self.generate_nem_charge_comparison_chart)
+        elif self.chart_type == 'total_savings_donut':
             self.chart_bx.orientation = 'vertical'
 
             #self.desc.width = THREE_ABC_WIDTH
             self.desc_bx.size_hint_y = 0.66
 
             self.chart = DonutChart(do_animation=self.do_animation)
-            self.bind(on_enter=partial(self.generate_activity_donut_chart, market))
-        elif self.chart_type == 'activity_stackedbar':
-            # set up vertical orientation for stackedbar chart
-            self.chart_bx.orientation = 'vertical'
+            self.bind(on_enter=self.generate_total_savings_donut_chart)
+        # elif self.chart_type == 'activity_stackedbar':
+        #     # set up vertical orientation for stackedbar chart
+        #     self.chart_bx.orientation = 'vertical'
 
-            #self.desc.width = THREE_ABC_WIDTH
-            self.desc_bx.size_hint_y = 0.33
+        #     #self.desc.width = THREE_ABC_WIDTH
+        #     self.desc_bx.size_hint_y = 0.33
 
-            # generate stackedbar chart
-            self.chart = StackedBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='{0:n}', size_hint_x=1.0, do_animation=self.do_animation)
-            self.bind(on_enter=partial(self.generate_activity_stackedbar_chart, market, False))
-        elif self.chart_type == 'activity_stackedbar_normalized':
-            # set up vertical orientation for stackedbar chart
-            self.chart_bx.orientation = 'vertical'
+        #     # generate stackedbar chart
+        #     self.chart = StackedBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='{0:n}', size_hint_x=1.0, do_animation=self.do_animation)
+        #     self.bind(on_enter=partial(self.generate_activity_stackedbar_chart, market, False))
+        # elif self.chart_type == 'activity_stackedbar_normalized':
+        #     # set up vertical orientation for stackedbar chart
+        #     self.chart_bx.orientation = 'vertical'
 
-            #self.desc.width = THREE_ABC_WIDTH
-            self.desc_bx.size_hint_y = 0.33
+        #     #self.desc.width = THREE_ABC_WIDTH
+        #     self.desc_bx.size_hint_y = 0.33
 
-            # generate stackedbar chart
-            self.chart = StackedBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='{0:n}%', size_hint_x=1.0, do_animation=self.do_animation)
-            self.bind(on_enter=partial(self.generate_activity_stackedbar_chart, market, True))
+        #     # generate stackedbar chart
+        #     self.chart = StackedBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='{0:n}%', size_hint_x=1.0, do_animation=self.do_animation)
+        #     self.bind(on_enter=partial(self.generate_activity_stackedbar_chart, market, True))
         else:
             raise(ValueError('An improper chart type was specified. (got {0})'.format(self.chart_type)))
 
         self.chart_bx.add_widget(self.chart)
 
-    def rgba_to_fraction(self, rgba):
-        """Converts rgb values in int format to fractional values suitable for Kivy."""
-        if len(rgba) > 3:
-            return float(rgba[0])/255, float(rgba[1])/255, float(rgba[2])/255, rgba[3]
-        else:
-            return float(rgba[0])/255, float(rgba[1])/255, float(rgba[2])/255, 1
-
     def on_leave(self):
         # reset the chart
         self.chart.clear_widgets()
 
-    def generate_revenue_bar_chart(self, *args):
+    def generate_total_bill_bar_chart(self, *args):
+        """Generates bar chart showing the total bill with energy storage each month."""
         bar_data = []
 
-        # select chart colors
         if len(self.chart_data) > len(PALETTE):
             colors = PALETTE
         else:
@@ -194,146 +179,212 @@ class ValuationReportScreen(ReportScreen):
 
         for ix, op in enumerate(self.chart_data, start=0):
             name = op[0]
-            _, _, year, month, _ = name.split(' | ')
-            #label = ' '.join([year, month])
-            #label = calendar.month_abbr[int(month)]
+            _, month, _ = name.split(' | ')
             label = month
 
             solved_op = op[1]
             results = solved_op.results
 
             bar_color = colors[divmod(ix, len(colors))[1]]
+            bar_data.append([label, rgba_to_fraction(bar_color), float(solved_op.total_bill_with_es)])
 
-            # need convert numpy float to native float for calculations
-            bar_data.append([label, self.rgba_to_fraction(bar_color), float(solved_op.gross_revenue)])
-
-        # generate chart
         self.chart.draw_chart(bar_data)
         max_bar = self.chart.max_bar
         min_bar = self.chart.min_bar
 
         # generate report text
-        self.title.text = "Here's how much revenue the device generated each month."
-        self.desc.text = 'Revenue was generated based on participation in the selected revenue streams. '
+        self.title.text = "Here's the total bill for each month."
+        self.desc.text = 'The total bill is the sum of demand charges, energy charges, and net metering charges. '
         report_templates = [
-            'The gross revenue generated over the evaluation period was [b]${0:,.2f}[/b].'.format(sum([op[1].gross_revenue for op in self.chart_data])),
-            'The highest revenue in a month was [b]${0:,.2f}[/b], generated in [b]{1}[/b].'.format(max_bar.value,
+        'The total charges for the year was [b]${0:,.2f}[/b].'.format(sum([op[1].total_bill_with_es for op in self.chart_data])),
+        'The highest bill for a month was [b]${0:,.2f}[/b], generated in [b]{1}[/b].'.format(max_bar.value,
                                                                                                    calendar.month_name[list(calendar.month_abbr).index(max_bar.name)]),
-        'The lowest revenue in a month was [b]${0:,.2f}[/b], generated in [b]{1}[/b].'.format(min_bar.value,
+        'The lowest bill for a month was [b]${0:,.2f}[/b], generated in [b]{1}[/b].'.format(min_bar.value,
                                                                                               calendar.month_name[list(calendar.month_abbr).index(min_bar.name)]),
         ]
 
         self.desc.text += ' '.join(report_templates)
 
-    def generate_revenue_multisetbar_chart(self, *args):
-        n_rev_cats = 2
+    def generate_total_bill_comparison_chart(self, *args):
+        """Generates the multiset bar chart comparing total bill with and without energy storage each month."""
+        n_cats = 2
 
-        # select chart colors
-        if n_rev_cats > len(PALETTE):
+        if n_cats > len(PALETTE):
             colors = PALETTE
         else:
-            colors = sample(PALETTE, n_rev_cats)
+            colors = sample(PALETTE, n_cats)
 
         multisetbar_data = OrderedDict()
 
-        # compute activity counts
         for ix, op in enumerate(self.chart_data, start=0):
             name = op[0]
-            _, _, year, month, _ = name.split(' | ')
-            # label = ' '.join([year, month])
-            #label = calendar.month_abbr[int(month)]
+            _, month, _ = name.split(' | ')
             label = month
 
             solved_op = op[1]
             results = solved_op.results
 
-            try:
-                rev_arb = float(results['rev_arb'].tail(1))
-                rev_reg = float(results['rev_reg'].tail(1))
-            except TypeError:
-                rev_arb = 0
-                rev_reg = 0
-
-            bar_group = [['arbitrage', self.rgba_to_fraction(colors[0]), rev_arb]]
-            bar_group.append(['regulation', self.rgba_to_fraction(colors[1]), rev_reg])
+            bar_group = [['without ES', rgba_to_fraction(colors[0]), float(solved_op.total_bill_without_es)]]
+            bar_group.append(['with ES', rgba_to_fraction(colors[1]), float(solved_op.total_bill_with_es)])
 
             multisetbar_data[label] = bar_group
 
-        # generate chart
         self.chart.draw_chart(multisetbar_data)
 
         # generate report text
-        self.title.text = "Here's how the device generated revenue each month."
-        self.desc.text = 'Revenue was generated based on participation in the selected revenue streams. '
+        self.title.text = "Here's the total bill with and without energy storage for each month."
+        self.desc.text = 'The total bill is the sum of demand charges, energy charges, and net metering charges. '
         report_templates = [
-            'The [b]gross revenue[/b] generated over the evaluation period was [b]${0:,.2f}[/b].'.format(sum([op[1].gross_revenue for op in self.chart_data])),
+            # 'The [b]gross revenue[/b] generated over the evaluation period was [b]${0:,.2f}[/b].'.format(sum([op[1].gross_revenue for op in self.chart_data])),
         ]
 
-        try:
-            total_rev_arb = sum([float(op[1].results['rev_arb'].tail(1)) for op in self.chart_data])
-        except TypeError:
-            total_rev_arb = 0
-
-        if total_rev_arb >= 0:
-            rev_arb_format = '${:,.2f}'.format(total_rev_arb)
-        else:
-            rev_arb_format = '-${:,.2f}'.format(-total_rev_arb)
-
-        if total_rev_arb < 0:
-            report_templates.append('The gross revenue from [b]arbitrage[/b] was [b]{0}[/b], an overall deficit. ' \
-                                    'This implies participation in arbitrage was solely for the purpose of having capacity to offer regulation up services.'.format(rev_arb_format))
-
         self.desc.text += ' '.join(report_templates)
+    
+    def generate_demand_charge_comparison_chart(self, *args):
+        """Generates the multiset bar chart comparing total demand charges with and without energy storage each month."""
+        n_cats = 2
 
-    def generate_activity_donut_chart(self, market=None, *args):
-        donut_data = []
-        n_activities = dict()
-        n_total = 0
-
-        try:
-            activities = self.activities[market]
-            regulation_def = self.regulation_def[market]
-        except KeyError:
-            raise(ValueError('Invalid or no market type/formulation specified.'))
-
-        n_activity_cats = len(activities)
-
-        # select chart colors
-        if n_activity_cats > len(PALETTE):
+        if n_cats > len(PALETTE):
             colors = PALETTE
         else:
-            colors = sample(PALETTE, n_activity_cats)
+            colors = sample(PALETTE, n_cats)
+
+        multisetbar_data = OrderedDict()
+
+        for ix, op in enumerate(self.chart_data, start=0):
+            name = op[0]
+            _, month, _ = name.split(' | ')
+            label = month
+
+            solved_op = op[1]
+            results = solved_op.results
+
+            bar_group = [['without ES', rgba_to_fraction(colors[0]), float(solved_op.demand_charge_without_es)]]
+            bar_group.append(['with ES', rgba_to_fraction(colors[1]), float(solved_op.demand_charge_with_es)])
+
+            multisetbar_data[label] = bar_group
+
+        self.chart.draw_chart(multisetbar_data)
+
+        # generate report text
+        self.title.text = "Here are the demand charge totals each month."
+        self.desc.text = 'The demand charge etc. etc. '
+        report_templates = [
+            # 'The [b]gross revenue[/b] generated over the evaluation period was [b]${0:,.2f}[/b].'.format(sum([op[1].gross_revenue for op in self.chart_data])),
+        ]
+
+        self.desc.text += ' '.join(report_templates)
+    
+    def generate_energy_charge_comparison_chart(self, *args):
+        """Generates the multiset bar chart comparing total energy charges with and without energy storage each month."""
+        n_cats = 2
+
+        if n_cats > len(PALETTE):
+            colors = PALETTE
+        else:
+            colors = sample(PALETTE, n_cats)
+
+        multisetbar_data = OrderedDict()
+
+        for ix, op in enumerate(self.chart_data, start=0):
+            name = op[0]
+            _, month, _ = name.split(' | ')
+            label = month
+
+            solved_op = op[1]
+            results = solved_op.results
+
+            bar_group = [['without ES', rgba_to_fraction(colors[0]), float(solved_op.energy_charge_without_es)]]
+            bar_group.append(['with ES', rgba_to_fraction(colors[1]), float(solved_op.energy_charge_with_es)])
+
+            multisetbar_data[label] = bar_group
+
+        self.chart.draw_chart(multisetbar_data)
+
+        # generate report text
+        self.title.text = "Here are the energy charge totals each month."
+        self.desc.text = 'The energy charge etc. etc. '
+        report_templates = [
+            # 'The [b]gross revenue[/b] generated over the evaluation period was [b]${0:,.2f}[/b].'.format(sum([op[1].gross_revenue for op in self.chart_data])),
+        ]
+
+        self.desc.text += ' '.join(report_templates)
+    
+    def generate_nem_charge_comparison_chart(self, *args):
+        """Generates the multiset bar chart comparing total net energy metering charges with and without energy storage each month."""
+        n_cats = 2
+
+        if n_cats > len(PALETTE):
+            colors = PALETTE
+        else:
+            colors = sample(PALETTE, n_cats)
+
+        multisetbar_data = OrderedDict()
+
+        for ix, op in enumerate(self.chart_data, start=0):
+            name = op[0]
+            _, month, _ = name.split(' | ')
+            label = month
+
+            solved_op = op[1]
+            results = solved_op.results
+
+            bar_group = [['without ES', rgba_to_fraction(colors[0]), float(solved_op.nem_charge_without_es)]]
+            bar_group.append(['with ES', rgba_to_fraction(colors[1]), float(solved_op.nem_charge_with_es)])
+
+            multisetbar_data[label] = bar_group
+        
+        if sum([x[1].nem_charge_without_es for x in self.chart_data]) + sum([x[1].nem_charge_with_es for x in self.chart_data]) <= 0:
+            # No NEM charges
+            self.title.text = "No net metering charges."
+            self.desc.text = 'The net energy metering charge etc. etc. '
+        else:
+            self.chart.draw_chart(multisetbar_data)
+
+            # generate report text
+            self.title.text = "Here are the net energy metering charge totals each month."
+            self.desc.text = 'The net energy metering charge etc. etc. '
+            report_templates = [
+                # 'The [b]gross revenue[/b] generated over the evaluation period was [b]${0:,.2f}[/b].'.format(sum([op[1].gross_revenue for op in self.chart_data])),
+            ]
+
+            self.desc.text += ' '.join(report_templates)
+
+    def generate_total_savings_donut_chart(self, *args):
+        donut_data = []
+        savings = [
+            ('energy charges', 'energy_charge_with_es', 'energy_charge_without_es'),
+            ('demand charges', 'demand_charge_with_es', 'demand_charge_without_es'),
+            ('NEM charges', 'nem_charge_with_es', 'nem_demand_charge_without_es'),
+        ]
+        total_savings = 0
+
+        if sum([x[1].nem_charge_without_es for x in self.chart_data]) + sum([x[1].nem_charge_with_es for x in self.chart_data]) <= 0:
+            n_cats = 2
+        else:
+            n_cats = 3
+
+        if n_cats > len(PALETTE):
+            colors = PALETTE
+        else:
+            colors = sample(PALETTE, n_cats)
 
         # compute activity counts
-        for ix, (var, name) in enumerate(activities, start=0):
-            n_activity = sum([len(op[1].results[var].nonzero()[0]) for op in self.chart_data])
-            n_total += n_activity
+        for ix, source in enumerate(savings[:n_cats], start=0):
+            savings = sum([getattr(op[1], source[-1]) - getattr(op[1], source[1]) for op in self.chart_data])
+            total_savings += savings
 
-            n_activities[name] = n_activity
-
-            donut_data.append([name, self.rgba_to_fraction(colors[ix]), n_activity])
+            donut_data.append([source[0], rgba_to_fraction(colors[ix]), savings])
 
         # generate chart
         self.chart.draw_chart(donut_data)
 
         # generate report text
-        self.title.text = "Here's how much the device participated in each revenue stream."
-        self.desc.text = 'Each sector represents the share of total state of charge management actions attributed to the specific activity. For example, if 33% of the actions were \"buy (arbitrage),\" that means 33% of the total actions performed were for buying energy through arbitrage. \n\n'
+        self.title.text = "Here are the savings from each charge source when using energy storage."
+        self.desc.text = ''
         report_templates = [
-            'The [b]total[/b] number of actions performed over the evaluation period was [b]{0:n}[/b].'.format(
-                n_total),
+            'The [b]total[/b] savings from energy storage was [b]${0:,.2f}[/b].'.format(total_savings),
         ]
-
-        if n_activities['sell (arbitrage)']/float(n_total) < n_activities['buy (arbitrage)']/float(n_total):
-            report_templates.append(
-                'The [b]percentage[/b] of actions of selling in the [b]arbitrage[/b] market was [b]{0:.2f}%[/b], less than the percentage for buying. ' \
-                'This implies that participation in arbitrage was for the purpose of having energy to offer regulation up services.'.format(
-                    n_activities['sell (arbitrage)']/float(n_total)*100))
-        #
-        # if sum([n_activities[name] for name in regulation_def])/float(n_total) > 0.50:
-        #     report_templates.append(
-        #         'The device spent a majority of its actions on offering regulation services.'
-        #     )
 
         self.desc.text += ' '.join(report_templates)
 
@@ -390,14 +441,14 @@ class ValuationReportScreen(ReportScreen):
                     except ZeroDivisionError:
                         n_activity_normalized = 0
 
-                    bar_stack.append([cat, self.rgba_to_fraction(component_color), n_activity_normalized])
+                    bar_stack.append([cat, rgba_to_fraction(component_color), n_activity_normalized])
             else:
                 # use counts for bar value
                 for iy, (var, cat) in enumerate(activities, start=0):
                     component_color = colors[iy]
                     n_activity = sum([len(results[var].nonzero()[0])])
 
-                    bar_stack.append([cat, self.rgba_to_fraction(component_color), n_activity])
+                    bar_stack.append([cat, rgba_to_fraction(component_color), n_activity])
 
             stackedbar_data[label] = bar_stack
 

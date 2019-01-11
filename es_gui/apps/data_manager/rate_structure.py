@@ -747,7 +747,7 @@ class RateStructureFinishScreen(Screen):
         if self.net_metering_1_toggle.state == 'down' and not self.net_metering_sell_price_field.text:
             raise(InputError('Please specify an energy sell price when selecting "Net metering 1.0."'))
         else:
-            sell_price = self.net_metering_sell_price_field if self.net_metering_1_toggle.state == 'down' else None        
+            sell_price = float(self.net_metering_sell_price_field.text) if self.net_metering_1_toggle.state == 'down' else None        
 
         return peak_kw_min, peak_kw_max, net_metering_type, sell_price
     

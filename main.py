@@ -61,52 +61,25 @@ dirname = os.path.dirname(__file__)
 Builder.load_file(os.path.join(dirname, 'es_gui', 'resources', 'widgets', 'common.kv'))
 
 from es_gui.settings import ESAppSettings
-Builder.load_file(os.path.join(dirname, 'es_gui', 'settings.kv'))
 
 # Data Manager
 from es_gui.apps.data_manager.home import DataManagerHomeScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'home.kv'))
-
 from es_gui.apps.data_manager.widgets import DataManagerRTOMOdataScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'widgets.kv'))
-
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'rate_structure.kv'))
-
 from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'data_manager', 'load.kv'))
 
 # Valuation
 from es_gui.apps.valuation.home import ValuationHomeScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'home.kv'))
-
 from es_gui.apps.valuation.valuationscreen import ValuationScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'valuationscreen.kv'))
-
 from es_gui.apps.valuation.batchrunscreen import BatchRunScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'batchrunscreen.kv'))
-
 from es_gui.apps.valuation.plotscreen import PlotScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'plotscreen.kv'))
-
 from es_gui.apps.valuation.setparametersscreen import SetParametersScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'setparametersscreen.kv'))
-
 from es_gui.apps.valuation.loaddatascreen import LoadDataScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'loaddatascreen.kv'))
-
 from es_gui.apps.valuation.wizard import ValuationWizard
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'wizard.kv'))
-
-from es_gui.apps.valuation.reporting import Report
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'valuation', 'reporting.kv'))
 
 # Behind-the-meter
 from es_gui.apps.btm.home import BehindTheMeterHomeScreen
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'btm', 'home.kv'))
-
 from es_gui.apps.btm.cost_savings import CostSavingsWizard
-Builder.load_file(os.path.join(dirname, 'es_gui', 'apps', 'btm', 'cost_savings.kv'))
 
 # Font registration.
 LabelBase.register(name='Exo 2',

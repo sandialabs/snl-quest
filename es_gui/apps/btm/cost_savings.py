@@ -29,6 +29,7 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
+from .reporting import BtmCostSavingsReport
 from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation
 
 
@@ -37,7 +38,7 @@ class CostSavingsWizard(Screen):
     def on_enter(self):
         ab = self.manager.nav_bar
         ab.reset_nav_bar()
-        ab.set_title('TOU/NEM Cost Savings')
+        ab.set_title('Time-of-Use Cost Savings')
 
         # self.sm.generate_start()
 
@@ -637,6 +638,8 @@ class CostSavingsWizardExecute(Screen):
             popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to BTM Home
             popup.open()
             return
+        
+        self.report_attributes = []
 
         # # Save selection summary details to pass to report generator.
         # deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children
@@ -667,9 +670,9 @@ class CostSavingsWizardExecute(Screen):
 
     def _next_screen(self, *args):
         """Adds the report screen if it does not exist and changes screens to it."""
-        # report = Report(name='report', chart_data=self.solved_ops, market=self.report_attributes['market type'], report_attributes=self.report_attributes)
-        # self.manager.switch_to(report, direction='left', duration=BASE_TRANSITION_DUR)
-        pass
+        report = BtmCostSavingsReport(name='report', chart_data=self.solved_ops, report_attributes=self.report_attributes)
+        self.manager.switch_to(report, direction='left', duration=BASE_TRANSITION_DUR)
+        # pass
 
 
 class CostSavingsWizardCompletePopup(MyPopup):

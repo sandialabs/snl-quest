@@ -290,3 +290,34 @@
             font_size: large_font
             color: C(hex_white)
             background_color: (1, 1, 1, 0)
+
+# This is a template for wizard report (chart) screens.
+# Subclass: Screen
+<ReportScreen>:
+    title: title
+    desc: desc
+    desc_bx: desc_bx
+    chart_bx: chart_bx
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        ReportHeaderDesc:
+            id: title
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.95
+            spacing: 25
+            id: chart_bx
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: None
+                size_hint_y: 1
+                width: THREE_ABC_WIDTH
+                id: desc_bx
+
+                ReportBodyText:
+                    id: desc

@@ -176,13 +176,76 @@ class BtmOptimizer(optimizer.Optimizer):
             raise TypeError('results must be a Pandas DataFrame.')
  #--------------------------------------------------- 
     @property
-    def total_cost(self):
-        """The net revenue generated over the time period as solved for in the optimization."""
-        return self._total_cost
+    def total_bill_with_es(self):
+        """The total bill for the month with energy storage."""
+        return self._total_bill_with_es
 
-    @total_cost.setter
-    def total_cost(self, value):
-        self._total_cost = value
+    @total_bill_with_es.setter
+    def total_bill_with_es(self, value):
+        self._total_bill_with_es = value
+    
+    @property
+    def total_bill_without_es(self):
+        """The total bill for the month without energy storage."""
+        return self._total_bill_without_es
+
+    @total_bill_without_es.setter
+    def total_bill_without_es(self, value):
+        self._total_bill_without_es = value
+    
+    @property
+    def demand_charge_with_es(self):
+        """The total demand charges for the month with energy storage."""
+        return self._demand_charge_with_es
+
+    @demand_charge_with_es.setter
+    def demand_charge_with_es(self, value):
+        self._demand_charge_with_es = value
+    
+    @property
+    def demand_charge_without_es(self):
+        """The total demand charges for the month without energy storage."""
+        return self._demand_charge_without_es
+
+    @demand_charge_without_es.setter
+    def demand_charge_without_es(self, value):
+        self._demand_charge_without_es = value
+    
+    @property
+    def energy_charge_with_es(self):
+        """The total energy charges for the month with energy storage."""
+        return self._energy_charge_with_es
+
+    @energy_charge_with_es.setter
+    def energy_charge_with_es(self, value):
+        self._energy_charge_with_es = value
+    
+    @property
+    def energy_charge_without_es(self):
+        """The total energy charges for the month without energy storage."""
+        return self._energy_charge_without_es
+
+    @energy_charge_without_es.setter
+    def energy_charge_without_es(self, value):
+        self._energy_charge_without_es = value
+    
+    @property
+    def nem_charge_with_es(self):
+        """The total net energy metering charges for the month with energy storage."""
+        return self._nem_charge_with_es
+
+    @nem_charge_with_es.setter
+    def nem_charge_with_es(self, value):
+        self._nem_charge_with_es = value
+    
+    @property
+    def nem_charge_without_es(self):
+        """The total net energy metering charges for the month without energy storage."""
+        return self._nem_charge_without_es
+
+    @nem_charge_without_es.setter
+    def nem_charge_without_es(self, value):
+        self._nem_charge_without_es = value
 
     def _set_model_param(self):
         """Sets the model params for the Pyomo ConcreteModel."""
@@ -231,7 +294,7 @@ class BtmOptimizer(optimizer.Optimizer):
         if not hasattr(m, 'Reserve_charge_max'):
             # Fraction of energy capacity to decrease state of charge maximum by.
             logging.debug('ValuationOptimizer: No Reserve_charge_max provided, setting default...')
-            m.Reserve_charge_max = 1
+            m.Reserve_charge_max = 0
         elif getattr(m, 'Reserve_charge_max') > 1.0:
             logging.warning('ValuationOptimizer: Reserve_charge_max provided is greater than 1.0, interpreting as percentage...')
             m.Reserve_charge_max = m.Reserve_charge_max/100
@@ -242,7 +305,7 @@ class BtmOptimizer(optimizer.Optimizer):
             m.State_of_charge_init = m.Reserve_charge_min*m.Energy_capacity
             
         m.smin = m.Reserve_charge_min*m.Energy_capacity
-        m.smax = m.Reserve_charge_max*m.Energy_capacity
+        m.smax = (1 - m.Reserve_charge_max)*m.Energy_capacity
     
     def _set_model_var(self):
         """Sets the model vars for the Pyomo ConcreteModel."""
@@ -369,7 +432,6 @@ class BtmOptimizer(optimizer.Optimizer):
         pfpk_without_es = max(m.pnet)
         ptpk_without_es = [max(m.pnet[n]*m.mask_ds[p][n] for n in m.time) for p in m.period]
         
-        
         demand_charge_with_es=m.pfpk.value*m.flt_dr+sum(m.ptpk[p].value*m.tou_dr[p] for p in m.period)
         demand_charge_without_es=pfpk_without_es*m.flt_dr+sum(ptpk_without_es[p]*m.tou_dr[p] for p in m.period)
         
@@ -388,6 +450,20 @@ class BtmOptimizer(optimizer.Optimizer):
                        'energy_charge_without_es': energy_charge_without_es,'nem_charge_without_es': nem_charge_without_es, 
                        'demand_charge_without_es':demand_charge_without_es, 'total_bill_without_es': tot_bill_without_es }
         self.results = pd.DataFrame(run_results)
+
+        self.total_bill_with_es = tot_bill_with_es
+        self.total_bill_without_es = tot_bill_without_es
+
+        self.demand_charge_with_es = demand_charge_with_es
+        self.demand_charge_without_es = demand_charge_without_es
+
+        self.energy_charge_with_es = energy_charge_with_es
+        self.energy_charge_without_es = energy_charge_without_es
+
+        self.nem_charge_with_es = nem_charge_with_es
+        self.nem_charge_without_es = nem_charge_without_es
+
+        self.results.to_csv('resultssss.csv')
         
     def get_results(self):
         """Returns the decision variables and derived quantities in a DataFrame"""

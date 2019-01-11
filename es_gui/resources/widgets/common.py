@@ -21,6 +21,7 @@ from kivy.uix.recycleview.views import RecycleDataViewBehavior
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import SpinnerOption, Spinner
 from kivy.uix.label import Label
+from kivy.uix.screenmanager import Screen
 
 cwd = os.getcwd()
 
@@ -221,3 +222,7 @@ class LoadingModalView(ModalView):
     #     # loading_animation.repeat = True
 
     #     Clock.schedule_once(lambda dt: loading_animation.start(self.logo), 0)
+
+
+class ReportScreen(Screen):
+    pass

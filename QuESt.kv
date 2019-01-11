@@ -6,6 +6,26 @@
 #:set WELCOME_TITLE_TAG '[font={font}][size={size}][color={color}]{tagline}[/color][/size][/font]'.format(font='Rajdhani', size=int(large_font), color=hex_secondary, tagline=TAGLINE)
 #:set WELCOME_TITLE WELCOME_TITLE_APP+WELCOME_TITLE_TAG
 
+#:include es_gui/settings.kv
+
+#:include es_gui/apps/data_manager/home.kv
+#:include es_gui/apps/data_manager/rate_structure.kv
+#:include es_gui/apps/data_manager/load.kv
+#:include es_gui/apps/data_manager/widgets.kv
+
+#:include es_gui/apps/valuation/home.kv
+#:include es_gui/apps/valuation/valuationscreen.kv
+#:include es_gui/apps/valuation/batchrunscreen.kv
+#:include es_gui/apps/valuation/plotscreen.kv
+#:include es_gui/apps/valuation/setparametersscreen.kv
+#:include es_gui/apps/valuation/loaddatascreen.kv
+#:include es_gui/apps/valuation/wizard.kv
+#:include es_gui/apps/valuation/reporting.kv
+
+#:include es_gui/apps/btm/home.kv
+#:include es_gui/apps/btm/cost_savings.kv
+#:include es_gui/apps/btm/reporting.kv
+
 <IndexScreen>:
     name: 'index'
 

@@ -318,7 +318,10 @@ class MultisetBarChart(StackedBarChart):
         self.bar_width = self.bar_group_width /max([len(x) for x in bars.values()])
 
         # compute bar height:value ratio
-        dydv = self.max_height / (max_value - min(0, min_value))
+        try:
+            dydv = self.max_height / (max_value - min(0, min_value))
+        except ZeroDivisionError:
+            dydv = 1
 
         # if negative values: determine coordinate of y=0
         if min_value < 0:
