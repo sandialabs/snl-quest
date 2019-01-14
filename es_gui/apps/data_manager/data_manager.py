@@ -77,6 +77,11 @@ class DataManager(EventDispatcher):
         rate_structure_root = os.path.join(self.data_bank_root, 'rate_structures')
         rate_structure_data_bank = {}
 
+        try:
+            os.listdir(rate_structure_root)
+        except FileNotFoundError:
+            return
+
         for rate_structure_file in os.scandir(rate_structure_root):
             if not rate_structure_file.name.startswith('.'):
                 with open(rate_structure_file.path) as f:
@@ -90,6 +95,11 @@ class DataManager(EventDispatcher):
         """Scans the saved load profile data bank."""
         load_profile_root = os.path.join(self.data_bank_root, 'load')
         load_profile_data_bank = {}
+
+        try:
+            os.listdir(load_profile_root)
+        except FileNotFoundError:
+            return
 
         # TODO: Create more readable names?
 
@@ -134,14 +144,20 @@ class DataManager(EventDispatcher):
     def get_rate_structures(self):
         """Returns a dictionary of all of the rate structures saved to the data bank."""
         # Sort by name alphabetically before returning.
-        return_dict = collections.OrderedDict(sorted(self.data_bank['rate structures'].items(), key=lambda t: t[0]))
+        try:
+            return_dict = collections.OrderedDict(sorted(self.data_bank['rate structures'].items(), key=lambda t: t[0]))
+        except KeyError:
+            raise KeyError('It looks like no rate structures have been saved.')
         
         return return_dict
     
     def get_load_profiles(self):
         """Returns a dictionary of all of the load profiles saved to the data bank."""
         # Sort by name alphabetically before returning.
-        return_dict = collections.OrderedDict(sorted(self.data_bank['load profiles'].items(), key=lambda t: t[0]))
+        try:
+            return_dict = collections.OrderedDict(sorted(self.data_bank['load profiles'].items(), key=lambda t: t[0]))
+        except KeyError:
+            raise KeyError('It looks like no load profiles have been saved.')
         
         return return_dict
     
@@ -152,7 +168,6 @@ class DataManager(EventDispatcher):
         return_dict = {}
 
         return return_dict
-
     
     def get_markets(self):
         """Returns a keys view of all of the markets for valuation available."""

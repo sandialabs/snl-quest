@@ -58,15 +58,13 @@ class CostSavingsWizardScreenManager(ScreenManager):
         self.transition = SlideTransition()
         self.add_widget(CostSavingsWizardStart(name='start'))
     
-    def generate_start(self):
-        """"""
-        try:
-            data_manager = App.get_running_app().data_manager
-            rate_structure_options = [rs[1] for rs in data_manager.get_rate_structures().items()]
-            self.get_screen('start').rate_structure_rv.data = rate_structure_options
-            self.get_screen('start').rate_structure_rv.unfiltered_data = rate_structure_options
-        except Exception as e:
-            print(e)
+    # def generate_start(self):
+    #     """"""
+    #     try:
+    #         data_manager = App.get_running_app().data_manager
+    #         rate_structure_options = [rs[1] for rs in data_manager.get_rate_structures().items()]
+    #         self.get_screen('start').rate_structure_rv.data = rate_structure_options
+    #         self.get_screen('start').rate_structure_rv.unfiltered_data = rate_structure_options
 
 
 class CostSavingsWizardStart(Screen):
@@ -97,8 +95,9 @@ class CostSavingsWizardRateSelect(Screen):
             rate_structure_options = [rs[1] for rs in data_manager.get_rate_structures().items()]
             self.rate_structure_rv.data = rate_structure_options
             self.rate_structure_rv.unfiltered_data = rate_structure_options
-        except Exception as e:
-            print(e)
+        except KeyError as e:
+            logging.warning('CostSavings: No rate structures available to select.')
+            # TODO: Warning popup
         
         Clock.schedule_once(partial(fade_in_animation, self.content), 0)
     
@@ -300,8 +299,9 @@ class CostSavingsWizardLoadSelect(Screen):
             load_profile_options = [{'name': x[0], 'path': x[1]} for x in data_manager.get_load_profiles().items()]
             self.load_profile_rv.data = load_profile_options
             self.load_profile_rv.unfiltered_data = load_profile_options
-        except Exception as e:
-            print(e)
+        except KeyError as e:
+            logging.warning('CostSavings: No load profiles available to select.')
+            # TODO: Warning popup
         
         Clock.schedule_once(partial(fade_in_animation, self.content), 0)
     
