@@ -21,12 +21,13 @@ from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPo
 
 class BtmCostSavingsReport(WizardReportInterface):
     chart_types = OrderedDict({
-        'Total bill (by month)': 'total_bill_bar',
+        'Total bill': 'total_bill_bar',
         # 'Total bill (by source)': 'total_bill_stacked',
         'Total bill comparison': 'total_bill_comparison_multiset',
         'Demand charge comparison': 'demand_charge_comparison_multiset',
         'Energy charge comparison': 'energy_charge_comparison_multiset',
         'NEM comparison': 'nem_comparison_multiset',
+        'Peak demand comparison': 'peak_demand_comparison_multiset',
         # 'Total savings': 'total_savings_donut',
                    })
     
@@ -62,8 +63,8 @@ class BtmCostSavingsReport(WizardReportInterface):
         sm.current = chart_type
     
     def open_generate_report_menu(self):
-        GenerateReportMenu.host_report = self
-        gen_report_menu = GenerateReportMenu()
+        BtmCostSavingsGenerateReportMenu.host_report = self
+        gen_report_menu = BtmCostSavingsGenerateReportMenu()
         gen_report_menu.open()
 
 
@@ -121,6 +122,14 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
             self.chart = MultisetBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='${0:,.0f}', size_hint_x=1.0, do_animation=self.do_animation)
             self.bind(on_enter=self.generate_nem_charge_comparison_chart)
+        elif self.chart_type == 'peak_demand_comparison_multiset':
+            self.chart_bx.orientation = 'vertical'
+
+            #self.desc.width = THREE_ABC_WIDTH
+            self.desc_bx.size_hint_y = 0.33
+
+            self.chart = MultisetBarChart(bar_spacing=25, legend_width=TWO_ABC_WIDTH/4, y_axis_format='{0:n} kW', size_hint_x=1.0, do_animation=self.do_animation)
+            self.bind(on_enter=self.generate_peak_demand_comparison_chart)
         elif self.chart_type == 'total_savings_donut':
             self.chart_bx.orientation = 'vertical'
 
@@ -218,6 +227,13 @@ class BtmCostSavingsReportScreen(ReportScreen):
         report_templates = [
         ]
 
+        total_bill_difference = sum(op[1].total_bill_with_es - op[1].total_bill_without_es for op in self.chart_data)
+
+        if total_bill_difference < 0:
+            relation = 'decrease'
+            total_difference_str = "It looks like the ESS was able to [b]{0}[/b] the total charges over the year by [b]{1}[/b].".format(relation, format_dollar_string(abs(total_bill_difference)))
+            report_templates.append(total_difference_str)
+
         self.desc.text += ' '.join(report_templates)
     
     def generate_demand_charge_comparison_chart(self, *args):
@@ -248,16 +264,22 @@ class BtmCostSavingsReportScreen(ReportScreen):
             self.chart.draw_chart(multisetbar_data)
 
             self.title.text = "Here are the demand charge totals each month."
-            self.desc.text = 'The demand charge etc. etc. '
+            self.desc.text = 'The demand charge total consists of time-of-use peak demand charges in addition to a flat peak demand charge, if applicable. The time-of-use demand charge is based on the peak demand during each time period and the corresponding rate. The flat demand charge is based on the peak demand over the entire month, sometimes subject to minimum and/or maximum values. The ESS is useful for reducing net power draw during high time-of-use rates. '
             report_templates = [
             ]
+
+            total_demand_charge_difference = sum(op[1].demand_charge_with_es - op[1].demand_charge_without_es for op in self.chart_data)
+
+            if total_demand_charge_difference < 0:
+                relation = 'decrease'
+                total_difference_str = "It looks like the ESS was able to [b]{0}[/b] the total demand charges over the year by [b]{1}[/b].".format(relation, format_dollar_string(abs(total_demand_charge_difference)))
+                report_templates.append(total_difference_str)
 
             self.desc.text += ' '.join(report_templates)
         else:
             self.title.text = "It looks like there were no demand charges."
             self.desc.text = "The particular rate structure you selected resulted in no demand charges. Either there are no demand charges or no savings on demand charges were accrued using energy storage."
 
-    
     def generate_energy_charge_comparison_chart(self, *args):
         """Generates the multiset bar chart comparing total energy charges with and without energy storage each month."""
         if any(op[1].has_energy_charges() for op in self.chart_data):
@@ -286,9 +308,20 @@ class BtmCostSavingsReportScreen(ReportScreen):
             self.chart.draw_chart(multisetbar_data)
 
             self.title.text = "Here are the energy charge totals each month."
-            self.desc.text = 'The energy charge etc. etc. '
+            self.desc.text = 'The energy charge total is based on net energy consumption and different time-of-use rates. The ESS is useful for reducing energy consumption during high time-of-use periods. '
             report_templates = [
             ]
+
+            total_energy_charge_difference = sum(op[1].energy_charge_with_es - op[1].energy_charge_without_es for op in self.chart_data)
+
+            if total_energy_charge_difference < 0:
+                relation = 'decrease'
+                total_difference_str = "It looks like the ESS was able to [b]{0}[/b] the total energy charges over the year by [b]{1}[/b].".format(relation, format_dollar_string(abs(total_energy_charge_difference)))
+                report_templates.append(total_difference_str)
+            else:
+                relation = 'increased'
+                total_difference_str = "It looks like the total energy charges over the year with the ESS [b]{0}[/b] by [b]{1}[/b]. This is likely due to opportunities for decreasing demand charges or obtaining net metering credits.".format(relation, format_dollar_string(abs(total_energy_charge_difference)))
+                report_templates.append(total_difference_str)
 
             self.desc.text += ' '.join(report_templates)
         else:
@@ -345,6 +378,45 @@ class BtmCostSavingsReportScreen(ReportScreen):
         else:
             self.title.text = "It looks like there were no net energy metering charges or credits."
             self.desc.text = "The particular rate structure you selected resulted in no net energy metering charges. Either that or no savings on net energy metering charges were accrued using energy storage."
+
+    def generate_peak_demand_comparison_chart(self, *args):
+        """Generates the multiset bar chart comparing peak monthly demand with and without energy storage each month."""
+        n_cats = 2
+
+        if n_cats > len(PALETTE):
+            colors = PALETTE
+        else:
+            colors = sample(PALETTE, n_cats)
+
+        multisetbar_data = OrderedDict()
+
+        for ix, op in enumerate(self.chart_data, start=0):
+            name = op[0]
+            _, month, _ = name.split(' | ')
+            label = month
+
+            solved_op = op[1]
+            results = solved_op.results
+
+            pfpk_with_es = solved_op.model.pfpk.value
+            pfpk_without_es = max(solved_op.model.pnet)
+
+            bar_group = [['without ES', rgba_to_fraction(colors[0]), int(pfpk_without_es)]]
+            bar_group.append(['with ES', rgba_to_fraction(colors[1]), int(pfpk_with_es)])
+
+            multisetbar_data[label] = bar_group
+
+        self.chart.draw_chart(multisetbar_data)
+
+        self.title.text = "Here are the peak demand values each month."
+        self.desc.text = 'The peak demand value each month is used to compute flat demand charges, if applicable. '
+        report_templates = [
+        ]
+
+        if all(op[1].model.flt_dr == 0 for op in self.chart_data):
+            report_templates.append("For this rate structure, there were no flat demand charges.")
+
+        self.desc.text += ' '.join(report_templates)
 
     def generate_total_savings_donut_chart(self, *args):
         """TODO: Probably deprecate this since we can't guarantee non-negative quantities."""
@@ -431,12 +503,12 @@ class BtmCostSavingsReportScreen(ReportScreen):
         self.desc.text += ' '.join(report_templates)
 
 
-class GenerateReportMenu(ModalView):
+class BtmCostSavingsGenerateReportMenu(ModalView):
     host_report = None
     graphicsLocations = {}
 
     def __init__(self, **kwargs):
-        super(GenerateReportMenu, self).__init__(**kwargs)
+        super(BtmCostSavingsGenerateReportMenu, self).__init__(**kwargs)
 
         self.sm.transition = NoTransition()
 

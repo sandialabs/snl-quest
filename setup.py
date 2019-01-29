@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from distutils.core import Extension
 
 DISTNAME = 'QuESt'
-VERSION = '1.1'
+VERSION = '1.2'
 EXTENSIONS = []
 PYTHON_REQUIRES='>=36'
 DESCRIPTION = 'Sandia National Laboratories application suite for energy storage analysis and evaluation tools.'
@@ -20,7 +20,8 @@ setuptools_kwargs = {
                           'kivy>=1.10.1', 'kivy-garden',
                           'xlrd', 'six',
                           'jinja2',
-                          'bs4', 'requests', 'urllib3']
+                          'bs4', 'requests', 'urllib3',
+                          'holidays']
 }
 
 setup(name=DISTNAME,

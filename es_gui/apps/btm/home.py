@@ -8,6 +8,7 @@ from kivy.app import App
 
 # from es_gui.tools.valuation.valuation_dms import ValuationDMS
 from es_gui.resources.widgets.common import WarningPopup
+from es_gui.tools.btm.btm_dms import BtmDMS
 from .op_handler import BtmOptimizerHandler
 
 
@@ -19,12 +20,15 @@ class BehindTheMeterHomeScreen(Screen):
         super(BehindTheMeterHomeScreen, self).__init__(**kwargs)
 
         # # Initialize data management system.
-        # self.dms = ValuationDMS(max_memory=App.get_running_app().config.getint('valuation', 'valuation_dms_size')*1000,
-        #                         save_data=bool(App.get_running_app().config.getint('valuation', 'valuation_dms_save')),
-        #                         save_name='valuation_dms.p',
-        #                         home_path='data')
+        self.dms = BtmDMS(
+            # max_memory=App.get_running_app().config.getint('valuation', 'valuation_dms_size')*1000,
+            # save_data=bool(App.get_running_app().config.getint('valuation', 'valuation_dms_save')),
+            save_data = True,
+            save_name='btm_dms.p',
+            home_path='data',
+            )
         self.handler = BtmOptimizerHandler(App.get_running_app().config.get('optimization', 'solver'))
-        # self.handler.dms = self.dms
+        self.handler.dms = self.dms
 
     def on_enter(self):
         ab = self.manager.nav_bar

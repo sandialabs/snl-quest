@@ -49,10 +49,8 @@ class ValuationDMS(DataManagementSystem):
         try:
             # attempt to access data if it is already loaded
             spp_da = self.get_data(id_key)
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
 
             # deconstruct id_key to obtain args for read function
             spp_da = read_ercot_da_spp(*id_key.split(self.delimiter))
@@ -67,10 +65,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             REGUP = self.get_data(id_key + self.delimiter + 'REGUP')
             REGDN = self.get_data(id_key + self.delimiter + 'REGDN')
-            logging.info('DMS: Data located in DMS, loading...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
 
             # deconstruct id_key to obtain args for read function
             REGDN, REGUP = read_ercot_da_ccp(*id_key.split(self.delimiter)[:2])
@@ -125,10 +121,8 @@ class ValuationDMS(DataManagementSystem):
         try:
             # attempt to access data if it is already loaded
             lmp_da = self.get_data(*args)
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             lmp_da = read_pjm_da_lmp(*args)
             self.add_data(lmp_da, *args)
         finally:
@@ -141,10 +135,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             RegCCP = self.get_data(*args+('RegCCP',))
             RegPCP = self.get_data(*args+('RegPCP',))
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             RegCCP, RegPCP = read_pjm_reg_price(*args)
             self.add_data({'RegCCP': RegCCP, 'RegPCP': RegPCP}, *args)
         finally:
@@ -158,10 +150,8 @@ class ValuationDMS(DataManagementSystem):
             MR = self.get_data(*args+('MR',))
             RA = self.get_data(*args+('RA',))
             RD = self.get_data(*args+('RD',))
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             MR, RA, RD = read_pjm_mileage(*args)
             self.add_data({'MR': MR, 'RA': RA, 'RD': RD}, *args)
         finally:
@@ -174,10 +164,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             RUP = self.get_data(*args+('RegUp',))
             RDW = self.get_data(*args+('RegDown',))
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             RUP, RDW = read_pjm_reg_signal(*args)
             self.add_data({'RegUp': RUP, 'RegDown': RDW}, *args)
         finally:
@@ -205,11 +193,8 @@ class ValuationDMS(DataManagementSystem):
             RD = self.get_data(rd_key)
             RegCCP = self.get_data(rccp_key)
             RegPCP = self.get_data(rpcp_key)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)
 
             self.add_data(lmp_da, lmp_key)
@@ -227,10 +212,8 @@ class ValuationDMS(DataManagementSystem):
         try:
             # attempt to access data if is already loaded
             lmp_da = self.get_data(*args)
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             lmp_da = read_miso_da_lmp(*args)
             self.add_data(lmp_da, *args)
         finally:
@@ -242,10 +225,8 @@ class ValuationDMS(DataManagementSystem):
         try:
             # attempt to access data if is already loaded
             RegMCP = self.get_data(*args)
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             RegMCP = read_miso_reg_price(*args)
             self.add_data(RegMCP, *args)
         finally:
@@ -264,11 +245,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             lmp_da = self.get_data(lmp_key)
             RegMCP = self.get_data(regmcp_key)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             lmp_da, RegMCP = read_miso_data(path, year, month, nodeid)
 
             self.add_data(lmp_da, lmp_key)
@@ -305,11 +283,8 @@ class ValuationDMS(DataManagementSystem):
             RegCCP = self.get_data(key_isone_REG_CCP)
             RegPCP = self.get_data(key_isone_REG_PCP)
             daLMP = self.get_data(key_isone_LMP)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             # RegCCP, RegPCP = read_pjm_reg_price(*args) in utilities: -def read_pjm_reg_price(fname, month):
 
             yeari = int(year)
@@ -351,11 +326,8 @@ class ValuationDMS(DataManagementSystem):
             lmp_da = self.get_data(lmp_key)
             rccp = self.get_data(rccp_key)
             rpcp = self.get_data(rpcp_key)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             lmp_da, rccp, rpcp = read_isone_data(path, year, month, nodeid)
 
             self.add_data(lmp_da, lmp_key)
@@ -380,11 +352,8 @@ class ValuationDMS(DataManagementSystem):
             # attempt to access data if it is already loaded
             lbmp_da = self.get_data(lbmp_key)
             rcap_da = self.get_data(rcap_key)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             lbmp_da, lbmp_rt, rcap_da, rcap_rt, rmov_da = read_nyiso_data(path, year, month, nodeid, typedat="both", RT_DAM="DAM")
 
             self.add_data(lbmp_da, lbmp_key)
@@ -408,11 +377,8 @@ class ValuationDMS(DataManagementSystem):
             lmp_da = self.get_data(lmp_key)
             mcpru_da = self.get_data(mcpru_key)
             mcprd_da = self.get_data(mcprd_key)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             # lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)
             lmp_da, mcpru_da, mcprd_da = read_spp_data(path, year, month, nodeid, typedat="both")
 
@@ -450,11 +416,8 @@ class ValuationDMS(DataManagementSystem):
             rmd_mm = self.get_data(rmd_mm_key)
             rmu_pacc = self.get_data(rmu_pacc_key)
             rmd_pacc = self.get_data(rmd_pacc_key)
-
-            logging.info('DMS: Data located in DMS, retrieving...')
         except KeyError:
             # load the data and add it to the DMS
-            logging.info('DMS: Data not yet in DMS, loading...')
             # lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)
             lmp_da, aspru_da, asprd_da, asprmu_da, asprmd_da, rmu_mm, rmd_mm, rmu_pacc, rmd_pacc = read_caiso_data(path, year, month, nodeid)
 

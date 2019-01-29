@@ -183,6 +183,24 @@ def find_utschld(**kwargs):
 #    schld_data=json_normalize(schld['items'])
     return schld['items'] # this is a list of schedules in which each element contains the full details of a schedule.
 
+def read_load_profile(path, month):
+    """Reads the annual load profile file located at path and returns the array of the load profile for the given month."""
+    load_df = pd.read_csv(path)
+
+    if isinstance(month, str):
+        month = int(month)
+
+    # Parse the Date/Time field.
+    load_df['dt split'] = load_df['Date/Time'].str.split()
+
+    load_df['month'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[0]))
+    load_df['day'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[-1]))
+    load_df['hour'] = load_df['dt split'].apply(lambda x: int(x[1].split(':')[0]))
+
+    load_profile = load_df.loc[load_df['month'] == month]['Electricity:Facility [kW](Hourly)'].values
+
+    return load_profile
+
 def input_df(year,wkday_eschld,wkend_eschld,wkday_dschld,wkend_dschld):
     """
     Generate a Pandas dataframe from the downloaded rate schedule data.

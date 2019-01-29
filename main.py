@@ -480,6 +480,7 @@ class QuEStApp(App):
         config.setdefaults('optimization', {'solver': 'glpk'})
         config.setdefaults('connectivity', {'use_proxy': 0, 'http_proxy': '', 'https_proxy': '', 'use_ssl_verify': 1})
         config.setdefaults('valuation', {'valuation_dms_save': 1, 'valuation_dms_size': 20000})
+        config.setdefaults('btm', {'btm_dms_save': 1, 'btm_dms_size': 20000})
         config.setdefaults('data_manager_pjm', {'pjm_subscription_key': ''})
         config.setdefaults('data_manager_iso-ne', {'iso-ne_api_username': ''})
         config.setdefaults('data_manager_openei', {'openei_key': ''})
@@ -516,12 +517,15 @@ class QuEStApp(App):
         # Create Settings widget and add to settings screen.
         with open(os.path.join(dirname, 'es_gui', 'resources', 'settings', 'general.json'), 'r') as settings_json:
             self.settings.add_json_panel('General', self.config, data=settings_json.read())
-
-        with open(os.path.join(dirname, 'es_gui', 'resources', 'settings', 'valuation.json'), 'r') as settings_json:
-            self.settings.add_json_panel('QuESt Valuation', self.config, data=settings_json.read())
-
+        
         with open(os.path.join(dirname, 'es_gui', 'resources', 'settings', 'data_manager.json'), 'r') as settings_json:
             self.settings.add_json_panel('QuESt Data Manager', self.config, data=settings_json.read())
+        
+        with open(os.path.join(dirname, 'es_gui', 'resources', 'settings', 'valuation.json'), 'r') as settings_json:
+            self.settings.add_json_panel('QuESt Valuation', self.config, data=settings_json.read())
+        
+        with open(os.path.join(dirname, 'es_gui', 'resources', 'settings', 'btm.json'), 'r') as settings_json:
+            self.settings.add_json_panel('QuESt BTM', self.config, data=settings_json.read())
 
         self.settings.bind(on_close=sm.settings_screen.dismiss)
         sm.settings_screen.settings_box.add_widget(self.settings)

@@ -131,7 +131,9 @@ class DataManagementSystem():
                 try:
                     tmp = tmp[key]
                 except KeyError:
+                    logging.info('DMS: Data not yet in DMS, loading...')
                     raise(KeyError('KeyError when retrieving: {0}'.format(key)))
 
         self.requeue(args[0])
+        logging.info('DMS: Data located in DMS, retrieving...')
         return tmp

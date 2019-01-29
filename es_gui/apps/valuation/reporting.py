@@ -431,7 +431,7 @@ class GenerateReportMenu(ModalView):
 
         # Draw figures for saving to .png.
         for ix, opt in enumerate(self.host_report.chart_types.items(), start=0):
-            screen = ReportScreen(type=opt[1], chart_data=self.host_report.chart_data, market=self.host_report.market, name=opt[1], do_animation=False)
+            screen = ValuationReportScreen(type=opt[1], chart_data=self.host_report.chart_data, market=self.host_report.market, name=opt[1], do_animation=False)
 
             Clock.schedule_once(partial(self.save_figure, screen), ix * screenFlipInterval)
 

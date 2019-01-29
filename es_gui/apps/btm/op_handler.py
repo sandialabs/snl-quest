@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 import calendar
 import pyutilib
+import numpy as np
 
 from kivy.clock import mainthread
 
@@ -30,7 +31,7 @@ class BtmOptimizerHandler:
 
     def process_requests(self, op_handler_requests, *args):
         """Generates and solves BtmOptimizer models based on the given requests."""
-        # dms = self.dms
+        dms = self.dms
 
         rate_structure = op_handler_requests['rate_structure']
         load_profile_path = op_handler_requests['load_profile']
@@ -65,26 +66,19 @@ class BtmOptimizerHandler:
 
                 op = BtmOptimizer()
 
-                # Get data
-                # TODO: Move to a DMS.
-                import pandas as pd
-                import numpy as np
-                load_df = pd.read_csv(load_profile_path['path'])
+                # Get data.
+                # TODO: Move to a DMS. Should the omission of PV profile data be handled by the BtmOptimizer?
+                load_profile = self.dms.get_load_profile_data(load_profile_path['path'], ix)
 
-                ## Parse the Date/Time field
-                load_df['dt split'] = load_df['Date/Time'].str.split()
+                try:
+                    pv_profile = self.dms.get_pv_profile_data(pv_profile_path['path'])
+                except KeyError:
+                    pv_profile = np.zeros(len(load_profile))
 
-                load_df['month'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[0]))
-                load_df['day'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[-1]))
-                load_df['hour'] = load_df['dt split'].apply(lambda x: int(x[1].split(':')[0]))
-
-                load_profile = load_df.loc[load_df['month'] == ix]['Electricity:Facility [kW](Hourly)'].values
-                pv_profile = np.zeros(len(load_profile))
-
-                # Build op inputs
+                # Build op inputs.
                 rate_df_month = rate_df.loc[rate_df['month'] == ix]
 
-                # Populate op
+                # Populate op.
                 op.tou_energy_schedule = rate_df_month['tou_energy_schedule'].values
                 op.tou_demand_schedule = rate_df_month['tou_demand_schedule'].values
 
