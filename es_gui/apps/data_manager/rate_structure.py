@@ -265,6 +265,7 @@ class RateStructureUtilitySearchScreen(Screen):
                 utility_data_filtered.drop_duplicates(inplace=True)
 
                 logging.info('RateStructureDM: Utility table filter completed.')
+                self.search_button.disabled = False
 
                 if utility_data_filtered.empty:
                     logging.warning('RateStructureDM: No results matched the query.')
@@ -582,16 +583,16 @@ class RateStructureDemandRateStructureScreen(Screen):
         self.rate_structure = rate_structure
 
         # Get the demand rate structures.
-        flat_demand_months = rate_structure.get('flatdemandmonths', np.zeros(shape=(12,1)))
+        flat_demand_months = rate_structure.get('flatdemandmonths', [0 for x in range(12)])
         flat_demand_rates = rate_structure.get('flatdemandstructure', [[{'rate': 0}]])
         tou_demand_rates = rate_structure.get('demandratestructure', [[{'rate': 0}]])
 
         # Sometimes rather than being empty, a nan is in the field.
         if type(flat_demand_rates) == float:
-            flat_demand_rates = np.zeros(shape=(12, 1), dtype=int)
+            flat_demand_rates = [[{'rate': 0}]]
         
         if type(flat_demand_months) == float:
-            flat_demand_months = np.zeros(shape=(12, 1), dtype=int)
+            flat_demand_months = [0 for x in range(12)]
         
         if type(tou_demand_rates) == float:
             tou_demand_rates = [[{'rate': 0}]]

@@ -528,7 +528,7 @@ class ValuationOptimizer(optimizer.Optimizer):
 
     def populate_model(self):
         """Populates the Pyomo ConcreteModel based on the specified market_type."""
-        self.model.objective_expr = NumericConstant(0.0)
+        self.model.objective_expr = Expression(expr=0.0)
 
         self._set_model_param()
         self._set_model_var()
@@ -543,9 +543,9 @@ class ValuationOptimizer(optimizer.Optimizer):
         else:
             self.model.objective = Objective(expr=self.model.objective_expr, sense=maximize)
         
-        if isinstance(self.model.objective.expr, pyomo.core.kernel.numvalue.NumericConstant):
-            # Detect constant objective function value.
-            raise(IncompatibleDataException('The objective function was ill-formed, resulting in a constant objective function.'))
+        # if self.model.objective.value == 0.0:
+        #     # Detect constant objective function value.
+        #     raise(IncompatibleDataException('The objective function was ill-formed, resulting in a constant objective function.'))
 
 
     def _process_results(self):

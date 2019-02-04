@@ -9,7 +9,7 @@
 
     {
         "type": "numeric",
-        "title": "Valuation data cache size",
+        "title": "Data cache size",
         "desc": "The amount of memory to allocate for keeping data loaded (in KB).",
         "section": "valuation",
         "key": "valuation_dms_size"

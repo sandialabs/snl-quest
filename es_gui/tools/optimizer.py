@@ -84,7 +84,7 @@ class Optimizer(with_metaclass(ABCMeta)):
             results = solver_manager.solve(self.model, opt=opt)
         else:
             solver = SolverFactory(self.solver)
-            results = solver.solve(self.model, tee=False, keepfiles=False)
+            results = solver.solve(self.model, tee=True, keepfiles=False)
 
         assert (results.solver.termination_condition.key == 'optimal')
 

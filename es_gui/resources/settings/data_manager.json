@@ -23,12 +23,12 @@
     },
     {
         "type": "title",
-        "title": "OpenEI"
+        "title": "NREL Developer API key"
     },
     {
         "type": "string",
         "title": "API key",
-        "desc": "Key for OpenEI API access.",
+        "desc": "Key for OpenEI and PVWatts API access.",
         "section": "data_manager_openei",
         "key": "openei_key"
     }
