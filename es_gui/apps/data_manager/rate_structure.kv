@@ -53,9 +53,9 @@
                 size_hint_y: 0.33
 
                 DataManagerBodyText:
-                    text: 'OpenEI API key [font=Modern Pictograms][color=00ADD0][ref=openEIkeyHelp]?[/ref][/color][/font]'
+                    text: 'Data.gov API key [font=Modern Pictograms][color=00ADD0][ref=keyHelp]?[/ref][/color][/font]'
                     markup: True
-                    on_ref_press: root.open_openei_key_help()
+                    on_ref_press: root.open_api_key_help()
                     size_hint_x: 0.3
 
                 TextInput:
@@ -441,58 +441,6 @@
     row_default_height: 28
     spacing: 1
 
-    # GridLayout:
-    #     cols: 24
-
-    #     DataManagerBodyText:
-    #         text: '1'
-    #     DataManagerBodyText:
-    #         text: '2'
-    #     DataManagerBodyText:
-    #         text: '3'
-    #     DataManagerBodyText:
-    #         text: '4'
-    #     DataManagerBodyText:
-    #         text: '5'
-    #     DataManagerBodyText:
-    #         text: '6'
-    #     DataManagerBodyText:
-    #         text: '7'
-    #     DataManagerBodyText:
-    #         text: '8'
-    #     DataManagerBodyText:
-    #         text: '9'
-    #     DataManagerBodyText:
-    #         text: '10'
-    #     DataManagerBodyText:
-    #         text: '11'
-    #     DataManagerBodyText:
-    #         text: '12'
-    #     DataManagerBodyText:
-    #         text: '13'
-    #     DataManagerBodyText:
-    #         text: '14'
-    #     DataManagerBodyText:
-    #         text: '15'
-    #     DataManagerBodyText:
-    #         text: '16'
-    #     DataManagerBodyText:
-    #         text: '17'
-    #     DataManagerBodyText:
-    #         text: '18'
-    #     DataManagerBodyText:
-    #         text: '19'
-    #     DataManagerBodyText:
-    #         text: '20'
-    #     DataManagerBodyText:
-    #         text: '21'
-    #     DataManagerBodyText:
-    #         text: '22'
-    #     DataManagerBodyText:
-    #         text: '23'
-    #     DataManagerBodyText:
-    #         text: '24'
-
 <RateStructureDemandRateStructureScreen>:
     tou_period_table: tou_period_table
     flat_period_table: flat_period_table
@@ -810,60 +758,3 @@
                         root.manager.transition.direction = 'left'
                         root.next_screen()
 
-<RateStructureOpenEIapiHelp>:
-    auto_dismiss: False
-    size_hint: (0.52, 0.90)
-
-    BoxLayout:
-        orientation: 'vertical'
-        spacing: 10
-        padding: (25, 10)
-
-        canvas.before:
-            Color:
-                rgb: C(hex_white)
-
-            Rectangle:
-                pos: self.pos
-                size: self.size
-
-        BoxLayout:
-            orientation: 'vertical'
-            size_hint_y: 0.23
-
-            TitleTextBase:
-                size_hint_y: 0.1
-                text: 'Obtaining an OpenEI API key'
-            
-            BodyTextBase:
-                size_hint_y: 0.9
-                justify: True
-                markup: True
-                text: "You need an API key to access OpenEI data through the OpenEI API. This requires a quick registration. The guide here is only meant to serve as a quick reference; please refer to the Utility Rate Database page [ref=utility_rate_database_page][color=003359][u]here[/u][/color][/ref] for the most recent information."
-                on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
-            
-        ScrollView:
-            size_hint_y: 0.7
-            size_hint_x: 1
-            scroll_type: ['bars', 'content']
-            effect_cls: 'OpacityScrollEffect'
-
-            BodyTextBase:
-                #readonly: True
-                markup: True
-                size_hint: (1, None)
-                text: "1) On the OpenEI Utility Rate Database [ref=utility_rate_database][color=003359][u]page[/u][/color][/ref], find the block titled 'Utility Rate Database API' and click on the 'utility rate API' link. \n\n 2) Under a block titled 'API Key,' click on the 'Get an API Key' button. \n\n 3) Fill out the form. Upon successful completion of the form, you should be given an alphanumeric API key on the page immediately. A copy of it should also be sent to the email address you provided. \n\n 4) Enter this key where requested in the QuESt Data Manager Utility Rate Structure Data menu and/or enter it into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
-                on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
-
-        AnchorLayout:
-            anchor_x: 'right'
-            anchor_y: 'bottom'
-            padding: 5
-            size_hint_y: 0.07
-
-            TileButton:
-                text: 'Got it, thanks!'
-                #font_size: stnd_font
-                size_hint_y: 1
-                size_hint_x: 0.25
-                on_release: root.dismiss()

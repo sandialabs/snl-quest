@@ -67,6 +67,7 @@ from es_gui.apps.data_manager.home import DataManagerHomeScreen
 from es_gui.apps.data_manager.widgets import DataManagerRTOMOdataScreen
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
+from es_gui.apps.data_manager.pv import PVwattsSearchScreen
 
 # Valuation
 from es_gui.apps.valuation.home import ValuationHomeScreen
@@ -211,6 +212,7 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(DataManagerLoadHomeScreen(name='data_manager_load_home'))
         self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
         self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
+        self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
 
         # Energy storage valuation.
         #self.add_widget(ValuationScreen(name='valuation_advanced'))
@@ -270,6 +272,7 @@ class NavigationBar(ActionBar):
                      'data_manager_load_home': 'data_manager_home',
                      'data_manager_commercial_load': 'data_manager_load_home',
                      'data_manager_residential_load': 'data_manager_load_home',
+                     'data_manager_pvwatts': 'data_manager_home',
                      'btm_home': 'index',
                      'cost_savings_wizard': 'btm_home',
                      }

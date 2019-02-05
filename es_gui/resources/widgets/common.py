@@ -278,3 +278,7 @@ class ParamTextInput(TextInput):
         # limit to 8 chars
         substring = substring[:8 - len(self.text)]
         return super(ParamTextInput, self).insert_text(substring, from_undo=from_undo)
+
+
+class DataGovAPIhelp(ModalView):
+    """ModalView to display instructions on how to get a Data.gov (NREL Developer Network) API key."""

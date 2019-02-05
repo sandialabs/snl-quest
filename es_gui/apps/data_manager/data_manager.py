@@ -446,6 +446,7 @@ class DataManager(EventDispatcher):
                         ercot_data_bank['CCP'][year].extend([str(x+1).zfill(2) for x in range(0, 12)])
         
         self.data_bank['valuation']['ERCOT'] = ercot_data_bank
+    
     def _scan_nyiso_data_bank(self):
         """Scans the NYISO data bank."""
         nyiso_root = os.path.join(self.data_bank_root, 'NYISO')
@@ -1138,6 +1139,13 @@ class DataManager(EventDispatcher):
     def get_btm_cost_savings_model_params(self):
         """Returns the list of dictionaries of parameters for the energy storage system model in the BTM cost savings application."""
         with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'btm_cost_savings_model_params.json'), 'r') as fp:
+            model_params_all = json.load(fp)
+
+        return model_params_all
+    
+    def get_pvwatts_search_params(self):
+        """Returns the list of dictionaries of parameters for the PVWatts PV profile search."""
+        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'pvwatts_search_parameters.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all

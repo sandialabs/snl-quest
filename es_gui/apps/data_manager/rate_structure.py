@@ -26,7 +26,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, St
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
+from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
@@ -40,7 +40,6 @@ VERSION_OPENEI = "version=latest"
 REQUEST_FMT_OPENEI = "&format=json"
 DETAIL_OPENEI = "&detail=full"
 
-fade_in_animation = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
 
 class RateStructureDataScreen(Screen):
     """"""
@@ -61,9 +60,6 @@ class RateStructureScreenManager(ScreenManager):
         self.add_widget(RateStructureDemandRateStructureScreen(name='demand_rate_structure'))
         self.add_widget(RateStructureFinishScreen(name='finish'))
 
-class RateStructureOpenEIapiHelp(ModalView):
-    """ModalView to display instructions on how to get an OpenEI API key."""
-
 
 class RateStructureUtilitySearchScreen(Screen):
     """DataManager Rate Structure screen for searching for a utility rate structure."""
@@ -78,9 +74,9 @@ class RateStructureUtilitySearchScreen(Screen):
         UtilitySearchRVEntry.host_screen = self
         RateStructureRVEntry.host_screen = self
 
-    def open_openei_key_help(self):
-        """Opens the OpenEI API key ModalView."""
-        open_ei_help_view = RateStructureOpenEIapiHelp()
+    def open_api_key_help(self):
+        """Opens the API key help ModalView."""
+        open_ei_help_view = DataGovAPIhelp()
         open_ei_help_view.open()
     
     def reset_screen(self):
@@ -275,7 +271,7 @@ class RateStructureUtilitySearchScreen(Screen):
                     popup.open()
 
                 # Enable search results selector.
-                fade_in_animation.start(self.utility_select_bx)
+                fade_in_animation(self.utility_select_bx)
                 self._populate_utility_selector(utility_data_filtered)
 
                 # Animation.stop_all(self.loading_screen.logo, 'opacity')
@@ -388,7 +384,7 @@ class RateStructureUtilitySearchScreen(Screen):
             self.rate_structure_rv.unfiltered_data = records
 
             logging.info('RateStructureDM: Retrieved utility rate structures.')
-            fade_in_animation.start(self.rate_structure_select_bx)
+            fade_in_animation(self.rate_structure_select_bx)
         finally:
             self.loading_screen.dismiss()
     

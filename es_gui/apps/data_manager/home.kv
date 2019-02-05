@@ -1,7 +1,4 @@
 <DataManagerHomeScreen>:
-    rto_mo_data_button: rto_mo_data_button
-    utility_rate_data_button: utility_rate_data_button
-
     GridLayout:
         cols: 1
         padding: 400, 150
@@ -20,26 +17,28 @@
             cols: 1
             spacing: 5
             row_force_default: True
-            row_default_height: self.height/4
+            row_default_height: self.height/5
             padding: (0, 50)
 
             DataManagerMenuTileButton:
-                id: rto_mo_data_button
                 background_color: C(hex_primary)
                 text: 'ISO/RTO Market and Operations'
                 on_release: root.manager.current = 'data_manager_rto_mo_data'
             
             DataManagerMenuTileButton:
-                id: utility_rate_data_button
                 background_color: C(hex_primary)
                 text: 'Utility Rate Structures'
                 on_release: root.manager.current = 'data_manager_rate_structure_data'
             
             DataManagerMenuTileButton:
-                id: hourly_load_data_button
                 background_color: C(hex_primary)
-                text: 'Commercial/Residential Building Load Data'
+                text: 'Commercial/Residential Building Load Profiles'
                 on_release: root.manager.current = 'data_manager_load_home'
+            
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'Photovoltaic Power Profiles'
+                on_release: root.manager.current = 'data_manager_pvwatts'
 
 <DataManagerMenuTileButton@MenuTileButton>:
     font: huge_font
