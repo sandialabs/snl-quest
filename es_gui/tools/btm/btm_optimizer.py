@@ -415,7 +415,7 @@ class BtmOptimizer(optimizer.Optimizer):
               
     def populate_model(self):
         """Populates the Pyomo ConcreteModel based on the specified market_type."""
-        self.model.objective_expr = Expression(expr=0.0)
+        self.model.objective_expr = NumericConstant(0.0)
 
         self._set_model_param()
         self._set_model_var()

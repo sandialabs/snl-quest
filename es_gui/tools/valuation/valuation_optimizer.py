@@ -393,6 +393,9 @@ class ValuationOptimizer(optimizer.Optimizer):
                 m.perf_score[len(m.price_electricity) - 1]
             except TypeError:
                 m.perf_score = np.array([m.perf_score] * len(m.price_electricity))
+            except IndexError:
+                logging.warning('ValuationOptimizer: A perf_score array was provided but is shorter than the price_electricity array.')
+                raise(IncompatibleDataException('ValuationOptimizer: There was a mismatch in array sizes between perf_score and price_electricity.'))
 
         if self.market_type in {'caiso_pfp'}: # TODO: Figure out SPP for this?
             # Performance score for regulation up and down services for pay-for-performance models.
@@ -421,12 +424,18 @@ class ValuationOptimizer(optimizer.Optimizer):
                 m.perf_score_ru[len(m.price_electricity) - 1]
             except TypeError:
                 m.perf_score_ru = np.array([m.perf_score_ru] * len(m.price_electricity))
+            except IndexError:
+                logging.warning('ValuationOptimizer: A perf_score_ru array was provided but is shorter than the price_electricity array.')
+                raise(IncompatibleDataException('ValuationOptimizer: There was a mismatch in array sizes between perf_score_ru and price_electricity.'))
 
             try:
                 # TODO: what if it is an array but longer than price of electricity, better to prompt an error??
                 m.perf_score_rd[len(m.price_electricity) - 1]
             except TypeError:
                 m.perf_score_rd = np.array([m.perf_score_rd] * len(m.price_electricity))
+            except IndexError:
+                logging.warning('ValuationOptimizer: A perf_score_rd array was provided but is shorter than the price_electricity array.')
+                raise(IncompatibleDataException('ValuationOptimizer: There was a mismatch in array sizes between perf_score_rd and price_electricity.'))
 
         if self.market_type in {'miso_pfp'}:
             if not hasattr(m, 'Make_whole'):
@@ -528,7 +537,7 @@ class ValuationOptimizer(optimizer.Optimizer):
 
     def populate_model(self):
         """Populates the Pyomo ConcreteModel based on the specified market_type."""
-        self.model.objective_expr = Expression(expr=0.0)
+        self.model.objective_expr = NumericConstant(0.0)
 
         self._set_model_param()
         self._set_model_var()

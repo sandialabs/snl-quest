@@ -30,7 +30,7 @@ from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
 from .reporting import BtmCostSavingsReport
-from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup
+from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup, ParameterRow
 
 
 class CostSavingsWizard(Screen):
@@ -507,7 +507,7 @@ class CostSavingsParameterWidget(GridLayout):
         MODEL_PARAMS = data_manager.get_btm_cost_savings_model_params()
 
         for param in MODEL_PARAMS:
-            row = CostSavingsParameterRow(desc=param)
+            row = ParameterRow(desc=param)
             self.add_widget(row)
             setattr(self, param['attr name'], row)
     
@@ -540,35 +540,35 @@ class CostSavingsParameterWidget(GridLayout):
             return params
 
 
-class CostSavingsParameterRow(GridLayout):
-    """Grid layout containing parameter name, description, text input, and units."""
-    def __init__(self, desc, **kwargs):
-        super(CostSavingsParameterRow, self).__init__(**kwargs)
+# class CostSavingsParameterRow(GridLayout):
+#     """Grid layout containing parameter name, description, text input, and units."""
+#     def __init__(self, desc, **kwargs):
+#         super(CostSavingsParameterRow, self).__init__(**kwargs)
 
-        self._desc = desc
+#         self._desc = desc
 
-        self.name.text = self.desc.get('name', '')
-        self.notes.text = self.desc.get('notes', '')
-        self.text_input.hint_text = str(self.desc.get('default', ''))
-        self.units.text = self.desc.get('units', '')
+#         self.name.text = self.desc.get('name', '')
+#         self.notes.text = self.desc.get('notes', '')
+#         self.text_input.hint_text = str(self.desc.get('default', ''))
+#         self.units.text = self.desc.get('units', '')
 
-    @property
-    def desc(self):
-        return self._desc
+#     @property
+#     def desc(self):
+#         return self._desc
 
-    @desc.setter
-    def desc(self, value):
-        self._desc = value
+#     @desc.setter
+#     def desc(self, value):
+#         self._desc = value
 
 
-class CostSavingsParamTextInput(TextInput):
-    """
-    A TextInput field for entering parameter values. Limited to float values.
-    """
-    def insert_text(self, substring, from_undo=False):
-        # limit to 8 chars
-        substring = substring[:8 - len(self.text)]
-        return super(CostSavingsParamTextInput, self).insert_text(substring, from_undo=from_undo)
+# class CostSavingsParamTextInput(TextInput):
+#     """
+#     A TextInput field for entering parameter values. Limited to float values.
+#     """
+#     def insert_text(self, substring, from_undo=False):
+#         # limit to 8 chars
+#         substring = substring[:8 - len(self.text)]
+#         return super(CostSavingsParamTextInput, self).insert_text(substring, from_undo=from_undo)
 
 
 class CostSavingsWizardSummary(Screen):

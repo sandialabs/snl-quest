@@ -12,6 +12,8 @@ from kivy.core.window import Window
 from kivy.animation import Animation
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.textinput import TextInput
 from kivy.uix.modalview import ModalView
 from kivy.uix.button import Button
 from kivy.properties import BooleanProperty
@@ -247,3 +249,32 @@ class WizardReportInterface(Screen):
 
 class ReportChartToggle(ToggleButton, TileButton):
     pass
+
+
+class ParameterRow(GridLayout):
+    """Grid layout containing parameter name, description, text input, and units."""
+    def __init__(self, desc, **kwargs):
+        super(ParameterRow, self).__init__(**kwargs)
+
+        self._desc = desc
+
+        self.name.text = self.desc.get('name', '')
+        self.notes.text = self.desc.get('notes', '')
+        self.text_input.hint_text = str(self.desc.get('default', ''))
+        self.units.text = self.desc.get('units', '')
+
+    @property
+    def desc(self):
+        return self._desc
+
+    @desc.setter
+    def desc(self, value):
+        self._desc = value
+
+
+class ParamTextInput(TextInput):
+    """A TextInput field for entering parameter values. Limited to float values."""
+    def insert_text(self, substring, from_undo=False):
+        # limit to 8 chars
+        substring = substring[:8 - len(self.text)]
+        return super(ParamTextInput, self).insert_text(substring, from_undo=from_undo)

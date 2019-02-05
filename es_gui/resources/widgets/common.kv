@@ -420,3 +420,49 @@
     valign: 'top'
     bold: True if self.state == 'down' else False
     font_size: default_font
+
+<ParameterRow>:
+    rows: 1
+    spacing: 20
+
+    name: name
+    notes: notes
+    text_input: text_input
+    units: units
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.25
+        text: ''
+        color: C(hex_secondary)
+        font_size: stnd_font
+        bold: True
+    
+    BodyTextBase:
+        id: notes
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ParamTextInput:
+        id: text_input
+        size_hint_x: 0.1
+        color: C(hex_black)
+        font_size: stnd_font
+    
+    BodyTextBase:
+        id: units
+        size_hint_x: 0.1
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ParamTextInput>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+    on_focus: self.select_all() if self.focus else self.cancel_selection()

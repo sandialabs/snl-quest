@@ -1089,7 +1089,7 @@ class DataManager(EventDispatcher):
             caiso_data_bank = self.data_bank['valuation']['CAISO']
 
             lmp_data = caiso_data_bank['LMP'].get(node, {})
-            print(lmp_data)
+            # print(lmp_data)
 
             if rev_streams == 'Arbitrage and regulation':
                 # Ensure regulation and mileage data is downloaded for each month.
