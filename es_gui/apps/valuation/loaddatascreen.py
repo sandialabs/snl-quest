@@ -55,13 +55,14 @@ class LoadDataScreen(Screen):
         data_manager = App.get_running_app().data_manager
 
         try:
-            market_models_available = data_manager.get_valuation_revstreams(iso_selected, self.node['nodeid'])
-        except DataManagerException:
+            self.iso_select.values.index(iso_selected)
+        except ValueError:
             raise InputError('Select a market area in "Select Data."')
 
         try:
             node_selected = self.node['nodeid']
-        except IndexError:
+            market_models_available = data_manager.get_valuation_revstreams(iso_selected, node_selected)
+        except KeyError:
             raise InputError('Select a pricing node in "Select Data."')
 
         if node_selected not in data_manager.get_nodes(iso_selected).keys():

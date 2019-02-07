@@ -86,9 +86,13 @@ class Optimizer(with_metaclass(ABCMeta)):
             solver = SolverFactory(self.solver)
             results = solver.solve(self.model, tee=True, keepfiles=False)
 
-        assert (results.solver.termination_condition.key == 'optimal')
-
-        self._process_results()
+        try:
+            assert (results.solver.termination_condition.key == 'optimal')
+        except AssertionError as e:
+            logging.error('Optimizer: An optimal solution could not be obtained. (Infeasible problem?)')
+            raise(e)
+        else:
+            self._process_results()
 
         return self.get_results()
 

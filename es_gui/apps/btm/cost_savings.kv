@@ -137,7 +137,7 @@
                     source: 'es_gui/resources/images/tou_sched.png'
 
                 Image:
-                    source: 'es_gui/resources/images/report_multisetbar.png'
+                    source: 'es_gui/resources/images/tou_savings.png'
     
         BoxLayout:
             size_hint_y: 0.05
@@ -487,6 +487,10 @@
 
 <CostSavingsWizardSummary>:
     content: content
+    rate_structure_label: rate_structure_label
+    load_profile_label: load_profile_label
+    pv_profile_label: pv_profile_label
+    system_parameters_label: system_parameters_label
 
     BoxLayout:
         orientation: 'vertical'
@@ -497,12 +501,34 @@
             text: 'Summary of selections.'
 
         BoxLayout:
-            orientation: 'vertical'
+            orientation: 'horizontal'
             size_hint_y: 0.8
             id: content
             opacity: 0
             padding: (WIZ_PADDING_X, 0)
             spacing: 10
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                WizardBodyText:
+                    id: rate_structure_label
+                
+                WizardBodyText:
+                    id: load_profile_label
+                
+                WizardBodyText:
+                    id: pv_profile_label
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                WizardBodyText:
+                    id: system_parameters_label
     
         BoxLayout:
             size_hint_y: 0.05

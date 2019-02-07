@@ -238,13 +238,14 @@ class WizardCompletePopup(MyPopup):
 
 class WizardReportInterface(Screen):
     def on_enter(self):
-        # Randomly open one chart.
-        def _random_start(*args):
-            random_report = choice(self.chart_type_toggle.children)
-            random_report.state = 'down'
+        def _start(*args):
+            self.chart_type_toggle.children[-1].state = 'down'
+
+            # random_report = choice(self.chart_type_toggle.children)
+            # random_report.state = 'down'
 
         if not any([button.state == 'down' for button in self.chart_type_toggle.children]):
-            Clock.schedule_once(lambda dt: _random_start(), 0.25)
+            Clock.schedule_once(lambda dt: _start(), 0.25)
 
 
 class ReportChartToggle(ToggleButton, TileButton):
@@ -278,6 +279,54 @@ class ParamTextInput(TextInput):
         # limit to 8 chars
         substring = substring[:8 - len(self.text)]
         return super(ParamTextInput, self).insert_text(substring, from_undo=from_undo)
+
+
+class ParameterGridWidget(GridLayout):
+    """Grid layout containing rows of parameter adjustment widgets."""   
+    def _validate_inputs(self):
+        params = []
+        param_set = {}
+
+        for row in self.children:
+            attr_name = row.desc['attr name']
+
+            if not row.text_input.text:
+                attr_val = row.text_input.hint_text
+            else:
+                attr_val = row.text_input.text
+            
+            param_set[attr_name] = float(attr_val)
+        
+        params.append(param_set)
+
+        return params
+    
+    def get_inputs(self):
+        try:
+            params = self._validate_inputs()
+        except InputError as e:
+            popup = WarningPopup()
+            popup.popup_text.text = str(e)
+            popup.open()
+        else:
+            return params
+    
+    def get_input_strings(self):
+        params = []
+
+        for row in self.children:
+            param_name = row.desc['name']
+            param_units = row.desc['units']
+            
+            if not row.text_input.text:
+                param_val = row.text_input.hint_text
+            else:
+                param_val = row.text_input.text
+            
+            param_string = '{name}: {value} {units}'.format(name=param_name, value=param_val, units=param_units)
+            params.append(param_string)
+        
+        return params
 
 
 class DataGovAPIhelp(ModalView):

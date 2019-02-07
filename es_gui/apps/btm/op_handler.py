@@ -71,7 +71,7 @@ class BtmOptimizerHandler:
                 load_profile = self.dms.get_load_profile_data(load_profile_path['path'], ix)
 
                 try:
-                    pv_profile = self.dms.get_pv_profile_data(pv_profile_path['path'])
+                    pv_profile = self.dms.get_pv_profile_data(pv_profile_path['path'], ix)
                 except KeyError:
                     pv_profile = np.zeros(len(load_profile))
 
@@ -101,6 +101,8 @@ class BtmOptimizerHandler:
                     solved_op = self._solve_model(op)
                 except pyutilib.common._exceptions.ApplicationError as e:
                     logging.error('BtmOp Handler: Something went wrong when solving: ({error})'.format(error=e))
+                    handler_status = False
+                except AssertionError as e:
                     handler_status = False
                 except IncompatibleDataException as e:
                     logging.error(e)

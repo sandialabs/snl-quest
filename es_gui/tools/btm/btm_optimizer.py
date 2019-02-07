@@ -309,9 +309,12 @@ class BtmOptimizer(optimizer.Optimizer):
             m.Reserve_charge_max = m.Reserve_charge_max/100
         
         if not hasattr(m, 'State_of_charge_init'):
-            # Initial state of charge [MWh], defaults to the amount reserved for discharging.
+            # Initial state of charge [fraction of capacity], defaults to the amount reserved for discharging.
             logging.debug('ValuationOptimizer: No State_of_charge_init provided, setting default...')
-            m.State_of_charge_init = m.Reserve_charge_min*m.Energy_capacity
+            m.State_of_charge_init = m.Reserve_charge_min
+        elif getattr(m, 'State_of_charge_init') > 1.0:
+            logging.warning('ValuationOptimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...')
+            m.State_of_charge_init = m.State_of_charge_init/100
             
         m.smin = m.Reserve_charge_min*m.Energy_capacity
         m.smax = (1 - m.Reserve_charge_max)*m.Energy_capacity
@@ -323,7 +326,7 @@ class BtmOptimizer(optimizer.Optimizer):
         if not hasattr(m, 's'):
             def _s_init(_m, t):
                 """The energy storage device's state of charge [kWh]."""
-                return 0.0
+                return m.State_of_charge_init*m.Energy_capacity
 
             m.s = Var(m.time, initialize=_s_init, domain = NonNegativeReals, bounds=(m.smin,m.smax))
 

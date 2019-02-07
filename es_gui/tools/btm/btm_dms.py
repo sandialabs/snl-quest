@@ -36,18 +36,18 @@ class BtmDMS(DataManagementSystem):
         finally:
             return load_profile
     
-    def get_pv_profile_data(self, path):
+    def get_pv_profile_data(self, path, month):
         """Retrieves PV profile data."""
         # TODO: Finish
         logging.info('DMS: Loading PV profile data')
-        return
 
-        # pv_profile_key = self.delimiter.join([path, month])
+        month = str(month)
+        pv_profile_key = self.delimiter.join([path, month])
 
-        # try:
-        #     load_profile = self.get_data(load_profile_key)
-        # except KeyError:
-        #     load_profile = read_load_profile(path, month)
-        #     self.add_data(load_profile, load_profile_key)
-        # finally:
-        #     return load_profile
+        try:
+            pv_profile = self.get_data(pv_profile_key)
+        except KeyError:
+            pv_profile = read_pv_profile(path, month)
+            self.add_data(pv_profile, pv_profile_key)
+        finally:
+            return pv_profile

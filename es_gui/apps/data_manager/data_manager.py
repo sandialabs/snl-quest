@@ -66,6 +66,7 @@ class DataManager(EventDispatcher):
 
             self._scan_rate_structure_data_bank()
             self._scan_btm_load_profile_data_bank()
+            self._scan_btm_pv_profile_data_bank()
 
             self.n_threads_scanning -= 1
         
@@ -137,9 +138,25 @@ class DataManager(EventDispatcher):
     
     def _scan_btm_pv_profile_data_bank(self):
         """Scans the saved PV profile data bank."""
-        # TODO: When implement PVWatt API
+        pv_profile_root = os.path.join(self.data_bank_root, 'pv')
+        pv_profile_data_bank = {}
 
-        self.data_bank['PV profiles'] = {}
+        try:
+            os.listdir(pv_profile_root)
+        except FileNotFoundError:
+            return
+
+        for pv_profile in os.scandir(pv_profile_root):
+            if not pv_profile.name.startswith('.'):
+                profile_key = pv_profile.name.split('.')[0]
+
+                # with open(pv_profile.path) as f:
+                #     profile_val = json.load(f)
+                profile_val = pv_profile.path
+
+                pv_profile_data_bank[profile_key] = profile_val
+            
+        self.data_bank['PV profiles'] = pv_profile_data_bank
     
     def get_rate_structures(self):
         """Returns a dictionary of all of the rate structures saved to the data bank."""
@@ -164,8 +181,10 @@ class DataManager(EventDispatcher):
     def get_pv_profiles(self):
         """Returns a dictionary of all of the PV profiles saved to the data bank."""
         # Sort by name alphabetically before returning.
-        # return_dict = collections.OrderedDict(sorted(self.data_bank['load profiles'].items(), key=lambda t: t[0]))
-        return_dict = {}
+        try:
+            return_dict = collections.OrderedDict(sorted(self.data_bank['PV profiles'].items(), key=lambda t: t[0]))
+        except KeyError:
+            raise(KeyError('It looks like no PV profiles have been saved.'))
 
         return return_dict
     

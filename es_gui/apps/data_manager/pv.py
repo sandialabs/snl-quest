@@ -168,10 +168,6 @@ class PVwattsSearchScreen(Screen):
             raise requests.ConnectionError
         else:
             request_content = http_request.json()
-            # total_output_w = request_content['outputs']['ac']
-            
-            # # Convert output to kW.
-            # total_output_kw = pd.Series(total_output_w)*1e-3
 
             if not self.save_name_field.text:
                 outname = 'example'

@@ -30,7 +30,8 @@ from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
 from .reporting import BtmCostSavingsReport
-from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup, ParameterRow
+from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup, ParameterRow, ParameterGridWidget
+from es_gui.tools.btm.readutdata import get_pv_profile_string
 
 
 class CostSavingsWizard(Screen):
@@ -57,14 +58,6 @@ class CostSavingsWizardScreenManager(ScreenManager):
 
         self.transition = SlideTransition()
         self.add_widget(CostSavingsWizardStart(name='start'))
-    
-    # def generate_start(self):
-    #     """"""
-    #     try:
-    #         data_manager = App.get_running_app().data_manager
-    #         rate_structure_options = [rs[1] for rs in data_manager.get_rate_structures().items()]
-    #         self.get_screen('start').rate_structure_rv.data = rate_structure_options
-    #         self.get_screen('start').rate_structure_rv.unfiltered_data = rate_structure_options
 
 
 class CostSavingsWizardStart(Screen):
@@ -385,9 +378,14 @@ class CostSavingsWizardPVSelect(Screen):
         try:
             data_manager = App.get_running_app().data_manager
 
-            load_profile_options = [{'name': x[0], 'path': x[1]} for x in data_manager.get_pv_profiles().items()]
-            self.pv_profile_rv.data = load_profile_options
-            self.pv_profile_rv.unfiltered_data = load_profile_options
+            pv_profile_options = [
+                {
+                'name': x[0], 'path': x[1], 'descriptors': get_pv_profile_string(x[1])
+                } 
+                for x in data_manager.get_pv_profiles().items()
+                ]
+            self.pv_profile_rv.data = pv_profile_options
+            self.pv_profile_rv.unfiltered_data = pv_profile_options
         except Exception as e:
             print(e)
         
@@ -399,9 +397,9 @@ class CostSavingsWizardPVSelect(Screen):
     
     def on_load_profile_selected(self, instance, value):
         try:
-            logging.info('CostSavings: Load profile selection changed to {0}.'.format(value['name']))
+            logging.info('CostSavings: PV profile selection changed to {0}.'.format(value['name']))
         except KeyError:
-            logging.info('CostSavings: Load profile selection reset.')
+            logging.info('CostSavings: PV profile selection reset.')
             self.has_selection = False
         else:
             self.has_selection = True
@@ -446,7 +444,11 @@ class PVProfileRecycleViewRow(RecycleViewRow):
         self.selected = is_selected
 
         if is_selected:
-            self.pv_profile_screen.load_profile = rv.data[self.index]
+            self.pv_profile_screen.pv_profile_selected = rv.data[self.index]
+    
+    def deselect_node(self):
+        super(PVProfileRecycleViewRow, self).deselect_node(self)
+        print('hi all')
 
 
 class CostSavingsWizardSystemParameters(Screen):
@@ -468,19 +470,20 @@ class CostSavingsWizardSystemParameters(Screen):
     
     def _validate_inputs(self):
         params = self.param_widget.get_inputs()
+        params_desc = self.param_widget.get_input_strings()
 
-        return params
+        return params, params_desc
     
     def get_selections(self):
         """Retrieves screen's selections."""
         try:
-            params = self._validate_inputs()
+            params, params_desc = self._validate_inputs()
         except InputError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
             popup.open()
         else:
-            return params
+            return params, params_desc
     
     def _next_screen(self):
         if not self.manager.has_screen('summary'):
@@ -499,7 +502,7 @@ class CostSavingsWizardSystemParameters(Screen):
             self.manager.current = 'summary'
 
 
-class CostSavingsParameterWidget(GridLayout):
+class CostSavingsParameterWidget(ParameterGridWidget):
     """Grid layout containing rows of parameter adjustment widgets."""
     def build(self):
         # Build the widget by creating a row for each parameter.
@@ -510,34 +513,6 @@ class CostSavingsParameterWidget(GridLayout):
             row = ParameterRow(desc=param)
             self.add_widget(row)
             setattr(self, param['attr name'], row)
-    
-    def _validate_inputs(self):
-        params = []
-        param_set = {}
-
-        for row in self.children:
-            attr_name = row.desc['attr name']
-
-            if not row.text_input.text:
-                attr_val = row.text_input.hint_text
-            else:
-                attr_val = row.text_input.text
-            
-            param_set[attr_name] = float(attr_val)
-        
-        params.append(param_set)
-
-        return params
-    
-    def get_inputs(self):
-        try:
-            params = self._validate_inputs()
-        except InputError as e:
-            popup = WarningPopup()
-            popup.popup_text.text = str(e)
-            popup.open()
-        else:
-            return params
 
 
 class CostSavingsWizardSummary(Screen):
@@ -550,7 +525,7 @@ class CostSavingsWizardSummary(Screen):
         op_handler_requests['rate_structure'] = sm.get_screen('rate_select').get_selections()
         op_handler_requests['load_profile'] = sm.get_screen('load_profile_select').get_selections()
         op_handler_requests['pv_profile'] = sm.get_screen('pv_profile_select').get_selections()
-        op_handler_requests['params'] = sm.get_screen('system_parameters').get_selections()
+        op_handler_requests['params'], op_handler_requests['param desc'] = sm.get_screen('system_parameters').get_selections()
 
         return op_handler_requests
 
@@ -559,7 +534,36 @@ class CostSavingsWizardSummary(Screen):
 
         op_handler_requests = self.get_selections()
 
-        print(op_handler_requests)
+        load_profile = op_handler_requests['load_profile']
+        pv_profile = op_handler_requests['pv_profile']
+        system_params = op_handler_requests['param desc']
+        rate_structure = op_handler_requests['rate_structure']
+
+        # Rate structure label.
+        rate_structure_text = '\n'.join([
+            '[b]Rate Structure:[/b]',
+            rate_structure['name'],
+            rate_structure['utility']['utility name'],
+            rate_structure['utility']['rate structure name'],
+            ])
+        self.rate_structure_label.text = rate_structure_text
+
+        # Load profile label.
+        load_profile_text = '\n'.join([
+            '[b]Load Profile:[/b]',
+            load_profile['name']
+            ])
+        self.load_profile_label.text = load_profile_text
+
+        # PV profile label.
+        pv_profile_text = '[b]PV Profile:[/b]\n'
+        pv_profile_text += '\n'.join(pv_profile['descriptors'])
+        self.pv_profile_label.text = pv_profile_text
+
+        # System parameters label.
+        system_parameters_text = '[b]System Parameters:[/b]\n'
+        system_parameters_text += '\n'.join(system_params)
+        self.system_parameters_label.text = system_parameters_text
     
     def on_leave(self):
         Animation.stop_all(self.content, 'opacity')
@@ -599,7 +603,7 @@ class CostSavingsWizardExecute(Screen):
 
         # If no optimizations were solved successfully, bail out.
         if not self.solved_ops:
-            popup = CostSavingsWizardCompletePopup()
+            popup = WizardCompletePopup()
 
             popup.title = "Hmm..."
             popup.popup_text.text = "Unfortunately, none of the models were able to be solved."
