@@ -557,7 +557,7 @@ class CostSavingsWizardSummary(Screen):
 
         # PV profile label.
         pv_profile_text = '[b]PV Profile:[/b]\n'
-        pv_profile_text += '\n'.join(pv_profile['descriptors'])
+        pv_profile_text += '\n'.join(pv_profile.get('descriptors', ['None selected']))
         self.pv_profile_label.text = pv_profile_text
 
         # System parameters label.
