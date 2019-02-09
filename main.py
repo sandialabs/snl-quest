@@ -73,7 +73,7 @@ from es_gui.apps.data_manager.pv import PVwattsSearchScreen
 from es_gui.apps.valuation.home import ValuationHomeScreen
 from es_gui.apps.valuation.valuationscreen import ValuationScreen
 from es_gui.apps.valuation.batchrunscreen import BatchRunScreen
-from es_gui.apps.valuation.plotscreen import PlotScreen
+from es_gui.apps.valuation.results_viewer import ValuationPlotScreen
 from es_gui.apps.valuation.setparametersscreen import SetParametersScreen
 from es_gui.apps.valuation.loaddatascreen import LoadDataScreen
 from es_gui.apps.valuation.wizard import ValuationWizard
@@ -222,7 +222,7 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(BatchRunScreen(name='batch_run'))
         self.add_widget(SetParametersScreen(name='set_parameters'))
         self.add_widget(LoadDataScreen(name='load_data'))
-        self.add_widget(PlotScreen(name='plot'))
+        self.add_widget(ValuationPlotScreen(name='plot'))
         self.add_widget(ValuationWizard(name='valuation_wizard'))
 
         # Behind-the-meter applications.
