@@ -41,7 +41,7 @@ class BtmResultsViewer(ResultsViewer):
         """Updates the data viewing toolbar based on selections."""
         super(BtmResultsViewer, self)._update_toolbar(self)
 
-        vars_list = ['load', 'charge profile', 'total demand', 'state of charge', 'total bill']
+        vars_list = ['load', 'charge profile', 'total demand', 'state of charge', 'total bill', 'total savings']
 
         self.vars_button.values = vars_list
 
@@ -56,7 +56,7 @@ class BtmResultsViewer(ResultsViewer):
 
         results = self.dfs
 
-        if plot_type in ['total bill']:
+        if plot_type in ['total bill', 'total savings',]:
             self._reinit_graph(has_legend=False)
         else:
             self._reinit_graph(has_legend=True)
@@ -122,6 +122,17 @@ class BtmResultsViewer(ResultsViewer):
                 ax.set_title('Total Bill')
                 ax.grid(False)
                 plt.xticks(ixes, labels)
+        elif plot_type == 'total savings':
+                ixes = range(len(results))
+                heights = [results[key]['total_bill_without_es'].tail(1) - results[key]['total_bill_with_es'].tail(1) for key in results]
+
+                ax.bar(ixes, heights)
+                labels=[textwrap.fill(' '.join(key.split(' | ')[:3]), 20) for key in results]
+
+                ax.set_ylabel('$')
+                ax.set_title('Total Savings')
+                ax.grid(False)
+                plt.xticks(ixes, labels)
         # else:
         #     for key in results:
         #         df = results[key]
@@ -129,7 +140,7 @@ class BtmResultsViewer(ResultsViewer):
 
         #         ax.set_title(plot_type)
 
-        if plot_type in ['total bill']:
+        if plot_type in ['total bill', 'total savings']:
             pass
         else:
             ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0, shadow=False, labelspacing=1.8)
