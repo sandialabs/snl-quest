@@ -29,7 +29,6 @@ class BtmResultsViewer(ResultsViewer):
     def on_pre_enter(self):
         """Updates the navigation bar's title."""
         ab = self.manager.nav_bar
-        ab.build_valuation_results_nav_bar()
         ab.set_title('Results Viewer')
 
         #Window.bind(on_key_down=self._on_keyboard_down)
@@ -37,7 +36,6 @@ class BtmResultsViewer(ResultsViewer):
         self._update_toolbar()
 
         self.rv.data = self.manager.get_screen('btm_home').handler.solved_ops
-        # self.run_selector.rv.data = self.manager.get_screen('valuation_home').handler.solved_ops
 
     def _update_toolbar(self, *args):
         """Updates the data viewing toolbar based on selections."""
