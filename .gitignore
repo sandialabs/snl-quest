@@ -19,6 +19,10 @@ results/valuation/report/*.html
 results/valuation/report/images/*.png
 results/valuation/csv/*.csv
 results/valuation/plots/*.png
+results/btm/report/*html
+results/btm/report/images/*.png
+results/btm/csv/*.csv
+results/btm/plots/*.png
 
 es_gui/resources/docs/sphinx/build/*
 es_gui/tools/valuation/docs/*

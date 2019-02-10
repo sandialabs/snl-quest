@@ -337,13 +337,13 @@ class DataGovAPIhelp(ModalView):
     """ModalView to display instructions on how to get a Data.gov (NREL Developer Network) API key."""
 
 
-class PlotScreen(Screen):
+class ResultsViewer(Screen):
     """The screen for displaying plots inside the application or exporting results."""
     current_fig = ObjectProperty()
     current_ax = ObjectProperty()
 
     def __init__(self, **kwargs):
-        super(PlotScreen, self).__init__(**kwargs)
+        super(ResultsViewer, self).__init__(**kwargs)
 
         self.dfs = {}
 

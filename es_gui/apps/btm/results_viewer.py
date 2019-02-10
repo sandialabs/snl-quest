@@ -13,13 +13,13 @@ from kivy.core.window import Window
 from es_gui.resources.widgets.common import ResultsViewer
 
 
-class ValuationResultsViewer(ResultsViewer):
+class BtmResultsViewer(ResultsViewer):
     """The screen for displaying plots inside the application or exporting results."""
     current_fig = ObjectProperty()
     current_ax = ObjectProperty()
 
     def __init__(self, **kwargs):
-        super(ValuationResultsViewer, self).__init__(**kwargs)
+        super(BtmResultsViewer, self).__init__(**kwargs)
 
         self.dfs = {}
 
@@ -36,14 +36,14 @@ class ValuationResultsViewer(ResultsViewer):
 
         self._update_toolbar()
 
-        self.rv.data = self.manager.get_screen('valuation_home').handler.solved_ops
+        self.rv.data = self.manager.get_screen('btm_home').handler.solved_ops
         # self.run_selector.rv.data = self.manager.get_screen('valuation_home').handler.solved_ops
 
     def _update_toolbar(self, *args):
         """Updates the data viewing toolbar based on selections."""
-        super(ValuationResultsViewer, self)._update_toolbar(self)
+        super(BtmResultsViewer, self)._update_toolbar(self)
 
-        vars_list = ['revenue', 'state of charge', 'arbitrage activity', 'regulation capacity offered', 'price of electricity', 'price of electricity (box)']
+        vars_list = ['load', 'charge profile', 'total demand', 'state of charge', 'total bill']
 
         self.vars_button.values = vars_list
 
@@ -58,7 +58,7 @@ class ValuationResultsViewer(ResultsViewer):
 
         results = self.dfs
 
-        if plot_type in ['price of electricity (box)']:
+        if plot_type in ['total bill']:
             self._reinit_graph(has_legend=False)
         else:
             self._reinit_graph(has_legend=True)
@@ -70,26 +70,23 @@ class ValuationResultsViewer(ResultsViewer):
         plt.xticks(rotation=0)
         plt.grid(True)
 
-        if plot_type == 'arbitrage activity':
+        if plot_type == 'load':
             for key in results:
                 df = results[key]
-                ax.plot((df['q_r'] - df['q_d'])[start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
+                ax.plot((df['Pload'])[start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
 
-            ax.set_ylabel('MWh')
+            ax.set_ylabel('kWh')
             ax.set_xlabel('ending hour')
-            ax.set_title('Energy Charged/Discharged (MWh)')
-        elif plot_type == 'regulation capacity offered':
+            ax.set_title('Load (kWh)')
+        elif plot_type == 'charge profile':
             for key in results:
                 df = results[key]
 
-                if (df['q_reg'] != 0).any():
-                    ax.plot(df['q_reg'][start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
-                else:
-                    ax.plot((df['q_rd'] - df['q_ru'])[start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
+                ax.plot((df['Pcharge'] - df['Pdischarge'])[start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
 
-            ax.set_ylabel('MWh')
+            ax.set_ylabel('kWh')
             ax.set_xlabel('ending hour')
-            ax.set_title('Regulation Capacity Offered (MWh)')
+            ax.set_title('Charge Profile (kW)')
         elif plot_type == 'revenue':
             for key in results:
                 df = results[key]
@@ -105,30 +102,36 @@ class ValuationResultsViewer(ResultsViewer):
                 df = results[key]
                 ax.plot(df['state of charge'][start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
 
-                ax.set_ylabel('MWh')
+                ax.set_ylabel('kWh')
                 ax.set_xlabel('ending hour')
-                ax.set_title('State of Charge (MWh)')
-        elif plot_type == 'price of electricity':
+                ax.set_title('State of Charge (kWh)')
+        elif plot_type == 'total demand':
             for key in results:
                 df = results[key]
-                ax.plot(df['price of electricity'][start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
+                ax.plot(df['Ptotal'][start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
 
-                ax.set_ylabel('$/MWh')
+                ax.set_ylabel('kW')
                 ax.set_xlabel('ending hour')
-                ax.set_title('Price of Electricity ($/MWh)')
-        elif plot_type == 'price of electricity (box)':
-                ax.boxplot([results[key]['price of electricity'][start_time:end_time] for key in results], labels=[textwrap.fill(' '.join(key.split()[:3]), 8) for key in results])
+                ax.set_title('Total Demand (kW)')
+        elif plot_type == 'total bill':
+                ixes = range(len(results))
+                heights = [results[key]['total_bill_with_es'].tail(1) for key in results]
 
-                ax.set_ylabel('$/MWh')
-                ax.set_title('Price of Electricity ($/MWh)')
-        else:
-            for key in results:
-                df = results[key]
-                ax.plot(df[plot_type][start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
+                ax.bar(ixes, heights)
+                labels=[textwrap.fill(' '.join(key.split(' | ')[:3]), 20) for key in results]
 
-                ax.set_title(plot_type)
+                ax.set_ylabel('$')
+                ax.set_title('Total Bill')
+                ax.grid(False)
+                plt.xticks(ixes, labels)
+        # else:
+        #     for key in results:
+        #         df = results[key]
+        #         ax.plot(df[plot_type][start_time:end_time], drawstyle='steps-post', label=textwrap.fill(key, 50))
 
-        if plot_type in ['price of electricity (box)']:
+        #         ax.set_title(plot_type)
+
+        if plot_type in ['total bill']:
             pass
         else:
             ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0, shadow=False, labelspacing=1.8)
@@ -137,19 +140,12 @@ class ValuationResultsViewer(ResultsViewer):
 
     def export_png(self):
         """Exports currently displayed figure to .png file in specified location."""
-        outdir_root = os.path.join('results', 'valuation', 'plots')
+        outdir_root = os.path.join('results', 'btm', 'plots')
 
-        super(ValuationResultsViewer, self).export_png(outdir_root)
+        super(BtmResultsViewer, self).export_png(outdir_root)
 
     def export_csv(self):
         """Exports selected DataFrames to .csv files in specified location."""
-        outdir_root = os.path.join('results', 'valuation', 'csv')
+        outdir_root = os.path.join('results', 'btm', 'csv')
 
-        super(ValuationResultsViewer, self).export_csv(outdir_root)
-
-
-class RunSelector(ModalView):
-    """
-    A ModalView used for selecting which saved runs to view or export results from.
-    """
-    pass
+        super(BtmResultsViewer, self).export_csv(outdir_root)

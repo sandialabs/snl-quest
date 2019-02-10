@@ -73,7 +73,7 @@ from es_gui.apps.data_manager.pv import PVwattsSearchScreen
 from es_gui.apps.valuation.home import ValuationHomeScreen
 from es_gui.apps.valuation.valuationscreen import ValuationScreen
 from es_gui.apps.valuation.batchrunscreen import BatchRunScreen
-from es_gui.apps.valuation.results_viewer import ValuationPlotScreen
+from es_gui.apps.valuation.results_viewer import ValuationResultsViewer
 from es_gui.apps.valuation.setparametersscreen import SetParametersScreen
 from es_gui.apps.valuation.loaddatascreen import LoadDataScreen
 from es_gui.apps.valuation.wizard import ValuationWizard
@@ -81,6 +81,7 @@ from es_gui.apps.valuation.wizard import ValuationWizard
 # Behind-the-meter
 from es_gui.apps.btm.home import BehindTheMeterHomeScreen
 from es_gui.apps.btm.cost_savings import CostSavingsWizard
+from es_gui.apps.btm.results_viewer import BtmResultsViewer
 
 # Font registration.
 LabelBase.register(name='Exo 2',
@@ -222,12 +223,13 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(BatchRunScreen(name='batch_run'))
         self.add_widget(SetParametersScreen(name='set_parameters'))
         self.add_widget(LoadDataScreen(name='load_data'))
-        self.add_widget(ValuationPlotScreen(name='plot'))
+        self.add_widget(ValuationResultsViewer(name='valuation_resultsviewer'))
         self.add_widget(ValuationWizard(name='valuation_wizard'))
 
         # Behind-the-meter applications.
         self.add_widget(BehindTheMeterHomeScreen(name='btm_home'))
         self.add_widget(CostSavingsWizard(name='cost_savings_wizard'))
+        self.add_widget(BtmResultsViewer(name='btm_resultsviewer'))
     
     def launch_valuation(self):
         """"""
@@ -263,7 +265,7 @@ class NavigationBar(ActionBar):
     parent_screen = {'index': 'index',
                      'valuation_home': 'index',
                      'batch_run': 'valuation_home',
-                     'plot': 'valuation_home',
+                     'valuation_resultsviewer': 'valuation_home',
                      'set_parameters': 'load_data',
                      'load_data': 'valuation_home',
                      'valuation_wizard': 'valuation_home',
@@ -277,6 +279,7 @@ class NavigationBar(ActionBar):
                      'data_manager_pvwatts': 'data_manager_home',
                      'btm_home': 'index',
                      'cost_savings_wizard': 'btm_home',
+                     'btm_resultsviewer': 'btm_home',
                      }
 
     def __init__(self, sm):
@@ -327,7 +330,7 @@ class NavigationBar(ActionBar):
         """
         view_results_button = NavigationButton(
             text='view results',
-            on_release=partial(self.go_to_screen, 'plot'),
+            on_release=partial(self.go_to_screen, 'valuation_resultsviewer'),
             id='plot_button'
         )
 
@@ -374,7 +377,7 @@ class NavigationBar(ActionBar):
         """Builds the navigation bar for batch processing in valuation applications."""
         view_results_button = NavigationButton(
             text='view results',
-            on_release=partial(self.go_to_screen, 'plot'),
+            on_release=partial(self.go_to_screen, 'valuation_resultsviewer'),
             id='plot_button'
         )
 
