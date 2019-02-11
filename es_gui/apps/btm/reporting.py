@@ -41,6 +41,7 @@ class BtmCostSavingsReport(WizardReportInterface):
         self.report_attributes = report_attributes
 
         sm = self.report_sm
+        self.generate_report_button.disabled = True
 
         # Build chart type selection buttons and corresponding report screens.
         for opt in self.chart_types.items():

@@ -130,7 +130,13 @@ class PVwattsSearchScreen(Screen):
             api_query += '&'.join(query_segs)
             # print(api_query)
             
-            self._query_api(api_query)
+            try:
+                self._query_api(api_query)
+            except requests.ConnectionError:
+                popup = WarningPopup()
+                popup.popup_text.text = 'There was an issue connecting to the API. Check your connection settings and try again.'
+                popup.open()
+
             # thread_query = threading.Thread(target=self._query_api, args=[api_query])
             # thread_query.start()
     
