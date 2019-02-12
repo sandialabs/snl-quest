@@ -612,7 +612,7 @@ class CostSavingsWizardExecute(Screen):
             popup.open()
             return
         
-        self.report_attributes = []
+        self.report_attributes = op_handler_requests
 
         # # Save selection summary details to pass to report generator.
         # deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children

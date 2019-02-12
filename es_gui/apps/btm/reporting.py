@@ -41,7 +41,7 @@ class BtmCostSavingsReport(WizardReportInterface):
         self.report_attributes = report_attributes
 
         sm = self.report_sm
-        self.generate_report_button.disabled = True
+        # self.generate_report_button.disabled = True
 
         # Build chart type selection buttons and corresponding report screens.
         for opt in self.chart_types.items():
@@ -51,6 +51,19 @@ class BtmCostSavingsReport(WizardReportInterface):
 
             screen = BtmCostSavingsReportScreen(type=opt[1], chart_data=self.chart_data, name=opt[1])
             sm.add_widget(screen)
+    
+    def has_chart(self, name):
+        """Returns True if chart_data will generate a chart."""
+        if name in {'demand_charge_comparison_multiset'}:
+            has_chart_status = any(op[1].has_demand_charges() for op in self.chart_data)
+        elif name in {'energy_charge_comparison_multiset'}:
+            has_chart_status = any(op[1].has_energy_charges() for op in self.chart_data)
+        elif name in {'nem_comparison_multiset'}:
+            has_chart_status = any(op[1].has_nem_charges() for op in self.chart_data)
+        else:
+            has_chart_status = True
+        
+        return has_chart_status
 
     def add_report(self, chart_type, *args):
         # Adds a ReportScreen of type chart_type to the screen manager.
@@ -195,6 +208,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
         ]
 
         self.desc.text += ' '.join(report_templates)
+        self.is_drawn = True
 
     def generate_total_bill_comparison_chart(self, *args):
         """Generates the multiset bar chart comparing total bill with and without energy storage each month."""
@@ -236,6 +250,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
             report_templates.append(total_difference_str)
 
         self.desc.text += ' '.join(report_templates)
+        self.is_drawn = True
     
     def generate_demand_charge_comparison_chart(self, *args):
         """Generates the multiset bar chart comparing total demand charges with and without energy storage each month."""
@@ -277,6 +292,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
                 report_templates.append(total_difference_str)
 
             self.desc.text += ' '.join(report_templates)
+            self.is_drawn = True
         else:
             self.title.text = "It looks like there were no demand charges."
             self.desc.text = "The particular rate structure you selected resulted in no demand charges. Either there are no demand charges or no savings on demand charges were accrued using energy storage."
@@ -325,6 +341,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
                 report_templates.append(total_difference_str)
 
             self.desc.text += ' '.join(report_templates)
+            self.is_drawn = True
         else:
             self.title.text = "It looks like there were no energy charges."
             self.desc.text = "The particular rate structure you selected resulted in no energy charges. Either there are no time-of-use energy charges or no savings on energy charges were accrued using energy storage."
@@ -376,6 +393,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
             report_templates.append(total_difference_str)
 
             self.desc.text += ' '.join(report_templates)
+            self.is_drawn = True
         else:
             self.title.text = "It looks like there were no net energy metering charges or credits."
             self.desc.text = "The particular rate structure you selected resulted in no net energy metering charges. Either that or no savings on net energy metering charges were accrued using energy storage."
@@ -418,6 +436,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
             report_templates.append("For this rate structure, there were no flat demand charges.")
 
         self.desc.text += ' '.join(report_templates)
+        self.is_drawn = True
 
     def generate_total_savings_donut_chart(self, *args):
         """TODO: Probably deprecate this since we can't guarantee non-negative quantities."""
@@ -518,7 +537,8 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
             self.sm.add_widget(screen)
 
         self.sm.current = screen.name
-        chart_dir = os.path.join('results', 'valuation', 'report', 'images')
+
+        chart_dir = os.path.join('results', 'btm_cost_savings', 'report', 'images')
         os.makedirs(chart_dir, exist_ok=True)
 
         chartSaveLocation = os.path.join(chart_dir, 'chart_{n}.png'.format(n=screen.name))
@@ -534,9 +554,12 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
 
         # Draw figures for saving to .png.
         for ix, opt in enumerate(self.host_report.chart_types.items(), start=0):
-            screen = ReportScreen(type=opt[1], chart_data=self.host_report.chart_data, market=self.host_report.market, name=opt[1], do_animation=False)
-
-            Clock.schedule_once(partial(self.save_figure, screen), ix * screenFlipInterval)
+            chart_name = opt[1]
+            has_chart_status = self.host_report.has_chart(chart_name)
+            
+            if has_chart_status:
+                screen = BtmCostSavingsReportScreen(type=chart_name, chart_data=self.host_report.chart_data, name=chart_name, do_animation=False)
+                Clock.schedule_once(partial(self.save_figure, screen), ix * screenFlipInterval)
 
         self.generate_report_button.disabled = True
 
@@ -544,6 +567,8 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         Clock.schedule_once(lambda dt: self.generate_report_from_template(), (nCharts+1)*screenFlipInterval)
 
     def generate_report_from_template(self):
+        print(self.graphicsLocations)
+
         # Get current date.
         now = datetime.datetime.now()
         today = now.strftime("%B %d, %Y")
@@ -551,15 +576,15 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         # Get report-specific data.
         reportAttributes = self.host_report.report_attributes
 
-        ISO = reportAttributes['market area']
-        pricing_node = reportAttributes['pricing node']
-        ES_device = reportAttributes['selected device']
-        revenue_streams = reportAttributes['revenue streams']
-        dates_analyzed = reportAttributes['dates analyzed']
-        power_rating = reportAttributes['Power_rating']
-        energy_capacity = reportAttributes['Energy_capacity']
-        storage_efficiency = reportAttributes['Self_discharge_efficiency']
-        conversion_efficiency = reportAttributes['Round_trip_efficiency']
+        # ISO = reportAttributes['market area']
+        # pricing_node = reportAttributes['pricing node']
+        # ES_device = reportAttributes['selected device']
+        # revenue_streams = reportAttributes['revenue streams']
+        # dates_analyzed = reportAttributes['dates analyzed']
+        # power_rating = reportAttributes['Power_rating']
+        # energy_capacity = reportAttributes['Energy_capacity']
+        # storage_efficiency = reportAttributes['Self_discharge_efficiency']
+        # conversion_efficiency = reportAttributes['Round_trip_efficiency']
 
         # Retrieve HTML template based on selected ISO.
         template_dir = os.path.join('es_gui', 'resources', 'report_templates')
@@ -569,68 +594,68 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         # Initialize Jinja environment.
         env = Environment(loader=FileSystemLoader(template_dir), autoescape=select_autoescape(['html']))
 
-        if ISO == "ERCOT":
-            template = env.get_template('valuation_report_ERCOT.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_ERCOT.html')
+        # if ISO == "ERCOT":
+        #     template = env.get_template('valuation_report_ERCOT.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_ERCOT.html')
             
-        elif ISO == "MISO":
-            template = env.get_template('valuation_report_MISO.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_MISO.html')
+        # elif ISO == "MISO":
+        #     template = env.get_template('valuation_report_MISO.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_MISO.html')
             
-        elif ISO == "PJM":
-            template = env.get_template('valuation_report_PJM.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_PJM.html')
+        # elif ISO == "PJM":
+        #     template = env.get_template('valuation_report_PJM.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_PJM.html')
 
-        elif ISO == "ISONE":
-            template = env.get_template('valuation_report_ISONE.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_ISONE.html')
-        #########################################################################################
-        elif ISO == "NYISO":
-            template = env.get_template('valuation_report_NYISO.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_NYISO.html')
-        elif ISO == "SPP":
-            template = env.get_template('valuation_report_SPP.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_SPP.html')
-        elif ISO == "CAISO":
-            template = env.get_template('valuation_report_CAISO.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_CAISO.html')
-        #########################################################################################
-        else :
-            raise ValueError('The selected ISO does not have a reporting template.')
+        # elif ISO == "ISONE":
+        #     template = env.get_template('valuation_report_ISONE.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_ISONE.html')
+        # #########################################################################################
+        # elif ISO == "NYISO":
+        #     template = env.get_template('valuation_report_NYISO.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_NYISO.html')
+        # elif ISO == "SPP":
+        #     template = env.get_template('valuation_report_SPP.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_SPP.html')
+        # elif ISO == "CAISO":
+        #     template = env.get_template('valuation_report_CAISO.html')
+        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_CAISO.html')
+        # #########################################################################################
+        # else :
+        #     raise ValueError('The selected ISO does not have a reporting template.')
 
-        # Render output file.
-        output = template.render(
-					 # GENERAL OUTPUT
-					 today=today,
-			  		 market_area=ISO,
-			  		 header="This report shows the results from optimizations performed by QuESt Valuation.",
-			  		 pricing_node=pricing_node,						 
-			  		 dates_analyzed=dates_analyzed,
-			  		 revenue_streams=revenue_streams,
-			  		 ES_device=ES_device,
-                     QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
-			  		 SNL_image=os.path.join('images', 'static', 'SNL.png'),
-			  		 DOE_image=os.path.join('images', 'static', 'DOE.png'),
-			  		 acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
-					 # PARAMETER VALUES TABLE
-					 power_rating=power_rating,
-					 energy_capacity=energy_capacity,
-					 storage_efficiency=storage_efficiency,
-					 conversion_efficiency=conversion_efficiency,						 
-					 # FIGURES
-					 revenue_total=self.graphicsLocations['revenue_bar'],
-					 revenue_source=self.graphicsLocations['revenue_multisetbar'],
-					 activity_total_percent=self.graphicsLocations['activity_donut'],
-					 activity_source=self.graphicsLocations['activity_stackedbar_normalized'],
-					 activity_source_percent=self.graphicsLocations['activity_stackedbar_normalized']
-					 )
+        # # Render output file.
+        # output = template.render(
+		# 			 # GENERAL OUTPUT
+		# 			 today=today,
+		# 	  		 market_area=ISO,
+		# 	  		 header="This report shows the results from optimizations performed by QuESt Valuation.",
+		# 	  		 pricing_node=pricing_node,						 
+		# 	  		 dates_analyzed=dates_analyzed,
+		# 	  		 revenue_streams=revenue_streams,
+		# 	  		 ES_device=ES_device,
+        #              QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
+		# 	  		 SNL_image=os.path.join('images', 'static', 'SNL.png'),
+		# 	  		 DOE_image=os.path.join('images', 'static', 'DOE.png'),
+		# 	  		 acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
+		# 			 # PARAMETER VALUES TABLE
+		# 			 power_rating=power_rating,
+		# 			 energy_capacity=energy_capacity,
+		# 			 storage_efficiency=storage_efficiency,
+		# 			 conversion_efficiency=conversion_efficiency,						 
+		# 			 # FIGURES
+		# 			 revenue_total=self.graphicsLocations['revenue_bar'],
+		# 			 revenue_source=self.graphicsLocations['revenue_multisetbar'],
+		# 			 activity_total_percent=self.graphicsLocations['activity_donut'],
+		# 			 activity_source=self.graphicsLocations['activity_stackedbar_normalized'],
+		# 			 activity_source_percent=self.graphicsLocations['activity_stackedbar_normalized']
+		# 			 )
 
-        with open(fname,"w") as f:
-            f.write(output)
+        # with open(fname,"w") as f:
+        #     f.write(output)
         
-        completion_popup = OpenGeneratedReportPopup()
-        completion_popup.report_filename = fname
-        completion_popup.open()
+        # completion_popup = OpenGeneratedReportPopup()
+        # completion_popup.report_filename = fname
+        # completion_popup.open()
 
 
 class OpenGeneratedReportPopup(MyPopup):
