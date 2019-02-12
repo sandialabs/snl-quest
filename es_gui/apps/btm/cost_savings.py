@@ -614,24 +614,6 @@ class CostSavingsWizardExecute(Screen):
         
         self.report_attributes = op_handler_requests
 
-        # # Save selection summary details to pass to report generator.
-        # deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children
-        # selectedDeviceName = [x.text for x in deviceSelectionButtons if x.state == "down"][0]
-
-        # self.report_attributes = {'market area': iso,
-        #                           'pricing node': node,
-        #                           'selected device': selectedDeviceName,
-        #                           'dates analyzed': ' to '.join([
-        #                               ' '.join([calendar.month_name[int(hist_data[0]['month'])], hist_data[0]['year']]),
-        #                               ' '.join([calendar.month_name[int(hist_data[-1]['month'])], hist_data[-1]['year']]),
-        #                               ]),
-        #                           'revenue streams': wiz_selections['rev_streams'],
-        #                           'market type': rev_streams,
-        #                          }
-
-        # for param in device:
-        #     self.report_attributes[param.desc['attr name']] = param.param_slider.value
-
         popup = WizardCompletePopup()
 
         if not handler_status:
@@ -645,4 +627,3 @@ class CostSavingsWizardExecute(Screen):
         """Adds the report screen if it does not exist and changes screens to it."""
         report = BtmCostSavingsReport(name='report', chart_data=self.solved_ops, report_attributes=self.report_attributes)
         self.manager.switch_to(report, direction='left', duration=BASE_TRANSITION_DUR)
-        # pass

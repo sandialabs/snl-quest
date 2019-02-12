@@ -567,95 +567,79 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         Clock.schedule_once(lambda dt: self.generate_report_from_template(), (nCharts+1)*screenFlipInterval)
 
     def generate_report_from_template(self):
-        print(self.graphicsLocations)
-
         # Get current date.
         now = datetime.datetime.now()
         today = now.strftime("%B %d, %Y")
 
         # Get report-specific data.
-        reportAttributes = self.host_report.report_attributes
+        op_handler_requests = self.host_report.report_attributes
+        load_profile = op_handler_requests['load_profile']
+        pv_profile = op_handler_requests['pv_profile']
+        system_params = op_handler_requests['param desc']
+        rate_structure = op_handler_requests['rate_structure']
 
-        # ISO = reportAttributes['market area']
-        # pricing_node = reportAttributes['pricing node']
-        # ES_device = reportAttributes['selected device']
-        # revenue_streams = reportAttributes['revenue streams']
-        # dates_analyzed = reportAttributes['dates analyzed']
-        # power_rating = reportAttributes['Power_rating']
-        # energy_capacity = reportAttributes['Energy_capacity']
-        # storage_efficiency = reportAttributes['Self_discharge_efficiency']
-        # conversion_efficiency = reportAttributes['Round_trip_efficiency']
+        chart_types = self.host_report.chart_types
+        chart_list = []
+        chart_ix = 1
+
+        for chart_caption, chart_type in chart_types.items():
+            if self.host_report.has_chart(chart_type):
+                chart_info = {}
+                chart_info['path'] = self.graphicsLocations[chart_type]
+                chart_info['ix'] = chart_ix
+                chart_info['caption'] = chart_caption
+
+                chart_list.append(chart_info)
+                chart_ix += 1
+
+        utility = {'name': 'Utility', 'value': rate_structure['utility']['utility name']}
+        utility_rate_structure = {'name': 'Rate Structure', 'value': rate_structure['utility']['rate structure name']}
+        load_profile_name = {'name': 'Load Profile', 'value': load_profile['name']}
+
+        summary_components = [
+            utility,
+            utility_rate_structure,
+            load_profile_name
+        ]
+
+        pv_profile_summary = pv_profile.get('descriptors', [])
 
         # Retrieve HTML template based on selected ISO.
         template_dir = os.path.join('es_gui', 'resources', 'report_templates')
-        output_dir = os.path.join('results', 'valuation', 'report')
+        output_dir = os.path.join('results', 'btm_cost_savings', 'report')
         os.makedirs(output_dir, exist_ok=True)
 
         # Initialize Jinja environment.
         env = Environment(loader=FileSystemLoader(template_dir), autoescape=select_autoescape(['html']))
+        template = env.get_template('btm_cost_savings.html')
+        fname = os.path.join(output_dir, 'QuESt_BTM_cost_savings_report.html')
 
-        # if ISO == "ERCOT":
-        #     template = env.get_template('valuation_report_ERCOT.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_ERCOT.html')
-            
-        # elif ISO == "MISO":
-        #     template = env.get_template('valuation_report_MISO.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_MISO.html')
-            
-        # elif ISO == "PJM":
-        #     template = env.get_template('valuation_report_PJM.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_PJM.html')
+        # Render output file.
+        output = template.render(
+                        # GENERAL OUTPUT
+                        today=today,
+                        header="This report shows the results from optimizations performed by QuESt BTM.",
+                        summary_components=summary_components,
+                        pv_profile_summary=pv_profile_summary,   
+                        QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
+                        SNL_image=os.path.join('images', 'static', 'SNL.png'),
+                        DOE_image=os.path.join('images', 'static', 'DOE.png'),
+                        acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
+                        # PARAMETER VALUES TABLE
+                    #  power_rating=power_rating,
+                    #  energy_capacity=energy_capacity,
+                    #  storage_efficiency=storage_efficiency,
+                    #  conversion_efficiency=conversion_efficiency,						 
+                        # FIGURES
+                        charts=chart_list,
+					)
 
-        # elif ISO == "ISONE":
-        #     template = env.get_template('valuation_report_ISONE.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_ISONE.html')
-        # #########################################################################################
-        # elif ISO == "NYISO":
-        #     template = env.get_template('valuation_report_NYISO.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_NYISO.html')
-        # elif ISO == "SPP":
-        #     template = env.get_template('valuation_report_SPP.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_SPP.html')
-        # elif ISO == "CAISO":
-        #     template = env.get_template('valuation_report_CAISO.html')
-        #     fname = os.path.join(output_dir, 'QuESt_valuation_report_CAISO.html')
-        # #########################################################################################
-        # else :
-        #     raise ValueError('The selected ISO does not have a reporting template.')
-
-        # # Render output file.
-        # output = template.render(
-		# 			 # GENERAL OUTPUT
-		# 			 today=today,
-		# 	  		 market_area=ISO,
-		# 	  		 header="This report shows the results from optimizations performed by QuESt Valuation.",
-		# 	  		 pricing_node=pricing_node,						 
-		# 	  		 dates_analyzed=dates_analyzed,
-		# 	  		 revenue_streams=revenue_streams,
-		# 	  		 ES_device=ES_device,
-        #              QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
-		# 	  		 SNL_image=os.path.join('images', 'static', 'SNL.png'),
-		# 	  		 DOE_image=os.path.join('images', 'static', 'DOE.png'),
-		# 	  		 acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
-		# 			 # PARAMETER VALUES TABLE
-		# 			 power_rating=power_rating,
-		# 			 energy_capacity=energy_capacity,
-		# 			 storage_efficiency=storage_efficiency,
-		# 			 conversion_efficiency=conversion_efficiency,						 
-		# 			 # FIGURES
-		# 			 revenue_total=self.graphicsLocations['revenue_bar'],
-		# 			 revenue_source=self.graphicsLocations['revenue_multisetbar'],
-		# 			 activity_total_percent=self.graphicsLocations['activity_donut'],
-		# 			 activity_source=self.graphicsLocations['activity_stackedbar_normalized'],
-		# 			 activity_source_percent=self.graphicsLocations['activity_stackedbar_normalized']
-		# 			 )
-
-        # with open(fname,"w") as f:
-        #     f.write(output)
+        with open(fname,"w") as f:
+            f.write(output)
         
-        # completion_popup = OpenGeneratedReportPopup()
-        # completion_popup.report_filename = fname
-        # completion_popup.open()
+        completion_popup = OpenGeneratedReportPopup()
+        completion_popup.report_filename = fname
+        completion_popup.open()
 
 
 class OpenGeneratedReportPopup(MyPopup):
