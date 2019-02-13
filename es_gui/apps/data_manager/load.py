@@ -239,8 +239,8 @@ class DataManagerCommercialLoadScreen(Screen):
             self.building_rv.deselect_all_nodes()
             self.building_rv_filter.text = ''
             self.building_selected = {}
-            self.building_rv.data = []
-            self.building_rv.unfiltered_data = []
+            # self.building_rv.data = []
+            # self.building_rv.unfiltered_data = []
     
     def on_building_selected(self, instance, value):
         try:
