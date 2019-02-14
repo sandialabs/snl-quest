@@ -604,6 +604,14 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
 
         pv_profile_summary = pv_profile.get('descriptors', [])
 
+        system_parameters_summary = []
+
+        for parameter in system_params:
+            name, val_units = parameter.split(':')
+            value, units = val_units.split()
+
+            system_parameters_summary.append({'name': name, 'value': value, 'units': units})
+
         # Retrieve HTML template based on selected ISO.
         template_dir = os.path.join('es_gui', 'resources', 'report_templates')
         output_dir = os.path.join('results', 'btm_cost_savings', 'report')
@@ -620,7 +628,8 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
                         today=today,
                         header="This report shows the results from optimizations performed by QuESt BTM.",
                         summary_components=summary_components,
-                        pv_profile_summary=pv_profile_summary,   
+                        pv_profile_summary=pv_profile_summary,
+                        system_parameters_summary=system_parameters_summary,   
                         QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
                         SNL_image=os.path.join('images', 'static', 'SNL.png'),
                         DOE_image=os.path.join('images', 'static', 'DOE.png'),
