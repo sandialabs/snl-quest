@@ -101,6 +101,9 @@ class PVwattsSearchScreen(Screen):
         pv_params['timeframe'] = 'hourly'
         pv_params['api_key'] = api_key
 
+        if not pv_params.get('tilt', None):
+            pv_params['tilt'] = pv_params['lat']
+
         return api_key, pv_params
     
     def execute_query(self):

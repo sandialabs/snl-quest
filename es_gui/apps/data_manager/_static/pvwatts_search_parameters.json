@@ -38,9 +38,9 @@
     {
     "name": "tilt angle",
     "attr name": "tilt",
-    "notes": "The tilt angle of the PV surface.",
+    "notes": "The tilt angle of the PV surface. Defaults to site latitude.",
     "max": 90,
-    "default": 0,
+    "default": "",
     "step": 1,
     "units": "deg"
     },
@@ -49,7 +49,7 @@
     "attr name": "azimuth",
     "notes": "The azimuth angle of the PV surface.",
     "max": 360,
-    "default": 0,
+    "default": 180,
     "step": 1,
     "units": "deg"
     }
