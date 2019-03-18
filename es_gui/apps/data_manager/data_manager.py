@@ -726,6 +726,7 @@ class DataManager(EventDispatcher):
                                 spp_data_bank['MCP'][year].append(month)
 
         self.data_bank['valuation']['SPP'] = spp_data_bank
+    
     def _scan_caiso_data_bank(self):
         """Scans the CAISO data bank."""
         caiso_root = os.path.join(self.data_bank_root, 'CAISO')

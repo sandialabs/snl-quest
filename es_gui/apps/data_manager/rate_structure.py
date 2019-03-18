@@ -223,14 +223,6 @@ class RateStructureUtilitySearchScreen(Screen):
             search_type = 'state'
         else:
             raise(InputError('Please select a search type. (by name, by zip, or by state)'))
-        # if self.chkbx_by_name.active:
-        #     search_type = 'utility_name'
-        # elif self.chkbx_by_zip.active:
-        #     search_type = 'zip'
-        # elif self.chkbx_by_state.active:
-        #     search_type = 'state'
-        # else:
-        #     raise(InputError('Please select a search type. (by name, by zip, or by state)'))
         
         return api_key, search_query, search_type
 
@@ -416,18 +408,21 @@ class RateStructureUtilitySearchScreen(Screen):
                 structure_df = pd.DataFrame.from_records(structure_list)
                 structure_df.dropna(subset=['energyratestructure'], inplace=True)
 
-                # Filter out entries whose energyratestructure array does not contain "rate" terms
+                # Filter out entries whose energyratestructure array does not contain "rate" terms.
                 mask = structure_df['energyratestructure'].apply(lambda x: all(['rate' in hr.keys() for row in x for hr in row]))
                 structure_df = structure_df[mask]
 
                 structure_list = structure_df.to_dict(orient='records')
 
-                # Display name: Name (record['startdate'])
-                effective_dates = ['(Effective Date : {0})'.format(dt.datetime.fromtimestamp(record['startdate']).strftime('%m/%d/%Y'))  if not np.isnan(record['startdate']) else '' for record in structure_list]
+                # Sort by effective date.
+                structure_list = sorted(structure_list, key=lambda x: (x['name'], x.get('startdate', np.nan)))
+
+                # Display name: Name (record['startdate']).
+                effective_dates = ['(Effective Date : {0})'.format(dt.datetime.fromtimestamp(record['startdate']).strftime('%m/%d/%Y')) if not np.isnan(record['startdate']) else '' for record in structure_list]
 
                 records = [{'name': record['name'] + ' ' + effective_dates[ix] , 'record': record} 
                 for ix, record in enumerate(structure_list, start=0)]
-                records = sorted(records, key=lambda t: t['name'])
+                # records = sorted(records, key=lambda t: t['name'])
 
                 self.rate_structure_rv.data = records
                 self.rate_structure_rv.unfiltered_data = records
