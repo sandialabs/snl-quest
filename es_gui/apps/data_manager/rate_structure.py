@@ -414,8 +414,12 @@ class RateStructureUtilitySearchScreen(Screen):
 
                 structure_list = structure_df.to_dict(orient='records')
 
-                # Sort by effective date.
-                structure_list = sorted(structure_list, key=lambda x: (x['name'], x.get('startdate', np.nan)))
+                # First, sort by effective date.
+                # structure_list = sorted(structure_list, key=lambda x: (x['name'], x.get('startdate', np.nan)))
+                structure_list = sorted(structure_list, key=lambda x: x.get('startdate', np.nan), reverse=True)
+
+                # Then, sort by name.
+                structure_list = sorted(structure_list, key=lambda x: x['name'])                
 
                 # Display name: Name (record['startdate']).
                 effective_dates = ['(Effective Date : {0})'.format(dt.datetime.fromtimestamp(record['startdate']).strftime('%m/%d/%Y')) if not np.isnan(record['startdate']) else '' for record in structure_list]
