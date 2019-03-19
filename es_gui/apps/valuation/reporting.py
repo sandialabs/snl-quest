@@ -362,11 +362,11 @@ class ValuationReportScreen(ReportScreen):
                 # use percentages instead of counts for bar value
 
                 # compute the total number of actions in the stack
-                n_month_total = float(sum([len(results[var].nonzero()[0]) for (var, cat) in activities]))
+                n_month_total = float(sum([len(results[var].to_numpy().nonzero()[0]) for (var, cat) in activities]))
 
                 for iy, (var, cat) in enumerate(activities, start=0):
                     component_color = colors[iy]
-                    n_activity = sum([len(results[var].nonzero()[0])])
+                    n_activity = sum([len(results[var].to_numpy().nonzero()[0])])
 
                     try:
                         n_activity_normalized = n_activity/n_month_total*100
