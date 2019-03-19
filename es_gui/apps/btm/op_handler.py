@@ -139,3 +139,10 @@ class BtmOptimizerHandler:
         BtmOptimizerHandler.solved_ops.append(results_dict)
 
         return (name, op)
+    
+    def get_solved_ops(self):
+        """Returns the list of solved Optimizer objects in reverse chronological order."""
+        return_list = reversed(self.solved_ops)
+
+        return return_list
+    

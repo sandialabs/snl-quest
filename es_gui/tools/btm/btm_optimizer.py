@@ -303,7 +303,7 @@ class BtmOptimizer(optimizer.Optimizer):
         if not hasattr(m, 'Reserve_charge_max'):
             # Fraction of energy capacity to decrease state of charge maximum by.
             logging.debug('ValuationOptimizer: No Reserve_charge_max provided, setting default...')
-            m.Reserve_charge_max = 0
+            m.Reserve_charge_max = 100
         elif getattr(m, 'Reserve_charge_max') > 1.0:
             logging.warning('ValuationOptimizer: Reserve_charge_max provided is greater than 1.0, interpreting as percentage...')
             m.Reserve_charge_max = m.Reserve_charge_max/100
@@ -317,7 +317,7 @@ class BtmOptimizer(optimizer.Optimizer):
             m.State_of_charge_init = m.State_of_charge_init/100
             
         m.smin = m.Reserve_charge_min*m.Energy_capacity
-        m.smax = (1 - m.Reserve_charge_max)*m.Energy_capacity
+        m.smax = m.Reserve_charge_max*m.Energy_capacity
     
     def _set_model_var(self):
         """Sets the model vars for the Pyomo ConcreteModel."""
@@ -328,7 +328,7 @@ class BtmOptimizer(optimizer.Optimizer):
                 """The energy storage device's state of charge [kWh]."""
                 return m.State_of_charge_init*m.Energy_capacity
 
-            m.s = Var(m.time, initialize=_s_init, domain = NonNegativeReals, bounds=(m.smin,m.smax))
+            m.s = Var(m.time, initialize=_s_init, domain = NonNegativeReals)
 
         if not hasattr(m, 'pdis'):
             def _pdis_init(_m, t):
@@ -418,7 +418,7 @@ class BtmOptimizer(optimizer.Optimizer):
               
     def populate_model(self):
         """Populates the Pyomo ConcreteModel based on the specified market_type."""
-        self.model.objective_expr = NumericConstant(0.0)
+        self.model.objective_expr = 0.0
 
         self._set_model_param()
         self._set_model_var()
@@ -475,7 +475,7 @@ class BtmOptimizer(optimizer.Optimizer):
         self.nem_charge_with_es = nem_charge_with_es
         self.nem_charge_without_es = nem_charge_without_es
 
-        # self.results.to_csv('resultssss.csv')
+        self.results.to_csv('resultssss.csv')
         
     def get_results(self):
         """Returns the decision variables and derived quantities in a DataFrame"""

@@ -45,29 +45,29 @@
     "units": "%"
     },
     {
-    "name": "capacity reserved for discharging",
+    "name": "minimum state of charge",
     "attr name": "Reserve_charge_min",
-    "notes": "The percentage of energy capacity that the ESS reserves for discharging.",
+    "notes": "The minimum ESS state of charge as a percentage of energy capacity.",
     "max": 100,
     "default": 0,
     "step": 1,
     "units": "%"
     },
     {
-    "name": "capacity reserved for charging",
+    "name": "maximum state of charge",
     "attr name": "Reserve_charge_max",
-    "notes": "The percentage of energy capacity that the ESS reserves for charging.",
+    "notes": "The maximum ESS state of charge as a percentage of energy capacity.",
     "max": 100,
-    "default": 0,
+    "default": 100,
     "step": 1,
     "units": "%"
     },
     {
     "name": "initial state of charge",
     "attr name": "State_of_charge_init",
-    "notes": "The percentage of energy capacity that the ESS starts at.",
+    "notes": "The percentage of energy capacity that the ESS begins with.",
     "max": 100,
-    "default": 0,
+    "default": 50,
     "step": 1,
     "units": "%"
     }    

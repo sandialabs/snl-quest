@@ -36,7 +36,7 @@ class ValuationResultsViewer(ResultsViewer):
 
         self._update_toolbar()
 
-        self.rv.data = self.manager.get_screen('valuation_home').handler.solved_ops
+        self.rv.data = self.manager.get_screen('valuation_home').handler.get_solved_ops()
         # self.run_selector.rv.data = self.manager.get_screen('valuation_home').handler.solved_ops
 
     def _update_toolbar(self, *args):

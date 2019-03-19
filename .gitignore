@@ -23,6 +23,7 @@ results/btm_cost_savings/report/*html
 results/btm_cost_savings/report/images/*.png
 results/btm_cost_savings/csv/*.csv
 results/btm_cost_savings/plots/*.png
+results/btm/*
 
 es_gui/resources/docs/sphinx/build/*
 es_gui/tools/valuation/docs/*

@@ -67,6 +67,22 @@ def eq_stateofcharge_final(m):
         return mp.s[T] == mp.State_of_charge_init
     m.stateofcharge_final = Constraint(mp.time, rule=_eq_stateofcharge_final)
 
+def ineq_stateofcharge_min(m):
+    """S>=Smin"""
+    mp = m.parent_block()
+    
+    def _ineq_stateofcharge_min(_m, t):
+        return mp.s[t]>=mp.smin
+    m.stateofcharge_min = Constraint(mp.time, rule=_ineq_stateofcharge_min)
+
+def ineq_stateofcharge_max(m):
+    """S<=Smax"""
+    mp = m.parent_block()
+    
+    def _ineq_stateofcharge_max(_m, t):
+        return mp.s[t]<=mp.smax
+    m.stateofcharge_max = Constraint(mp.time, rule=_ineq_stateofcharge_max)
+
 def ineq_peak_demand(m):
     """Requires all net power at time t less the peak demand"""
     mp = m.parent_block()

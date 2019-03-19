@@ -596,7 +596,7 @@ class RateStructureEnergyRateStructureScreen(Screen):
     def next_screen(self):
         """Check if all input data is valid before proceeding to the next demand rate structure screen."""
         try:
-            self.get_selections()
+            self._validate_inputs()
         except InputError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
@@ -742,7 +742,7 @@ class RateStructureDemandRateStructureScreen(Screen):
     def next_screen(self):
         """Check if all input data is valid before proceeding to the net metering screen."""
         try:
-            self.get_selections()
+            self._validate_inputs()
         except InputError as e:
             popup = WarningPopup()
             popup.popup_text.text = str(e)
@@ -828,7 +828,10 @@ class RateStructureFinishScreen(Screen):
         rate_structure_object = {}
         
         if not self.save_name_field.text:
-            rate_structure_object['name'] = 'example'
+            popup = WarningPopup()
+            popup.popup_text.text = 'Please specify a name to save the rate structure as.'
+            popup.open()
+            return
         else:
             rate_structure_object['name'] = self.save_name_field.text
 

@@ -179,7 +179,10 @@ class PVwattsSearchScreen(Screen):
             request_content = http_request.json()
 
             if not self.save_name_field.text:
-                outname = 'example'
+                popup = WarningPopup()
+                popup.popup_text.text = 'Please specify a name to save the PV profile as.'
+                popup.open()
+                return
             else:
                 outname = self.save_name_field.text
 
@@ -230,6 +233,13 @@ class PVWattsSearchParameterWidget(GridLayout):
 
         for param in MODEL_PARAMS:
             row = ParameterRow(desc=param)
+
+            # if param['attr name'] == 'tilt':
+            #     def _match_latitude_to_tilt(instance, value):
+            #         row.text_input.hint_text = self.lat.text_input.text
+                
+            #     self.lat.bind(text_input_text=_match_latitude_to_tilt)
+
             self.add_widget(row)
             setattr(self, param['attr name'], row)
     

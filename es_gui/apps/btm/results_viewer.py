@@ -35,7 +35,8 @@ class BtmResultsViewer(ResultsViewer):
 
         self._update_toolbar()
 
-        self.rv.data = self.manager.get_screen('btm_home').handler.solved_ops
+        # self.rv.data = self.manager.get_screen('btm_home').handler.solved_ops
+        self.rv.data = self.manager.get_screen('btm_home').handler.get_solved_ops()
 
     def _update_toolbar(self, *args):
         """Updates the data viewing toolbar based on selections."""
@@ -111,28 +112,28 @@ class BtmResultsViewer(ResultsViewer):
                 ax.set_ylabel('kW')
                 ax.set_xlabel('ending hour')
                 ax.set_title('Total Demand (kW)')
-        elif plot_type == 'total bill':
-                ixes = range(len(results))
-                heights = [results[key]['total_bill_with_es'].tail(1) for key in results]
+        # elif plot_type == 'total bill':
+        #         ixes = range(len(results))
+        #         heights = [results[key]['total_bill_with_es'].tail(1) for key in results]
 
-                ax.bar(ixes, heights)
-                labels=[textwrap.fill(' '.join(key.split(' | ')[:3]), 20) for key in results]
+        #         ax.bar(ixes, heights)
+        #         labels=[textwrap.fill(' '.join(key.split(' | ')[:3]), 20) for key in results]
 
-                ax.set_ylabel('$')
-                ax.set_title('Total Bill')
-                ax.grid(False)
-                plt.xticks(ixes, labels)
-        elif plot_type == 'total savings':
-                ixes = range(len(results))
-                heights = [results[key]['total_bill_without_es'].tail(1) - results[key]['total_bill_with_es'].tail(1) for key in results]
+        #         ax.set_ylabel('$')
+        #         ax.set_title('Total Bill')
+        #         ax.grid(False)
+        #         plt.xticks(ixes, labels)
+        # elif plot_type == 'total savings':
+        #         ixes = range(len(results))
+        #         heights = [results[key]['total_bill_without_es'].tail(1) - results[key]['total_bill_with_es'].tail(1) for key in results]
 
-                ax.bar(ixes, heights)
-                labels=[textwrap.fill(' '.join(key.split(' | ')[:3]), 20) for key in results]
+        #         ax.bar(ixes, heights)
+        #         labels=[textwrap.fill(' '.join(key.split(' | ')[:3]), 20) for key in results]
 
-                ax.set_ylabel('$')
-                ax.set_title('Total Savings')
-                ax.grid(False)
-                plt.xticks(ixes, labels)
+        #         ax.set_ylabel('$')
+        #         ax.set_title('Total Savings')
+        #         ax.grid(False)
+        #         plt.xticks(ixes, labels)
         # else:
         #     for key in results:
         #         df = results[key]
@@ -140,10 +141,10 @@ class BtmResultsViewer(ResultsViewer):
 
         #         ax.set_title(plot_type)
 
-        if plot_type in ['total bill', 'total savings']:
-            pass
-        else:
-            ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0, shadow=False, labelspacing=1.8)
+        # if plot_type in ['total bill', 'total savings']:
+        #     pass
+        # else:
+        #     ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0, shadow=False, labelspacing=1.8)
 
         self.plotbox.children[0].draw()
 
