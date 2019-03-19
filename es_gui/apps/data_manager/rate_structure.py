@@ -27,7 +27,7 @@ import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
-from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
+from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME, STATE_ABBR_TO_NAME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
 
@@ -197,6 +197,9 @@ class RateStructureUtilitySearchScreen(Screen):
                 # Connection error prevented downloads.
                 raise requests.ConnectionError
             else:
+                # Add column for state/district name.
+                df_combined['state name'] = df_combined['state'].apply(lambda state_abbr: STATE_ABBR_TO_NAME.get(state_abbr, ''))
+
                 self.utility_ref_table = df_combined
                 logging.info('RateStructureDM: Retrieved list of all utilities.')
 
@@ -274,13 +277,15 @@ class RateStructureUtilitySearchScreen(Screen):
                         return
                     finally:
                         self.search_button.disabled = False
-
                 
                 # Filter DataFrame by search type/query and drop duplicate entries.
-                if not search_type == 'zip': 
-                    utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type].str.lower().str.contains(search_query)]
-                else:
+                if search_type == 'state':
+                    utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table['state'].str.lower().str.contains(search_query)
+                    | self.utility_ref_table['state name'].str.lower().str.contains(search_query)]
+                elif search_type == 'zip':
                     utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type] == search_query]
+                else:
+                    utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table[search_type].str.lower().str.contains(search_query)]                    
                 
                 utility_data_filtered = utility_data_filtered[['eiaid', 'utility_name', 'state', 'ownership']]
                 utility_data_filtered.drop_duplicates(inplace=True)
