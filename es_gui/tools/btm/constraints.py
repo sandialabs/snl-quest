@@ -7,8 +7,6 @@ from pyomo.environ import *
 class ExpressionsBlock:
     """Creates blocks for objective and constraint functions and assigns them to the Pyomo model."""
 
-    
-
     def set_expressions(self, model):
         """Generates the objective and constraint expressions for model."""
         block_obj = Block()
@@ -30,6 +28,7 @@ class ExpressionsBlock:
         ineq_peak_demand(block)
         ineq_tou_demand(block)
         ineq_nem_xnet(block)
+
   
 def eq_objective_btm(m):
     
@@ -51,7 +50,7 @@ def eq_stateofcharge(m):
    
     def _eq_stateofcharge(_m, t):
         if t==0:
-            spre=mp.State_of_charge_init
+            spre=mp.State_of_charge_init*mp.Energy_capacity
         else:
             spre=mp.s[t-1]
         return mp.Self_discharge_efficiency * spre + mp.Round_trip_efficiency * mp.pcha[t] \
@@ -64,24 +63,9 @@ def eq_stateofcharge_final(m):
     mp = m.parent_block()
     T  = mp.nhr-1
     def _eq_stateofcharge_final(_m, t):
-        return mp.s[T] == mp.State_of_charge_init
+        return mp.s[T] == mp.State_of_charge_init*mp.Energy_capacity
     m.stateofcharge_final = Constraint(mp.time, rule=_eq_stateofcharge_final)
 
-def ineq_stateofcharge_min(m):
-    """S>=Smin"""
-    mp = m.parent_block()
-    
-    def _ineq_stateofcharge_min(_m, t):
-        return mp.s[t]>=mp.smin
-    m.stateofcharge_min = Constraint(mp.time, rule=_ineq_stateofcharge_min)
-
-def ineq_stateofcharge_max(m):
-    """S<=Smax"""
-    mp = m.parent_block()
-    
-    def _ineq_stateofcharge_max(_m, t):
-        return mp.s[t]<=mp.smax
-    m.stateofcharge_max = Constraint(mp.time, rule=_ineq_stateofcharge_max)
 
 def ineq_peak_demand(m):
     """Requires all net power at time t less the peak demand"""
