@@ -16,7 +16,7 @@ setuptools_kwargs = {
     'scripts': [],
     'include_package_data': True,
     'install_requires' : ['numpy', 'scipy', 'pandas>=0.23.4',
-                          'pyomo<=5.4.3', 'matplotlib',
+                          'pyomo>=5.6', 'matplotlib',
                           'kivy>=1.10.1', 'kivy-garden',
                           'xlrd', 'six',
                           'jinja2',

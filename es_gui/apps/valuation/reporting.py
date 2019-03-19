@@ -289,7 +289,7 @@ class ValuationReportScreen(ReportScreen):
 
         # compute activity counts
         for ix, (var, name) in enumerate(activities, start=0):
-            n_activity = sum([len(op[1].results[var].nonzero()[0]) for op in self.chart_data])
+            n_activity = sum([len(op[1].results[var].to_numpy().nonzero()[0]) for op in self.chart_data])
             n_total += n_activity
 
             n_activities[name] = n_activity

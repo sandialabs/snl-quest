@@ -109,7 +109,7 @@ class ValuationScreen(Screen):
         results_dict['node'] = node
         results_dict['time'] = time_finished
 
-        plot_screen = self.manager.get_screen('plot')
+        plot_screen = self.manager.get_screen('valuation_results_viewer')
         rv = plot_screen.run_selector.rv
         rv.data.append(results_dict)
 
@@ -186,7 +186,7 @@ class ValuationScreen(Screen):
         """
         Enables the "View Results" button after the optimization routine is complete.
         """
-        self.manager.nav_bar.go_to_screen('plot')
+        self.manager.nav_bar.go_to_screen('valuation_results_viewer')
         self.pw.dismiss()
 
 

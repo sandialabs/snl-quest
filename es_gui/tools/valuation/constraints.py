@@ -143,10 +143,10 @@ class ExpressionsBlock:
     # SPP
     ####################################################################################################################
     def _objective_spp_pfp(self, block):
-        eq_objective_spp_pfp(block) ## TODO
+        eq_objective_spp_pfp(block)
 
     def _constraints_spp_pfp(self, block):
-        eq_stateofcharge_spp_pfp(block) ## TODO
+        eq_stateofcharge_spp_pfp(block)
         eq_stateofcharge_initial(block)
         eq_stateofcharge_final(block)
         ineq_stateofcharge_minimum_reserve_twoprod(block)
@@ -457,7 +457,6 @@ def eq_stateofcharge_nyiso_pfp(m):
 #            FW                ##
 #################################
 def eq_objective_spp_pfp(m):
-    #TODO: Ricky to double check whether this is the actual equation
     """Net revenue over the time horizon for pay-for-performance in the SPP market."""
     mp = m.parent_block()
 
@@ -636,7 +635,7 @@ def ineq_stateofcharge_minimum(m):
     mp = m.parent_block()
 
     def _ineq_stateofcharge_minimum(_m, t):
-        return mp.s[t] >= mp.Reserve_charge_min*mp.Energy_capacity
+        return mp.s[t] >= mp.State_of_charge_min*mp.Energy_capacity
 
     m.stateofcharge_minimum = Constraint(mp.soc_time, rule=_ineq_stateofcharge_minimum)
 
@@ -646,7 +645,7 @@ def ineq_stateofcharge_maximum(m):
     mp = m.parent_block()
 
     def _ineq_stateofcharge_maximum(_m, t):
-        return mp.s[t] <= mp.Energy_capacity - mp.Reserve_charge_max*mp.Energy_capacity
+        return mp.s[t] <= mp.State_of_charge_max*mp.Energy_capacity
 
     m.stateofcharge_maximum = Constraint(mp.soc_time, rule=_ineq_stateofcharge_maximum)
 
@@ -656,7 +655,7 @@ def ineq_stateofcharge_minimum_reserve_oneprod(m):
     mp = m.parent_block()
 
     def _ineq_stateofcharge_minimum(_m, t):
-        return mp.s[t+1] >= mp.Reserve_reg_min*mp.q_reg[t] + mp.Reserve_charge_min*mp.Energy_capacity
+        return mp.s[t+1] >= mp.Reserve_reg_min*mp.q_reg[t] + mp.State_of_charge_min*mp.Energy_capacity
 
     m.stateofcharge_minimum = Constraint(mp.time, rule=_ineq_stateofcharge_minimum)
 
@@ -666,8 +665,7 @@ def ineq_stateofcharge_maximum_reserve_oneprod(m):
     mp = m.parent_block()
 
     def _ineq_stateofcharge_maximum(_m, t):
-        return mp.s[t+1] <= mp.Energy_capacity - mp.Round_trip_efficiency*mp.Reserve_reg_max*mp.q_reg[t] \
-                              - mp.Reserve_charge_max*mp.Energy_capacity
+        return mp.s[t+1] <= mp.State_of_charge_max*mp.Energy_capacity- mp.Round_trip_efficiency*mp.Reserve_reg_max*mp.q_reg[t]
 
     m.stateofcharge_maximum = Constraint(mp.time, rule=_ineq_stateofcharge_maximum)
 
@@ -677,7 +675,7 @@ def ineq_stateofcharge_minimum_reserve_twoprod(m):
     mp = m.parent_block()
 
     def _ineq_stateofcharge_minimum(_m, t):
-        return mp.s[t+1] >= mp.Reserve_reg_min*mp.q_ru[t] + mp.Reserve_charge_min*mp.Energy_capacity
+        return mp.s[t+1] >= mp.Reserve_reg_min*mp.q_ru[t] + mp.State_of_charge_min*mp.Energy_capacity
 
     m.stateofcharge_minimum = Constraint(mp.time, rule=_ineq_stateofcharge_minimum)
 
@@ -687,8 +685,7 @@ def ineq_stateofcharge_maximum_reserve_twoprod(m):
     mp = m.parent_block()
 
     def _ineq_stateofcharge_maximum(_m, t):
-        return mp.s[t+1] <= mp.Energy_capacity - mp.Round_trip_efficiency*mp.Reserve_reg_max*mp.q_rd[t] \
-                              - mp.Reserve_charge_max*mp.Energy_capacity
+        return mp.s[t+1] <= mp.State_of_charge_max*mp.Energy_capacity - mp.Round_trip_efficiency*mp.Reserve_reg_max*mp.q_rd[t]
 
     m.stateofcharge_maximum = Constraint(mp.time, rule=_ineq_stateofcharge_maximum)
 

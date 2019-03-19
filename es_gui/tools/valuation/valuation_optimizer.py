@@ -315,26 +315,26 @@ class ValuationOptimizer(optimizer.Optimizer):
             logging.warning('ValuationOptimizer: Reserve_reg_max provided is greater than 1.0, interpreting as percentage...')
             m.Reserve_reg_max = m.Reserve_reg_max/100
 
-        if not hasattr(m, 'Reserve_charge_min'):
-            # Fraction of energy capacity to increase state of charge minimum by.
-            logging.debug('ValuationOptimizer: No Reserve_charge_min provided, setting default...')
-            m.Reserve_charge_min = 0
-        elif getattr(m, 'Reserve_charge_min') > 1.0:
-            logging.warning('ValuationOptimizer: Reserve_charge_min provided is greater than 1.0, interpreting as percentage...')
-            m.Reserve_charge_min = m.Reserve_charge_min/100
+        if not hasattr(m, 'State_of_charge_min'):
+            # Fraction of energy capacity representing the minimum state of charge.
+            logging.debug('ValuationOptimizer: No State_of_charge_min provided, setting default...')
+            m.State_of_charge_min = 0
+        elif getattr(m, 'State_of_charge_min') > 1.0:
+            logging.warning('ValuationOptimizer: State_of_charge_min provided is greater than 1.0, interpreting as percentage...')
+            m.State_of_charge_min = m.State_of_charge_min/100
 
-        if not hasattr(m, 'Reserve_charge_max'):
-            # Fraction of energy capacity to decrease state of charge maximum by.
-            logging.debug('ValuationOptimizer: No Reserve_charge_max provided, setting default...')
-            m.Reserve_charge_max = 0
-        elif getattr(m, 'Reserve_charge_max') > 1.0:
-            logging.warning('ValuationOptimizer: Reserve_charge_max provided is greater than 1.0, interpreting as percentage...')
-            m.Reserve_charge_max = m.Reserve_charge_max/100
+        if not hasattr(m, 'State_of_charge_max'):
+            # Fraction of energy capacity representing the maximum state of charge.
+            logging.debug('ValuationOptimizer: No State_of_charge_max provided, setting default...')
+            m.State_of_charge_max = 1
+        elif getattr(m, 'State_of_charge_max') > 1.0:
+            logging.warning('ValuationOptimizer: State_of_charge_max provided is greater than 1.0, interpreting as percentage...')
+            m.State_of_charge_max = m.State_of_charge_max/100
         
         if not hasattr(m, 'State_of_charge_init'):
-            # Initial state of charge [fraction of capacity], defaults to the amount reserved for discharging.
+            # Initial state of charge as a fraction of energy capacity.
             logging.debug('ValuationOptimizer: No State_of_charge_init provided, setting default...')
-            m.State_of_charge_init = m.Reserve_charge_min
+            m.State_of_charge_init = 0.5
         elif getattr(m, 'State_of_charge_init') > 1.0:
             logging.warning('ValuationOptimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...')
             m.State_of_charge_init = m.State_of_charge_init/100
@@ -537,7 +537,7 @@ class ValuationOptimizer(optimizer.Optimizer):
 
     def populate_model(self):
         """Populates the Pyomo ConcreteModel based on the specified market_type."""
-        self.model.objective_expr = NumericConstant(0.0)
+        self.model.objective_expr = 0.0
 
         self._set_model_param()
         self._set_model_var()

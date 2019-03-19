@@ -8,7 +8,7 @@ from kivy.properties import StringProperty
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 
-from es_gui.resources.widgets.common import WarningPopup, InputError, ValuationRunCompletePopup
+from es_gui.resources.widgets.common import WarningPopup, InputError, ValuationParameterRow, ValuationParameterWidget, ValuationRunCompletePopup
 from es_gui.tools.valuation.valuation_optimizer import BadParameterException
 
 
@@ -25,7 +25,7 @@ class SetParametersScreen(Screen):
     def on_iso(self, instance, value):
         while len(self.param_widget.children) > 0:
             for widget in self.param_widget.children:
-                if isinstance(widget, SetParameterRow):
+                if isinstance(widget, ValuationParameterRow):
                     self.param_widget.remove_widget(widget)
 
         if self.iso:
@@ -60,24 +60,10 @@ class SetParametersScreen(Screen):
         #     self.go_button.bind(on_release=self.manager.get_screen('valuation_advanced').open_valuation_run_menu)
 
     def _validate_inputs(self):
-        pass
+        self.param_widget.validate_inputs()
 
     def get_inputs(self):
-        self._validate_inputs()
-
-        base_param_dict = {}
-
-        # Check for any input into the parameter rows.
-        for param_row in self.param_widget.children:
-            param_name = param_row.name.text
-
-            if param_row.text_input.text:
-                param_value = float(param_row.text_input.text)
-                base_param_dict[self.param_to_attr[param_name]] = param_value
-
-        param_settings = [base_param_dict,]
-
-        return param_settings
+        self.param_widget.get_inputs()
     
     def _generate_requests(self):
         data_screen = self.manager.get_screen('load_data')
@@ -133,53 +119,8 @@ class SetParametersScreen(Screen):
                 self.completion_popup.open()            
     
     def _go_to_view_results(self, *args):
-        self.manager.nav_bar.go_to_screen('plot')
+        self.manager.nav_bar.go_to_screen('valuation_results_viewer')
         self.completion_popup.dismiss()
-
-
-class SetParameterRow(GridLayout):
-    """Grid layout containing parameter descriptor label and text input field."""
-
-    def __init__(self, desc, **kwargs):
-        super(SetParameterRow, self).__init__(**kwargs)
-
-        self._desc = desc
-        self.name.text = self.desc['name']
-        self.text_input.hint_text = str(self.desc['default'])
-
-    @property
-    def desc(self):
-        return self._desc
-
-    @desc.setter
-    def desc(self, value):
-        self._desc = value
-
-
-class SetParameterWidget(GridLayout):
-    """Grid layout containing rows of parameter adjustment widgets."""
-    def __init__(self, **kwargs):
-        super(SetParameterWidget, self).__init__(**kwargs)
-
-    def build(self, iso):
-        # Build the widget by creating a row for each parameter.
-        data_manager = App.get_running_app().data_manager
-        MODEL_PARAMS = data_manager.get_valuation_model_params(iso)
-
-        for param in MODEL_PARAMS:
-            row = SetParameterRow(desc=param)
-            self.add_widget(row)
-            setattr(self, param['attr name'], row)
-
-
-class SetParamTextInput(TextInput):
-    """
-    A TextInput field for entering parameter value sweep range descriptors. Limited to float values.
-    """
-    def insert_text(self, substring, from_undo=False):
-        # limit to 8 chars
-        substring = substring[:8 - len(self.text)]
-        return super(SetParamTextInput, self).insert_text(substring, from_undo=from_undo)
 
 
 class ValuationSingleRunCompletePopup(ValuationRunCompletePopup):

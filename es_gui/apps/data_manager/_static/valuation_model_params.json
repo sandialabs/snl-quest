@@ -25,17 +25,17 @@
      {
       "name": "initial state of charge (%)",
       "attr name": "State_of_charge_init",
+      "default": 50
+     },
+     {
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
-      "default": 0
-     },
-     {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -89,17 +89,17 @@
      {
         "name": "initial state of charge (%)",
         "attr name": "State_of_charge_init",
-        "default": 0
+        "default": 50
        },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -148,17 +148,17 @@
      {
         "name": "initial state of charge (%)",
         "attr name": "State_of_charge_init",
-        "default": 0
+        "default": 50
        },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -217,17 +217,17 @@
      {
         "name": "initial state of charge (%)",
         "attr name": "State_of_charge_init",
-        "default": 0
+        "default": 50
        },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -276,17 +276,17 @@
      {
         "name": "initial state of charge (%)",
         "attr name": "State_of_charge_init",
-        "default": 0
+        "default": 50
        },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -340,17 +340,17 @@
      {
         "name": "initial state of charge (%)",
         "attr name": "State_of_charge_init",
-        "default": 0
+        "default": 50
        },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -399,17 +399,17 @@
      {
         "name": "initial state of charge (%)",
         "attr name": "State_of_charge_init",
-        "default": 0
+        "default": 50
        },
      {
-      "name": "% of capacity reserved for discharging",
-      "attr name": "Reserve_charge_min",
+      "name": "minimum state of charge (%)",
+      "attr name": "State_of_charge_min",
       "default": 0
      },
      {
-      "name": "% of capacity reserved for charging",
-      "attr name": "Reserve_charge_max",
-      "default": 0
+      "name": "maximum state of charge (%)",
+      "attr name": "State_of_charge_max",
+      "default": 100
      },
      {
       "name": "% of reg. bid reserved for discharging",
@@ -432,12 +432,12 @@
       "default": 0.25
      },
      {
-      "name": "performance score reg up",
+      "name": "performance score reg. up",
       "attr name": "perf_score_ru",
       "default": 0.95
      },
      {
-      "name": "performance score reg down",
+      "name": "performance score reg. down",
       "attr name": "perf_score_rd",
       "default": 0.95
      }

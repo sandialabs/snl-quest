@@ -176,7 +176,7 @@
         padding: (50, 50)
         spacing: 50
 
-        BatchRunParameterWidget:
+        ValuationParameterWidget:
             id: param_widget
             size_hint_y: 0.60
 
@@ -216,53 +216,53 @@
                         row_force_default: True
                         row_default_height: 45
 
-                        BatchParamTextInput:
+                        ValuationParamTextInput:
                             id: param_min_input
                             hint_text: 'min'
 
-                        BatchParamTextInput:
+                        ValuationParamTextInput:
                             id: param_max_input
                             hint_text: 'max'
 
-                        BatchParamTextInput:
+                        ValuationParamTextInput:
                             id: param_step_input
                             hint_text: '# of steps'
                             input_filter: 'int'
 
-<BatchRunParameterWidget>:
-    cols: 3
-    row_force_default: True
-    row_default_height: self.height/6
-    spacing: (125, 50)
+# <BatchRunParameterWidget>:
+#     cols: 3
+#     row_force_default: True
+#     row_default_height: self.height/6
+#     spacing: (125, 50)
 
-<BatchRunParameterRow>:
-    cols: 2
-    spacing: 5
+# <BatchRunParameterRow>:
+#     cols: 2
+#     spacing: 5
 
-    name: name
-    text_input: text_input
+#     name: name
+#     text_input: text_input
 
-    BodyTextBase:
-        id: name
-        size_hint_x: 0.80
-        text: ''
-        color: C(hex_black)
-        font_size: stnd_font
+#     BodyTextBase:
+#         id: name
+#         size_hint_x: 0.80
+#         text: ''
+#         color: C(hex_black)
+#         font_size: stnd_font
 
-    BatchParamTextInput:
-        id: text_input
-        size_hint_x: 0.20
-        color: C(hex_black)
-        font_size: stnd_font
+#     BatchParamTextInput:
+#         id: text_input
+#         size_hint_x: 0.20
+#         color: C(hex_black)
+#         font_size: stnd_font
 
-<BatchParamTextInput>:
-    size_hint_x: 0.25
-    multiline: False
-    write_tab: False
-    font_size: stnd_font
-    input_filter: 'float'
-    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
-    on_focus: self.select_all() if self.focus else self.cancel_selection()
+# <BatchParamTextInput>:
+#     size_hint_x: 0.25
+#     multiline: False
+#     write_tab: False
+#     font_size: stnd_font
+#     input_filter: 'float'
+#     background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+#     on_focus: self.select_all() if self.focus else self.cancel_selection()
 
 <BatchParamSpinnerOptionCls>:
     font_size: stnd_font

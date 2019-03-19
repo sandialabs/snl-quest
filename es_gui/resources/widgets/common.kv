@@ -529,7 +529,7 @@
                 on_release: root.dismiss()
 
 <ResultsViewer>:
-    name: 'plot'
+    name: 'valuation_results_viewer'
 
     rv: rv
     plotbox: plotbox
@@ -685,9 +685,43 @@
             size_hint_y: 0.20
             on_release: root._validate()
 
-
 <TimeTextInput>:
     multiline: False
     write_tab: False
     font_size: stnd_font
     input_filter: 'int'
+
+<ValuationParameterWidget>:
+    cols: 3
+    row_force_default: True
+    row_default_height: self.height/6
+    spacing: (125, 50)
+
+<ValuationParameterRow>:
+    cols: 2
+    spacing: 5
+
+    name: name
+    text_input: text_input
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.80
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ValuationParamTextInput:
+        id: text_input
+        size_hint_x: 0.20
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ValuationParamTextInput>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+    on_focus: self.select_all() if self.focus else self.cancel_selection()

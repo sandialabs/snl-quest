@@ -19,7 +19,7 @@ from kivy.app import App
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, ValuationRunCompletePopup, RecycleViewRow, FADEIN_DUR, fade_in_animation
+from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, ValuationParameterRow, ValuationParameterWidget, ValuationRunCompletePopup, RecycleViewRow, FADEIN_DUR, fade_in_animation
 from es_gui.tools.valuation.valuation_optimizer import BadParameterException
 from es_gui.apps.data_manager.data_manager import DataManagerException
 
@@ -90,7 +90,7 @@ class BatchRunScreen(Screen):
                 self.completion_popup.open()            
 
     def _go_to_view_results(self, *args):
-        self.manager.nav_bar.go_to_screen('plot')
+        self.manager.nav_bar.go_to_screen('valuation_results_viewer')
         self.completion_popup.dismiss()
 
 
@@ -104,7 +104,7 @@ class BatchRunParamScreen(Screen):
     def on_iso(self, instance, value):
         while len(self.param_widget.children) > 0:
             for widget in self.param_widget.children:
-                if isinstance(widget, BatchRunParameterRow):
+                if isinstance(widget, ValuationParameterRow):
                     self.param_widget.remove_widget(widget)
     
         if self.iso:
@@ -132,10 +132,14 @@ class BatchRunParamScreen(Screen):
             param_widget_row.text_input.disabled = True
 
     def _validate_inputs(self):
+        param_dict = self.param_widget.get_inputs(use_hint_text=True)
+
         # If a parameter sweep is specified, check all input fields.
         param_sweep_name = self.param_sweep_spinner.text
 
         if self.param_to_attr.get(param_sweep_name, False):
+            param_sweep_attr_name = self.param_to_attr[param_sweep_name]
+
             try:
                 param_min = float(self.param_min_input.text)
                 param_max = float(self.param_max_input.text)
@@ -145,6 +149,30 @@ class BatchRunParamScreen(Screen):
             else:
                 if param_max < param_min:
                     raise InputError('Parameter sweep minimum must be less than or equal to the maximum.')
+            
+            # Values cannot be negative.
+            if any([param_min < 0, param_max < 0]):
+                raise InputError('"{0}" cannot be negative.'.format(param_sweep_name))
+
+            # Percentages cannot exceed 100%.
+            if param_sweep_attr_name in {'Self_discharge_efficiency', 'Round_trip_efficiency', 'State_of_charge_init', 'State_of_charge_min', 'State_of_charge_max', 'Reserve_reg_min', 'Reserve_reg_max',} and any([param_min > 100, param_max > 100]):
+                raise InputError('"{0}" cannot exceed 100%.'.format(param_sweep_name))
+            
+            # State of charge initial, min, and max sweeps must comply with inequalities.
+            if param_sweep_attr_name == 'State_of_charge_min':
+                if not all([param_min < param_dict['State_of_charge_init'], param_max <= param_dict['State_of_charge_init']]):
+                    raise InputError('The parameter sweep range for "{0}" must be entirely less than the initial state of charge.'.format(param_sweep_name))
+            elif param_sweep_attr_name == 'State_of_charge_max':
+                if not all([param_min >= param_dict['State_of_charge_init'], param_max > param_dict['State_of_charge_init']]):
+                    raise InputError('The parameter sweep range for "{0}" must be entirely greater than the initial state of charge.'.format(param_sweep_name))
+            elif param_sweep_attr_name == 'State_of_charge_init':
+                if not all([
+                    param_dict['State_of_charge_max'] > param_min,
+                    param_dict['State_of_charge_max'] >= param_max,
+                    param_dict['State_of_charge_min'] <= param_min,
+                    param_dict['State_of_charge_min'] < param_max,
+                    ]):
+                    raise InputError('The parameter sweep range for "{0}" must be entirely between the minimum and maximum state of charge values.'.format(param_sweep_name))
         else:
             if any([self.param_min_input.text, self.param_max_input.text, self.param_step_input.text]):
                 raise InputError('Did you forget to provide a parameter for the parameter sweep? Numbers for the sweep range were provided but no parameter was given.')
@@ -152,15 +180,7 @@ class BatchRunParamScreen(Screen):
     def get_inputs(self):
         self._validate_inputs()
 
-        base_param_dict = {}
-
-        # Check for any input into the parameter rows.
-        for param_row in self.param_widget.children:
-            param_name = param_row.name.text
-
-            if param_row.text_input.text:
-                param_value = float(param_row.text_input.text)
-                base_param_dict[self.param_to_attr[param_name]] = param_value
+        base_param_dict = self.param_widget.get_inputs()
 
         param_settings = []
 
@@ -315,51 +335,6 @@ class BatchRunDataScreen(Screen):
                   selected_entry in rv_selected]
 
         return rv_selected, months, self.iso, self.rev_streams, self.node
-
-
-class BatchRunParameterRow(GridLayout):
-    """Grid layout containing parameter descriptor label, slider, and value label."""
-
-    def __init__(self, desc, **kwargs):
-        super(BatchRunParameterRow, self).__init__(**kwargs)
-
-        self._desc = desc
-        self.name.text = self.desc['name']
-        self.text_input.hint_text = str(self.desc['default'])
-
-    @property
-    def desc(self):
-        return self._desc
-
-    @desc.setter
-    def desc(self, value):
-        self._desc = value
-
-
-class BatchRunParameterWidget(GridLayout):
-    """Grid layout containing rows of parameter adjustment widgets."""
-    def __init__(self, **kwargs):
-        super(BatchRunParameterWidget, self).__init__(**kwargs)
-
-    def build(self, iso):
-        # Build the widget by creating a row for each parameter.
-        data_manager = App.get_running_app().data_manager
-        MODEL_PARAMS = data_manager.get_valuation_model_params(iso)
-
-        for param in MODEL_PARAMS:
-            row = BatchRunParameterRow(desc=param)
-            self.add_widget(row)
-            setattr(self, param['attr name'], row)
-
-
-class BatchParamTextInput(TextInput):
-    """
-    A TextInput field for entering parameter value sweep range descriptors. Limited to float values.
-    """
-    def insert_text(self, substring, from_undo=False):
-        # limit to 8 chars
-        substring = substring[:8 - len(self.text)]
-        return super(BatchParamTextInput, self).insert_text(substring, from_undo=from_undo)
 
 
 class BatchRVNodeEntry(RecycleViewRow):
