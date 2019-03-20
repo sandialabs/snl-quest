@@ -292,21 +292,21 @@ class BtmOptimizer(optimizer.Optimizer):
             logging.warning('ValuationOptimizer: Round_trip_efficiency provided is greater than 1.0, interpreting as percentage...')
             m.Round_trip_efficiency = m.Round_trip_efficiency/100
 
-        if not hasattr(m, 'Reserve_charge_min'):
+        if not hasattr(m, 'State_of_charge_min'):
             # Fraction of energy capacity to increase state of charge minimum by.
-            logging.debug('ValuationOptimizer: No Reserve_charge_min provided, setting default...')
-            m.Reserve_charge_min = 0
-        elif getattr(m, 'Reserve_charge_min') > 1.0:
-            logging.warning('ValuationOptimizer: Reserve_charge_min provided is greater than 1.0, interpreting as percentage...')
-            m.Reserve_charge_min = m.Reserve_charge_min/100
+            logging.debug('ValuationOptimizer: No State_of_charge_min provided, setting default...')
+            m.State_of_charge_min = 0
+        elif getattr(m, 'State_of_charge_min') > 1.0:
+            logging.warning('ValuationOptimizer: State_of_charge_min provided is greater than 1.0, interpreting as percentage...')
+            m.State_of_charge_min = m.State_of_charge_min/100
 
-        if not hasattr(m, 'Reserve_charge_max'):
+        if not hasattr(m, 'State_of_charge_max'):
             # Fraction of energy capacity to decrease state of charge maximum by.
-            logging.debug('ValuationOptimizer: No Reserve_charge_max provided, setting default...')
-            m.Reserve_charge_max = 100
-        elif getattr(m, 'Reserve_charge_max') > 1.0:
-            logging.warning('ValuationOptimizer: Reserve_charge_max provided is greater than 1.0, interpreting as percentage...')
-            m.Reserve_charge_max = m.Reserve_charge_max/100
+            logging.debug('ValuationOptimizer: No State_of_charge_max provided, setting default...')
+            m.State_of_charge_max = 100
+        elif getattr(m, 'State_of_charge_max') > 1.0:
+            logging.warning('ValuationOptimizer: State_of_charge_max provided is greater than 1.0, interpreting as percentage...')
+            m.State_of_charge_max = m.State_of_charge_max/100
         
         if not hasattr(m, 'State_of_charge_init'):
             # Initial state of charge [fraction of capacity], defaults to the amount reserved for discharging.
@@ -316,8 +316,8 @@ class BtmOptimizer(optimizer.Optimizer):
             logging.warning('ValuationOptimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...')
             m.State_of_charge_init = m.State_of_charge_init/100
             
-        m.smin = m.Reserve_charge_min*m.Energy_capacity
-        m.smax = m.Reserve_charge_max*m.Energy_capacity
+        m.smin = m.State_of_charge_min*m.Energy_capacity
+        m.smax = m.State_of_charge_max*m.Energy_capacity
     
     def _set_model_var(self):
         """Sets the model vars for the Pyomo ConcreteModel."""
@@ -475,7 +475,7 @@ class BtmOptimizer(optimizer.Optimizer):
         self.nem_charge_with_es = nem_charge_with_es
         self.nem_charge_without_es = nem_charge_without_es
 
-        self.results.to_csv('resultssss.csv')
+        # self.results.to_csv('resultssss.csv')
         
     def get_results(self):
         """Returns the decision variables and derived quantities in a DataFrame"""

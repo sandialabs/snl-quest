@@ -46,7 +46,7 @@
     },
     {
     "name": "minimum state of charge",
-    "attr name": "Reserve_charge_min",
+    "attr name": "State_of_charge_min",
     "notes": "The minimum ESS state of charge as a percentage of energy capacity.",
     "max": 100,
     "default": 0,
@@ -55,7 +55,7 @@
     },
     {
     "name": "maximum state of charge",
-    "attr name": "Reserve_charge_max",
+    "attr name": "State_of_charge_max",
     "notes": "The maximum ESS state of charge as a percentage of energy capacity.",
     "max": 100,
     "default": 100,
