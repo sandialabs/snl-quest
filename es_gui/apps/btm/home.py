@@ -34,6 +34,7 @@ class BehindTheMeterHomeScreen(Screen):
         ab = self.manager.nav_bar
         ab.reset_nav_bar()
         ab.set_title('Behind-the-Meter Applications')
+        ab.build_data_manager_nav_bar()
 
         # data_manager = App.get_running_app().data_manager
         

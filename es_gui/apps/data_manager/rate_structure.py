@@ -59,6 +59,11 @@ class RateStructureScreenManager(ScreenManager):
         self.add_widget(RateStructureEnergyRateStructureScreen(name='energy_rate_structure'))
         self.add_widget(RateStructureDemandRateStructureScreen(name='demand_rate_structure'))
         self.add_widget(RateStructureFinishScreen(name='finish'))
+    
+    def go_to_data_manager_home(self):
+        """Sets the current screen to Data Manager Home."""
+        ab = self.parent.parent.parent.manager.nav_bar
+        ab.go_to_screen('data_manager_home')
 
 
 class RateStructureUtilitySearchScreen(Screen):

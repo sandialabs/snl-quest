@@ -289,10 +289,19 @@ class NavigationBar(ActionBar):
         self.build_index_nav_bar()
     
     def build_data_manager_nav_bar(self):
+        """Builds the navigation bar for data manager appliations."""
+        data_manager_home_button = NavigationButton(
+            text='data manager home',
+            on_release=partial(self.go_to_screen, 'data_manager_home'),
+            id='data_manager_home_button'
+        )
+
         self.reset_nav_bar()
 
+        self.action_view.add_widget(data_manager_home_button)
+
     def build_valuation_advanced_nav_bar(self):
-        """ Builds the navigation bar for valuation applications."""
+        """Builds the navigation bar for valuation applications."""
         view_results_button = NavigationButton(
             text='view results',
             on_release=partial(self.go_to_screen, 'valuation_results_viewer'),
@@ -418,12 +427,6 @@ class NavigationBar(ActionBar):
             id='settings_button'
         )
 
-        # help_button = NavigationButton(
-        #     text='help',
-        #     on_release=self.sm.help_popup.open,
-        #     id='help_button'
-        # )
-
         about_button = NavigationButton(
             text='about',
             on_release=self.sm.about_screen.open,
@@ -433,7 +436,6 @@ class NavigationBar(ActionBar):
         self.action_view.add_widget(home_button)
         self.action_view.add_widget(about_button)
         self.action_view.add_widget(settings_button)
-        # self.action_view.add_widget(help_button)
 
     def go_to_screen(self, screen_name, *args):
         """Changes the current screen of the given screen manager."""

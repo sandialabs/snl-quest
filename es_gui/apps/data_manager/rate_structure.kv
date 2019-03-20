@@ -738,11 +738,11 @@
 
             BoxLayout:
                 orientation: 'horizontal'
-                size_hint_x: 0.35
+                size_hint_x: 0.5
                 spacing: 10
+                padding: 0
 
                 TileButton:
-                    size_hint_x: 0.5
                     background_color: C(hex_primary)
                     text: 'Previous'
                     on_release:
@@ -751,11 +751,15 @@
                         root.manager.current = root.manager.previous()
 
                 TileButton:
-                    size_hint_x: 0.5
                     background_color: C(hex_pms178)
-                    text: 'Start over'
+                    text: 'Start Over'
                     on_release:
                         root.manager.transition.duration = BASE_TRANSITION_DUR
                         root.manager.transition.direction = 'left'
                         root.next_screen()
+                
+                TileButton:
+                    background_color: C(hex_primary)
+                    text: 'Data Manager Home'
+                    on_release: root.manager.current = root.manager.go_to_data_manager_home()
 
