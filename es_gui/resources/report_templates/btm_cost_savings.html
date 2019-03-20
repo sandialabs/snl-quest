@@ -130,9 +130,6 @@ MathJax.Hub.Config({
 
 <h2>Optimization Formulation</h2>
 
-
-
-
 We solve the following mathematical optimization problem to minimize the monthly bills for utility customers using behind-the-meter energy storage. The notation is described in Table 2 below.
 
 <h3>Variables and constraints</h3>
@@ -327,6 +324,12 @@ The following assumptions were used:
 
 
 <h2>Summary of results</h2>
+
+{% for component in executive_summary %}
+<p>
+{{ component|safe }}
+</p>
+{% endfor %}
 
 <!-- Figures from wizard reporting screen -->
 <div align="center"> <!-- center content -->

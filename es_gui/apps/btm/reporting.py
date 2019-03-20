@@ -565,6 +565,59 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
 
         # Generate report.
         Clock.schedule_once(lambda dt: self.generate_report_from_template(), (nCharts+1)*screenFlipInterval)
+    
+    def generate_executive_summary(self):
+        """Generates an executive summary similar to the report screen using chart data."""
+        chart_data = self.host_report.chart_data
+
+        executive_summary_strings = []
+
+        total_bill_summary = "The total bill is the sum of demand charges, energy charges, and net metering charges. The total charges for the year was <b>{total_charges}</b>. The highest bill for a month was <b>{highest_bill}</b>. The lowest bill for a month was <b>{lowest_bill}</b>.".format(
+            total_charges=format_dollar_string(sum(op[1].total_bill_with_es for op in chart_data)),
+            highest_bill=format_dollar_string(max(op[1].total_bill_with_es for op in chart_data)),
+            lowest_bill=format_dollar_string(min(op[1].total_bill_with_es for op in chart_data)),
+        )
+
+        executive_summary_strings.append(total_bill_summary)
+
+        bill_comparison_summary = "The total bill without energy storage was <b>{total_bill_without_es}</b>. The total bill with energy storage was <b>{total_bill_with_es}</b>: a difference of <b>{total_bill_diff}</b>.".format(
+            total_bill_without_es=format_dollar_string(sum(op[1].total_bill_without_es for op in chart_data)),
+            total_bill_with_es=format_dollar_string(sum(op[1].total_bill_with_es for op in chart_data)),
+            total_bill_diff=format_dollar_string(abs(sum(op[1].total_bill_with_es - op[1].total_bill_without_es for op in chart_data))),
+        )
+
+        executive_summary_strings.append(bill_comparison_summary)
+
+        demand_charge_strings = []
+        demand_charge_strings.append("The demand charge total consists of time-of-use (TOU) peak demand charges in addition to flat peak demand charges, if applicable. The TOU demand charge is based on the peak demand during each time period and the corresponding rate. The flat demand charge is based on the peak demand over the entire month, sometimes subject to minimum and/or maximum values. The ESS is useful for reducing net power draw during high TOU rates.")
+
+        if any(op[1].has_demand_charges() for op in chart_data):
+            demand_charge_with_es = sum(op[1].demand_charge_with_es for op in chart_data)
+            demand_charge_without_es = sum(op[1].demand_charge_without_es for op in chart_data)
+            total_demand_charge_difference = demand_charge_with_es - demand_charge_without_es
+
+            if total_demand_charge_difference < 0:
+                relation = 'decrease'
+            else:
+                relation = 'increase'
+            
+            demand_charge_strings.append(
+                "It looks like the ESS was able to <b>{relation}</b> the total demand charges over the year from <b>{demand_charge_without_es}</b> to <b>{demand_charge_with_es}</b> for a total difference of <b>{total_demand_charge_difference}</b>.".format(
+                    relation=relation,
+                    demand_charge_without_es=format_dollar_string(demand_charge_without_es),
+                    demand_charge_with_es=format_dollar_string(demand_charge_with_es),
+                    total_demand_charge_difference=format_dollar_string(total_demand_charge_difference),
+                )
+            )
+        else:
+            demand_charge_strings.append(
+                "It looks like there were no demand charges. The particular rate structure you selected resulted in no demand charges. Either there are no demand charges or no savings on demand charges were accrued using energy storage."
+            )
+        
+        demand_charge_summary = ' '.join(demand_charge_strings)
+        executive_summary_strings.append(demand_charge_summary)
+
+        return executive_summary_strings
 
     def generate_report_from_template(self):
         # Get current date.
@@ -611,8 +664,9 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
             value, units = val_units.split()
 
             system_parameters_summary.append({'name': name, 'value': value, 'units': units})
+        
+        executive_summary = self.generate_executive_summary()
 
-        # Retrieve HTML template based on selected ISO.
         template_dir = os.path.join('es_gui', 'resources', 'report_templates')
         output_dir = os.path.join('results', 'btm_cost_savings', 'report')
         os.makedirs(output_dir, exist_ok=True)
@@ -634,11 +688,7 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
                         SNL_image=os.path.join('images', 'static', 'SNL.png'),
                         DOE_image=os.path.join('images', 'static', 'DOE.png'),
                         acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
-                        # PARAMETER VALUES TABLE
-                    #  power_rating=power_rating,
-                    #  energy_capacity=energy_capacity,
-                    #  storage_efficiency=storage_efficiency,
-                    #  conversion_efficiency=conversion_efficiency,						 
+                        executive_summary=executive_summary,					 
                         # FIGURES
                         charts=chart_list,
 					)
