@@ -222,6 +222,7 @@ class StackedBarChart(Chart):
                 self.remove_widget(widget)
 
         with self.canvas.before:
+            self.canvas.clear()
             Color(1, 1, 1, 1)
             Rectangle(pos=self.pos, size=self.size)
 
@@ -321,6 +322,21 @@ class MultisetBarChart(StackedBarChart):
         # form dictionary with key: bar stack name and value: list of BarChartEntry tuples corresponding to set components
         for bar_set_name in bar_data.keys():
             bars[bar_set_name] = [BarChartEntry._make(x) for x in bar_data[bar_set_name]]
+        
+        # max value by category
+        all_bar_components = [bar for bar_set in bars.values() for bar in bar_set]
+        categories = {bar_component.category for bar_component in all_bar_components}
+
+        max_bar_entries = {}
+
+        for category in categories:
+            category_components = []
+
+            for bar_component in all_bar_components:
+                if bar_component.category == category:
+                    category_components.append(bar_component)
+
+            max_bar_entries[category] = max(category_components, key=lambda x: x.value)
 
         # determine the tallest and shortest bars and their respective values
         self.max_bar = max([bar_entry for bar_set in bars.values() for bar_entry in bar_set], key=lambda x: x.value)
@@ -432,6 +448,24 @@ class MultisetBarChart(StackedBarChart):
                 Line(points=[x0, self.y_padding,
                              self.width - self.x_padding, self.y_padding],
                      width=1,)
+        
+        # label the maximum value for each multibar set
+        for category in categories:
+            category_max_bar = max_bar_entries[category]
+
+            category_max_value = category_max_bar.value
+
+            if category_max_value != max_value:
+                # if max_value > 0:
+                component_max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height - (max_value - category_max_value)*dydv + self.y_padding - self.height/2),
+                                    text=self.y_axis_format.format(category_max_value), halign='right', color=category_max_bar.rgba)
+                self.add_widget(component_max_label)
+
+                with self.canvas:
+                    Color(*category_max_bar.rgba)
+                    Line(points=[x0, self.max_height + self.y_padding - (max_value - category_max_value)*dydv,
+                                self.width - self.x_padding, self.max_height + self.y_padding - (max_value - category_max_value)*dydv],
+                        width=1,)
 
 
 class BarChart(Chart):
@@ -579,6 +613,7 @@ class BarChart(Chart):
                 self.remove_widget(widget)
 
         with self.canvas.before:
+            self.canvas.clear()
             Color(1, 1, 1, 1)
             Rectangle(size=self.size, pos=self.pos)
 
@@ -621,6 +656,7 @@ class DonutChart(Chart):
                 self.remove_widget(widget)
 
         with self.canvas.before:
+            self.canvas.clear()
             Color(1, 1, 1, 1)
             Rectangle(size=self.size, pos=self.pos)
 
@@ -728,6 +764,7 @@ class PieChart(Chart):
                 self.remove_widget(widget)
 
         with self.canvas.before:
+            self.canvas.clear()
             Color(1, 1, 1, 1)
             Rectangle(size=self.size, pos=self.pos)
 

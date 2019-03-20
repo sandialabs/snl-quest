@@ -1,8 +1,8 @@
 # This is for setting the window parameters like the initial size. Goes before any other import statements.
 from kivy.config import Config
 
-Config.set('graphics', 'height', '1080')
-Config.set('graphics', 'width', '1920')
+Config.set('graphics', 'height', '900')
+Config.set('graphics', 'width', '1600')
 Config.set('graphics', 'minimum_height', '720')
 Config.set('graphics', 'minimum_width', '1280')
 Config.set('graphics', 'resizable', '1')

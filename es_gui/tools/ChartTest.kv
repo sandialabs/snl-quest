@@ -28,38 +28,38 @@
 
 
 <ChartScreen>:
-    # rate_schedule_chart: rate_schedule_chart
-    # rate_schedule_chart2: rate_schedule_chart2
+    chart_top: chart_top
+    # chart_bottom: chart_bottom
 
     BoxLayout:
         orientation: 'vertical'
         padding: 10
         spacing: 25
 
-        RateScheduleGridLayout:
+        # RateScheduleGridLayout:
 
 
-        # BoxLayout:
-        #     orientation: 'vertical'
+        BoxLayout:
+            orientation: 'vertical'
 
-        #     RateScheduleChart:
-        #         id: rate_schedule_chart
+            MultisetBarChart:
+                id: chart_top
 
-        #     Button:
-        #         size_hint_y: 0.1
-        #         text: 'draw bar chart'
-        #         on_release: root.draw_rate_schedule_chart(rate_schedule_chart)
+            Button:
+                size_hint_y: 0.1
+                text: 'draw bar chart'
+                on_release: root.draw_multiset_chart(chart_top)
         
         # BoxLayout:
         #     orientation: 'vertical'
 
         #     RateScheduleChart:
-        #         id: rate_schedule_chart2
+        #         id: chart_bottom
 
         #     Button:
         #         size_hint_y: 0.1
         #         text: 'draw bar chart'
-        #         on_release: root.draw_rate_schedule_chart(rate_schedule_chart2)
+        #         on_release: root.draw_rate_schedule_chart(chart_bottom)
 
 <RateScheduleGridLayout>:
     cols: 24
