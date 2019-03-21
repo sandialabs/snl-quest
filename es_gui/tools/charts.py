@@ -456,9 +456,13 @@ class MultisetBarChart(StackedBarChart):
             category_max_value = category_max_bar.value
 
             if category_max_value != max_value:
-                # if max_value > 0:
+                label_text = self.y_axis_format.format(category_max_value)
+                if category_max_value < 0:
+                    if self.y_axis_format[0] == '$':
+                        label_text = '-' + self.y_axis_format.format(-category_max_value)
+
                 component_max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height - (max_value - category_max_value)*dydv + self.y_padding - self.height/2),
-                                    text=self.y_axis_format.format(category_max_value), halign='right', color=category_max_bar.rgba)
+                                    text=label_text, halign='right', color=category_max_bar.rgba)
                 self.add_widget(component_max_label)
 
                 with self.canvas:

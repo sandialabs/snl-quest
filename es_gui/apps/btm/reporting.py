@@ -591,6 +591,18 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         demand_charge_strings = []
         demand_charge_strings.append("The demand charge total consists of time-of-use (TOU) peak demand charges in addition to flat peak demand charges, if applicable. The TOU demand charge is based on the peak demand during each time period and the corresponding rate. The flat demand charge is based on the peak demand over the entire month, sometimes subject to minimum and/or maximum values. The ESS is useful for reducing net power draw during high TOU rates.")
 
+        demand_charge_summary = ' '.join(demand_charge_strings)
+        executive_summary_strings.append(demand_charge_summary)
+        demand_charge_strings = []
+
+        peak_demand_without_es = max(max(op[1].model.pnet for op in chart_data))
+        peak_demand_with_es = max(op[1].model.pfpk.value for op in chart_data)
+
+        demand_charge_strings.append("Without energy storage, the peak demand observed during the evaluation period was <b>{peak_demand_without_es:.2f} kW</b>. By adding energy storage, this value was changed to <b>{peak_demand_with_es:.2f} kW</b>.".format(
+            peak_demand_without_es=peak_demand_without_es,
+            peak_demand_with_es=peak_demand_with_es,
+        ))
+
         if any(op[1].has_demand_charges() for op in chart_data):
             demand_charge_with_es = sum(op[1].demand_charge_with_es for op in chart_data)
             demand_charge_without_es = sum(op[1].demand_charge_without_es for op in chart_data)
@@ -616,6 +628,66 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         
         demand_charge_summary = ' '.join(demand_charge_strings)
         executive_summary_strings.append(demand_charge_summary)
+
+        energy_charge_strings = []
+        energy_charge_strings.append("The energy charge total is based on the net energy consumption and TOU rates. The ESS is useful for reducing energy consumption during high TOU periods.")
+
+        if any(op[1].has_energy_charges for op in chart_data):
+            energy_charge_with_es = sum(op[1].energy_charge_with_es for op in chart_data)
+            energy_charge_without_es = sum(op[1].energy_charge_without_es for op in chart_data)
+            total_energy_charge_difference = energy_charge_with_es - energy_charge_without_es
+
+            if total_energy_charge_difference < 0:
+                relation = 'decrease'
+                total_difference_str = "It looks like the ESS was able to <b>{relation}</b> the total energy charges over the year by <b>{total_difference}</b> from <b>{energy_charge_without_es}</b> to <b>{energy_charge_with_es}</b>.".format(
+                    relation=relation,
+                    total_difference=format_dollar_string(total_energy_charge_difference),
+                    energy_charge_without_es=format_dollar_string(energy_charge_without_es),
+                    energy_charge_with_es=format_dollar_string(energy_charge_with_es),
+                )
+            else:
+                relation = 'increased'
+                total_difference_str = "It looks like the total energy charges over the year with the ESS <b>{relation}</b> by <b>{total_difference}</b> from <b>{energy_charge_without_es}</b> to <b>{energy_charge_with_es}</b>. This is likely due to opportunities for decreasing demand charges or obtaining net metering credits.".format(
+                    relation=relation,
+                    total_difference=format_dollar_string(total_energy_charge_difference),
+                    energy_charge_without_es=format_dollar_string(energy_charge_without_es),
+                    energy_charge_with_es=format_dollar_string(energy_charge_with_es),
+                )
+            
+            energy_charge_strings.append(total_difference_str)
+        else:
+            energy_charge_strings.append("It looks like there were no energy charges. Either there are no TOU energy charges or no savings on energy charges were accrued using energy storage.")
+        
+        energy_charge_summary = ' '.join(energy_charge_strings)
+        executive_summary_strings.append(energy_charge_summary)
+
+        net_metering_strings = []
+        net_metering_rate = chart_data[0][1].nem_rate
+        net_metering_type = chart_data[0][1].nem_type
+
+        if net_metering_type == 2:
+            net_metering_strings.append("<b>Net energy metering (NEM) 2.0</b> uses the TOU energy rate for energy.")
+        else:
+            net_metering_strings.append("<b>Net energy metering (NEM) 1.0</b> uses a fixed price for energy, which was set as <b>{net_metering_rate}/kWh</b>.".format(net_metering_rate=format_dollar_string(net_metering_rate)))
+
+        if any(op[1].has_nem_charges() for op in chart_data):
+            net_metering_without_es = sum(op[1].nem_charge_without_es for op in chart_data)
+            net_metering_with_es = sum(op[1].nem_charge_with_es for op in chart_data)
+            total_net_metering_difference = net_metering_with_es - net_metering_without_es
+
+            relation = 'increase' if total_net_metering_difference < 0 else 'decrease'
+
+            net_metering_strings.append("The total <b>{relation}</b> in NEM credits with energy storage was <b>{total_nem_difference}</b>, from <b>{nem_without_es}</b> to <b>{nem_with_es}</b>.".format(
+                relation=relation,
+                total_nem_difference=format_dollar_string(total_net_metering_difference),
+                nem_without_es=format_dollar_string(net_metering_without_es),
+                nem_with_es=format_dollar_string(net_metering_with_es),
+            ))
+        else:
+            net_metering_strings.append("It looks like there were no net energy metering charges or credits. Either that or no savings on NEM charges were accrued using energy storage.")
+        
+        net_metering_summary = ' '.join(net_metering_strings)
+        executive_summary_strings.append(net_metering_summary)
 
         return executive_summary_strings
 

@@ -42,7 +42,9 @@ class BtmResultsViewer(ResultsViewer):
         """Updates the data viewing toolbar based on selections."""
         super(BtmResultsViewer, self)._update_toolbar(self)
 
-        vars_list = ['load', 'charge profile', 'total demand', 'state of charge', 'total bill', 'total savings']
+        vars_list = ['load', 'charge profile', 'total demand', 'state of charge', 
+        # 'total bill', 'total savings'
+        ]
 
         self.vars_button.values = vars_list
 
@@ -141,10 +143,10 @@ class BtmResultsViewer(ResultsViewer):
 
         #         ax.set_title(plot_type)
 
-        # if plot_type in ['total bill', 'total savings']:
-        #     pass
-        # else:
-        #     ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0, shadow=False, labelspacing=1.8)
+        if plot_type in ['total bill', 'total savings']:
+            pass
+        else:
+            ax.legend(bbox_to_anchor=(1.02, 0.5), loc="center left", borderaxespad=0, shadow=False, labelspacing=1.8)
 
         self.plotbox.children[0].draw()
 
