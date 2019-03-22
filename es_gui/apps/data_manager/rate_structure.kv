@@ -2,6 +2,7 @@
 #: import webbrowser webbrowser
 #: import datetime datetime
 #: import app kivy.app
+#: import clock kivy.clock
 
 <RateStructureDataScreen>:
     BoxLayout:
@@ -409,7 +410,6 @@
     font_size: sp(16)
     input_filter: 'float'
     write_tab: False
-    on_focus: self.select_all() if self.focus else self.cancel_selection() 
 
 <RateScheduleRow>:
     cols: 25
@@ -433,7 +433,6 @@
     font_size: sp(16)
     input_filter: 'int'
     write_tab: False
-    on_focus: self.select_all() if self.focus else self.cancel_selection() 
 
 <RateStructureScheduleGrid>:
     rows: 13
@@ -639,8 +638,7 @@
                         id: peak_kw_max_field
                         size_hint_x: 0.4
                         input_filter: 'int'
-                        font_size: default_font
-            
+                        font_size: default_font          
         
         BoxLayout:
             orientation: 'vertical'

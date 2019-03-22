@@ -30,7 +30,7 @@
 * The terms for adjusting the allowable range of state of charge have been changed.
   * % of energy capacity to reserve for charging (default: 0) --> maximum state of charge (%) (default: 100)
   * % of energy capacity to reserve for discharging (default: 0) --> minimum state of charge (%) (default: 0)
-* The default initial (and final) state of charge has been set to 50%.
+* The default initial (and final) state of charge has been set to 50% (was: 0).
 
 #### QuESt BTM
 * A new application in the QuESt suite, QuESt BTM, has been implemented.

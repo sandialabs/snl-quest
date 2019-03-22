@@ -7,6 +7,7 @@
 
 #: import C kivy.utils.get_color_from_hex
 #: import os os
+#: import clock kivy.clock
 
 #: import PlotSpinnerOptionCls es_gui.resources.widgets.common.PlotSpinnerOptionCls
 
@@ -60,6 +61,9 @@
 <Widget>:
     font_size: default_font
     font_name: 'Exo 2'
+
+<TextInput>:
+    on_focused: self.focused and clock.Clock.schedule_once(lambda dt: self.select_all())
 
 # This is a label template for left-aligned text. It includes options to prevent text from overflowing.
 <LeftAlignedText>:
