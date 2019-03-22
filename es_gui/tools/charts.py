@@ -1182,7 +1182,7 @@ class RateScheduleChart(Chart):
                 if iy == 0:
                     # Column labels for hours.
                     col_label = Label(pos=(x0 - (self.width - self.tile_width)/2 + ix*(self.tile_width + self.tile_spacing), self.max_height/2 + self.y_padding/2),
-                              text=str(ix+1), color=[0, 0, 0, 1], font_size=12)
+                              text=str(ix).zfill(2), color=[0, 0, 0, 1], font_size=12)
                     self.add_widget(col_label)
 
     def draw_chart(self, schedule_data, category_colors, labels, legend_labels=None):

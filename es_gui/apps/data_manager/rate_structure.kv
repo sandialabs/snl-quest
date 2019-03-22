@@ -2,7 +2,6 @@
 #: import webbrowser webbrowser
 #: import datetime datetime
 #: import app kivy.app
-#: import clock kivy.clock
 
 <RateStructureDataScreen>:
     BoxLayout:
@@ -19,9 +18,6 @@
     api_key_input: api_key_input
     search_text_input: search_text_input
     search_button: search_button
-    # chkbx_by_name: chkbx_by_name
-    # chkbx_by_zip: chkbx_by_zip
-    # chkbx_by_state: chkbx_by_state
     by_name_toggle: by_name_toggle
     by_zip_toggle: by_zip_toggle
     by_state_toggle: by_state_toggle
@@ -35,7 +31,6 @@
     
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
         spacing: 5
 
         DataManagerTitle:
@@ -110,42 +105,6 @@
                     id: by_state_toggle
                     group: 'search_type'
                     text: 'by state'
-
-                # BoxLayout:
-                #     orientation: 'horizontal'
-                #     spacing: 10
-
-                #     DataManagerCheckbox:
-                #         id: chkbx_by_name
-                #         group: 'search_type'
-
-                #     DataManagerBodyText:
-                #         text: 'by name'
-                #         size_hint_x: 0.95
-                
-                # BoxLayout:
-                #     orientation: 'horizontal'
-                #     spacing: 10
-
-                #     DataManagerCheckbox:
-                #         id: chkbx_by_zip
-                #         group: 'search_type'
-
-                #     DataManagerBodyText:
-                #         text: 'by zip'
-                #         size_hint_x: 0.95
-                
-                # BoxLayout:
-                #     orientation: 'horizontal'
-                #     spacing: 10
-
-                #     DataManagerCheckbox:
-                #         id: chkbx_by_state
-                #         group: 'search_type'
-
-                #     DataManagerBodyText:
-                #         text: 'by state (abbr.)'
-                #         size_hint_x: 0.95
                 
         BoxLayout:
             orientation: 'horizontal'
@@ -217,6 +176,9 @@
                     size_hint_y: 0.4
                     scroll_type: ['bars', 'content']
                     effect_cls: 'OpacityScrollEffect'
+                    bar_width: dp(5)
+                    bar_color: C(hex_secondary)
+                    bar_inactive_color: C(hex_secondary)
 
                     DataManagerBodyText:
                         id: rate_structure_desc
@@ -259,7 +221,6 @@
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
         spacing: 5
 
         DataManagerTitle:
@@ -425,6 +386,12 @@
         color: C(hex_black)
         font_size: default_font
 
+<RateScheduleColumnHeader>:
+    font_name: 'Exo 2'
+    color: C(hex_black)
+    size_hint_x: 1/24
+    font_size: sp(16)
+
 <RateScheduleTextInput>:
     size_hint_x: 1/24
     multiline: False
@@ -448,7 +415,6 @@
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
         spacing: 5
 
         DataManagerTitle:
@@ -590,7 +556,6 @@
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
         spacing: 5
 
         DataManagerTitle:

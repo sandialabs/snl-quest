@@ -26,10 +26,11 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, St
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
+from es_gui.resources.widgets.common import BodyTextBase, InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME, STATE_ABBR_TO_NAME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
+
 
 MAX_WHILE_ATTEMPTS = 7
 
@@ -998,10 +999,14 @@ class RateStructureScheduleGrid(GridLayout):
 
         self.schedule_rows = []
 
-        for ix in range(1, 13):
-            schedule_row = RateScheduleRow(row_name=calendar.month_abbr[ix])
-            self.add_widget(schedule_row)
-            self.schedule_rows.append(schedule_row)
+        for ix in range(0, 13):
+            if ix > 0:
+                schedule_row = RateScheduleRow(row_name=calendar.month_abbr[ix])
+                self.add_widget(schedule_row)
+                self.schedule_rows.append(schedule_row)
+            else:
+                schedule_row = RateScheduleRow(row_name='', is_header=True)
+                self.add_widget(schedule_row)
     
     def _validate_inputs(self):
         schedule_array = np.empty((12, 24), dtype=int)
@@ -1027,16 +1032,24 @@ class RateScheduleRow(GridLayout):
     """A labeled row of TextInput fields for the rate schedule table."""
     row_name = StringProperty('')
 
-    def __init__(self, **kwargs):
+    def __init__(self, is_header=False, **kwargs):
         super(RateScheduleRow, self).__init__(**kwargs)
 
         self.name.text = self.row_name
         self.text_inputs = []
 
-        for ix in range(1, 25):
-            text_input = RateScheduleTextInput()
-            self.add_widget(text_input)
-            self.text_inputs.append(text_input)
+        for ix in range(24):
+            if not is_header:
+                text_input = RateScheduleTextInput()
+                self.add_widget(text_input)
+                self.text_inputs.append(text_input)
+            else:
+                col_header = RateScheduleColumnHeader(text=str(ix).zfill(2))
+                self.add_widget(col_header)
+
+
+class RateScheduleColumnHeader(BodyTextBase):
+    pass
 
 
 class RateScheduleTextInput(TextInput):
