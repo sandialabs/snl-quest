@@ -336,7 +336,7 @@ class MultisetBarChart(StackedBarChart):
                 if bar_component.category == category:
                     category_components.append(bar_component)
 
-            max_bar_entries[category] = max(category_components, key=lambda x: x.value)
+            max_bar_entries[category] = max(category_components, key=lambda x: abs(x.value))
 
         # determine the tallest and shortest bars and their respective values
         self.max_bar = max([bar_entry for bar_set in bars.values() for bar_entry in bar_set], key=lambda x: x.value)
@@ -455,21 +455,33 @@ class MultisetBarChart(StackedBarChart):
 
             category_max_value = category_max_bar.value
 
-            if category_max_value != max_value:
+            if category_max_value != max_value and category_max_value != min_value:
                 label_text = self.y_axis_format.format(category_max_value)
+
                 if category_max_value < 0:
                     if self.y_axis_format[0] == '$':
                         label_text = '-' + self.y_axis_format.format(-category_max_value)
 
-                component_max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height - (max_value - category_max_value)*dydv + self.y_padding - self.height/2),
-                                    text=label_text, halign='right', color=category_max_bar.rgba)
-                self.add_widget(component_max_label)
+                if max_value > 0:
+                    component_max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height - (max_value - category_max_value)*dydv + self.y_padding - self.height/2),
+                                        text=label_text, halign='right', color=category_max_bar.rgba)
+                    self.add_widget(component_max_label)
 
-                with self.canvas:
-                    Color(*category_max_bar.rgba)
-                    Line(points=[x0, self.max_height + self.y_padding - (max_value - category_max_value)*dydv,
-                                self.width - self.x_padding, self.max_height + self.y_padding - (max_value - category_max_value)*dydv],
-                        width=1,)
+                    with self.canvas:
+                        Color(*category_max_bar.rgba)
+                        Line(points=[x0, self.max_height + self.y_padding - (max_value - category_max_value)*dydv,
+                                    self.width - self.x_padding, self.max_height + self.y_padding - (max_value - category_max_value)*dydv],
+                            width=1,)
+                else:
+                    component_max_label = Label(pos=(0.75*x0 - self.width/2, self.max_height + category_max_value*dydv + self.y_padding - self.height/2),
+                                        text=label_text, halign='right', color=category_max_bar.rgba)
+                    self.add_widget(component_max_label)
+
+                    with self.canvas:
+                        Color(*category_max_bar.rgba)
+                        Line(points=[x0, self.max_height + self.y_padding + category_max_value*dydv,
+                                    self.width - self.x_padding, self.max_height + self.y_padding + category_max_value*dydv],
+                            width=1,)
 
 
 class BarChart(Chart):

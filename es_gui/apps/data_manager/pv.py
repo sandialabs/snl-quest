@@ -26,7 +26,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, St
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp, ParameterRow
+from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp, ParameterRow
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
@@ -136,7 +136,7 @@ class PVwattsSearchScreen(Screen):
             try:
                 self._query_api(api_query)
             except requests.ConnectionError:
-                popup = WarningPopup()
+                popup = ConnectionErrorPopup()
                 popup.popup_text.text = 'There was an issue connecting to the API. Check your connection settings and try again.'
                 popup.open()
 

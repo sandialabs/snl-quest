@@ -16,7 +16,7 @@ from kivy.clock import Clock
 
 from es_gui.apps.data_manager.data_manager import DATA_HOME
 from es_gui.apps.data_manager.utils import check_connection_settings
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
+from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
 
 MAX_WHILE_ATTEMPTS = 7
 
@@ -74,7 +74,7 @@ class DataManagerCommercialLoadScreen(Screen):
     
     def on_connection_error_occurred(self, instance, value):
         if value:
-            popup = WarningPopup()
+            popup = ConnectionErrorPopup()
             popup.popup_text.text = 'There was an issue connecting to the profile database. Check your connection settings and try again.'
             popup.open()
 
@@ -387,7 +387,7 @@ class DataManagerResidentialLoadScreen(Screen):
     
     def on_connection_error_occurred(self, instance, value):
         if value:
-            popup = WarningPopup()
+            popup = ConnectionErrorPopup()
             popup.popup_text.text = 'There was an issue connecting to the profile database. Check your connection settings and try again.'
             popup.open()
     

@@ -26,7 +26,7 @@ from kivy.properties import ObjectProperty, NumericProperty, BooleanProperty, St
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import BodyTextBase, InputError, WarningPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
+from es_gui.resources.widgets.common import BodyTextBase, InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME, STATE_ABBR_TO_NAME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
@@ -277,8 +277,8 @@ class RateStructureUtilitySearchScreen(Screen):
                     try:
                         self._download_utility_ref_table()
                     except requests.ConnectionError:
-                        popup = WarningPopup()
-                        popup.popup_text.text = 'There was an issue connecting and downloading the list of utilities. Check your connection settings and try again.'
+                        popup = ConnectionErrorPopup()
+                        popup.popup_text.text = 'There was an issue connecting to and downloading the lists of utilities. Check your connection settings and try again.'
                         popup.open()
                         return
                     finally:
@@ -351,7 +351,7 @@ class RateStructureUtilitySearchScreen(Screen):
             thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
             thread_query.start()
         except requests.ConnectionError:
-            popup = WarningPopup()
+            popup = ConnectionErrorPopup()
             popup.popup_text.text = 'There was an issue querying the OpenEI database. Check your connection settings and try again.'
             popup.open()
         finally:

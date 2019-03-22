@@ -40,7 +40,7 @@ from kivy.core.text import LabelBase
 import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
-from es_gui.resources.widgets.common import InputError, WarningPopup, MyPopup, APP_NAME, APP_TAGLINE, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
+from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, APP_NAME, APP_TAGLINE, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
 from es_gui.apps.data_manager.data_manager import DataManagerException
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen

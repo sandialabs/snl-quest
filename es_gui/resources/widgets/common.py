@@ -208,6 +208,13 @@ class ValuationRunCompletePopup(MyPopup):
     pass
 
 
+class ConnectionErrorPopup(MyPopup):
+    def open_connection_settings(self):
+        """Opens the settings screen."""
+        settings_screen = App.get_running_app().settings.parent.parent
+        settings_screen.open()
+
+
 class PlotSpinner(Spinner, TileButton):
     pass
 

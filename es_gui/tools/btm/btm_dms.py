@@ -38,7 +38,6 @@ class BtmDMS(DataManagementSystem):
     
     def get_pv_profile_data(self, path, month):
         """Retrieves PV profile data."""
-        # TODO: Finish
         logging.info('DMS: Loading PV profile data')
 
         month = str(month)

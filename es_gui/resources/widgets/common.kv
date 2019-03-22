@@ -219,6 +219,40 @@
             font_size: stnd_font
             on_release: root.dismiss()
 
+# This is a warning popup window to inform users of execution warnings. Contains text and a single dismiss button.
+# Subclass: MyPopup
+<ConnectionErrorPopup>:
+    popup_text: popup_text
+    open_connection_settings_button: open_connection_settings_button
+    dismiss_button: dismiss_button
+    title: 'Oops!'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            size_hint: (1.00, 0.20)
+        
+            Button:
+                id: open_connection_settings_button
+                halign: 'center'
+                text: 'Open settings'
+                font_size: stnd_font
+                on_release: root.open_connection_settings()
+
+            Button:
+                id: dismiss_button
+                halign: 'center'
+                text: 'Dismiss'
+                font_size: stnd_font
+                on_release: root.dismiss()
+
 # This is a label template for Popup content. It includes options to prevent text from overflowing its container.
 # Subclass: Label
 <PopupLabel@Label>:
