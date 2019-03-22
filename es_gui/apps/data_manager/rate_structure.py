@@ -14,6 +14,7 @@ import pandas as pd
 import numpy as np
 from kivy.animation import Animation
 from kivy.app import App
+from kivy.core.window import Window
 from kivy.clock import Clock, mainthread
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition
 from kivy.uix.modalview import ModalView
@@ -984,8 +985,7 @@ class RateStructureTableRow(GridLayout):
 
 
 class RateStructureRateTextInput(TextInput):
-    """A TextInput field for entering parameter values."""
-
+    """A TextInput field for entering rates in a RateStructurePeriodTable."""
     def insert_text(self, substring, from_undo=False):
         # limit # chars
         substring = substring[:8 - len(self.text)]
@@ -1053,7 +1053,7 @@ class RateScheduleColumnHeader(BodyTextBase):
 
 
 class RateScheduleTextInput(TextInput):
-    """A TextInput field for entering rate schedule tiers. Changes color based on input."""
+    """A TextInput field for entering rate schedule period numbers. Changes color based on input."""
 
     def insert_text(self, substring, from_undo=False):
         # Limit # chars to 2.
@@ -1082,3 +1082,41 @@ class RateScheduleTextInput(TextInput):
             return_color = (0, 0, 0, 1)
 
         return return_color
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        key, key_str = keycode
+
+        if key_str in ('up', 'left', 'down', 'right'):
+            rate_schedule_row = self.parent
+            rate_schedule_grid = self.parent.parent
+
+            # Get the current column (hour) and row (month) indices.
+            n_cols = len(rate_schedule_row.text_inputs)
+            n_rows = len(rate_schedule_grid.schedule_rows)
+
+            col_ix = rate_schedule_row.text_inputs.index(self)
+            row_ix = rate_schedule_grid.schedule_rows.index(rate_schedule_row)
+
+            if key_str == 'up':
+                next_row_ix = row_ix - 1
+                next_col_ix = col_ix
+            elif key_str == 'down':
+                next_row_ix = 0 if row_ix == n_rows-1 else row_ix + 1
+                next_col_ix = col_ix
+            elif key_str == 'left':
+                next_row_ix = row_ix 
+                next_col_ix = col_ix - 1
+            elif key_str == 'right':
+                next_row_ix = row_ix
+                next_col_ix = 0 if col_ix == n_cols-1 else col_ix + 1
+            
+            # Focus the next specified text input.
+            next_text_input = rate_schedule_grid.schedule_rows[next_row_ix].text_inputs[next_col_ix]
+            next_text_input.focus = True
+        elif key_str in ('enter', 'numpadenter'):
+            tab_keycode = [9, 'tab']
+            super(RateScheduleTextInput, self).keyboard_on_key_down(window, tab_keycode, text, modifiers)
+        else:
+            super(RateScheduleTextInput, self).keyboard_on_key_down(window, keycode, text, modifiers)
+        
+        return True
