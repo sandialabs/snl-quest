@@ -124,7 +124,19 @@ class BtmOptimizerHandler:
     def _save_to_solved_ops(op, month, param_set):
         # time_finished = datetime.now().strftime('%A, %B %d, %Y %H:%M:%S')
         time_finished = datetime.now().strftime('%b %d, %Y %H:%M:%S')
-        name = ' | '.join([time_finished, month, repr(param_set)])
+
+        name_components = [time_finished, month,]
+
+        # Check for PV profile.
+        if any(op.pv_profile != 0):
+            name_components.append('PV: Yes')
+        else:
+            name_components.append('PV: No')
+        
+        # Net metering type.
+        name_components.append('NEM Type: {0}'.format(op.nem_type))
+
+        name = ' | '.join(name_components)
 
         results_dict = {}
 

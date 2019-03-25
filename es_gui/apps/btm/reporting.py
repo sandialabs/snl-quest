@@ -180,7 +180,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
         for ix, op in enumerate(self.chart_data, start=0):
             name = op[0]
-            _, month, _ = name.split(' | ')
+            month = name.split(' | ')[1]
             label = month
 
             solved_op = op[1]
@@ -223,7 +223,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
         for ix, op in enumerate(self.chart_data, start=0):
             name = op[0]
-            _, month, _ = name.split(' | ')
+            month = name.split(' | ')[1]
             label = month
 
             solved_op = op[1]
@@ -266,7 +266,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
             for ix, op in enumerate(self.chart_data, start=0):
                 name = op[0]
-                _, month, _ = name.split(' | ')
+                month = name.split(' | ')[1]
                 label = month
 
                 solved_op = op[1]
@@ -311,7 +311,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
             for ix, op in enumerate(self.chart_data, start=0):
                 name = op[0]
-                _, month, _ = name.split(' | ')
+                month = name.split(' | ')[1]
                 label = month
 
                 solved_op = op[1]
@@ -360,7 +360,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
             for ix, op in enumerate(self.chart_data, start=0):
                 name = op[0]
-                _, month, _ = name.split(' | ')
+                month = name.split(' | ')[1]
                 label = month
 
                 solved_op = op[1]
@@ -411,7 +411,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
         for ix, op in enumerate(self.chart_data, start=0):
             name = op[0]
-            _, month, _ = name.split(' | ')
+            month = name.split(' | ')[1]
             label = month
 
             solved_op = op[1]
@@ -498,7 +498,7 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
         for op in self.chart_data:
             name = op[0]
-            _, month, _ = name.split(' | ')
+            month = name.split(' | ')[1]
             label = month
 
             solved_op = op[1]
