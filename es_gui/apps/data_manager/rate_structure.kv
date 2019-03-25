@@ -68,7 +68,7 @@
                 spacing: 10
                 size_hint_y: 0.33
 
-                TextInput:
+                RateStructureUtilitySearchTextInput:
                     id: search_text_input
                     multiline: False
                     size_hint_x: 0.8
@@ -680,7 +680,7 @@
                 spacing: 10
                 size_hint_y: 0.1
 
-                TextInput:
+                RateStructureSaveNameTextInput:
                     id: save_name_field
                     multiline: False
                     size_hint_x: 0.8
@@ -725,4 +725,3 @@
                     background_color: C(hex_primary)
                     text: 'Data Manager Home'
                     on_release: root.manager.current = root.manager.go_to_data_manager_home()
-

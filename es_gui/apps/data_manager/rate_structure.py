@@ -68,6 +68,20 @@ class RateStructureScreenManager(ScreenManager):
         ab.go_to_screen('data_manager_home')
 
 
+class RateStructureUtilitySearchTextInput(TextInput):
+    host_screen = None
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        key, key_str = keycode
+
+        if key_str in ('enter', 'numpadenter'):
+            self.host_screen.execute_search()
+        else:
+            super(RateStructureUtilitySearchTextInput, self).keyboard_on_key_down(window, keycode, text, modifiers)
+        
+        return True
+
+
 class RateStructureUtilitySearchScreen(Screen):
     """DataManager Rate Structure screen for searching for a utility rate structure."""
     utility_ref_table = pd.DataFrame()
@@ -80,6 +94,7 @@ class RateStructureUtilitySearchScreen(Screen):
 
         UtilitySearchRVEntry.host_screen = self
         RateStructureRVEntry.host_screen = self
+        RateStructureUtilitySearchTextInput.host_screen = self
 
     def open_api_key_help(self):
         """Opens the API key help ModalView."""
@@ -765,7 +780,12 @@ class RateStructureDemandRateStructureScreen(Screen):
 
 
 class RateStructureFinishScreen(Screen):
-    """"""
+    """DataManager Rate Structure screen for finalizing inputs and saving the rate structure."""
+    def __init__(self, **kwargs):
+        super(RateStructureFinishScreen, self).__init__(**kwargs)
+
+        RateStructureSaveNameTextInput.host_screen = self
+
     def populate_peak_demand_limits(self, rate_structure):
         """Fills in the values for peak demand minimum and maximum, if available."""
         peak_minimum = rate_structure.get('peakkwcapacitymin', 0)
@@ -899,6 +919,20 @@ class RateStructureFinishScreen(Screen):
         # self.manager.get_screen(self.manager.next()).reset_screen()
         self.manager.current = self.manager.next()
 
+
+class RateStructureSaveNameTextInput(TextInput):
+    """TextInput field for entering the save name in the Rate Structure Data Manager."""
+    host_screen = None
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        key, key_str = keycode
+
+        if key_str in ('enter', 'numpadenter'):
+            self.host_screen.save_rate_structure()
+        else:
+            super(RateStructureSaveNameTextInput, self).keyboard_on_key_down(window, keycode, text, modifiers)
+        
+        return True
 
 class RateStructurePeriodTable(GridLayout):
     """A layout of RateStructureTableRow widgets that form a rate period table."""

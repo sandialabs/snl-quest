@@ -43,8 +43,7 @@ class PVwattsSearchScreen(Screen):
     def __init__(self, **kwargs):
         super(PVwattsSearchScreen, self).__init__(**kwargs)
 
-        # UtilitySearchRVEntry.host_screen = self
-        # RateStructureRVEntry.host_screen = self
+        PVWattsSaveNameTextInput.host_screen = self
     
     def on_pre_enter(self):
         if not self.param_widget.children:
@@ -222,6 +221,21 @@ class PVwattsSearchScreen(Screen):
             raise(InputError('Please select a rate structure before proceeding.'))
 
         return self.utility_selected, self.rate_structure_selected
+
+
+class PVWattsSaveNameTextInput(TextInput):
+    """TextInput field for entering the save name in the PV Profile Data Manager."""
+    host_screen = None
+
+    def keyboard_on_key_down(self, window, keycode, text, modifiers):
+        key, key_str = keycode
+
+        if key_str in ('enter', 'numpadenter'):
+            self.host_screen.execute_query()
+        else:
+            super(PVWattsSaveNameTextInput, self).keyboard_on_key_down(window, keycode, text, modifiers)
+        
+        return True
 
 
 class PVWattsSearchParameterWidget(GridLayout):
