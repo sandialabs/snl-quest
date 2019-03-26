@@ -1,9 +1,9 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt: Optimizing Energy Storage
-Current release version: 1.1
+Current release version: 1.2
 
-Release date: 11/21/18
+Release date: 03/27/18
 
 ## Table of contents
 - [Introduction](#intro)
@@ -11,29 +11,41 @@ Release date: 11/21/18
 - [Frequently Asked Questions](#faq)
     - [QuESt Data Manager](#faq-data-manager)
     - [QuESt Valuation](#faq-valuation)
+    - [QuESt BTM](#faq-btm)
 
 ### What is it?
 <a id="intro"></a>
 QuESt is an open source, Python-based application suite for energy storage simulation and analysis developed by the Energy Storage Systems program at Sandia National Laboratories, Albuquerque, NM. It is designed to give users access to models and analysis for energy storage used and developed by Sandia National Laboratories. It's designed to be transparent and easy to use without having to have knowledge of the mathematics behind the models or knowing how to develop code in Python. At the same time, because it is open source, users may modify it to suit their needs should they desire to. We will continue developing QuESt and its applications to enable more functionality.
 
 #### QuESt Data Manager
-An application for acquiring data from regional transmission operator (RTO), independent system operator (ISO), or other electricity market operating entities. Data selected for download is acquired in a format and structure compatible with other QuESt applications.
+An application for acquiring data from open sources. Data selected for download is acquired in a format and structure compatible with other QuESt applications. Data that can be acquired includes:
+* Independent system operators (ISOs) and regional transmission organization (RTOs) market and operations data
+* U.S. utility rate structures (tariffs)
+* Commercial or residential building load profiles
+* Photovoltaic (PV) power profiles
 
 *Note: An internet connection is required to download data.*
 
 *Note: Certain data sources require registering an account to obtain access.*
 
-<img src="es_gui/resources/gifs/01_datamanager.gif" alt="Download ISO/RTO data" width=600px margin="auto" />
+<img src="es_gui/resources/gifs/06_rate_structure.gif" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
 
 #### QuESt Valuation
-
-An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data.
+An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.
 
 <img src="es_gui/resources/gifs/02_wizard.gif" alt="Wizard setup" width=600px margin="auto" />
 
 <img src="es_gui/resources/gifs/03_reportcharts.gif" alt="Wizard report charts" width=600px margin="auto" />
 
 <img src="es_gui/resources/gifs/04_batch.gif" alt="Batch runs" width=600px margin="auto" />
+
+#### QuESt BTM
+An application for behind-the-meter energy storage system analysis. Tools include:
+* Cost savings for time-of-use and net-energy-metering customers
+
+<img src="es_gui/resources/gifs/07_costsavings_wiz.gif" alt="Cost savings wizard" width=600px margin="auto" />
+
+<img src="es_gui/resources/gifs/08_costsavings_charts.gif" alt="Cost savings wizard charts" width=600px margin="auto" />
 
 ### Who should use it?
 The software is designed to be used by anyone with an interest in performing analysis of energy storage or its applications without having to create their own models or write their own code. It’s designed to be easy to use out of the box but also modifiable by the savvy user if they so choose. The software is intended to be used as a platform for running simulations, obtaining results, and using the information to inform planning decisions. 
@@ -64,7 +76,12 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
 
 #### Solvers for Pyomo
-At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required. Here are a few of the many choices for solvers:
+At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required.
+
+##### Installing GLPK, IPOPT, or Coin CBC (via Anaconda)
+If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following, according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html):
+
+``conda install -c conda-forge glpk ipopt coincbc``
 
 ##### Installing GLPK (for Windows)
 1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
@@ -95,6 +112,10 @@ Alternatively, run ```main.py``` in a Python IDE of your choice.
 
 ### General
 
+> I am getting import errors when trying to run QuESt.
+
+The current working directory must be where ``main.py`` is located.
+
 > The appearance of GUI elements in QuESt do not appear correct/The window does not display properly/The window is too big for my display/I cannot click or interact with the UI properly.
 
 QuESt is designed to be displayed at minimum resolution of 1600x900.
@@ -109,7 +130,7 @@ So far, this issue has been observed on a variety of laptops of both Windows and
 
 If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts.
 
-If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not hae to download all the data again if you would like.
+If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not have to download all the data again if you would like.
 
 ### QuESt Data Manager
 <a id="faq-data-manager"></a>
@@ -148,12 +169,40 @@ QuESt Data Manager skips downloads if a file with the anticipated filename alrea
 * Some ISO/RTO websites or APIs have connection issues. We incorporate mechanisms for automatically retrying a limited amount of times.
 * CAISO's API limits API requests to every five seconds.
 
+> How do I obtain an API key for Data.gov / OpenEI / utility rate structure database / PVWatts / PV profile data?
+
+Refer to the instructions in QuESt Data Manager or see the signup form [here](https://developer.nrel.gov/signup/). The API key is the same for all those applications.
+
+> What do these buttons in the utility rate structure search tool do?
+
+<img src="es_gui/resources/images/faq-copydown.png" alt="Rate structure data manager copy down" width=300px margin="auto" />
+
+These buttons copy the text in the text input field down to the next row. It is mainly used for monthly flat rate schedules where every value is the same but you want to adjust the amount.
+
+> What are the purposes of the minimum and maximum peak demand values in the rate structure?
+
+Typically, a rate structure is only applicable to customers with certain peak demand values. QuESt does not currently enforce these minima and maxima and it is up to you to select the appropriate rate structure. In some cases, it may be possible to be contracted to a rate structure with a minimum peak demand that is greater than the use case's demand; additionally, a minimum demand charge may be applicable. We are planning on supporting minimum demand charges in QuESt BTM's cost savings tool in a future release. 
+
+> Why can't I find my city in the commercial and residential load profile selection? / I downloaded a profile for a building in New York-Central Park but can't find it in QuESt BTM.
+
+The locations are based on meteorological measurement sites which are typically airports ("AP") or weather stations. This is because the profiles are based on typical meteorological years (TMY). See this [page](https://openei.org/community/blog/commercial-and-residential-hourly-load-data-now-available-openei) for information about the load profile database, including the definitions of the commercial building types and residential load types.
+
+Each specific location is matched up to a specific climate in order to simulate load profiles. For example, locations in New York City were matched up to Baltimore (in terms of climate) and the resulting load profile filenames were named after Baltimore.
+
+> I want to know more about how the PV power profiles are simulated.
+
+See the API description and PVWatts manual [here](https://developer.nrel.gov/docs/solar/pvwatts/v6/).
+
+> What is the default latitude and longitude in the PV power profile download tool?
+
+It is approximately Albuquerque, NM.
+
+> I'm not sure what to put for the tilt angle in the PV profile download tool.
+
+Leaving the text input field blank sets the tilt angle to the latitude of the site.
+
 ### QuESt Valuation
 <a id="faq-valuation"></a>
-
-> I am getting import errors when trying to run QuESt.
-
-The current working directory must be where ``main.py`` is located.
 
 > Why are only [x] options available for market areas/historical data/revenue streams/etc.?
 
@@ -167,8 +216,6 @@ Our experience indicates that most crashes are due to data issues. For example, 
 
 The development team is working on modeling and doing analysis for the remaining market areas. When we have vetted the results and viability of data acquisition and processing, we will work on implementing them into QuESt. Please look forward to it!
 
-#### Wizard
-
 > I selected [x] year for my historical dataset and only [y] months had results after the optimization. Why is that?
 
 Due to (rolling) data availability, data for certain periods may be absent. For example, ERCOT's 2010 data only starts at December or data sets for the current year will obviously be incomplete. There's also the possibility that the data failed to download.
@@ -181,8 +228,21 @@ To streamline the user experience in the Wizard, we decided to reduce the range 
 
 For best results when viewing the report, you must be connected to the internet and enable JavaScript. We use content delivery services for resources such as fonts (Google Fonts) and use JavaScript to render the equations under the "Optimization formulation" section (MathJax).
 
-#### Batch Runs
-
 > What is a parameter sweep?
 
 A parameter sweep will adjust the specified parameter from the min value to the max value in the given number of steps. It will do this for each month of data selected on the "data" interface. A simulation will be performed for the all of the combinations. This is a useful way for performing sensitivity analysis.
+
+### QuESt BTM
+<a id="faq-btm"></a>
+
+> Can I adjust the rate structure parameters in the wizard?
+
+No, any adjustments must be made in QuESt Data Manager before saving the entire rate structure.
+
+> I accidentally selected a PV power profile in the cost savings wizard. Can I remove my selection?
+
+No, but this is a known issue. The easiest workaround is to reset the entire wizard by exiting it to the QuESt BTM home screen, the QuESt home screen, or restarting QuESt.
+
+> Sometimes the figures in the cost savings wizard report do not appear.
+
+This is a known issue. You can try to generate the report again in order to fix it.
