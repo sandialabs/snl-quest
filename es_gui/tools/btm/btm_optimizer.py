@@ -16,6 +16,7 @@ class BtmOptimizer(optimizer.Optimizer):
     def __init__(self, tou_energy_schedule = None, tou_energy_rate=None, 
                  tou_demand_schedule=None, tou_demand_rate=None, flat_demand_rate=None,
                  nem_type=1, nem_rate=None, load_profile=None, pv_profile=None, 
+                 rate_structure_metadata=None, load_profile_metadata=None, pv_profile_metadata=None,
                  cost_charge=None, cost_discharge=None,
                  solver='glpk'):
         
@@ -35,7 +36,11 @@ class BtmOptimizer(optimizer.Optimizer):
         self._nem_rate = nem_rate # type: real, value: sell rate of nem 1.0
         
         self._load_profile = load_profile # type: list, size: number of hours in a month, value: load (kW) 
-        self._pv_profile = pv_profile # type: list, size: number of hours in a month, value: pv (kW) 
+        self._pv_profile = pv_profile # type: list, size: number of hours in a month, value: pv (kW)
+
+        self._rate_structure_metadata = rate_structure_metadata # type: dict 
+        self._load_profile_metadata = load_profile_metadata # type: dict 
+        self._pv_profile_metadata = pv_profile_metadata # type: dict
         
 #        self._cost_charge = cost_charge
 #        self._cost_discharge = cost_discharge
@@ -127,13 +132,40 @@ class BtmOptimizer(optimizer.Optimizer):
         self._load_profile = value
  #--------------------------------------------------- 
     @property
-    def pv_profile (self):
+    def pv_profile(self):
         """Pv profile [kW]."""
         return self._pv_profile 
 
-    @pv_profile .setter
+    @pv_profile.setter
     def pv_profile (self, value):
         self._pv_profile = value
+#--------------------------------------------------- 
+    @property
+    def rate_structure_metadata(self):
+        """Dictionary containing metadata about the rate structure associated with the other input properties."""
+        return self._rate_structure_metadata 
+
+    @rate_structure_metadata.setter
+    def rate_structure_metadata (self, value):
+        self._rate_structure_metadata = value
+#--------------------------------------------------- 
+    @property
+    def load_profile_metadata(self):
+        """Dictionary containing metadata about the load profile."""
+        return self._load_profile_metadata 
+
+    @load_profile_metadata.setter
+    def load_profile_metadata (self, value):
+        self._load_profile_metadata = value
+#--------------------------------------------------- 
+    @property
+    def pv_profile_metadata(self):
+        """Dictionary containing metadata about the PV profile."""
+        return self._pv_profile_metadata 
+
+    @pv_profile_metadata.setter
+    def pv_profile_metadata (self, value):
+        self._pv_profile_metadata = value
 # #--------------------------------------------------- 
 #    @property
 #    def cost_charge(self):
@@ -263,57 +295,57 @@ class BtmOptimizer(optimizer.Optimizer):
         # Check if params common to all formulations are set.
         if not hasattr(m, 'Transfomer_rating'):
             # Transformer rating; equivalently, the maximum power can be exchanged [kW].
-            logging.debug('ValuationOptimizer: No Transformer_rating provided, setting default...')
+            logging.debug('Optimizer: No Transformer_rating provided, setting default...')
             m.Transformer_rating = 1000000
             
         if not hasattr(m, 'Power_rating'):
             # Power rating; equivalently, the maximum power can be charged or discharged [kW].
-            logging.debug('ValuationOptimizer: No Power_rating provided, setting default...')
+            logging.debug('Optimizer: No Power_rating provided, setting default...')
             m.Power_rating = 100
 
         if not hasattr(m, 'Energy_capacity'):
             # Energy capacity [kWh].
-            logging.debug('ValuationOptimizer: No Energy_capacity provided, setting default...')
+            logging.debug('Optimizer: No Energy_capacity provided, setting default...')
             m.Energy_capacity = 100
 
         if not hasattr(m, 'Self_discharge_efficiency'):
             # Fraction of energy maintained over one time period.
-            logging.debug('ValuationOptimizer: No Self_discharge_efficiency provided, setting default...')
+            logging.debug('Optimizer: No Self_discharge_efficiency provided, setting default...')
             m.Self_discharge_efficiency = 1.00     
         elif getattr(m, 'Self_discharge_efficiency') > 1.0:
-            logging.warning('ValuationOptimizer: Self_discharge_efficiency provided is greater than 1.0, interpreting as percentage...')
+            logging.warning('Optimizer: Self_discharge_efficiency provided is greater than 1.0, interpreting as percentage...')
             m.Self_discharge_efficiency = m.Self_discharge_efficiency/100
 
         if not hasattr(m, 'Round_trip_efficiency'):
             # Fraction of input energy that gets stored over one time period.
-            logging.debug('ValuationOptimizer: No Round_trip_efficiency provided, setting default...')
+            logging.debug('Optimizer: No Round_trip_efficiency provided, setting default...')
             m.Round_trip_efficiency = 0.85
         elif getattr(m, 'Round_trip_efficiency') > 1.0:
-            logging.warning('ValuationOptimizer: Round_trip_efficiency provided is greater than 1.0, interpreting as percentage...')
+            logging.warning('Optimizer: Round_trip_efficiency provided is greater than 1.0, interpreting as percentage...')
             m.Round_trip_efficiency = m.Round_trip_efficiency/100
 
         if not hasattr(m, 'State_of_charge_min'):
             # Fraction of energy capacity to increase state of charge minimum by.
-            logging.debug('ValuationOptimizer: No State_of_charge_min provided, setting default...')
+            logging.debug('Optimizer: No State_of_charge_min provided, setting default...')
             m.State_of_charge_min = 0
         elif getattr(m, 'State_of_charge_min') > 1.0:
-            logging.warning('ValuationOptimizer: State_of_charge_min provided is greater than 1.0, interpreting as percentage...')
+            logging.warning('Optimizer: State_of_charge_min provided is greater than 1.0, interpreting as percentage...')
             m.State_of_charge_min = m.State_of_charge_min/100
 
         if not hasattr(m, 'State_of_charge_max'):
             # Fraction of energy capacity to decrease state of charge maximum by.
-            logging.debug('ValuationOptimizer: No State_of_charge_max provided, setting default...')
+            logging.debug('Optimizer: No State_of_charge_max provided, setting default...')
             m.State_of_charge_max = 100
         elif getattr(m, 'State_of_charge_max') > 1.0:
-            logging.warning('ValuationOptimizer: State_of_charge_max provided is greater than 1.0, interpreting as percentage...')
+            logging.warning('Optimizer: State_of_charge_max provided is greater than 1.0, interpreting as percentage...')
             m.State_of_charge_max = m.State_of_charge_max/100
         
         if not hasattr(m, 'State_of_charge_init'):
             # Initial state of charge [fraction of capacity], defaults to the amount reserved for discharging.
-            logging.debug('ValuationOptimizer: No State_of_charge_init provided, setting default...')
+            logging.debug('Optimizer: No State_of_charge_init provided, setting default...')
             m.State_of_charge_init = 0.50
         elif getattr(m, 'State_of_charge_init') > 1.0:
-            logging.warning('ValuationOptimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...')
+            logging.warning('Optimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...')
             m.State_of_charge_init = m.State_of_charge_init/100
             
         m.smin = m.State_of_charge_min*m.Energy_capacity

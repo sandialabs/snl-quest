@@ -91,6 +91,9 @@ class BtmOptimizerHandler:
 
                 op.load_profile = load_profile
                 op.pv_profile = pv_profile
+                op.rate_structure_metadata = rate_structure
+                op.load_profile_metadata = load_profile_path
+                op.pv_profile_metadata = pv_profile_path
 
                 if params:
                     op.set_model_parameters(**params)
@@ -100,7 +103,7 @@ class BtmOptimizerHandler:
                 try:
                     solved_op = self._solve_model(op)
                 except pyutilib.common._exceptions.ApplicationError as e:
-                    logging.error('BtmOp Handler: Something went wrong when solving: ({error})'.format(error=e))
+                    logging.error('Op Handler: Something went wrong when solving: ({error})'.format(error=e))
                     handler_status = False
                 except AssertionError as e:
                     handler_status = False
@@ -111,7 +114,7 @@ class BtmOptimizerHandler:
                     solved_op = self._save_to_solved_ops(solved_op, month, params)
                     solved_requests.append(solved_op)
 
-        logging.info('BtmOp Handler: Finished processing requested jobs.')
+        logging.info('Op Handler: Finished processing requested jobs.')
         return solved_requests, handler_status
 
     def _solve_model(self, op):
@@ -127,14 +130,24 @@ class BtmOptimizerHandler:
 
         name_components = [time_finished, month,]
 
+        # Check for rate structure name.
+        rate_structure_name = 'Rate: {0}'.format(op.rate_structure_metadata.get('name', ''))
+        name_components.append(rate_structure_name)
+
         # Check for PV profile.
         if any(op.pv_profile != 0):
-            name_components.append('PV: Yes')
+            if op.pv_profile_metadata:
+                pv_profile_name = 'PV: {0}'.format(op.pv_profile_metadata.get('name', 'Not specified'))
+            else:
+                pv_profile_name = 'PV: Not specified'
+            
+            name_components.append(pv_profile_name)
         else:
-            name_components.append('PV: No')
+            name_components.append('PV: None')
         
-        # Net metering type.
-        name_components.append('NEM Type: {0}'.format(op.nem_type))
+        # Load profile name.
+        load_profile_name = 'Load: {0}'.format(op.load_profile_metadata.get('name', ''))
+        name_components.append(load_profile_name)
 
         name = ' | '.join(name_components)
 

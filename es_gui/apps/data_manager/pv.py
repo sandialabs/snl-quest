@@ -156,23 +156,23 @@ class PVwattsSearchScreen(Screen):
                 if http_request.status_code != requests.codes.ok:
                     http_request.raise_for_status()
         except requests.HTTPError as e:
-            logging.error('PVProfileSearch: {0}'.format(repr(e)))
+            logging.error('PVProfileDM: {0}'.format(repr(e)))
             raise requests.ConnectionError
         except requests.exceptions.ProxyError:
-            logging.error('PVProfileSearch: Could not connect to proxy.')
+            logging.error('PVProfileDM: Could not connect to proxy.')
             raise requests.ConnectionError
         except requests.ConnectionError as e:
-            logging.error('PVProfileSearch: Failed to establish a connection to the host server.')
+            logging.error('PVProfileDM: Failed to establish a connection to the host server.')
             raise requests.ConnectionError
         except requests.Timeout as e:
-            logging.error('PVProfileSearch: The connection timed out.')
+            logging.error('PVProfileDM: The connection timed out.')
             raise requests.ConnectionError
         except requests.RequestException as e:
-            logging.error('PVProfileSearch: {0}'.format(repr(e)))
+            logging.error('PVProfileDM: {0}'.format(repr(e)))
             raise requests.ConnectionError
         except Exception as e:
             # Something else went wrong.
-            logging.error('PVProfileSearch: An unexpected error has occurred. ({0})'.format(repr(e)))
+            logging.error('PVProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             raise requests.ConnectionError
         else:
             request_content = http_request.json()
@@ -198,7 +198,7 @@ class PVwattsSearchScreen(Screen):
                 with open(destination_file, 'w') as outfile:
                     json.dump(request_content, outfile)
                 
-                logging.info('PVProfileSearch: Profile successfully saved.')
+                logging.info('PVProfileDM: Profile successfully saved.')
                 
                 popup = WarningPopup()
                 popup.title = 'Success!'

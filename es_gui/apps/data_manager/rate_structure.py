@@ -138,7 +138,7 @@ class RateStructureUtilitySearchScreen(Screen):
             n_tries += 1
 
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('DMUtilitySearch: Hit download retry limit.')
+                logging.warning('RateStructureDM: Hit download retry limit.')
                 attempt_download = False
                 break
             
@@ -157,18 +157,18 @@ class RateStructureUtilitySearchScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+                logging.error('RateStructureDM: {0}'.format(repr(e)))
             except requests.exceptions.ProxyError:
-                logging.error('DMUtilitySearch: Could not connect to proxy.')
+                logging.error('RateStructureDM: Could not connect to proxy.')
             except requests.ConnectionError as e:
-                logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+                logging.error('RateStructureDM: Failed to establish a connection to the host server.')
             except requests.Timeout as e:
-                logging.error('DMUtilitySearch: The connection timed out.')
+                logging.error('RateStructureDM: The connection timed out.')
             except requests.RequestException as e:
-                logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+                logging.error('RateStructureDM: {0}'.format(repr(e)))
             except Exception as e:
                 # Something else went wrong.
-                logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else:
                 data_down = http_request.content.decode(http_request.encoding)
                 data_iou = pd.read_csv(io.StringIO(data_down))
@@ -181,7 +181,7 @@ class RateStructureUtilitySearchScreen(Screen):
             n_tries += 1
 
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('DMUtilitySearch: Hit download retry limit.')
+                logging.warning('RateStructureDM: Hit download retry limit.')
                 attempt_download = False
                 break
             
@@ -200,18 +200,18 @@ class RateStructureUtilitySearchScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+                logging.error('RateStructureDM: {0}'.format(repr(e)))
             except requests.exceptions.ProxyError:
-                logging.error('DMUtilitySearch: Could not connect to proxy.')
+                logging.error('RateStructureDM: Could not connect to proxy.')
             except requests.ConnectionError as e:
-                logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+                logging.error('RateStructureDM: Failed to establish a connection to the host server.')
             except requests.Timeout as e:
-                logging.error('DMUtilitySearch: The connection timed out.')
+                logging.error('RateStructureDM: The connection timed out.')
             except requests.RequestException as e:
-                logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+                logging.error('RateStructureDM: {0}'.format(repr(e)))
             except Exception as e:
                 # Something else went wrong.
-                logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else:
                 data_down = http_request.content.decode(http_request.encoding)
                 data_noniou = pd.read_csv(io.StringIO(data_down))
@@ -395,7 +395,7 @@ class RateStructureUtilitySearchScreen(Screen):
             n_tries += 1
             
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('DMUtilitySearch: Hit download retry limit.')
+                logging.warning('RateStructureDM: Hit download retry limit.')
                 attempt_download = False
                 break
             
@@ -414,23 +414,23 @@ class RateStructureUtilitySearchScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+                logging.error('RateStructureDM: {0}'.format(repr(e)))
                 raise requests.ConnectionError
             except requests.exceptions.ProxyError:
-                logging.error('DMUtilitySearch: Could not connect to proxy.')
+                logging.error('RateStructureDM: Could not connect to proxy.')
                 raise requests.ConnectionError
             except requests.ConnectionError as e:
-                logging.error('DMUtilitySearch: Failed to establish a connection to the host server.')
+                logging.error('RateStructureDM: Failed to establish a connection to the host server.')
                 raise requests.ConnectionError
             except requests.Timeout as e:
-                logging.error('DMUtilitySearch: The connection timed out.')
+                logging.error('RateStructureDM: The connection timed out.')
                 raise requests.ConnectionError
             except requests.RequestException as e:
-                logging.error('DMUtilitySearch: {0}'.format(repr(e)))
+                logging.error('RateStructureDM: {0}'.format(repr(e)))
                 raise requests.ConnectionError
             except Exception as e:
                 # Something else went wrong.
-                logging.error('DMUtilitySearch: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
                 raise requests.ConnectionError
             else:
                 structure_list = http_request.json()['items']
@@ -501,7 +501,6 @@ class RateStructureUtilitySearchScreen(Screen):
             popup.popup_text.text = str(e)
             popup.open()
         else:
-            logging.info('UtilityRateSearch: All seems well.')
             self.manager.current = self.manager.next()
 
 
@@ -632,7 +631,6 @@ class RateStructureEnergyRateStructureScreen(Screen):
             popup.popup_text.text = str(e)
             popup.open()
         else:
-            logging.info('EnergyRateSchedule: All seems well.')
             self.manager.current = self.manager.next()
     
     def on_enter(self):
@@ -707,17 +705,17 @@ class RateStructureDemandRateStructureScreen(Screen):
             weekend_schedule_data = self.rate_structure['demandweekendschedule']
         except KeyError:
             # No demand rate schedules provided.
-            logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
+            logging.warning('RateStructureDM: No demand rate schedules provided, setting to flat schedule...')
 
             weekday_schedule_data = np.zeros(shape=(12, 24), dtype=int)
             weekend_schedule_data = np.zeros(shape=(12, 24), dtype=int)
         else:
             # Sometimes rather than being empty, a nan is in the field.
             if type(weekday_schedule_data) == float:
-                logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
+                logging.warning('RateStructureDM: No demand rate schedules provided, setting to flat schedule...')
                 weekday_schedule_data = np.zeros(shape=(12, 24), dtype=int)
             if type(weekend_schedule_data) == float:
-                logging.warning('DemandRateSchedule: No demand rate schedules provided, setting to flat schedule...')
+                logging.warning('RateStructureDM: No demand rate schedules provided, setting to flat schedule...')
                 weekend_schedule_data = np.zeros(shape=(12, 24), dtype=int)
 
         # print(self.rate_structure)
@@ -778,7 +776,6 @@ class RateStructureDemandRateStructureScreen(Screen):
             popup.popup_text.text = str(e)
             popup.open()
         else:
-            logging.info('DemandRateSchedule: All seems well.')
             self.manager.current = self.manager.next()
 
 
@@ -919,7 +916,7 @@ class RateStructureFinishScreen(Screen):
             popup.open()
 
     def next_screen(self):
-        # self.manager.get_screen(self.manager.next()).reset_screen()
+        self.manager.get_screen(self.manager.next()).reset_screen()
         self.manager.current = self.manager.next()
 
 

@@ -58,7 +58,7 @@ class DataManagerCommercialLoadScreen(Screen):
         BuildingRVEntry.host_screen = self
 
         if self.df_locations.empty:
-            logging.info('CommercialLoadDM: Retrieving locations from database...')
+            logging.info('LoadProfileDM: Retrieving locations from database...')
             ssl_verify, proxy_settings = check_connection_settings()
 
             self._get_locations(ssl_verify, proxy_settings)
@@ -88,7 +88,7 @@ class DataManagerCommercialLoadScreen(Screen):
             n_tries += 1
 
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('CommercialLoadDM: Hit download retry limit.')
+                logging.warning('LoadProfileDM: Hit download retry limit.')
                 attempt_download = False
                 self.connection_error_occurred = True
                 break
@@ -104,18 +104,18 @@ class DataManagerCommercialLoadScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except requests.exceptions.ProxyError:
-                logging.error('CommercialLoadDM: Could not connect to proxy.')
+                logging.error('LoadProfileDM: Could not connect to proxy.')
             except requests.ConnectionError as e:
-                logging.error('CommercialLoadDM: Failed to establish a connection to the host server.')
+                logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
             except requests.Timeout as e:
-                logging.error('CommercialLoadDM: The connection timed out.')
+                logging.error('LoadProfileDM: The connection timed out.')
             except requests.RequestException as e:
-                logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except Exception as e:
                 # Something else went wrong.
-                logging.error('CommercialLoadDM: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else:
                 soup = BeautifulSoup(page.content, 'html.parser')
                 
@@ -153,7 +153,7 @@ class DataManagerCommercialLoadScreen(Screen):
             n_tries += 1
 
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('CommercialLoadDM: Hit download retry limit.')
+                logging.warning('LoadProfileDM: Hit download retry limit.')
                 attempt_download = False
                 self.connection_error_occurred = True
                 break
@@ -169,18 +169,18 @@ class DataManagerCommercialLoadScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except requests.exceptions.ProxyError:
-                logging.error('CommercialLoadDM: Could not connect to proxy.')
+                logging.error('LoadProfileDM: Could not connect to proxy.')
             except requests.ConnectionError as e:
-                logging.error('CommercialLoadDM: Failed to establish a connection to the host server.')
+                logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
             except requests.Timeout as e:
-                logging.error('CommercialLoadDM: The connection timed out.')
+                logging.error('LoadProfileDM: The connection timed out.')
             except requests.RequestException as e:
-                logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except Exception as e:
                 # Something else went wrong.
-                logging.error('CommercialLoadDM: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else: 
                 soup = BeautifulSoup(page.content, 'html.parser')
         
@@ -204,9 +204,9 @@ class DataManagerCommercialLoadScreen(Screen):
 
     def on_state_selected(self, instance, value):
         try:
-            logging.info('CommercialLoadDM: State selection changed to {0}.'.format(value))
+            logging.info('LoadProfileDM: State selection changed to {0}.'.format(value))
         except KeyError:
-            logging.info('CommercialLoadDM: State selection reset.')
+            logging.info('LoadProfileDM: State selection reset.')
         else:
             locations = self.df_locations.loc[self.df_locations['state'] == value]
 
@@ -223,9 +223,9 @@ class DataManagerCommercialLoadScreen(Screen):
 
     def on_location_selected(self, instance, value):
         try:
-            logging.info('CommercialLoadDM: Location selection changed to {0}.'.format(value['name']))
+            logging.info('LoadProfileDM: Location selection changed to {0}.'.format(value['name']))
         except KeyError:
-            logging.info('CommercialLoadDM: Location selection reset.')
+            logging.info('LoadProfileDM: Location selection reset.')
         else:
             location_root_link = value['link']
 
@@ -244,9 +244,9 @@ class DataManagerCommercialLoadScreen(Screen):
     
     def on_building_selected(self, instance, value):
         try:
-            logging.info('CommercialLoadDM: Building type selection changed to {0}.'.format(value['name']))
+            logging.info('LoadProfileDM: Building type selection changed to {0}.'.format(value['name']))
         except KeyError:
-            logging.info('CommercialLoadDM: Building type selection reset.')
+            logging.info('LoadProfileDM: Building type selection reset.')
     
     def _validate_selections(self):
         csv_link = self.building_selected['link']
@@ -270,7 +270,7 @@ class DataManagerCommercialLoadScreen(Screen):
                 n_tries += 1
 
                 if n_tries >= MAX_WHILE_ATTEMPTS:
-                    logging.warning('CommercialLoadDM: Hit download retry limit.')
+                    logging.warning('LoadProfileDM: Hit download retry limit.')
                     attempt_download = False
                     self.connection_error_occurred = True
                     break
@@ -286,18 +286,18 @@ class DataManagerCommercialLoadScreen(Screen):
                         else:
                             attempt_download = False
                 except requests.HTTPError as e:
-                    logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
                 except requests.exceptions.ProxyError:
-                    logging.error('CommercialLoadDM: Could not connect to proxy.')
+                    logging.error('LoadProfileDM: Could not connect to proxy.')
                 except requests.ConnectionError as e:
-                    logging.error('CommercialLoadDM: Failed to establish a connection to the host server.')
+                    logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
                 except requests.Timeout as e:
-                    logging.error('CommercialLoadDM: The connection timed out.')
+                    logging.error('LoadProfileDM: The connection timed out.')
                 except requests.RequestException as e:
-                    logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
                 except Exception as e:
                     # Something else went wrong.
-                    logging.error('CommercialLoadDM: An unexpected error has occurred. ({0})'.format(repr(e)))
+                    logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
                 else: 
                     data_down = page.content.decode(page.encoding)
                     csv_data = pd.read_csv(io.StringIO(data_down))
@@ -318,7 +318,7 @@ class DataManagerCommercialLoadScreen(Screen):
                     popup.popup_text.text = 'Load data successfully saved.'
                     popup.open()
 
-                    logging.info('CommercialLoadDM: Load data successfully saved.')
+                    logging.info('LoadProfileDM: Load data successfully saved.')
             
 
 class StateRVEntry(RecycleViewRow):
@@ -401,7 +401,7 @@ class DataManagerResidentialLoadScreen(Screen):
             n_tries += 1
 
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('ResidentialLoadDM: Hit download retry limit.')
+                logging.warning('LoadProfileDM: Hit download retry limit.')
                 attempt_download = False
                 self.connection_error_occurred = True
                 break
@@ -417,18 +417,18 @@ class DataManagerResidentialLoadScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('ResidentialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except requests.exceptions.ProxyError:
-                logging.error('ResidentialLoadDM: Could not connect to proxy.')
+                logging.error('LoadProfileDM: Could not connect to proxy.')
             except requests.ConnectionError as e:
-                logging.error('ResidentialLoadDM: Failed to establish a connection to the host server.')
+                logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
             except requests.Timeout as e:
-                logging.error('ResidentialLoadDM: The connection timed out.')
+                logging.error('LoadProfileDM: The connection timed out.')
             except requests.RequestException as e:
-                logging.error('ResidentialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except Exception as e:
                 # Something else went wrong.
-                logging.error('ResidentialLoadDM: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else: 
                 soup = BeautifulSoup(page.content, 'html.parser')
                 
@@ -461,7 +461,7 @@ class DataManagerResidentialLoadScreen(Screen):
             n_tries += 1
 
             if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('ResidentialLoadDM: Hit download retry limit.')
+                logging.warning('LoadProfileDM: Hit download retry limit.')
                 attempt_download = False
                 self.connection_error_occurred = True
                 break
@@ -477,18 +477,18 @@ class DataManagerResidentialLoadScreen(Screen):
                     else:
                         attempt_download = False
             except requests.HTTPError as e:
-                logging.error('ResidentialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except requests.exceptions.ProxyError:
-                logging.error('ResidentialLoadDM: Could not connect to proxy.')
+                logging.error('LoadProfileDM: Could not connect to proxy.')
             except requests.ConnectionError as e:
-                logging.error('ResidentialLoadDM: Failed to establish a connection to the host server.')
+                logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
             except requests.Timeout as e:
-                logging.error('ResidentialLoadDM: The connection timed out.')
+                logging.error('LoadProfileDM: The connection timed out.')
             except requests.RequestException as e:
-                logging.error('ResidentialLoadDM: {0}'.format(repr(e)))
+                logging.error('LoadProfileDM: {0}'.format(repr(e)))
             except Exception as e:
                 # Something else went wrong.
-                logging.error('ResidentialLoadDM: An unexpected error has occurred. ({0})'.format(repr(e)))
+                logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else: 
                 soup = BeautifulSoup(page.content, 'html.parser')
                 
@@ -518,9 +518,9 @@ class DataManagerResidentialLoadScreen(Screen):
     
     def on_load_type_selected(self, instance, value):
         try:
-            logging.info('ResidentialLoadDM: Load type selection changed to {0}.'.format(value['name']))
+            logging.info('LoadProfileDM: Load type selection changed to {0}.'.format(value['name']))
         except KeyError:
-            logging.info('ResidentialLoadDM: Load type selection reset.')
+            logging.info('LoadProfileDM: Load type selection reset.')
         else:
             load_type_root_link = value['link']
 
@@ -537,9 +537,9 @@ class DataManagerResidentialLoadScreen(Screen):
 
     def on_state_selected(self, instance, value):
         try:
-            logging.info('ResidentialLoadDM: State selection changed to {0}.'.format(value))
+            logging.info('LoadProfileDM: State selection changed to {0}.'.format(value))
         except KeyError:
-            logging.info('ResidentialLoadDM: State selection reset.')
+            logging.info('LoadProfileDM: State selection reset.')
         else:
             locations = self.df_locations.loc[self.df_locations['state'] == value]
 
@@ -556,9 +556,9 @@ class DataManagerResidentialLoadScreen(Screen):
 
     def on_location_selected(self, instance, value):
         try:
-            logging.info('ResidentialLoadDM: Location selection changed to {0}.'.format(value['name']))
+            logging.info('LoadProfileDM: Location selection changed to {0}.'.format(value['name']))
         except KeyError:
-            logging.info('ResidentialLoadDM: Location selection reset.')
+            logging.info('LoadProfileDM: Location selection reset.')
     
     def _validate_selections(self):
         csv_link = self.location_selected['link']
@@ -582,7 +582,7 @@ class DataManagerResidentialLoadScreen(Screen):
                 n_tries += 1
 
                 if n_tries >= MAX_WHILE_ATTEMPTS:
-                    logging.warning('CommercialLoadDM: Hit download retry limit.')
+                    logging.warning('LoadProfileDM: Hit download retry limit.')
                     attempt_download = False
                     self.connection_error_occurred = True
                     break
@@ -598,18 +598,18 @@ class DataManagerResidentialLoadScreen(Screen):
                         else:
                             attempt_download = False
                 except requests.HTTPError as e:
-                    logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
                 except requests.exceptions.ProxyError:
-                    logging.error('CommercialLoadDM: Could not connect to proxy.')
+                    logging.error('LoadProfileDM: Could not connect to proxy.')
                 except requests.ConnectionError as e:
-                    logging.error('CommercialLoadDM: Failed to establish a connection to the host server.')
+                    logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
                 except requests.Timeout as e:
-                    logging.error('CommercialLoadDM: The connection timed out.')
+                    logging.error('LoadProfileDM: The connection timed out.')
                 except requests.RequestException as e:
-                    logging.error('CommercialLoadDM: {0}'.format(repr(e)))
+                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
                 except Exception as e:
                     # Something else went wrong.
-                    logging.error('CommercialLoadDM: An unexpected error has occurred. ({0})'.format(repr(e)))
+                    logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
                 else:             
                     data_down = page.content.decode(page.encoding)
                     csv_data = pd.read_csv(io.StringIO(data_down))
@@ -630,7 +630,7 @@ class DataManagerResidentialLoadScreen(Screen):
                     popup.popup_text.text = 'Load data successfully saved.'
                     popup.open()
 
-                    logging.info('ResidentialLoadDM: Load data successfully saved.')
+                    logging.info('LoadProfileDM: Load data successfully saved.')
     
 
 class LoadTypeRVEntry(RecycleViewRow):
