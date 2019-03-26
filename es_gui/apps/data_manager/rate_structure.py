@@ -122,6 +122,9 @@ class RateStructureUtilitySearchScreen(Screen):
         self.rate_structure_desc.text = ''
         self.utility_selected = {}
         self.rate_structure_selected = {}
+
+        # Focus text input.
+        self.search_text_input.focus = True
     
     def _download_utility_ref_table(self):
         """Downloads and builds the utility reference table from OpenEI."""
@@ -934,6 +937,7 @@ class RateStructureSaveNameTextInput(TextInput):
         
         return True
 
+
 class RateStructurePeriodTable(GridLayout):
     """A layout of RateStructureTableRow widgets that form a rate period table."""
     def __init__(self, **kwargs):
@@ -994,28 +998,6 @@ class RateStructureTableRow(GridLayout):
     def _validate_input(self):
         """Validate entry when unfocusing text input."""
         pass
-        # if not self.text_input.focus:
-        #     try:
-        #         input_value = float(self.text_input.text)
-        #     except ValueError:
-        #         # No text entered.
-        #         input_value = self.param_slider.value
-        #         self.text_input.text = str(input_value)
-
-        #         return
-
-        #     if input_value > self.param_max or input_value < self.param_min:
-        #         # If input value is out of range.
-        #         popup = WarningPopup()
-        #         popup.popup_text.text = '{param_name} must be between {param_min} and {param_max} (got {input_val}).'.format(param_name=self.name.text[:1].upper() + self.name.text[1:], param_min=self.param_min, param_max=self.param_max, input_val=input_value)
-        #         popup.open()
-
-        #         input_value = self.param_slider.value
-        #         self.text_input.text = str(input_value)
-        #     else:
-        #         # Set slider value to input value.
-        #         anim = Animation(transition='out_expo', duration=SLIDER_DUR, value=input_value)
-        #         anim.start(self.param_slider)
 
 
 class RateStructureRateTextInput(TextInput):
