@@ -79,7 +79,7 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
 At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required.
 
 ##### Installing GLPK, IPOPT, or Coin CBC (via Anaconda)
-If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following, according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html):
+If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following (according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html)):
 
 ``conda install -c conda-forge glpk ipopt coincbc``
 

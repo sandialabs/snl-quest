@@ -1,6 +1,7 @@
 # Master branch changelog
 
 ## Patch 1.2
+This patch is the official release of QuESt BTM, the application for behind-the-meter energy storage analysis tools. A number of fixes and quality of life improvements for QuESt have also been implemented.
 
 ### QuESt
 #### QuESt Data Manager
@@ -9,19 +10,25 @@
     * This tool leverages the [OpenEI](https://openei.org) database through their API.
         * An API key, available through the OpenEI website, is required to use this tool.
     * Search for a utility in the U.S. Utility Rate Database and select a rate structure.
+    * <img src="es_gui/resources/images/patch-utility-rate-structure.png" alt="Search for a utility in the U.S. Utility Rate Database and select a rate structure." width=600px margin="auto" />
     * The time-of-use energy and demand rate schedules are retrieved from the database, in addition to the monthly flat demand schedule.
+    * <img src="es_gui/resources/images/patch-energy-schedule.png" alt="The time-of-use energy and demand rate schedules are retrieved from the database, in addition to the monthly flat demand schedule." width=600px margin="auto" />
         * Modify the period rates or rate schedules as desired.
     * Specify the net-metering scheme.
     * Save the rate structure for use in other QuESt applications.
+    * <img src="es_gui/resources/images/patch-save-rate-structure.png" alt="Save the rate structure for use in other QuESt applications." width=600px margin="auto" />
 * A tool for downloading simulated hourly load profiles for commercial and residential buildings has been implemented.
   * This tool is designed for use in behind-the-meter applications.
   * For commercial buildings, search by city to determine the climate and select from one of 17 different commercial building types.
+  * <img src="es_gui/resources/images/patch-commercial-load.png" alt="For commercial buildings, search by city to determine the climate and select from one of 17 different commercial building types." width=600px margin="auto" />
   * For residential buildings, specify the amount of load from "base", "low", and "high" and select the climate based on location.
+  * <img src="es_gui/resources/images/patch-residential-load.png" alt="For residential buildings, specify the amount of load from 'base', 'low', and 'high' and select the climate based on location." width=600px margin="auto" />
 * A tool for downloading simulated photovoltaic power profiles has been implemented.
   * This tool is designed for behind-the-meter applications.
   * This tool leverages the [PVWatts](https://pvwatts.nrel.gov/) software through their API.
     * An API key, the same as the one used for the OpenEI utility rate structure database, is required to use this tool.
   * Specify parameters such as the location of the system in latitude and longitude coordinates, the nameplate capacity, the module and array types, and the system efficiency.
+  * <img src="es_gui/resources/images/patch-pv-profile.png" alt="Specify parameters such as the location of the system in latitude and longitude coordinates, the nameplate capacity, the module and array types, and the system efficiency." width=600px margin="auto" />
   * Save the photovoltaic power profile for use in other QuESt applications.
   
 #### QuESt Valuation
@@ -38,18 +45,24 @@
 * The time-of-use cost savings wizard has been added to QuESt BTM.
   * This tool is for estimating the cost savings provided by energy storage for time-of-use and net-energy-metering customers.
   * Select a utility rate structure and load profile both of which can be obtained using QuESt Data Manager.
+  * <img src="es_gui/resources/images/patch-costsavings-1.png" alt="Select a utility rate structure." width=600px margin="auto" />
+  * <img src="es_gui/resources/images/patch-costsavings-2.png" alt="Select a load profile." width=600px margin="auto" />
   * Optionally, select a photovoltaic power profile which can also be obtained using QuEST Data Manager.
+  * <img src="es_gui/resources/images/patch-costsavings-3.png" alt="Select a PV profile (optional)." width=600px margin="auto" />
   * Describe the parameters of the energy storage system.
+  * <img src="es_gui/resources/images/patch-costsavings-4.png" alt="Describe the parameters of the energy storage system." width=600px margin="auto" />
   * One year of operation will be simulated to minimize cost and the total bill with and without energy storage will be calculated. This includes energy charges, demand charges, and net metering charges and/or credits. 
+  * <img src="es_gui/resources/images/patch-costsavings-5.png" alt="One year of operation will be simulated to minimize cost and the total bill with and without energy storage will be calculated. This includes energy charges, demand charges, and net metering charges and/or credits." width=600px margin="auto" />
   * A summary report can be generated at the end of the wizard that includes more detail on the mathematical formulation, a summary of the scenario specified, and a summary of the results including figures.
+  * <img src="es_gui/resources/images/patch-costsavings-6.png" alt="A summary report can be generated at the end of the wizard that includes more detail on the mathematical formulation, a summary of the scenario specified, and a summary of the results including figures." width=600px margin="auto" />
   * The results of each individual month can be analyzed further in the results viewer. This includes time series of the adjusted total power draw and the energy storage system's state of charge.
+  * <img src="es_gui/resources/images/patch-costsavings-7.png" alt="The results of each individual month can be analyzed further in the results viewer. This includes time series of the adjusted total power draw and the energy storage system's state of charge." width=600px margin="auto" />
 
 #### Miscellaneous
 * Multiset bar charts generated by, e.g., QuESt Valuation and QuESt BTM wizards, now annotate the maximum value for each set.
   <img src="es_gui/resources/images/chart_total_bill_comparison_multiset.png" alt="Multiset bar charts now annotate the maximum value of each set." width=600px margin="auto" />
 * The "solved model" list in results viewer tools now lists the models in reverse chronological order.
   <img src="es_gui/resources/images/sorted_solved_models.png" alt="Multiset bar charts now annotate the maximum value of each set." width=600px margin="auto" />
-* df
 
 ### Resolved issues
 * An issue where versions of the Pyomo (~5.6) package would cause QuESt to crash to desktop when trying to solve optimization models.
@@ -57,7 +70,7 @@
 
 ### Known issues
 * An issue where a blank image instead of the expected chart appears when generating a report from the QuESt Valuation wizard or QuESt BTM Time-of-Use Cost Savings wizard.
-  * If this issue persists, we may consider using alternative means to generate the charts external to the GUI.
+  * If this issue persists, we may consider using alternative means to generate the charts external to the GUI. Generating the report again may solve the issue.
 * An issue where search filters, such as those in selection lists or in the utility rate structure tool in QuESt Data Manager, are too sensitive to queries.
   * We plan on implementing "fuzzy" search or similar concepts to ease the use of these search tools and filters.
 * An issue where QuESt will be reported as "not responding" by the operating system during batch optimization processes such as those in the QuESt Valuation and QuESt BTM applications. 
