@@ -279,34 +279,6 @@
     background_color: C('#FFFFFF')
     halign: 'left'
 
-<HelpPopup>:
-    #title: 'Open tutorial?'
-    title: 'Nothing to see here...'
-
-    BoxLayout:
-        orientation: 'vertical'
-        padding: 10
-
-        PopupLabel:
-            #text: 'This will open a browser.'
-            text: '"A user interface is like a joke. If you have to explain it, it\'s not that good."\n- Martin LeBlanc'
-
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: 10
-            padding: 0
-            size_hint_y: 0.2
-
-#            Button:
-#                text: 'Continue'
-#                on_release:
-#                    import webbrowser
-#                    webbrowser.open('file://' + os.path.realpath('resources/docs/sphinx/build/html/tutorial.html'))
-#                    root.dismiss()
-            Button:
-                text: 'Got it'
-                on_release: root.dismiss()
-
 <AboutScreen>:
     about_label: about_label
     auto_dismiss: False

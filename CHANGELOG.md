@@ -13,7 +13,7 @@ This patch is the official release of QuESt BTM, the application for behind-the-
     * <img src="es_gui/resources/images/patch-utility-rate-structure.png" alt="Search for a utility in the U.S. Utility Rate Database and select a rate structure." width=600px margin="auto" />
     * The time-of-use energy and demand rate schedules are retrieved from the database, in addition to the monthly flat demand schedule.
     * <img src="es_gui/resources/images/patch-energy-schedule.png" alt="The time-of-use energy and demand rate schedules are retrieved from the database, in addition to the monthly flat demand schedule." width=600px margin="auto" />
-        * Modify the period rates or rate schedules as desired.
+    * Modify the period rates or rate schedules as desired.
     * Specify the net-metering scheme.
     * Save the rate structure for use in other QuESt applications.
     * <img src="es_gui/resources/images/patch-save-rate-structure.png" alt="Save the rate structure for use in other QuESt applications." width=600px margin="auto" />

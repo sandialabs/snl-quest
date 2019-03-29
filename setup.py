@@ -15,7 +15,7 @@ URL = 'https://www.github.com/rconcep/snl-quest'
 setuptools_kwargs = {
     'scripts': [],
     'include_package_data': True,
-    'install_requires' : ['numpy', 'scipy', 'pandas>=0.23.4',
+    'install_requires' : ['numpy', 'scipy', 'pandas>=0.24.2',
                           'pyomo>=5.6', 'matplotlib',
                           'kivy>=1.10.1', 'kivy-garden',
                           'xlrd', 'six',
