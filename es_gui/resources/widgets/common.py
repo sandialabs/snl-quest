@@ -8,6 +8,7 @@ import textwrap
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+mpl.use('module://kivy.garden.matplotlib.backend_kivy')
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.app import App
 from kivy.clock import Clock
@@ -490,7 +491,11 @@ class ResultsViewer(Screen):
 
         self._update_selection()
 
-        if self.dfs:
+        if not self.plotbox.children:
+            popup = WarningPopup()
+            popup.popup_text.text = "There is currently no plot drawn to export."
+            popup.open()
+        elif self.dfs:
             outname = os.path.join(outdir_root, self.vars_button.text+'.png')
             self.plotbox.children[0].export_to_png(outname)
 

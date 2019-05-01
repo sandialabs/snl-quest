@@ -1,9 +1,9 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt: Optimizing Energy Storage
-Current release version: 1.2
+Current release version: 1.2.b
 
-Release date: 03/27/19
+Release date: 05/01/19
 
 ## Table of contents
 - [Introduction](#intro)
@@ -28,24 +28,24 @@ An application for acquiring data from open sources. Data selected for download 
 
 *Note: Certain data sources require registering an account to obtain access.*
 
-<img src="es_gui/resources/gifs/06_rate_structure.gif" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
+<img src="patch_note_resources/gifs/06_rate_structure.gif" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
 
 #### QuESt Valuation
 An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.
 
-<img src="es_gui/resources/gifs/02_wizard.gif" alt="Wizard setup" width=600px margin="auto" />
+<img src="patch_note_resources/gifs/02_wizard.gif" alt="Wizard setup" width=600px margin="auto" />
 
-<img src="es_gui/resources/gifs/03_reportcharts.gif" alt="Wizard report charts" width=600px margin="auto" />
+<img src="patch_note_resources/gifs/03_reportcharts.gif" alt="Wizard report charts" width=600px margin="auto" />
 
-<img src="es_gui/resources/gifs/04_batch.gif" alt="Batch runs" width=600px margin="auto" />
+<img src="patch_note_resources/gifs/04_batch.gif" alt="Batch runs" width=600px margin="auto" />
 
 #### QuESt BTM
 An application for behind-the-meter energy storage system analysis. Tools include:
 * Cost savings for time-of-use and net-energy-metering customers
 
-<img src="es_gui/resources/gifs/07_costsavings_wiz.gif" alt="Cost savings wizard" width=600px margin="auto" />
+<img src="patch_note_resources/gifs/07_costsavings_wiz.gif" alt="Cost savings wizard" width=600px margin="auto" />
 
-<img src="es_gui/resources/gifs/08_costsavings_charts.gif" alt="Cost savings wizard charts" width=600px margin="auto" />
+<img src="patch_note_resources/gifs/08_costsavings_charts.gif" alt="Cost savings wizard charts" width=600px margin="auto" />
 
 ### Who should use it?
 The software is designed to be used by anyone with an interest in performing analysis of energy storage or its applications without having to create their own models or write their own code. It’s designed to be easy to use out of the box but also modifiable by the savvy user if they so choose. The software is intended to be used as a platform for running simulations, obtaining results, and using the information to inform planning decisions. 
