@@ -224,7 +224,7 @@ class DataManagerPanelERCOT(BoxLayout):
             try:
                 # Retrieve the webpage and parse for .zip files.
                 page = requests.get(urlERCOT_list_x, timeout=10, proxies=proxy_settings, verify=ssl_verify)
-                soup_ERCOT_page = BeautifulSoup(pssage.content, 'html.parser')
+                soup_ERCOT_page = BeautifulSoup(page.content, 'html.parser')
 
                 zipfileslinks_ERCOT_page = []
                 for link in soup_ERCOT_page.find_all('a'):
