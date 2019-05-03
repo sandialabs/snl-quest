@@ -1,5 +1,9 @@
 # Master branch changelog
 
+## Patch 1.2.c
+### Resolved issues
+* An issue where attempting to download ISO/RTO market data for ERCOT resulted in a fatal crash.
+
 ## Patch 1.2.b
 
 ### Resolved issues
