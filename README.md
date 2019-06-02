@@ -53,13 +53,28 @@ The software is designed to be used by anyone with an interest in performing ana
 ## Getting started
 <a id="getting-started"></a>
 
-### Requirements
+### Installing from executable
+
+#### Windows 10
+For Windows 10 users, we will offer an executable version of QuESt. This version comes pre-packaged with its own Python environment (including Kivy) so no Python installation is required. Until further notice, you will still need to install a solver for Pyomo in order to solve optimization problems such as those in QuESt Valuation and QuESt BTM.
+
+You can find the executable version with each release in the **Releases** section:
+https://github.com/rconcep/snl-quest/releases
+
+1. Download and extract the `.zip` that is *not* labeled "Source code." 
+2. Inside the extracted folder, there will be a lot of files and folders. Locate the `snl-quest-v{version number}.exe` file and run it.
+3. A command prompt should open along with the QuESt GUI.
+
+### Installing from source code
+
+For all platforms, you can instead install QuESt using the codebase in this repository.
+
+You will want to obtain the codebase for QuESt. You can do that by downloading a release version in a compressed archive from the "releases" tab on the GitHub repository page. Alternatively, you can clone this repository or download a compressed archive of it by clicking the "Clone or download" button on this page. We recommend keeping the QuESt files in a location where you have read/write permission. Once you have the codebase, follow the appropriate set of instructions for your operating system.
+
+**Requirements**
 * Python 3.6+
 * Kivy 1.10.1+ and its dependencies
 * Solver compatible with Pyomo
-
-### Installation
-You will want to obtain the codebase for QuESt. You can do that by downloading a release version in a compressed archive from the "releases" tab on the GitHub repository page. Alternatively, you can clone this repository or download a compressed archive of it by clicking the "Clone or download" button on this page. We recommend keeping the QuESt files in a location where you have read/write permission. Once you have the codebase, follow the appropriate set of instructions for your operating system.
 
 #### Windows
 1. Install Python, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
@@ -75,21 +90,26 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
  ``python setup.py develop`` This will check dependencies for QuESt and install them as needed.
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
 
-#### Solvers for Pyomo
-At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required.
+### Solvers for Pyomo
+At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required. GLPK is a suggested option.
 
-##### Installing GLPK, IPOPT, or Coin CBC (via Anaconda)
+#### Installing GLPK (for Windows via Anaconda)
 If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following (according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html)):
 
-``conda install -c conda-forge glpk ipopt coincbc``
+``conda install -c conda-forge glpk``
 
-##### Installing GLPK (for Windows)
+#### Installing GLPK (for Windows)
 1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
 2. The .dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. These files need to be in the search path for Windows. The easiest way to do this is to move those files to the `C:\windows\system32` directory.
 3. Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 
-##### Installing GLPK (for OSX)
+#### Installing GLPK (for OSX)
 You will need to either build GLPK from source or install it using the [homebrew](https://brew.sh/) package manager. This [blog post](http://arnab-deka.com/posts/2010/02/installing-glpk-on-a-mac/) may be useful.
+
+#### Installing GLPK (for OSX via Anaconda)
+If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following (according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html)):
+
+``conda install -c conda-forge glpk``
 
 ##### Installing IPOPT (for Windows)
 1. Download and extract the pre-compiled binaries linked [here](https://www.coin-or.org/download/binary/Ipopt/). Select the latest version appropriate for your system and OS.
@@ -98,7 +118,9 @@ You will need to either build GLPK from source or install it using the [homebrew
 Regardless of which solver(s) you install, remember to specify which of them to use in Settings within QuESt.
 
 ### Running QuESt
-From the Anaconda Prompt or Command Prompt, run:
+If you are using the executable version, simply run the `snl-quest-v{version number}.exe` file.
+
+If you are running from the codebase, from the Anaconda Prompt or Command Prompt, run:
 ```
 python main.py
 ```
