@@ -71,11 +71,8 @@ from es_gui.apps.data_manager.pv import PVwattsSearchScreen
 
 # Valuation
 from es_gui.apps.valuation.home import ValuationHomeScreen
-from es_gui.apps.valuation.valuationscreen import ValuationScreen
 from es_gui.apps.valuation.batchrunscreen import BatchRunScreen
 from es_gui.apps.valuation.results_viewer import ValuationResultsViewer
-from es_gui.apps.valuation.setparametersscreen import SetParametersScreen
-from es_gui.apps.valuation.loaddatascreen import LoadDataScreen
 from es_gui.apps.valuation.wizard import ValuationWizard
 
 # Behind-the-meter
@@ -133,7 +130,7 @@ class AboutScreen(ModalView):
             elif value == 'sandia':
                 webbrowser.open('http://sandia.gov/')
         
-        version_statement = 'QuESt v1.2.c \n 2019.05.03'
+        version_statement = 'QuESt v1.2.d \n 2019.06.04'
 
         developed_by = '{app_name} is developed by the {ess} and {espr} departments at {sandia}.'.format(app_name=APP_NAME, ess=_ref_link('Energy Storage Technology and Systems', 'sandia-ess'), espr=_ref_link('Electric Power Systems Research', 'sandia-espr'), sandia=_ref_link('Sandia National Laboratories', 'sandia'))
 
@@ -218,11 +215,8 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
 
         # Energy storage valuation.
-        #self.add_widget(ValuationScreen(name='valuation_advanced'))
         self.add_widget(ValuationHomeScreen(name='valuation_home'))
         self.add_widget(BatchRunScreen(name='batch_run'))
-        self.add_widget(SetParametersScreen(name='set_parameters'))
-        self.add_widget(LoadDataScreen(name='load_data'))
         self.add_widget(ValuationResultsViewer(name='valuation_results_viewer'))
         self.add_widget(ValuationWizard(name='valuation_wizard'))
 
@@ -266,8 +260,6 @@ class NavigationBar(ActionBar):
                      'valuation_home': 'index',
                      'batch_run': 'valuation_home',
                      'valuation_results_viewer': 'valuation_home',
-                     'set_parameters': 'load_data',
-                     'load_data': 'valuation_home',
                      'valuation_wizard': 'valuation_home',
                      'valuation_advanced': 'valuation_home',
                      'data_manager_home': 'index',
@@ -293,7 +285,6 @@ class NavigationBar(ActionBar):
         data_manager_home_button = NavigationButton(
             text='data manager home',
             on_release=partial(self.go_to_screen, 'data_manager_home'),
-            id='data_manager_home_button'
         )
 
         self.reset_nav_bar()
@@ -305,25 +296,21 @@ class NavigationBar(ActionBar):
         view_results_button = NavigationButton(
             text='view results',
             on_release=partial(self.go_to_screen, 'valuation_results_viewer'),
-            id='plot_button'
         )
 
         run_op_button = NavigationButton(
             text='run optimization',
             on_release=self.sm.get_screen('set_parameters').execute_single_run,
-            id='run_op_button'
         )
 
         load_data_button = NavigationButton(
             text='select data',
             on_release=partial(self.go_to_screen, 'load_data'),
-            id='load_data_button'
         )
 
         set_parameters_button = NavigationButton(
             text='set parameters',
             on_release=partial(self.go_to_screen, 'set_parameters'),
-            id='set_parameters_button'
         )
 
         self.reset_nav_bar()
@@ -340,45 +327,15 @@ class NavigationBar(ActionBar):
         view_results_button = NavigationButton(
             text='view results',
             on_release=partial(self.go_to_screen, 'valuation_results_viewer'),
-            id='plot_button'
         )
-
-        single_run_button = NavigationButton(
-            text='single run',
-            on_release=partial(self.go_to_screen, 'load_data'),
-            id='single_run_button'
-        )
-
-        # run_op_button = NavigationButton(
-        #     text='run optimization',
-        #     on_release=self.sm.get_screen('valuation_advanced').open_valuation_run_menu,
-        #     id='run_op_button'
-        # )
-        #
-        # load_data_button = NavigationButton(
-        #     text='load data',
-        #     on_release=partial(self.go_to_screen, 'load_data'),
-        #     id='load_data_button'
-        # )
-        #
-        # set_parameters_button = NavigationButton(
-        #     text='set parameters',
-        #     on_release=partial(self.go_to_screen, 'set_parameters'),
-        #     id='set_parameters_button'
-        # )
 
         batch_processing_button = NavigationButton(
             text='batch runs',
             on_release=partial(self.go_to_screen, 'batch_run'),
-            id='batch_processing_button'
         )
 
         self.reset_nav_bar()
 
-        # self.action_view.add_widget(load_data_button)
-        # self.action_view.add_widget(set_parameters_button)
-        # self.action_view.add_widget(run_op_button)
-        self.action_view.add_widget(single_run_button)
         self.action_view.add_widget(view_results_button)
         self.action_view.add_widget(batch_processing_button)
 
@@ -387,13 +344,11 @@ class NavigationBar(ActionBar):
         view_results_button = NavigationButton(
             text='view results',
             on_release=partial(self.go_to_screen, 'valuation_results_viewer'),
-            id='plot_button'
         )
 
         batch_processing_button = NavigationButton(
             text='batch runs',
             on_release=partial(self.go_to_screen, 'batch_run'),
-            id='batch_processing_button'
         )
 
         self.reset_nav_bar()
@@ -418,19 +373,16 @@ class NavigationBar(ActionBar):
         home_button = NavigationButton(
             text='home',
             on_release=partial(self.go_to_screen, 'index'),
-            id='home_button'
         )
 
         settings_button = NavigationButton(
             text='settings',
             on_release=self.sm.settings_screen.open,
-            id='settings_button'
         )
 
         about_button = NavigationButton(
             text='about',
             on_release=self.sm.about_screen.open,
-            id='about_button'
         )
 
         self.action_view.add_widget(home_button)
@@ -491,9 +443,9 @@ class QuEStApp(App):
         config.setdefaults('connectivity', {'use_proxy': 0, 'http_proxy': '', 'https_proxy': '', 'use_ssl_verify': 1})
         config.setdefaults('valuation', {'valuation_dms_save': 1, 'valuation_dms_size': 20000})
         config.setdefaults('btm', {'btm_dms_save': 1, 'btm_dms_size': 20000})
-        config.setdefaults('data_manager_pjm', {'pjm_subscription_key': ''})
-        config.setdefaults('data_manager_iso-ne', {'iso-ne_api_username': ''})
-        config.setdefaults('data_manager_openei', {'openei_key': ''})
+        config.setdefaults('datamanager-pjm', {'pjm_subscription_key': ''})
+        config.setdefaults('datamanager-isone', {'iso-ne_api_username': ''})
+        config.setdefaults('datamanager-openei', {'openei_key': ''})
 
     def build(self):
         # Sets the window/application title.

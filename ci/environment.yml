@@ -1,0 +1,17 @@
+name: test_env
+channels:
+- conda-forge
+- defaults
+dependencies:
+- numpy
+- scipy
+- pandas
+- six
+- matplotlib
+- xlrd
+- jinja2
+- bs4
+- requests
+- urllib3
+- holidays
+

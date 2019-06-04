@@ -1,11 +1,29 @@
 # Master branch changelog
 
+## Patch 1.2.d
+### QuESt
+* Removed "id" property for NavigationButton(ActionButton) widgets to address deprecation warnings.
+* Added files to repository for Travis CI. We will be implementing continuous integration and unit tests over the next few updates.
+
+#### QuESt Data Manager
+* PV profiles that are obtained using PVWatts now use the "TMY3" dataset instead of the default "NSRDB" dataset.
+  * This is to maintain consistency with the load profiles obtained from OpenEI.org which are based on TMY3.
+  
+#### QuESt Valuation
+* The "Single Run" mode in QuESt Valuation has been deprecated and removed from the GUI.
+  * The functionality of the "Single Run" mode is already duplicated by the "Batch Run" mode.
+
+### Resolved issues
+* Various issues due to Kivy v1.11.0 update. Backwards compatibility with Kivy v1.10.1 should be maintained.
+* An issue where the settings for the QuESt BTM data management system were not respected.
+* An issue where the wrong navigation bar was loaded upon entering QuESt BTM.
+* An issue where attempting to start the QuESt Valuation Wizard (on the second screen) or QuESt Valuation Batch Runs (when selecting a market area) after a fresh or install or with no `/data/` directory resulted in a fatal crash.
+
 ## Patch 1.2.c
 ### Resolved issues
 * An issue where attempting to download ISO/RTO market data for ERCOT resulted in a fatal crash.
 
 ## Patch 1.2.b
-
 ### Resolved issues
 * An issue where attempting to export a PNG from a results viewer when solved models were selected but no plot had yet been drawn resulted in a fatal crash.
 

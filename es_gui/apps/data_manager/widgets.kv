@@ -193,7 +193,7 @@
                         #password: True
                         write_tab: False
                         hint_text: 'Email Address'
-                        text: app.App.get_running_app().config.get('data_manager_iso-ne', 'iso-ne_api_username')
+                        text: app.App.get_running_app().config.get('datamanager-isone', 'iso-ne_api_username')
                 
                 BoxLayout:
                     orientation: 'horizontal'
@@ -1089,7 +1089,7 @@
                     #password: True
                     write_tab: False
                     hint_text: 'Subscription key'
-                    text: app.App.get_running_app().config.get('data_manager_pjm', 'pjm_subscription_key')
+                    text: app.App.get_running_app().config.get('datamanager-pjm', 'pjm_subscription_key')
                     
                 BoxLayout:
                     orientation: 'horizontal'

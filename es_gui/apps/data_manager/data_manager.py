@@ -246,7 +246,12 @@ class DataManager(EventDispatcher):
         """Returns a keys view of all of the markets for valuation available."""
         # self.scan_valuation_data_bank()
 
-        return self.data_bank['valuation'].keys()
+        try:
+            valuation_data_bank = self.data_bank['valuation']
+        except KeyError:
+            return []
+        else:
+            return self.data_bank['valuation'].keys()
 
     def scan_valuation_data_bank(self):
         """Scans the valuation data bank to determine what data has been downloaded."""

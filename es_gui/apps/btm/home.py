@@ -19,11 +19,10 @@ class BehindTheMeterHomeScreen(Screen):
     def __init__(self, **kwargs):
         super(BehindTheMeterHomeScreen, self).__init__(**kwargs)
 
-        # # Initialize data management system.
+        # Initialize data management system.
         self.dms = BtmDMS(
-            # max_memory=App.get_running_app().config.getint('valuation', 'valuation_dms_size')*1000,
-            # save_data=bool(App.get_running_app().config.getint('valuation', 'valuation_dms_save')),
-            save_data = True,
+            max_memory=App.get_running_app().config.getint('btm', 'btm_dms_size')*1000,
+            save_data=bool(App.get_running_app().config.getint('btm', 'btm_dms_save')),
             save_name='btm_dms.p',
             home_path='data',
             )
@@ -34,7 +33,6 @@ class BehindTheMeterHomeScreen(Screen):
         ab = self.manager.nav_bar
         ab.reset_nav_bar()
         ab.set_title('Behind-the-Meter Applications')
-        ab.build_data_manager_nav_bar()
 
         # data_manager = App.get_running_app().data_manager
         

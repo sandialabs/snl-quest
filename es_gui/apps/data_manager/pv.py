@@ -96,6 +96,7 @@ class PVwattsSearchScreen(Screen):
         api_key, pv_params = self._validate_inputs()
 
         # Fixed values.
+        pv_params['dataset'] = 'tmy3'
         pv_params['radius'] = '0'
         pv_params['timeframe'] = 'hourly'
         pv_params['api_key'] = api_key
