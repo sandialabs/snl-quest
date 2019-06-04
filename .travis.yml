@@ -3,8 +3,8 @@ language: python
 sudo: false # if false, use TravisCI's container based build
 
 python:
-  - "3.6"
-  - "3.7"
+    - "3.6"
+    - "3.7"
 
 addons:
     apt:
@@ -47,6 +47,3 @@ install:
 
 script:
     - python -m unittest -v
-
-after_success:
-coveralls
