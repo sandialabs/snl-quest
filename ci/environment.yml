@@ -10,7 +10,6 @@ dependencies:
 - matplotlib
 - xlrd
 - jinja2
-- bs4
 - requests
 - urllib3
 - holidays
