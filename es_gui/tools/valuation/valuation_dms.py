@@ -328,7 +328,7 @@ class ValuationDMS(DataManagementSystem):
             rpcp = self.get_data(rpcp_key)
         except KeyError:
             # load the data and add it to the DMS
-            lmp_da, rccp, rpcp = read_isone_data(path, year, month, nodeid)
+            lmp_da, rccp, rpcp = read_isone_data_updated(path, year, month, nodeid)
 
             self.add_data(lmp_da, lmp_key)
             self.add_data(rccp, rccp_key)

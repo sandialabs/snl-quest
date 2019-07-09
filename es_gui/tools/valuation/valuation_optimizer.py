@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import logging
+import os
 
 from pyomo.environ import *
 import pandas as pd
@@ -376,7 +377,7 @@ class ValuationOptimizer(optimizer.Optimizer):
         #         m.Perf_score = 0.95
 
         ###############################################################################################################
-        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
+        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp', 'isone_pfp'}: # TODO: Figure out ISO NE for this?
             # Performance score for regulation service for pay-for-performance models.
             try:
                 if not getattr(m, 'perf_score', None):
@@ -396,7 +397,51 @@ class ValuationOptimizer(optimizer.Optimizer):
             except IndexError:
                 logging.warning('ValuationOptimizer: A perf_score array was provided but is shorter than the price_electricity array.')
                 raise(IncompatibleDataException('ValuationOptimizer: There was a mismatch in array sizes between perf_score and price_electricity.'))
-
+        
+        #///////////////////////////////////////////////////////#
+        if self.market_type in {'isone_pfp'}:
+            #   default mileage for service prices; taken from simulation done by isone https://www.iso-ne.com/isoexpress/web/reports/grid/-/tree/simulated-agc; using ENT
+            
+        
+            if not getattr(m, 'mi_mult', None):
+                
+                mileage_file = os.path.join('es_gui/resources/')
+                print(mileage_file)
+                ISONE_TRI_FILE = pd.read_excel(os.path.join(mileage_file, 'Energy_Neutral_AGC_Dispatch1.xlsx'), sheet_name = 'Energy Neutral Trinary', usecols = ['Fleet ATRR dispatch [MW]'])
+                
+                #   AGC setpoints given every 4 seconds, take the total mileage for each hour; total of one day of mileage
+                HOURS = [i for i in range(len(ISONE_TRI_FILE.index)//900)]
+                ISONE_TRI_MILEAGE = []
+                for hour in HOURS:
+                    TRI_HOUR = ISONE_TRI_FILE[900*hour:900*(hour + 1)] #    every 900 values represents and hour (900*4 = 3600)
+                    MILEAGE_HOUR = 0 
+                    for i in range(len(TRI_HOUR.index)):
+                        if i == len(TRI_HOUR.index) - 1:
+                            break
+                    
+                        if not TRI_HOUR.iloc[i, 0] == TRI_HOUR.iloc[i + 1, 0]:
+                            MILEAGE_HOUR += abs(TRI_HOUR.iloc[i, 0] - TRI_HOUR.iloc[i + 1, 0])/10
+                            
+                        #print(MILEAGE_HOUR)
+                            
+                    ISONE_TRI_MILEAGE.append(MILEAGE_HOUR)
+        
+                ISONE_MILEAGE_DAY = pd.DataFrame(ISONE_TRI_MILEAGE, columns = ['Trinary Mileage'])
+                
+                #   have one days worth of data, need one months worth
+                days = len(m.price_electricity)//24
+                mileage_mult_final = pd.DataFrame(columns = ['Trinary Mileage'])
+                for day in range(days):
+                    mileage_mult_final = mileage_mult_final.append(ISONE_MILEAGE_DAY, ignore_index = True)
+                #   if the len are offset, make them match
+                if not len(m.price_electricity) == len(mileage_mult_final):
+                    diff = len(m.price_electricity) - len(mileage_mult_final)
+                    for i in range(diff):
+                        mileage_mult_final = mileage_mult_final.append(ISONE_MILEAGE_DAY.iloc[i], ignore_index = True)
+                    
+                m.mi_mult = mileage_mult_final['Trinary Mileage'].fillna(0).astype(float)
+        #///////////////////////////////////////////////////////#
+        
         if self.market_type in {'caiso_pfp'}: # TODO: Figure out SPP for this?
             # Performance score for regulation up and down services for pay-for-performance models.
             try:
@@ -591,15 +636,17 @@ class ValuationOptimizer(optimizer.Optimizer):
             run_results['rev_arb'] = rev_arb
             run_results['rev_reg'] = rev_reg
             run_results['revenue'] = revenue
+        #//////////////////////////////////////////////////#
         elif self.market_type == 'isone_pfp':
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
-            rev_reg = np.cumsum(np.array([m.price_regulation[t]*m.q_reg[t].value for t in m.time]))
+            rev_reg = np.cumsum(np.array([(m.mi_mult[t] * m.price_reg_service[t] + m.price_regulation[t]) * m.perf_score[t]*m.q_reg[t].value for t in m.time]))
 
             revenue = rev_arb + rev_reg
 
             run_results['rev_arb'] = rev_arb
             run_results['rev_reg'] = rev_reg
             run_results['revenue'] = revenue
+        #//////////////////////////////////////////////////#
         #######################################################################################################################
         elif self.market_type == 'nyiso_pfp':
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))

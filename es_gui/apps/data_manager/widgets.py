@@ -456,9 +456,11 @@ class DataManagerPanelISONE(BoxLayout):
 
             self.n_active_threads = len(job_batches)
 
+            five_minute_start = datetime.datetime(2017, 12, 1)
+            
             # (Re)set the progress bar and output log.
             self.progress_bar.value = 0
-            self.progress_bar.max = total_months*total_nodes + total_months
+            self.progress_bar.max = 2*total_months
             self.output_log.text = ''
 
             # Check connection settings.
@@ -466,11 +468,336 @@ class DataManagerPanelISONE(BoxLayout):
 
             # Spawn a new thread for each download_ISONE_data call.
             for batch in job_batches:
-                thread_downloader = threading.Thread(target=self._download_ISONE_data, args=(acc_user, acc_pw, batch[0], batch[-1]),
+                thread_downloader = threading.Thread(target=self.download_ISONE_data_updated, args=(acc_user, acc_pw, batch[0], batch[-1]),
                                                      kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'nodes':nodes_selected})
 
                 thread_downloader.start()
 
+    #//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+    def download_ISONE_data_updated(self, username, password, datetime_start, datetime_end=None, nodes=[], typedat="all", path='data/', ssl_verify=True, proxy_settings={}):
+        """Downloads a month's worth of ISO-NE day ahead LMP and RCP data pre Dec 2017. Post Dec 2017 downloads da LMP, five minute LMP, and five minute RCP data.
+    
+        :param username: ISO-NE ISO Express username
+        :type username: str
+        :param password: ISO-NE ISO Express password
+        :type password: str
+        :param nodes: list of pricing nodes
+        :type nodes: list
+        :param datetime_start: the start of the range of data to download
+        :type datetime_start: datetime
+        :param datetime_end: the end of the range of data to download, defaults to one month's worth
+        :type datetime_end: datetime
+        :param path: root directory of data download location, defaults to os.path.join('data')
+        :param path: str, optional
+        :param ssl_verify: if SSL verification should be done, defaults to True
+        :param ssl_verify: bool, optional
+        """
+        print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
+        if not datetime_end:
+            datetime_end = datetime_start
+    
+        pathlistnodes = path
+        listnodes_file = os.path.join(pathlistnodes, '../es_gui/apps/data_manager/_static/', 'nodes_isone.csv')
+        #listnodes_file = 'C:/Users/wolis/Documents/QuESt/snl-quest-1.2.c/es_gui/apps/data_manager/_static/nodes_isone.csv'
+        if not nodes:
+            df_listnodes = pd.read_csv(listnodes_file, index_col=False,encoding="cp1252")
+            nodelist = df_listnodes['Node ID']
+        else:
+            nodelist = []
+            for node_x in nodes:
+                if node_x == 'HUBS':
+                    df_listnodes = pd.read_csv(listnodes_file, index_col=False, encoding="cp1252")
+                    ixzones = df_listnodes['Node ID'] == df_listnodes['Zone ID']
+                    zonelist = df_listnodes.loc[ixzones, 'Node ID'].tolist()
+                    nodelist = nodelist + zonelist
+                else:
+                    nodelist.append(node_x)
+    
+    
+        #	set datetime to start downloading five minute data
+        five_minute_start = datetime.datetime(2017, 12, 1)
+    
+        # node = nodes
+        # Compute the range of months to get da prices
+        monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+        monthrange.union([monthrange[-1] + 1])
+    
+        url_ISONE = 'https://webservices.iso-ne.com/api/v1.1'
+        for date in monthrange:
+            _, n_days_month = calendar.monthrange(date.year, date.month)
+            
+            case_dwn = ['lmp', 'rcp', 'fmlmp', 'fmrcp']
+            folderdata = ['LMP', 'RCP', 'LMP', 'RCP']
+            lmp_or_rcp_nam = ['_dalmp_', '_rcp', '_fmlmp_', '_fmrcp']
+            nodelist_dict = {
+                    'lmp'   : nodelist,
+                    'rcp'   : [''],
+                    'fmlmp' : nodelist,
+                    'fmrcp' : ['']
+                    }
+            
+            if date < five_minute_start:
+                if typedat == 'all':
+                    case_dwn.remove('fmlmp')
+                    case_dwn.remove('fmrcp')
+                    folderdata.remove('LMP')
+                    folderdata.remove('RCP')
+                    lmp_or_rcp_nam.remove('_fmlmp_')
+                    lmp_or_rcp_nam.remove('_fmrcp')
+                    del nodelist_dict['fmlmp']
+                    del nodelist_dict['fmrcp']
+                elif typedat == 'lmp':
+                    case_dwn.remove('fmlmp')
+                    case_dwn.remove('fmrcp')
+                    case_dwn.remove('rcp')
+                    folderdata.remove('LMP')
+                    folderdata.remove('RCP')
+                    folderdata.remove('RCP')
+                    lmp_or_rcp_nam.remove('_fmlmp_')
+                    lmp_or_rcp_nam.remove('_fmrcp')
+                    lmp_or_rcp_nam.remove('_rcp')
+                    del nodelist_dict['fmlmp']
+                    del nodelist_dict['fmrcp']
+                    del nodelist_dict['rcp']
+                elif typedat == 'rcp':
+                    case_dwn.remove('fmlmp')
+                    case_dwn.remove('fmrcp')
+                    case_dwn.remove('lmp')
+                    folderdata.remove('LMP')
+                    folderdata.remove('RCP')
+                    folderdata.remove('LMP')
+                    lmp_or_rcp_nam.remove('_fmlmp_')
+                    lmp_or_rcp_nam.remove('_fmrcp')
+                    lmp_or_rcp_nam.remove('_dalmp_')
+                    del nodelist_dict['fmlmp']
+                    del nodelist_dict['fmrcp']
+                    del nodelist_dict['lmp']
+            elif date >= five_minute_start:
+                if typedat == 'all':
+                    case_dwn.remove('rcp')
+                    folderdata.remove('RCP')
+                    lmp_or_rcp_nam.remove('_rcp')
+                    del nodelist_dict['rcp']
+                elif typedat == 'lmp':
+                    case_dwn.remove('fmrcp')
+                    case_dwn.remove('rcp')
+                    folderdata = [x for x in folderdata == 'LMP']
+                    lmp_or_rcp_nam.remove('_fmrcp')
+                    lmp_or_rcp_nam.remove('_rcp')
+                    del nodelist_dict['fmrcp']
+                    del nodelist_dict['rcp']
+                elif typedat == 'rcp':
+                    case_dwn.remove('fmlmp')
+                    case_dwn.remove('rcp')
+                    case_dwn.remove('lmp')
+                    folderdata.remove('LMP')
+                    folderdata.remove('RCP')
+                    folderdata.remove('LMP')
+                    lmp_or_rcp_nam.remove('_fmlmp_')
+                    lmp_or_rcp_nam.remove('_rcp')
+                    lmp_or_rcp_nam.remove('lmp')
+                    del nodelist_dict['fmlmp']
+                    del nodelist_dict['rcp']
+                    del nodelist_dict['lmp']
+    
+            for sx, case_dwn_x in enumerate(case_dwn):
+                nodelist_loop = nodelist_dict[case_dwn_x]
+                for node_x in nodelist_loop:
+                    nodex = node_x
+                    if isinstance(node_x, int):
+                        nodex = str(node_x)
+    
+                # nodex = node
+                # if case_dwn_x == 'rcp':
+                #     nodex = ''
+    
+                    destination_dir = os.path.join(path,'ISONE', folderdata[sx], nodex, date.strftime('%Y'))
+                    destination_file = os.path.join(destination_dir, ''.join([date.strftime('%Y%m'), lmp_or_rcp_nam[sx], nodex, ".csv"]))
+    
+                    date_Ym_str = date.strftime('%Y%m')
+                    if not os.path.exists(destination_file):
+    
+                        data_down_month = []
+                        dwn_ok = True
+                        for day in range(1,n_days_month+1):
+                            # Quit?
+                            if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                                # Stop running this thread so the main Python process can exit.
+                                self.n_active_threads -= 1
+                                return
+
+                            date_str = date.strftime('%Y%m') + str(day).zfill(2)
+                            if case_dwn_x == 'lmp':
+                                datadownload_url = ''.join([url_ISONE, '/hourlylmp/da/final/day/', date_str, '/location/', str(nodex),'.json'])
+                            elif case_dwn_x == 'rcp':
+                                datadownload_url = ''.join([url_ISONE, '/hourlyrcp/final/day/', date_str,'.json'])
+                            elif case_dwn_x == 'fmlmp':
+                                datadownload_url = ''.join([url_ISONE, '/fiveminutelmp/prelim/day/', date_str, '/location/', str(nodex),'.json'])
+                            elif case_dwn_x == 'fmrcp':
+                                datadownload_url = ''.join([url_ISONE, '/fiveminutercp/prelim/day/', date_str, '.json'])
+                            print(datadownload_url)
+    
+                            trydownloaddate = True
+                            wx = 0
+    
+                            if not dwn_ok:
+                                print("Month download failed")
+                                break
+                            while trydownloaddate:
+                                wx = wx + 1
+                                if wx >= MAX_WHILE_ATTEMPTS:
+                                    print("Hit wx limit")
+                                    dwn_ok = False
+                                    trydownloaddate = False
+                                    break
+    
+                                try:
+                                    with requests.Session() as req:
+                                        http_request = req.get(datadownload_url, auth=(username, password), proxies=proxy_settings, timeout=6, verify=ssl_verify, stream=True)
+    
+                                        if http_request.status_code == requests.codes.ok:
+                                            trydownloaddate = False
+                                            self.thread_failed = False
+                                        else:
+                                            http_request.raise_for_status()
+    
+                                except requests.HTTPError as e:
+                                    logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+                                    Clock.schedule_once(partial(self.update_output_log,
+                                                                '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
+                                    if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                        self.thread_failed = True
+                                except requests.exceptions.ProxyError:
+                                    logging.error('ISONEdownloader: {0}: Could not connect to proxy.'.format(date_str))
+                                    Clock.schedule_once(
+                                        partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
+                                    if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                        self.thread_failed = True
+                                except requests.ConnectionError as e:
+                                    logging.error(
+                                        'ISONEdownloader: {0}: Failed to establish a connection to the host server.'.format(
+                                            date_str))
+                                    Clock.schedule_once(partial(self.update_output_log,
+                                                                '{0}: Failed to establish a connection to the host server.'.format(
+                                                                    date_str)), 0)
+                                    if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                        self.thread_failed = True
+                                except requests.Timeout as e:
+                                    trydownloaddate = True
+                                    logging.error('ISONEdownloader: {0}: The connection timed out.'.format(date_str))
+                                    Clock.schedule_once(
+                                        partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
+                                    if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                        self.thread_failed = True
+                                except requests.RequestException as e:
+                                    logging.error('ISONEdownloader: {0}: {1}'.format(date_str, repr(e)))
+                                    if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                        self.thread_failed = True
+                                except Exception as e:
+                                    # Something else went wrong.
+                                    logging.error(
+                                        'ISONEdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,
+                                                                                                               repr(e)))
+                                    Clock.schedule_once(partial(self.update_output_log,
+                                                                '{0}: An unexpected error has occurred. ({1})'.format(date_str,
+                                                                                                                      repr(e))), 0)
+                                    if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                        self.thread_failed = True
+                                else:
+                                    data_down = []
+                                    if case_dwn_x == 'lmp':
+                                        try:
+                                            data_down = http_request.json()['HourlyLmps']['HourlyLmp']
+                                        except TypeError:
+                                            logging.error('ISONEdownloader: {0} {1}: No data returned.'.format(date_str, case_dwn_x))
+                                            Clock.schedule_once(partial(self.update_output_log, '{0}: No data returned.'.format(date_str)), 0)
+                                            
+                                            if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                                self.thread_failed = True
+                                            dwn_ok = False
+                                            break
+                                    elif case_dwn_x == 'rcp':
+                                        try:
+                                            data_down = http_request.json()['HourlyRcps']['HourlyRcp']
+                                        except TypeError:
+                                            logging.error('ISONEdownloader: {0} {1}: No data returned.'.format(date_str, case_dwn_x))
+                                            Clock.schedule_once(partial(self.update_output_log, '{0}: No data returned.'.format(date_str)), 0)
+                                            
+                                            if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                                self.thread_failed = True
+                                            dwn_ok = False
+                                            break
+                                    elif case_dwn_x == 'fmlmp':
+                                        try:
+                                            data_down = http_request.json()['FiveMinLmps']['FiveMinLmp']
+                                        except TypeError:
+                                            logging.error('ISONEdownloader: {0} {1}: No data returned.'.format(date_str, case_dwn_x))
+                                            Clock.schedule_once(partial(self.update_output_log, '{0}: No data returned.'.format(date_str)), 0)
+                                            
+                                            if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                                self.thread_failed = True
+                                            dwn_ok = False
+                                            break
+                                    elif case_dwn_x == 'fmrcp':
+                                        try:
+                                            data_down = http_request.json()['FiveMinRcps']['FiveMinRcp']
+                                        except TypeError:
+                                            logging.error('ISONEdownloader: {0} {1}: No data returned.'.format(date_str, case_dwn_x))
+                                            Clock.schedule_once(partial(self.update_output_log, '{0}: No data returned.'.format(date_str)), 0)
+                                            
+                                            if wx >= (MAX_WHILE_ATTEMPTS - 1):
+                                                self.thread_failed = True
+                                            dwn_ok = False
+                                            break
+                                    data_down_month += data_down
+    
+                        if dwn_ok:
+                            print("Successful ISONE data download")
+                            df_data = pd.DataFrame.from_records(data_down_month)
+                            if case_dwn_x == 'lmp':
+                                #df_data.drop(['Location'], inplace=True, axis=1)
+                                #df_data.set_index('BeginDate', inplace=True)
+                                df_save = df_data.drop(['Location'], axis = 1).set_index('BeginDate')
+                            elif case_dwn_x == 'rcp':
+                                #df_data.drop(['HourEnd'], inplace=True, axis=1)
+                                #df_data.set_index('BeginDate', inplace=True)
+                                df_save = df_data.drop(['HourEnd'], axis = 1).set_index('BeginDate')
+                            elif case_dwn_x == 'fmlmp':
+                                df_data.drop(['Location'], inplace=True, axis=1)
+                                df_data.set_index('BeginDate', inplace=True)
+                                hours = [i for i in range(len(df_data.index)//12)]
+                                df_save = pd.DataFrame(columns = df_data.columns)
+                                for hour in hours:
+                                    df_temp = df_data[12*hour:12*(hour + 1)].mean()
+                                    df_save = df_save.append(df_temp, ignore_index = True)
+                            elif case_dwn_x == 'fmrcp':
+                                df_data.drop(['HourEnd'], inplace=True, axis=1)
+                                df_data.set_index('BeginDate', inplace=True)
+                                hours = [i for i in range(len(df_data.index)//12)]
+                                df_save = pd.DataFrame(columns = df_data.columns)
+                                for hour in hours:
+                                    df_temp = df_data[12*hour:12*(hour + 1)].mean()
+                                    df_save = df_save.append(df_temp, ignore_index = True)
+
+                            os.makedirs(destination_dir, exist_ok=True)
+                            df_save.to_csv(destination_file, index = False)
+                            
+    
+                    else:
+                        # Skip downloading the daily file if it already exists where expected.
+                        logging.info('ISONEdownloader: {0}: {1} file already exists, skipping...'.format(date_Ym_str, case_dwn[sx]))
+                        print('ISONEdownloader: {0}: {1} file already exists, skipping...'.format(date_Ym_str, case_dwn[sx]))
+                        
+                    Clock.schedule_once(self.increment_progress_bar, 0)
+                    # Quit?
+                    if App.get_running_app().root.stop.is_set():
+                        # Stop running this thread so the main Python process can exit.
+                        self.n_active_threads -= 1
+                        return
+                
+        self.n_active_threads -= 1
+    #//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////#
+    
     def _download_ISONE_data(self, username, password, datetime_start, datetime_end=None, nodes=[], typedat="all", path='data/', ssl_verify=True, proxy_settings={}):
         """Downloads a month's worth of ISO-NE day ahead LMP and RCP data.
 

@@ -368,6 +368,76 @@ def read_miso_reg_price(fname):
     return RegMCP
 
 ##################################################################################################################
+#///////////////////////////////////////////////////////#
+def read_isone_data_updated(fpath, year, month, nodeid):
+    """"
+    Reads the historical LMP, regulation capacity, and regulation service (mileage) prices for the year 'year',
+    the month 'month' and for the node 'nodeid'. Returns NumPy ndarrays for those three prices.
+    :param fpath: A string containing the path to the relevant historical ancillary services data file.
+    :param year: An int corresponding to the year of interest
+    :param month: An int corresponding to the month of interest (1: Jan., 2: Feb., etc.)
+    :return: daLMP, RegCCP, RegPCP: NumPy ndarrays containing hourly LMP as well as regulation capacity/performance clearing price values.
+    """
+
+    if isinstance(month, str):
+        month = int(month)
+
+    if isinstance(year, str):
+        year = int(year)
+
+    if isinstance(nodeid, (int, float, complex)):
+        nodeid = str(nodeid)
+
+    if year < 2018:
+        if year == 2017 and month == 12:
+            fnameLMP = "{0:d}{1:02d}_fmlmp_{2:s}.csv".format(year, month, nodeid)
+            fnameRCP = "{0:d}{1:02d}_fmrcp.csv".format(year ,month)
+        else:
+            fnameLMP = "{0:d}{1:02d}_dalmp_{2:s}.csv".format(year, month, nodeid)
+            fnameRCP = "{0:d}{1:02d}_rcp.csv".format(year ,month)
+    else:
+        fnameLMP = "{0:d}{1:02d}_fmlmp_{2:s}.csv".format(year, month, nodeid)
+        fnameRCP = "{0:d}{1:02d}_fmrcp.csv".format(year ,month)
+
+    fname_path_LMP = os.path.join(fpath, 'LMP', str(nodeid), str(year), fnameLMP)
+    fname_path_RCP = os.path.join(fpath, 'RCP', str(year), fnameRCP)
+
+
+    daLMP = np.empty([0])
+    RegCCP = np.empty([0])
+    RegPCP = np.empty([0])
+
+
+    try:
+        dfLMP = pd.read_csv(fname_path_LMP, index_col=False)
+        daLMP = dfLMP['LmpTotal'].values
+    except FileNotFoundError:
+        logging.warning \
+            ('read_isone_data: No LMP data matching input parameters found, returning empty array. (got {fname}, {year}, {month}, {nodeid})'.format
+                (fname=fnameLMP, year=year, month=month, nodeid=nodeid))
+
+    try:
+        if year > 2014:
+            if year == 2015 and month < 4:
+                dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
+                RegCCP = dfRCP['RegClearingPrice'].values
+                RegPCP = []
+            else:
+                dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
+                RegCCP = dfRCP['RegCapacityClearingPrice'].values
+                RegPCP = dfRCP['RegServiceClearingPrice'].values
+        else:
+            dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
+            RegCCP = dfRCP['RegClearingPrice'].values
+            RegPCP = []
+
+    except FileNotFoundError:
+        logging.warning \
+            ('read_isone_data: No ASP data matching input parameters found, returning empty array. (got {fname}, {year}, {month})'.format
+                (fname=fnameRCP, year=year, month=month))
+
+    return daLMP, RegCCP, RegPCP
+#///////////////////////////////////////////////////////#
 
 def read_isone_data(fpath, year, month, nodeid):
     """"
