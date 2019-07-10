@@ -2478,6 +2478,19 @@ class DataManagerPanelCAISO(BoxLayout):
                     # print('CAISOdownloader: {0}: Successfully downloaded.'.format(log_identifier))
                     # time.sleep(5.2)  # delays for 5.2 seconds
                     dwn_ok = True
+                elif fnameopen[-4:] == '.xml':
+                    fxml = z.open(fnameopen)
+                    xmlsoup = BeautifulSoup(fxml, 'xml')
+                    err_xml = xmlsoup.find_all('ERR_CODE')
+                    err_xml = err_xml[0].contents[0]
+                    if err_xml=='1015':
+                        # print('Error 1015')
+                        trydownloaddate = True
+                    else:
+                        dwn_ok = False
+                        logging.info('CAISOdownloader: {0}: 1015: GroupZip DownLoad is in Processing, Please Submit request after Sometime.'.format(log_identifier))
+                        # print('CAISOdownloader: {0}: Not a valid download request.'.format(log_identifier))
+
                 else:
                     dwn_ok = False
                     logging.info('CAISOdownloader: {0}: Not a valid download request.'.format(log_identifier))
