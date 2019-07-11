@@ -11,7 +11,7 @@
 
 <!-- MISO -->
 \begin{align}
-\max_{q^\text{d},q^\text{r},q^\text{reg}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + (1 + \alpha) \gamma_i \lambda_i^\text{p} q_i^\text{reg} \big) e^{-Ri}
+\max_{q^\text{d},q^\text{r},q^\text{reg}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + (1 + \alpha) \gamma_i \lambda_i^\text{c} q_i^\text{reg} \big) e^{-Ri}
 \end{align}
 <br />
 subject to the following constraints
@@ -26,7 +26,7 @@ for all time periods \(i \in \mathcal{T} \). The total revenue can be calculated
 <br />
 \begin{align}
 r_\text{arb} & = \sum_{i \in \mathcal{T}} \lambda_i \big( q_i^\text{d} - q_i^\text{r} \big) \\
-r_\text{reg} & = \sum_{i \in \mathcal{T}} (1 + \alpha) \gamma_i \lambda_i^\text{m} q_i^\text{reg} \\
+r_\text{reg} & = \sum_{i \in \mathcal{T}} (1 + \alpha) \gamma_i \lambda_i^\text{c} q_i^\text{reg} \\
 r & = r_\text{arb} + r_\text{reg}
 \end{align}
 <br />
