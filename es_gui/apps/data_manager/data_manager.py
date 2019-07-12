@@ -65,7 +65,7 @@ STATE_ABBR_TO_NAME = {
     'TX': 'Texas',
     'UT': 'Utah',
     'VT': 'Vermont',
-    'VA': 'Richmond',
+    'VA': 'Virginia',
     'WA': 'Washington',
     'WV': 'West Virginia',
     'WI': 'Wisconsin',
