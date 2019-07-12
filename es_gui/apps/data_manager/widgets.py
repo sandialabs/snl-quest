@@ -1935,14 +1935,25 @@ class DataManagerPanelSPP(BoxLayout):
                                                             '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))), 0)
                                 if wx >= (MAX_WHILE_ATTEMPTS-1):
                                     self.thread_failed = True
+                            
+                            try:
+                                urldata_str = http_request_f.content.decode('utf-8')
+                            except NameError:
+                                # http_request_f not yet defined
+                                pass
+                            except AttributeError:
+                                # http_request_f not an object returned by requests.get()
+                                pass
+                            except requests.exceptions.ConnectionError:
+                                # ConnectionError raised when decoding.
+                                # See requests.models.response.iter_content()
+                                pass
                             else:
-                                os.makedirs(destination_dir, exist_ok=True)
-                                urldata_str = http_request_f.content.decode('utf-8')  #
-                                output_file = open(destination_file, 'w')
-                                output_file.write(urldata_str)
-                                output_file.close()
-                                # print("Successful SPP data download")
-
+                                if len(urldata_str) > 0:
+                                    os.makedirs(destination_dir, exist_ok=True)
+                                    output_file = open(destination_file, 'w')
+                                    output_file.write(urldata_str)
+                                    output_file.close()
 
                     else:
                         # Skip downloading the daily file if it already exists where expected.
