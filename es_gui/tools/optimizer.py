@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 import logging
+import pyutilib
 
 from six import with_metaclass
 from pyomo.environ import *
@@ -84,13 +85,19 @@ class Optimizer(with_metaclass(ABCMeta)):
             results = solver_manager.solve(self.model, opt=opt)
         else:
             solver = SolverFactory(self.solver)
-            results = solver.solve(self.model, tee=True, keepfiles=False)
+
+            try:
+                solver.available()
+            except pyutilib.common._exceptions.ApplicationError as e:
+                logging.error('Optimizer: {error}'.format(error=e))
+            else:
+                results = solver.solve(self.model, tee=True, keepfiles=False)
 
         try:
             assert (results.solver.termination_condition.key == 'optimal')
-        except AssertionError as e:
-            logging.error('Optimizer: An optimal solution could not be obtained. (Infeasible problem?)')
-            raise(e)
+        except AssertionError:
+            logging.error('Optimizer: An optimal solution could not be obtained. (solver termination condition: {0})'.format(results.solver.termination_condition.key))
+            raise(AssertionError('An optimal solution could not be obtained. (solver termination condition: {0})'.format(results.solver.termination_condition.key)))
         else:
             self._process_results()
 

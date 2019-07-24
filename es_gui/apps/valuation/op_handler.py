@@ -120,17 +120,20 @@ class ValuationOptimizerHandler:
                 try:
                     solved_op = self._solve_model(op)
                 except pyutilib.common._exceptions.ApplicationError as e:
-                    logging.error('ValOp Handler: Something went wrong when solving: ({error})'.format(error=e))
+                    logging.error('Op Handler: {error}'.format(error=e))
                     handler_status = False
                 except IncompatibleDataException as e:
                     logging.error(e)
+                    handler_status = False
+                except AssertionError as e:
+                    logging.error('Op Handler: {error}'.format(error=e))
                     handler_status = False
                 else:
                     solved_op = self._save_to_solved_ops(solved_op, iso, market_type, node_name,
                                                         year, month, params)
                     solved_requests.append(solved_op)
 
-        logging.info('ValOp Handler: Finished processing requested jobs.')
+        logging.info('Op Handler: Finished processing requested jobs.')
         return solved_requests, handler_status
 
     def _solve_model(self, op):
