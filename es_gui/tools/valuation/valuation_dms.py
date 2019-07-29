@@ -254,61 +254,6 @@ class ValuationDMS(DataManagementSystem):
 
         return lmp_da, RegMCP
 
-    # TODO: delete function below
-    def get_isone_data_old(self, year, month, nodeid):
-        path = self.home_path + '/ISONE/'
-
-        fnameLMP = "DA_node{0:s}_month{1:s}_year{2:s}.csv".format(nodeid, month, year)
-        fnameREG = "REG_month{0:s}_year{1:s}.csv".format(month, year)
-
-        # fname_path_LMP = path + "LMP/" + str(year) + "/" + str(month).zfill(2) + "/" + fnameLMP
-        # fname_path_REG = path + "REG/" + str(year) + "/" + fnameREG
-
-        # key_isone_LMP = "ISONE-" + "LMP-" + str(year) + "-" + str(month).zfill(2) + "-node" + str(nodeidi)
-        # key_isone_REG = "ISONE-" + "REG-" + str(year) + "-" + str(month).zfill(2)
-        key_isone_LMP = "ISONE-" + "LMP-" + year + "-" + month.zfill(2) + "-node" + nodeid
-        key_isone_REG = "ISONE-" + "REG-" + year + "-" + month.zfill(2)
-
-
-        logging.info('DMS: Loading ISO-NE LMP and Regulation Prices')
-        try:
-            # attempt to access data if it is already loaded
-            # RegCCP = self.get_data(fname_path_REG,'RegCCP') # this works
-            # RegPCP = self.get_data(fname_path_REG,'RegPCP') # this works
-            # daLMP = self.get_data(fname_path_LMP) # this works
-
-            key_isone_REG_CCP = key_isone_REG + "-CCP"
-            key_isone_REG_PCP = key_isone_REG + "-PCP"
-
-            RegCCP = self.get_data(key_isone_REG_CCP)
-            RegPCP = self.get_data(key_isone_REG_PCP)
-            daLMP = self.get_data(key_isone_LMP)
-        except KeyError:
-            # load the data and add it to the DMS
-            # RegCCP, RegPCP = read_pjm_reg_price(*args) in utilities: -def read_pjm_reg_price(fname, month):
-
-            yeari = int(year)
-            monthi = int(month)
-            nodeidi = int(nodeid)
-
-            daLMP, RegCCP, RegPCP = read_isone_data(path, yeari, monthi, nodeidi) # in utilities: def read_isone_data(fpath, year, month, nodeid):
-
-            # self.add_data(daLMP, fname_path_LMP) # this works
-
-            self.add_data(daLMP, key_isone_LMP)  # this works
-
-            # self.add_data(RegCCP, (fname_path_REG,'RegCCP'))
-            # self.add_data(RegPCP, (fname_path_REG, 'RegPCP'))
-
-            # self.add_data({'RegCCP': RegCCP, 'RegPCP': RegPCP}, fname_path_REG) # this works!
-
-            key_isone_REG_CCP = key_isone_REG + "-CCP"
-            key_isone_REG_PCP = key_isone_REG + "-PCP"
-            self.add_data(RegCCP, key_isone_REG_CCP)
-            self.add_data(RegPCP, key_isone_REG_PCP)
-        finally:
-            return daLMP, RegCCP, RegPCP
-
     ####################################################################################################################
 
     def get_isone_data(self, year, month, nodeid):
@@ -320,21 +265,24 @@ class ValuationDMS(DataManagementSystem):
         lmp_key = self.delimiter.join([path, year, month, nodeid, 'LMP'])
         rccp_key = self.delimiter.join([path, year, month, 'RegCCP'])
         rpcp_key = self.delimiter.join([path, year, month, 'RegPCP'])
+        mimult_key = self.delimiter.join([path, year, month, 'MiMult'])
 
         try:
             # attempt to access data if it is already loaded
             lmp_da = self.get_data(lmp_key)
             rccp = self.get_data(rccp_key)
             rpcp = self.get_data(rpcp_key)
+            mi_mult = self.get_data(mimult_key)
         except KeyError:
             # load the data and add it to the DMS
-            lmp_da, rccp, rpcp = read_isone_data_updated(path, year, month, nodeid)
+            lmp_da, rccp, rpcp, mi_mult = read_isone_data(path, year, month, nodeid)
 
             self.add_data(lmp_da, lmp_key)
             self.add_data(rccp, rccp_key)
             self.add_data(rpcp, rpcp_key)
+            self.add_data(mi_mult, mimult_key)
 
-        return lmp_da, rccp, rpcp
+        return lmp_da, rccp, rpcp, mi_mult
 
     ####################################################################################################################
 
