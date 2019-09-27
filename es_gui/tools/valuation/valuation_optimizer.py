@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import logging
+import os
 
 from pyomo.environ import *
 import pandas as pd
@@ -370,13 +371,8 @@ class ValuationOptimizer(optimizer.Optimizer):
             except TypeError:
                 m.fraction_reg_down = np.array([m.fraction_reg_down] * len(m.price_electricity))
 
-        # if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
-        #     if not hasattr(m, 'Perf_score'):
-        #         # Performance score for pay-for-performance models.
-        #         m.Perf_score = 0.95
-
         ###############################################################################################################
-        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp'}: # TODO: Figure out ISO NE for this?
+        if self.market_type in {'pjm_pfp', 'miso_pfp', 'nyiso_pfp', 'isone_pfp'}: # TODO: Figure out ISO NE for this?
             # Performance score for regulation service for pay-for-performance models.
             try:
                 if not getattr(m, 'perf_score', None):
@@ -396,7 +392,7 @@ class ValuationOptimizer(optimizer.Optimizer):
             except IndexError:
                 logging.warning('ValuationOptimizer: A perf_score array was provided but is shorter than the price_electricity array.')
                 raise(IncompatibleDataException('ValuationOptimizer: There was a mismatch in array sizes between perf_score and price_electricity.'))
-
+        
         if self.market_type in {'caiso_pfp'}: # TODO: Figure out SPP for this?
             # Performance score for regulation up and down services for pay-for-performance models.
             try:
@@ -591,15 +587,17 @@ class ValuationOptimizer(optimizer.Optimizer):
             run_results['rev_arb'] = rev_arb
             run_results['rev_reg'] = rev_reg
             run_results['revenue'] = revenue
+        #//////////////////////////////////////////////////#
         elif self.market_type == 'isone_pfp':
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))
-            rev_reg = np.cumsum(np.array([m.price_regulation[t]*m.q_reg[t].value for t in m.time]))
+            rev_reg = np.cumsum(np.array([(m.mi_mult[t] * m.price_reg_service[t] + m.price_regulation[t]) * m.perf_score[t]*m.q_reg[t].value for t in m.time]))
 
             revenue = rev_arb + rev_reg
 
             run_results['rev_arb'] = rev_arb
             run_results['rev_reg'] = rev_reg
             run_results['revenue'] = revenue
+        #//////////////////////////////////////////////////#
         #######################################################################################################################
         elif self.market_type == 'nyiso_pfp':
             rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value) for t in m.time]))

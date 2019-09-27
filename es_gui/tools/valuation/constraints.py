@@ -384,17 +384,17 @@ def ineq_discharge_limit_miso_pfp(m):
 #            FW                ##
 #################################
 
-
+#//////////////////////////////////////////////////#
 def eq_objective_isone_pfp(m):
     """Net revenue over the time horizon for pay-for-performance in ISO-NE market."""
     mp = m.parent_block()
 
     _expr = sum((mp.price_electricity[t] * mp.q_d[t] - mp.price_electricity[t] * mp.q_r[t]
-                 + mp.q_reg[t] * mp.price_regulation[t]) * math.e ** (-t * mp.R) for t in mp.time)
+                 + mp.q_reg[t] * (mp.mi_mult[t] * mp.price_reg_service[t] + mp.price_regulation[t]) * mp.perf_score[t]) * math.e ** (-t * mp.R) for t in mp.time)
 
     mp.objective_expr += _expr
     m.objective_rt = Expression(expr=_expr)
-
+#//////////////////////////////////////////////////#
 
 def eq_stateofcharge_isone_pfp(m):
     """Definition of state of charge for device in ISO-NE market."""
