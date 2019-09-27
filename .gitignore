@@ -15,7 +15,7 @@ dist/*
 
 data/*
 
-results/valuation/report/*.html
+results/valuation/report/**
 results/valuation/report/images/*.png
 results/valuation/csv/*.csv
 results/valuation/plots/*.png
@@ -23,6 +23,7 @@ results/btm_cost_savings/report/*html
 results/btm_cost_savings/report/images/*.png
 results/btm_cost_savings/csv/*.csv
 results/btm_cost_savings/plots/*.png
+results/btm_cost_savings/report/**
 results/btm/*
 
 es_gui/resources/docs/sphinx/build/*

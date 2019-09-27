@@ -525,12 +525,15 @@ class BtmCostSavingsReportScreen(ReportScreen):
 
 class BtmCostSavingsGenerateReportMenu(ModalView):
     host_report = None
-    graphicsLocations = {}
+    graphics_locations = {}
+    report_id = None
 
     def __init__(self, **kwargs):
         super(BtmCostSavingsGenerateReportMenu, self).__init__(**kwargs)
 
         self.sm.transition = NoTransition()
+
+        self.report_id = datetime.datetime.now().strftime('%Y_%m_%d_%H%M%S')
 
     def save_figure(self, screen, *args):
         if not self.sm.has_screen(screen.name):
@@ -538,19 +541,19 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
 
         self.sm.current = screen.name
 
-        chart_dir = os.path.join('results', 'btm_cost_savings', 'report', 'images')
-        os.makedirs(chart_dir, exist_ok=True)
+        chart_images_dir = os.path.join('results', 'btm_cost_savings', 'report', self.report_id, 'images')
+        os.makedirs(chart_images_dir, exist_ok=True)
 
-        chartSaveLocation = os.path.join(chart_dir, 'chart_{n}.png'.format(n=screen.name))
+        chart_save_location = os.path.join(chart_images_dir, 'chart_{n}.png'.format(n=screen.name))
 
-        Clock.schedule_once(partial(screen.chart.export_to_png, chartSaveLocation), 0.7)
+        Clock.schedule_once(partial(screen.chart.export_to_png, chart_save_location), 0.7)
 
         # Save image name/path for report generator.
-        self.graphicsLocations[screen.name] = os.path.join('images', 'chart_{n}.png'.format(n=screen.name))
+        self.graphics_locations[screen.name] = os.path.join('images', 'chart_{n}.png'.format(n=screen.name))
 
     def generate_report_screens(self):
-        screenFlipInterval = 0.8
-        nCharts = len(self.host_report.chart_types.items())
+        screen_flip_interval = 0.8
+        n_charts = len(self.host_report.chart_types.items())
 
         # Draw figures for saving to .png.
         for ix, opt in enumerate(self.host_report.chart_types.items(), start=0):
@@ -559,12 +562,12 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
             
             if has_chart_status:
                 screen = BtmCostSavingsReportScreen(type=chart_name, chart_data=self.host_report.chart_data, name=chart_name, do_animation=False)
-                Clock.schedule_once(partial(self.save_figure, screen), ix * screenFlipInterval)
+                Clock.schedule_once(partial(self.save_figure, screen), ix * screen_flip_interval)
 
         self.generate_report_button.disabled = True
 
         # Generate report.
-        Clock.schedule_once(lambda dt: self.generate_report_from_template(), (nCharts+1)*screenFlipInterval)
+        Clock.schedule_once(lambda dt: self.generate_report_from_template(), (n_charts+1)*screen_flip_interval)
     
     def generate_executive_summary(self):
         """Generates an executive summary similar to the report screen using chart data."""
@@ -710,7 +713,7 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         for chart_caption, chart_type in chart_types.items():
             if self.host_report.has_chart(chart_type):
                 chart_info = {}
-                chart_info['path'] = self.graphicsLocations[chart_type]
+                chart_info['path'] = self.graphics_locations[chart_type]
                 chart_info['ix'] = chart_ix
                 chart_info['caption'] = chart_caption
 
@@ -740,13 +743,15 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
         executive_summary = self.generate_executive_summary()
 
         template_dir = os.path.join('es_gui', 'resources', 'report_templates')
-        output_dir = os.path.join('results', 'btm_cost_savings', 'report')
+        output_dir_name = self.report_id
+
+        output_dir = os.path.join('results', 'btm_cost_savings', 'report', output_dir_name)
         os.makedirs(output_dir, exist_ok=True)
 
         # Initialize Jinja environment.
         env = Environment(loader=FileSystemLoader(template_dir), autoescape=select_autoescape(['html']))
         template = env.get_template('btm_cost_savings.html')
-        fname = os.path.join(output_dir, 'QuESt_BTM_cost_savings_report.html')
+        fname = os.path.join(output_dir, 'BTM_cost_savings_report.html')
 
         # Render output file.
         output = template.render(
@@ -756,9 +761,9 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
                         summary_components=summary_components,
                         pv_profile_summary=pv_profile_summary,
                         system_parameters_summary=system_parameters_summary,   
-                        QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
-                        SNL_image=os.path.join('images', 'static', 'SNL.png'),
-                        DOE_image=os.path.join('images', 'static', 'DOE.png'),
+                        QuESt_Logo=os.path.join('..', 'images', 'static', 'Quest_Logo_RGB.png'),
+                        SNL_image=os.path.join('..', 'images', 'static', 'SNL.png'),
+                        DOE_image=os.path.join('..', 'images', 'static', 'DOE.png'),
                         acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
                         executive_summary=executive_summary,					 
                         # FIGURES

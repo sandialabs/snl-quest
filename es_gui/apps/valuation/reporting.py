@@ -403,42 +403,50 @@ class ValuationReportScreen(ReportScreen):
 
 class GenerateReportMenu(ModalView):
     host_report = None
-    graphicsLocations = {}
+    graphics_locations = {}
+    report_id = None
 
     def __init__(self, **kwargs):
         super(GenerateReportMenu, self).__init__(**kwargs)
 
         self.sm.transition = NoTransition()
 
+        # Assign a virtually unique ID to this report generator instance
+        self.report_id = '_'.join([
+            datetime.datetime.now().strftime('%Y_%m_%d_%H%M%S'), 
+            self.host_report.report_attributes['market area']
+        ]
+        )
+
     def save_figure(self, screen, *args):
         if not self.sm.has_screen(screen.name):
             self.sm.add_widget(screen)
 
         self.sm.current = screen.name
-        chart_dir = os.path.join('results', 'valuation', 'report', 'images')
-        os.makedirs(chart_dir, exist_ok=True)
+        chart_images_dir = os.path.join('results', 'valuation', 'report', self.report_id, 'images')
+        os.makedirs(chart_images_dir, exist_ok=True)
 
-        chartSaveLocation = os.path.join(chart_dir, 'chart_{n}.png'.format(n=screen.name))
+        chart_save_location = os.path.join(chart_images_dir, 'chart_{n}.png'.format(n=screen.name))
 
-        Clock.schedule_once(partial(screen.chart.export_to_png, chartSaveLocation), 0.7)
+        Clock.schedule_once(partial(screen.chart.export_to_png, chart_save_location), 0.7)
 
         # Save image name/path for report generator.
-        self.graphicsLocations[screen.name] = os.path.join('images', 'chart_{n}.png'.format(n=screen.name))
+        self.graphics_locations[screen.name] = os.path.join('images', 'chart_{n}.png'.format(n=screen.name))
 
     def generate_report_screens(self):
-        screenFlipInterval = 0.8
-        nCharts = len(self.host_report.chart_types.items())
+        screen_flip_interval = 0.8
+        n_charts = len(self.host_report.chart_types.items())
 
         # Draw figures for saving to .png.
         for ix, opt in enumerate(self.host_report.chart_types.items(), start=0):
             screen = ValuationReportScreen(type=opt[1], chart_data=self.host_report.chart_data, market=self.host_report.market, name=opt[1], do_animation=False)
 
-            Clock.schedule_once(partial(self.save_figure, screen), ix * screenFlipInterval)
+            Clock.schedule_once(partial(self.save_figure, screen), ix * screen_flip_interval)
 
         self.generate_report_button.disabled = True
 
         # Generate report.
-        Clock.schedule_once(lambda dt: self.generate_report_from_template(), (nCharts+1)*screenFlipInterval)
+        Clock.schedule_once(lambda dt: self.generate_report_from_template(), (n_charts+1)*screen_flip_interval)
 
     def generate_report_from_template(self):
         # Get current date.
@@ -446,52 +454,46 @@ class GenerateReportMenu(ModalView):
         today = now.strftime("%B %d, %Y")
 
         # Get report-specific data.
-        reportAttributes = self.host_report.report_attributes
+        report_attributes = self.host_report.report_attributes
 
-        ISO = reportAttributes['market area']
-        pricing_node = reportAttributes['pricing node']
-        ES_device = reportAttributes['selected device']
-        revenue_streams = reportAttributes['revenue streams']
-        dates_analyzed = reportAttributes['dates analyzed']
-        power_rating = reportAttributes['Power_rating']
-        energy_capacity = reportAttributes['Energy_capacity']
-        storage_efficiency = reportAttributes['Self_discharge_efficiency']
-        conversion_efficiency = reportAttributes['Round_trip_efficiency']
+        ISO = report_attributes['market area']
+        pricing_node = report_attributes['pricing node']
+        ES_device = report_attributes['selected device']
+        revenue_streams = report_attributes['revenue streams']
+        dates_analyzed = report_attributes['dates analyzed']
+        power_rating = report_attributes['Power_rating']
+        energy_capacity = report_attributes['Energy_capacity']
+        storage_efficiency = report_attributes['Self_discharge_efficiency']
+        conversion_efficiency = report_attributes['Round_trip_efficiency']
 
         # Retrieve HTML template based on selected ISO.
         template_dir = os.path.join('es_gui', 'resources', 'report_templates')
-        output_dir = os.path.join('results', 'valuation', 'report')
+        output_dir_name = self.report_id
+
+        output_dir = os.path.join('results', 'valuation', 'report', output_dir_name)
         os.makedirs(output_dir, exist_ok=True)
 
         # Initialize Jinja environment.
         env = Environment(loader=FileSystemLoader(template_dir), autoescape=select_autoescape(['html']))
+        fname = os.path.join(output_dir, '{0}_valuation_report.html'.format('_'.join([ISO, pricing_node])))
 
         if ISO == "ERCOT":
             template = env.get_template('valuation_report_ERCOT.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_ERCOT.html')
             
         elif ISO == "MISO":
             template = env.get_template('valuation_report_MISO.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_MISO.html')
             
         elif ISO == "PJM":
             template = env.get_template('valuation_report_PJM.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_PJM.html')
 
         elif ISO == "ISONE":
             template = env.get_template('valuation_report_ISONE.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_ISONE.html')
-        #########################################################################################
         elif ISO == "NYISO":
             template = env.get_template('valuation_report_NYISO.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_NYISO.html')
         elif ISO == "SPP":
             template = env.get_template('valuation_report_SPP.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_SPP.html')
         elif ISO == "CAISO":
             template = env.get_template('valuation_report_CAISO.html')
-            fname = os.path.join(output_dir, 'QuESt_valuation_report_CAISO.html')
-        #########################################################################################
         else :
             raise ValueError('The selected ISO does not have a reporting template.')
 
@@ -505,9 +507,9 @@ class GenerateReportMenu(ModalView):
 			  		 dates_analyzed=dates_analyzed,
 			  		 revenue_streams=revenue_streams,
 			  		 ES_device=ES_device,
-                     QuESt_Logo=os.path.join('images', 'static', 'Quest_Logo_RGB.png'),
-			  		 SNL_image=os.path.join('images', 'static', 'SNL.png'),
-			  		 DOE_image=os.path.join('images', 'static', 'DOE.png'),
+                     QuESt_Logo=os.path.join('..', 'images', 'static', 'Quest_Logo_RGB.png'),
+			  		 SNL_image=os.path.join('..', 'images', 'static', 'SNL.png'),
+			  		 DOE_image=os.path.join('..', 'images', 'static', 'DOE.png'),
 			  		 acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
 					 # PARAMETER VALUES TABLE
 					 power_rating=power_rating,
@@ -515,11 +517,11 @@ class GenerateReportMenu(ModalView):
 					 storage_efficiency=storage_efficiency,
 					 conversion_efficiency=conversion_efficiency,						 
 					 # FIGURES
-					 revenue_total=self.graphicsLocations['revenue_bar'],
-					 revenue_source=self.graphicsLocations['revenue_multisetbar'],
-					 activity_total_percent=self.graphicsLocations['activity_donut'],
-					 activity_source=self.graphicsLocations['activity_stackedbar_normalized'],
-					 activity_source_percent=self.graphicsLocations['activity_stackedbar_normalized']
+					 revenue_total=self.graphics_locations['revenue_bar'],
+					 revenue_source=self.graphics_locations['revenue_multisetbar'],
+					 activity_total_percent=self.graphics_locations['activity_donut'],
+					 activity_source=self.graphics_locations['activity_stackedbar_normalized'],
+					 activity_source_percent=self.graphics_locations['activity_stackedbar_normalized']
 					 )
 
         with open(fname,"w") as f:
