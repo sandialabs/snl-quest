@@ -146,6 +146,9 @@ class BatchRunParamScreen(Screen):
             param_widget_row.text_input.disabled = True
 
     def _validate_inputs(self):
+        if len(self.param_widget.children) == 0:
+            raise InputError('Please specify the simulation parameters.')
+
         param_dict = self.param_widget.get_inputs(use_hint_text=True)
 
         # If a parameter sweep is specified, check all input fields.
