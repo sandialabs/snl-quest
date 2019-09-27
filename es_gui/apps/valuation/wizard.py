@@ -954,16 +954,34 @@ class ValuationWizardExecute(Screen):
         valop_handler.solver_name = App.get_running_app().config.get('optimization', 'solver')
         self.solved_ops, handler_status = valop_handler.process_requests(handler_requests)
 
-        # If no optimizations were solved successfully, bail out.
-        if not self.solved_ops:
-            popup = WizardCompletePopup()
+        popup = WizardCompletePopup()
 
-            popup.title = "Hmm..."
-            popup.popup_text.text = "Unfortunately, none of the models were able to be solved. This is likely due to no data being available for the node selected. Try selecting another pricing node next time. (You selected {0}.)".format(node)
-            popup.results_button.text = "Take me back"
-            popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to Valuation Home
-            popup.open()
-            return
+        # Check ValOp handler status.
+        if len(handler_status) > 0:
+            if self.solved_ops:
+                # At least one model solved successfully.
+                popup.title = "Success!*"
+                popup.popup_text.text = '\n'.join([
+                    'All finished, but we found these issues:',
+                ]
+                + list(handler_status)
+                )
+            else:
+                # No models solved successfully.
+                popup.title = "Hmm..."
+                popup.popup_text.text = '\n'.join([
+                    'Unfortunately, none of the models were able to be solved. We found these issues:',
+                ]
+                + list(handler_status)
+                )
+
+                popup.results_button.text = "Take me back"
+                popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to Valuation Home
+                popup.open()
+                return
+
+        popup.bind(on_dismiss=self._next_screen)
+        popup.open()
 
         # Save selection summary details to pass to report generator.
         deviceSelectionButtons = self.manager.get_screen('device_select').device_select.children
@@ -982,15 +1000,6 @@ class ValuationWizardExecute(Screen):
 
         for param in device:
             self.report_attributes[param.desc['attr name']] = param.param_slider.value
-
-        popup = WizardCompletePopup()
-
-        if not handler_status:
-            popup.title = "Success!*"
-            popup.popup_text.text = "All calculations finished. Press 'OK' to proceed to the results.\n\n*At least one model (month) had issues being built and/or solved. Any such model will be omitted from the results."
-
-        popup.bind(on_dismiss=self._next_screen)
-        popup.open()
 
     def _next_screen(self, *args):
         """Adds the report screen if it does not exist and changes screens to it."""

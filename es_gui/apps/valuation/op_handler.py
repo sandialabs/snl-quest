@@ -39,7 +39,7 @@ class ValuationOptimizerHandler:
 
         solved_requests = []
 
-        handler_status = True  # Set to False if any exceptions raised when building or solving ValuationOptimizer model(s).
+        handler_status = set()
 
         for month, year in requests['months']:
             param_set_iterator = iter(param_set)
@@ -83,7 +83,6 @@ class ValuationOptimizerHandler:
                     op.price_electricity = daLMP
                     op.price_regulation = RegCCP
                     op.price_reg_service = RegPCP
-                ########################################################################################################
                 elif iso == 'NYISO':
                     lbmp_da, rcap_da = dms.get_nyiso_data(year, month, node_id)
 
@@ -107,7 +106,6 @@ class ValuationOptimizerHandler:
                     op.mileage_mult_rd = rmd_mm
                     op.perf_score_ru = rmu_pacc # TODO: give the option to the user to override this
                     op.perf_score_rd = rmd_pacc
-                    ########################################################################################################
                 else:
                     logging.error('ValOp Handler: Invalid ISO provided.')
                     raise ValueError('Invalid ISO provided to ValuationOptimizer handler.')
@@ -121,13 +119,18 @@ class ValuationOptimizerHandler:
                     solved_op = self._solve_model(op)
                 except pyutilib.common._exceptions.ApplicationError as e:
                     logging.error('Op Handler: {error}'.format(error=e))
-                    handler_status = False
+
+                    if 'No executable found' in e.args[0]:
+                        # Could not locate solver executable
+                        handler_status.add('* The executable for the selected solver could not be found; please check your installation.')
+                    else:
+                        handler_status.add('* ({0} {1}) {2}.'.format(month, year, e.args[0]))
                 except IncompatibleDataException as e:
                     logging.error(e)
-                    handler_status = False
-                except AssertionError as e:
-                    logging.error('Op Handler: {error}'.format(error=e))
-                    handler_status = False
+                    handler_status.add('* ({0} {1}) The time series data has mismatched sizes.'.format(month, year))
+                # except AssertionError as e:
+                #     logging.error('Op Handler: {error}'.format(error=e))
+                #     handler_status = False
                 else:
                     solved_op = self._save_to_solved_ops(solved_op, iso, market_type, node_name,
                                                         year, month, params)

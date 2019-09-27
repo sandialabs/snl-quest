@@ -74,7 +74,7 @@ class BatchRunScreen(Screen):
             handler.solver_name = solver_name
 
             try:
-                _, handler_status = handler.process_requests(requests)
+                solved_ops, handler_status = handler.process_requests(requests)
             except BadParameterException as e:
                 popup = WarningPopup()
                 popup.popup_text.text = str(e)
@@ -83,9 +83,23 @@ class BatchRunScreen(Screen):
                 self.completion_popup = BatchRunCompletePopup()
                 self.completion_popup.view_results_button.bind(on_release=self._go_to_view_results)
 
-                if not handler_status:
-                    self.completion_popup.title = "Success!*"
-                    self.completion_popup.popup_text.text = "Your specified batch runs have been completed.\n\n*At least one model (month) had issues being built and/or solved. Any such model will be omitted from the results."
+                if len(handler_status) > 0:
+                    if solved_ops:
+                        # At least one model solved successfully.
+                        self.completion_popup.title = "Success!*"
+                        self.completion_popup.popup_text.text = '\n'.join([
+                            'All finished, but we found these issues:',
+                        ]
+                        + list(handler_status)
+                        )
+                    else:
+                        # No models solved successfully.
+                        self.completion_popup.title = "Hmm..."
+                        self.completion_popup.popup_text.text = '\n'.join([
+                            'Unfortunately, none of the models were able to be solved. We found these issues:',
+                        ]
+                        + list(handler_status)
+                        )
 
                 self.completion_popup.open()            
 
