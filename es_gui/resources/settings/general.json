@@ -9,6 +9,7 @@
                     "gurobi",
                     "glpk",
                     "ipopt",
+                    "cplex",
                     "neos"]
     },
     {
