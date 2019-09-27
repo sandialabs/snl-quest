@@ -1,6 +1,12 @@
 # Master branch changelog
 
 ## Patch 1.2.e
+### QuESt
+* Reports (HTML) generated through wizards such as those in QuESt Valuation and QuESt BTM will now be separated appropriately.
+  * Previously: reports were generated in place using the same name if of the same type. For example, if two reports for different wizard runs in QuESt BTMs were generated, the newer one would overwrite the older one because they shared the same name.
+  * Previously: figures for reports of the same type would overwrite older figures. For example, a new report generated in QuESt BTM would overwrite the figures of a previous report. However, if the HTML file for the report was not overwritten (e.g., the file name was changed), then the previous report could still be opened. Unfortunately, since the image links in that older report refer to the same path, they would then refer to the newer figures with the same filenames that most likely refer to the incorrect simulation run. An analogous issue occurs in QuESt Valuation. This caused considerable confusion.
+  * Now: reports and their figures are saved in separate folders which are timestamped when they are generated. Due to the nature of HTML files, we still encourage users to save the report to a more permanent format (such as PDF) when moving or distributing these reports.
+
 ### Resolved issues
 * An issue where using a search bar to search by state for "VA" would not yield "Virginia".
 * An issue where certain error codes returned by the CAISO API would not be handled properly.
