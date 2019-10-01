@@ -601,24 +601,39 @@ class CostSavingsWizardExecute(Screen):
         handler.solver_name = App.get_running_app().config.get('optimization', 'solver')
         self.solved_ops, handler_status = handler.process_requests(op_handler_requests)
 
-        # If no optimizations were solved successfully, bail out.
-        if not self.solved_ops:
-            popup = WizardCompletePopup()
+        popup = WizardCompletePopup()
 
-            popup.title = "Hmm..."
-            popup.popup_text.text = "Unfortunately, none of the models were able to be solved."
-            popup.results_button.text = "Take me back"
-            popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to BTM Home
-            popup.open()
-            return
+        # Check BtmOp handler status.
+        if len(handler_status) > 0:
+            if self.solved_ops:
+                # At least one model solved successfully.
+                popup.title = "Success!*"
+                popup.popup_text.text = '\n'.join([
+                    'All finished, but we found these issues:',
+                ]
+                + list(handler_status)
+                )
+            else:
+                # No models solved successfully.
+                popup.title = "Hmm..."
+                popup.popup_text.text = '\n'.join([
+                    'Unfortunately, none of the models were able to be solved. We found these issues:',
+                ]
+                + list(handler_status)
+                )
+
+                popup.results_button.text = "Take me back"
+                popup.bind(on_dismiss=lambda x: self.manager.parent.parent.manager.nav_bar.go_up_screen())  # Go back to BTM Home
+                popup.open()
+                return
         
         self.report_attributes = op_handler_requests
 
         popup = WizardCompletePopup()
 
-        if not handler_status:
-            popup.title = "Success!*"
-            popup.popup_text.text = "All calculations finished. Press 'OK' to proceed to the results.\n\n*At least one model (month) had issues being built and/or solved. Any such model will be omitted from the results."
+        # if not handler_status:
+        #     popup.title = "Success!*"
+        #     popup.popup_text.text = "All calculations finished. Press 'OK' to proceed to the results.\n\n*At least one model (month) had issues being built and/or solved. Any such model will be omitted from the results."
 
         popup.bind(on_dismiss=self._next_screen)
         popup.open()

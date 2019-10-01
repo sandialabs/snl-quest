@@ -40,7 +40,7 @@ class BtmOptimizerHandler:
 
         solved_requests = []
 
-        handler_status = True  # Set to False if any exceptions raised when building or solving BtmOptimizer model(s).
+        handler_status = set()
 
         year = 2019
 
@@ -99,17 +99,25 @@ class BtmOptimizerHandler:
                     op.set_model_parameters(**params)
                 else:
                     continue_param_loop = False
-
+                
                 try:
                     solved_op = self._solve_model(op)
                 except pyutilib.common._exceptions.ApplicationError as e:
                     logging.error('Op Handler: {error}'.format(error=e))
-                    handler_status = False
-                except AssertionError as e:
-                    handler_status = False
+
+                    if 'No executable found' in e.args[0]:
+                        # Could not locate solver executable
+                        handler_status.add('* The executable for the selected solver could not be found; please check your installation.')
+                    else:
+                        handler_status.add('* ({0} {1}) {2}. The problem may be infeasible.'.format(month, year, e.args[0]))
                 except IncompatibleDataException as e:
+                    # Data exception raised by BtmOptimizer
                     logging.error(e)
-                    handler_status = False
+                    handler_status.add('* ({0} {1}) The time series data has mismatched sizes.'.format(month, year))
+                except AssertionError as e:
+                    # An optimal solution could not be found as reported by the solver
+                    logging.error('Op Handler: {error}'.format(error=e))
+                    handler_status.add('* ({0} {1}) An optimal solution could not be found; the problem may be infeasible.'.format(month, year))
                 else:
                     solved_op = self._save_to_solved_ops(solved_op, month, params)
                     solved_requests.append(solved_op)
