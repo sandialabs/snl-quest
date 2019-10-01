@@ -124,13 +124,15 @@ class ValuationOptimizerHandler:
                         # Could not locate solver executable
                         handler_status.add('* The executable for the selected solver could not be found; please check your installation.')
                     else:
-                        handler_status.add('* ({0} {1}) {2}.'.format(month, year, e.args[0]))
+                        handler_status.add('* ({0} {1}) {2}. The problem may be infeasible.'.format(month, year, e.args[0]))
                 except IncompatibleDataException as e:
+                    # Data exception raised by ValuationOptimizer
                     logging.error(e)
                     handler_status.add('* ({0} {1}) The time series data has mismatched sizes.'.format(month, year))
-                # except AssertionError as e:
-                #     logging.error('Op Handler: {error}'.format(error=e))
-                #     handler_status = False
+                except AssertionError as e:
+                    # An optimal solution could not be found as reported by the solver
+                    logging.error('Op Handler: {error}'.format(error=e))
+                    handler_status.add('* ({0} {1}) An optimal solution could not be found; the problem may be infeasible.'.format(month, year))
                 else:
                     solved_op = self._save_to_solved_ops(solved_op, iso, market_type, node_name,
                                                         year, month, params)
