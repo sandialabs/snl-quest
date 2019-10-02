@@ -368,7 +368,7 @@ def read_miso_reg_price(fname):
     return RegMCP
 
 ##################################################################################################################
-
+#///////////////////////////////////////////////////////#
 def read_isone_data(fpath, year, month, nodeid):
     """"
     Reads the historical LMP, regulation capacity, and regulation service (mileage) prices for the year 'year',
@@ -388,16 +388,25 @@ def read_isone_data(fpath, year, month, nodeid):
     if isinstance(nodeid, (int, float, complex)):
         nodeid = str(nodeid)
 
-    fnameLMP = "{0:d}{1:02d}_dalmp_{2:s}.csv".format(year, month, nodeid)
-    fnameRCP = "{0:d}{1:02d}_rcp.csv".format(year ,month)
+    if year < 2018:
+        if year == 2017 and month == 12:
+            fnameLMP = "{0:d}{1:02d}_fmlmp_{2:s}.csv".format(year, month, nodeid)
+            fnameRCP = "{0:d}{1:02d}_fmrcp.csv".format(year ,month)
+        else:
+            fnameLMP = "{0:d}{1:02d}_dalmp_{2:s}.csv".format(year, month, nodeid)
+            fnameRCP = "{0:d}{1:02d}_rcp.csv".format(year ,month)
+    else:
+        fnameLMP = "{0:d}{1:02d}_fmlmp_{2:s}.csv".format(year, month, nodeid)
+        fnameRCP = "{0:d}{1:02d}_fmrcp.csv".format(year ,month)
 
     fname_path_LMP = os.path.join(fpath, 'LMP', str(nodeid), str(year), fnameLMP)
     fname_path_RCP = os.path.join(fpath, 'RCP', str(year), fnameRCP)
-
+    fname_path_MILEAGE = os.path.join(fpath, 'MileageFile.xlsx')
 
     daLMP = np.empty([0])
     RegCCP = np.empty([0])
     RegPCP = np.empty([0])
+    miMULT = np.empty([0])
 
 
     try:
@@ -409,51 +418,64 @@ def read_isone_data(fpath, year, month, nodeid):
                 (fname=fnameLMP, year=year, month=month, nodeid=nodeid))
 
     try:
-        dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
-        RegCCP = dfRCP['RegCapacityClearingPrice'].values
-        RegPCP = dfRCP['RegServiceClearingPrice'].values
+        if year > 2014:
+            if year == 2015 and month < 4:
+                dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
+                RegCCP = dfRCP['RegClearingPrice'].values
+                RegPCP = []
+            else:
+                dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
+                RegCCP = dfRCP['RegCapacityClearingPrice'].values
+                RegPCP = dfRCP['RegServiceClearingPrice'].values
+                                   
+                dataF_mileage_file = pd.read_excel(fname_path_MILEAGE, sheet_name = 'Energy Neutral Trinary', usecols = ['Fleet ATRR dispatch [MW]'])
+                dataF_mileage_file = dataF_mileage_file.append(pd.DataFrame([-10]*15, columns = ['Fleet ATRR dispatch [MW]']), ignore_index = True) #   changes number of data points to 24 hours; doesn't change mileage
+                            
+                #   AGC setpoints given every 4 seconds, take the total mileage for each hour; total of one day of mileage
+                hours = [i for i in range(len(dataF_mileage_file.index)//900)]
+                
+                mileage_day = []
+                for hour in hours:
+                    dataF_mileage_hour = dataF_mileage_file[900*hour:900*(hour + 1)] #    every 900 values represents an hour (900*4 = 3600)
+                    mileage_hour = 0 
+                    for i in range(len(dataF_mileage_hour.index)):
+                        if i == len(dataF_mileage_hour.index) - 1:
+                            break
+                    
+                        if not dataF_mileage_hour.iloc[i, 0] == dataF_mileage_hour.iloc[i + 1, 0]:
+                            mileage_hour += abs(dataF_mileage_hour.iloc[i, 0] - dataF_mileage_hour.iloc[i + 1, 0])/10
+                            
+                    mileage_day.append(mileage_hour)
+            
+                dataF_mileage_day = pd.DataFrame(mileage_day, columns = ['Trinary Mileage'])
+                
+                #   have one days worth of data, need one months worth
+                days = len(daLMP)//24
+                mileage_mult = pd.DataFrame(columns = ['Trinary Mileage'])
+                for day in range(days):
+                    mileage_mult = mileage_mult.append(dataF_mileage_day, ignore_index = True)
+                #   if the len are offset, make them match
+                if not len(daLMP) == len(mileage_mult):
+                    diff = len(daLMP) - len(mileage_mult)
+                    
+                    for i in range(diff):
+                        mileage_mult = mileage_mult.append(dataF_mileage_day.iloc[i], ignore_index = True)
+                        
+                miMULT = mileage_mult['Trinary Mileage'].values
+        else:
+            dfRCP = pd.read_csv(fname_path_RCP, index_col=False)
+            RegCCP = dfRCP['RegClearingPrice'].values
+            RegPCP = []
 
     except FileNotFoundError:
         logging.warning \
             ('read_isone_data: No ASP data matching input parameters found, returning empty array. (got {fname}, {year}, {month})'.format
                 (fname=fnameRCP, year=year, month=month))
+    
 
-    return daLMP, RegCCP, RegPCP
+    return daLMP, RegCCP, RegPCP, miMULT
+#///////////////////////////////////////////////////////#
 
-
-
-def read_isone_data_old(fpath,year,month,nodeid):
-    """"
-    Reads the historical LMP, regulation capacity, and regulation service (mileage) prices for the year 'year',
-    the month 'month' and for the node 'nodeid'. Returns NumPy ndarrays for those three prices.
-    :param fpath: A string containing the path to the relevant historical ancillary services data file.
-    :param year: An int corresponding to the year of interest
-    :param month: An int corresponding to the month of interest (1: Jan., 2: Feb., etc.)
-    :return: daLMP, RegCCP, RegPCP: NumPy ndarrays containing hourly LMP as well as regulation capacity/performance clearing price values.
-    """
-    fnameLMP = "DA_node{0:d}_month{1:d}_year{2:d}.csv".format(nodeid,month,year)
-    fnameREG = "REG_month{0:d}_year{1:d}.csv".format(month,year)
-
-    fname_path_LMP = fpath + "LMP/" + str(year) + "/" + str(month).zfill(2) + "/" + fnameLMP
-    fname_path_REG = fpath + "REG/" + str(year) + "/" + fnameREG
-
-    try:
-        dfLMP = pd.read_csv(fname_path_LMP,index_col=False) #-ISO-NE data is in csv files
-    except EnvironmentError:
-        fnameLMP = "DA_zone{0:d}_month{1:d}_year{2:d}.csv".format(nodeid, month, year)
-        fname_path_LMP = fpath + "LMP/" + str(year) + "/" + str(month).zfill(2) + "/" + fnameLMP
-
-        dfLMP = pd.read_csv(fname_path_LMP, index_col=False)
-
-    daLMP = dfLMP['daLmpTotal'].values
-
-    dfREG = pd.read_csv(fname_path_REG,index_col=False) #-ISO-NE data is in csv files
-    RegCCP = dfREG['rcpRegCapacityClearingPrice'].values
-    RegPCP = dfREG['rcpRegServiceClearingPrice'].values
-
-    return daLMP, RegCCP, RegPCP
-
-##################################################################################################################
 
 def read_miso_data(fpath, year, month, nodeid):
     """Reads the daily MISO data files and returns the NumPy ndarrays for LMP and MCP.

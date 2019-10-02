@@ -78,11 +78,13 @@ class ValuationOptimizerHandler:
                     # op.price_reg_service = regMCP
                     op.price_regulation = regMCP
                 elif iso == 'ISONE':
-                    daLMP, RegCCP, RegPCP = dms.get_isone_data(year, month, node_id)
+                    daLMP, RegCCP, RegPCP, miMULT = dms.get_isone_data(year, month, node_id)
 
                     op.price_electricity = daLMP
                     op.price_regulation = RegCCP
                     op.price_reg_service = RegPCP
+                    op.mileage_mult = miMULT
+                ########################################################################################################
                 elif iso == 'NYISO':
                     lbmp_da, rcap_da = dms.get_nyiso_data(year, month, node_id)
 
