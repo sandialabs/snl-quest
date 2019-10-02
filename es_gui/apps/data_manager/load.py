@@ -17,6 +17,7 @@ from kivy.clock import Clock
 from es_gui.apps.data_manager.data_manager import DATA_HOME
 from es_gui.apps.data_manager.utils import check_connection_settings
 from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
+from es_gui.downloaders.building_data import get_commercial_geographical_locations, get_building_types, get_building_data
 
 MAX_WHILE_ATTEMPTS = 7
 
@@ -79,128 +80,36 @@ class DataManagerCommercialLoadScreen(Screen):
             popup.open()
 
     def _get_locations(self, ssl_verify=True, proxy_settings=None):
-        # Convert root page content to BeautifulSoup.
-        attempt_download = True
-        n_tries = 0
         self.connection_error_occurred = False
 
-        while attempt_download:
-            n_tries += 1
+        locations, self.connection_error_occurred = get_commercial_geographical_locations(
+            ssl_verify=ssl_verify, 
+            proxy_settings=proxy_settings, 
+            n_attempts=MAX_WHILE_ATTEMPTS
+            )
 
-            if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('LoadProfileDM: Hit download retry limit.')
-                attempt_download = False
-                self.connection_error_occurred = True
-                break
-            
-            if App.get_running_app().root.stop.is_set():
-                return
+        self.df_locations = pd.DataFrame.from_records(locations)
 
-            try:            
-                with requests.Session() as req:
-                    page = req.get(COMMERCIAL_LOAD_ROOT, timeout=10, verify=ssl_verify, proxies=proxy_settings)
-                    if page.status_code != requests.codes.ok:
-                        page.raise_for_status()
-                    else:
-                        attempt_download = False
-            except requests.HTTPError as e:
-                logging.error('LoadProfileDM: {0}'.format(repr(e)))
-            except requests.exceptions.ProxyError:
-                logging.error('LoadProfileDM: Could not connect to proxy.')
-            except requests.ConnectionError as e:
-                logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
-            except requests.Timeout as e:
-                logging.error('LoadProfileDM: The connection timed out.')
-            except requests.RequestException as e:
-                logging.error('LoadProfileDM: {0}'.format(repr(e)))
-            except Exception as e:
-                # Something else went wrong.
-                logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-            else:
-                soup = BeautifulSoup(page.content, 'html.parser')
-                
-                # Get the bulleted list of locations.
-                location_tags = soup.body.ul
-                
-                # Convert bulleted list to DataFrame.
-                locations = []
+        # Populate state RecycleView.
+        records = [{'name': state} for state in self.df_locations['state'].unique()]
+        records = sorted(records, key=lambda t: t['name'])
 
-                for link in location_tags.find_all('a')[1:]:
-                    # [1:] to skip the link to the parent directory.
-                    loc_root = link['href']
-                    country, state_abbr, name, _ = loc_root.split('_')
-
-                    name = ' '.join(name.split('.')[:-1])
-
-                    locations.append({'country': country, 'state': state_abbr, 'name': name, 'link': COMMERCIAL_LOAD_ROOT + loc_root})
-
-                self.df_locations = pd.DataFrame.from_records(locations)
-
-                # Populate state RV.
-                records = [{'name': state} for state in self.df_locations['state'].unique()]
-                records = sorted(records, key=lambda t: t['name'])
-
-                self.state_rv.data = records
-                self.state_rv.unfiltered_data = records
+        self.state_rv.data = records
+        self.state_rv.unfiltered_data = records
 
     def _get_building_types(self, location_root, ssl_verify=True, proxy_settings=None):
-        # Convert root page content to BeautifulSoup
-        attempt_download = True
-        n_tries = 0
         self.connection_error_occurred = False
 
-        while attempt_download:
-            n_tries += 1
+        building_types, self.connection_error_occurred = get_building_types(
+            location_root,
+            ssl_verify=ssl_verify,
+            proxy_settings=proxy_settings,
+            n_attempts=MAX_WHILE_ATTEMPTS
+        )
 
-            if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('LoadProfileDM: Hit download retry limit.')
-                attempt_download = False
-                self.connection_error_occurred = True
-                break
-            
-            if App.get_running_app().root.stop.is_set():
-                return
-            
-            try:
-                with requests.Session() as req:
-                    page = req.get(location_root, timeout=10, verify=ssl_verify, proxies=proxy_settings)
-                    if page.status_code != requests.codes.ok:
-                        page.raise_for_status()
-                    else:
-                        attempt_download = False
-            except requests.HTTPError as e:
-                logging.error('LoadProfileDM: {0}'.format(repr(e)))
-            except requests.exceptions.ProxyError:
-                logging.error('LoadProfileDM: Could not connect to proxy.')
-            except requests.ConnectionError as e:
-                logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
-            except requests.Timeout as e:
-                logging.error('LoadProfileDM: The connection timed out.')
-            except requests.RequestException as e:
-                logging.error('LoadProfileDM: {0}'.format(repr(e)))
-            except Exception as e:
-                # Something else went wrong.
-                logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-            else: 
-                soup = BeautifulSoup(page.content, 'html.parser')
-        
-                # Get the bulleted list of building types
-                building_tags = soup.body.ul
-                
-                # Convert bulleted list to DataFrame
-                building_types = []
-
-                for link in building_tags.find_all('a')[1:]:
-                    # [1:] to skip the link to the parent directory
-                    csv_link = link['href']
-                    name = csv_link.split('_')[0]
-
-                    building_types.append({'name': name, 'link': location_root + csv_link})
-                
-                building_types = sorted(building_types, key=lambda t: t['name'])
-
-                self.building_rv.data = building_types
-                self.building_rv.unfiltered_data = building_types
+        # Populate building types RecycleView.
+        self.building_rv.data = building_types
+        self.building_rv.unfiltered_data = building_types
 
     def on_state_selected(self, instance, value):
         try:
@@ -262,63 +171,27 @@ class DataManagerCommercialLoadScreen(Screen):
         else:
             ssl_verify, proxy_settings = check_connection_settings()
 
-            attempt_download = True
-            n_tries = 0
             self.connection_error_occurred = False
 
-            while attempt_download:
-                n_tries += 1
+            url_split = csv_link.split('/')
+            destination_dir = os.path.join(DATA_HOME, 'load', 'commercial', url_split[-2])
+            os.makedirs(destination_dir, exist_ok=True)
 
-                if n_tries >= MAX_WHILE_ATTEMPTS:
-                    logging.warning('LoadProfileDM: Hit download retry limit.')
-                    attempt_download = False
-                    self.connection_error_occurred = True
-                    break
-                
-                if App.get_running_app().root.stop.is_set():
-                    return
-                
-                try:
-                    with requests.Session() as req:
-                        page = req.get(csv_link, timeout=10, verify=ssl_verify, proxies=proxy_settings)
-                        if page.status_code != requests.codes.ok:
-                            page.raise_for_status()
-                        else:
-                            attempt_download = False
-                except requests.HTTPError as e:
-                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
-                except requests.exceptions.ProxyError:
-                    logging.error('LoadProfileDM: Could not connect to proxy.')
-                except requests.ConnectionError as e:
-                    logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
-                except requests.Timeout as e:
-                    logging.error('LoadProfileDM: The connection timed out.')
-                except requests.RequestException as e:
-                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
-                except Exception as e:
-                    # Something else went wrong.
-                    logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-                else: 
-                    data_down = page.content.decode(page.encoding)
-                    csv_data = pd.read_csv(io.StringIO(data_down))
+            self.connection_error_occurred = get_building_data(
+                csv_link,
+                save_directory=destination_dir,
+                ssl_verify=ssl_verify,
+                proxy_settings=proxy_settings,
+                n_attempts=MAX_WHILE_ATTEMPTS
+            )
 
-                    electricity_data = csv_data[['Date/Time', 'Electricity:Facility [kW](Hourly)']]
+            if not self.connection_error_occurred:
+                popup = WarningPopup()
+                popup.title = 'Success!'
+                popup.popup_text.text = 'Load data successfully saved.'
+                popup.open()
 
-                    # Save to persistent object on disk.
-                    url_split = csv_link.split('/')
-
-                    destination_dir = os.path.join(DATA_HOME, 'load', 'commercial', url_split[-2])
-                    os.makedirs(destination_dir, exist_ok=True)
-                    destination_file = os.path.join(destination_dir, url_split[-1])
-
-                    electricity_data.to_csv(destination_file, sep=',', index=False)
-
-                    popup = WarningPopup()
-                    popup.title = 'Success!'
-                    popup.popup_text.text = 'Load data successfully saved.'
-                    popup.open()
-
-                    logging.info('LoadProfileDM: Load data successfully saved.')
+                logging.info('LoadProfileDM: Load data successfully saved.')
             
 
 class StateRVEntry(RecycleViewRow):
@@ -574,63 +447,27 @@ class DataManagerResidentialLoadScreen(Screen):
         else:
             ssl_verify, proxy_settings = check_connection_settings()
 
-            attempt_download = True
-            n_tries = 0
             self.connection_error_occurred = False
 
-            while attempt_download:
-                n_tries += 1
+            url_split = csv_link.split('/')
+            destination_dir = os.path.join(DATA_HOME, 'load', 'residential', url_split[-2])
+            os.makedirs(destination_dir, exist_ok=True)
 
-                if n_tries >= MAX_WHILE_ATTEMPTS:
-                    logging.warning('LoadProfileDM: Hit download retry limit.')
-                    attempt_download = False
-                    self.connection_error_occurred = True
-                    break
-                
-                if App.get_running_app().root.stop.is_set():
-                    return
-                
-                try:
-                    with requests.Session() as req:
-                        page = req.get(csv_link, timeout=10, verify=ssl_verify, proxies=proxy_settings)
-                        if page.status_code != requests.codes.ok:
-                            page.raise_for_status()
-                        else:
-                            attempt_download = False
-                except requests.HTTPError as e:
-                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
-                except requests.exceptions.ProxyError:
-                    logging.error('LoadProfileDM: Could not connect to proxy.')
-                except requests.ConnectionError as e:
-                    logging.error('LoadProfileDM: Failed to establish a connection to the host server.')
-                except requests.Timeout as e:
-                    logging.error('LoadProfileDM: The connection timed out.')
-                except requests.RequestException as e:
-                    logging.error('LoadProfileDM: {0}'.format(repr(e)))
-                except Exception as e:
-                    # Something else went wrong.
-                    logging.error('LoadProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-                else:             
-                    data_down = page.content.decode(page.encoding)
-                    csv_data = pd.read_csv(io.StringIO(data_down))
+            self.connection_error_occurred = get_building_data(
+                csv_link,
+                save_directory=destination_dir,
+                ssl_verify=ssl_verify,
+                proxy_settings=proxy_settings,
+                n_attempts=MAX_WHILE_ATTEMPTS
+            )
 
-                    electricity_data = csv_data[['Date/Time', 'Electricity:Facility [kW](Hourly)']]
+            if not self.connection_error_occurred:
+                popup = WarningPopup()
+                popup.title = 'Success!'
+                popup.popup_text.text = 'Load data successfully saved.'
+                popup.open()
 
-                    # Save to persistent object on disk.
-                    url_split = csv_link.split('/')
-
-                    destination_dir = os.path.join(DATA_HOME, 'load', 'residential', url_split[-2])
-                    os.makedirs(destination_dir, exist_ok=True)
-                    destination_file = os.path.join(destination_dir, url_split[-1])
-
-                    electricity_data.to_csv(destination_file, sep=',', index=False)
-
-                    popup = WarningPopup()
-                    popup.title = 'Success!'
-                    popup.popup_text.text = 'Load data successfully saved.'
-                    popup.open()
-
-                    logging.info('LoadProfileDM: Load data successfully saved.')
+                logging.info('LoadProfileDM: Load data successfully saved.')
     
 
 class LoadTypeRVEntry(RecycleViewRow):
