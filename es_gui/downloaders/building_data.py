@@ -13,8 +13,16 @@ from bs4 import BeautifulSoup
 
 
 DATASET_ROOT = 'https://openei.org/datasets/files/961/pub/'
+"""The URL for the root of the OpenEI load profile database directory.
+"""
+
 COMMERCIAL_LOAD_ROOT = DATASET_ROOT + 'COMMERCIAL_LOAD_DATA_E_PLUS_OUTPUT/'
+"""The URL for the root of the OpenEI commercial building load profile database directory.
+"""
+
 RESIDENTIAL_LOAD_ROOT = DATASET_ROOT + 'RESIDENTIAL_LOAD_DATA_E_PLUS_OUTPUT/'
+"""The URL for the root of the OpenEI residential building load profile database directory.
+"""
 
 
 def get_commercial_geographical_locations(ssl_verify=True, proxy_settings=None, n_attempts=7):
@@ -408,11 +416,6 @@ def get_residential_geographical_locations(load_root_link, ssl_verify=True, prox
 
 if __name__ == '__main__':
     ssl_verify = False
-    proxy_settings = {
-        'http_proxy': 'wwwproxy.sandia.gov:80',
-        'https_proxy': 'wwwproxy.sandia.gov:80',
-    }
-
     download_all = False
 
     # Commercial
