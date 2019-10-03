@@ -1,0 +1,588 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>es_gui.downloaders.building_data &#8212; QuESt  documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for es_gui.downloaders.building_data</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;This module contains functions for obtaining load profiles from the OpenEI database.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="k">import</span> <span class="n">BeautifulSoup</span>
+
+
+<span class="n">DATASET_ROOT</span> <span class="o">=</span> <span class="s1">&#39;https://openei.org/datasets/files/961/pub/&#39;</span>
+<span class="n">COMMERCIAL_LOAD_ROOT</span> <span class="o">=</span> <span class="n">DATASET_ROOT</span> <span class="o">+</span> <span class="s1">&#39;COMMERCIAL_LOAD_DATA_E_PLUS_OUTPUT/&#39;</span>
+<span class="n">RESIDENTIAL_LOAD_ROOT</span> <span class="o">=</span> <span class="n">DATASET_ROOT</span> <span class="o">+</span> <span class="s1">&#39;RESIDENTIAL_LOAD_DATA_E_PLUS_OUTPUT/&#39;</span>
+
+
+<div class="viewcode-block" id="get_commercial_geographical_locations"><a class="viewcode-back" href="../../../downloaders/building_data.html#es_gui.downloaders.building_data.get_commercial_geographical_locations">[docs]</a><span class="k">def</span> <span class="nf">get_commercial_geographical_locations</span><span class="p">(</span><span class="n">ssl_verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_attempts</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the available geographical locations for commercial building load profiles.</span>
+
+<span class="sd">    This function checks the root of the commercial building database and documents the available geographical locations that can be selected based on the table of URLs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ssl_verify : bool</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">    proxy_settings : dict</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">    n_attempts : int</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;country&#39;, &#39;name&#39;, &#39;state&#39;, &#39;link&#39;]</span>
+<span class="sd">    </span>
+<span class="sd">    bool</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">while</span> <span class="n">attempt_download</span><span class="p">:</span>
+        <span class="n">n_tries</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">n_tries</span> <span class="o">&gt;=</span> <span class="n">n_attempts</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Hit download retry limit.&#39;</span><span class="p">)</span>
+            <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+        
+        <span class="c1"># if App.get_running_app().root.stop.is_set():</span>
+        <span class="c1">#     return</span>
+
+        <span class="k">try</span><span class="p">:</span>            
+            <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">req</span><span class="p">:</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">COMMERCIAL_LOAD_ROOT</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                    <span class="n">page</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProxyError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Could not connect to proxy.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Failed to establish a connection to the host server.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: The connection timed out.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Something else went wrong.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: An unexpected error has occurred. (</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Get the bulleted list of locations.</span>
+            <span class="n">location_tags</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">ul</span>
+            
+            <span class="c1"># Convert bulleted list to DataFrame.</span>
+            <span class="n">locations</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">location_tags</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="c1"># [1:] to skip the link to the parent directory.</span>
+                <span class="n">loc_root</span> <span class="o">=</span> <span class="n">link</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+                <span class="n">country</span><span class="p">,</span> <span class="n">state_abbr</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">loc_root</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+
+                <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;country&#39;</span><span class="p">:</span> <span class="n">country</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">state_abbr</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">COMMERCIAL_LOAD_ROOT</span> <span class="o">+</span> <span class="n">loc_root</span><span class="p">})</span>
+    
+    <span class="k">return</span> <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span></div>
+
+
+<div class="viewcode-block" id="get_commercial_building_types"><a class="viewcode-back" href="../../../downloaders/building_data.html#es_gui.downloaders.building_data.get_commercial_building_types">[docs]</a><span class="k">def</span> <span class="nf">get_commercial_building_types</span><span class="p">(</span><span class="n">location_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_attempts</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the available commercial building types for a given geographical location.</span>
+
+<span class="sd">    This function checks the specified geographical location root URL and documents the available commercial building types that can be selected based on the table of URLs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    location_root : str</span>
+<span class="sd">        URL for the directory of a geographical location in the commercial building load profile directorate</span>
+<span class="sd">    ssl_verify : bool</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">    proxy_settings : dict</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">    n_attempts : int</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;name&#39;, &#39;link&#39;]</span>
+<span class="sd">    </span>
+<span class="sd">    bool</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Convert root page content to BeautifulSoup</span>
+    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">building_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">while</span> <span class="n">attempt_download</span><span class="p">:</span>
+        <span class="n">n_tries</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">n_tries</span> <span class="o">&gt;=</span> <span class="n">n_attempts</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Hit download retry limit.&#39;</span><span class="p">)</span>
+            <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+        
+        <span class="c1"># if App.get_running_app().root.stop.is_set():</span>
+        <span class="c1">#     return</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">req</span><span class="p">:</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">location_root</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                    <span class="n">page</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProxyError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Could not connect to proxy.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Failed to establish a connection to the host server.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: The connection timed out.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Something else went wrong.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: An unexpected error has occurred. (</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+    
+            <span class="c1"># Get the bulleted list of building types</span>
+            <span class="n">building_tags</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">ul</span>
+            
+            <span class="c1"># Convert bulleted list to DataFrame</span>
+            <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">building_tags</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="c1"># [1:] to skip the link to the parent directory</span>
+                <span class="n">csv_link</span> <span class="o">=</span> <span class="n">link</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="n">building_types</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">location_root</span> <span class="o">+</span> <span class="n">csv_link</span><span class="p">})</span>
+            
+            <span class="n">building_types</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">building_types</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+    
+    <span class="k">return</span> <span class="n">building_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span></div>
+
+
+<div class="viewcode-block" id="get_building_data"><a class="viewcode-back" href="../../../downloaders/building_data.html#es_gui.downloaders.building_data.get_building_data">[docs]</a><span class="k">def</span> <span class="nf">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_attempts</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Saves the hourly load profile to a .csv file on disk.</span>
+
+<span class="sd">    This function saves the load profile at `csv_link` to the directory `save_directory`. The format has two columns: `Date/Time` and `Electricity:Facility [kW](Hourly)`. The filename is based on the specific data obtained. Additional directories will be created in `save_directory` in which the .csv file will be saved.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    csv_link : str</span>
+<span class="sd">        URL for the .csv file containing the load profile</span>
+<span class="sd">    save_directory : str</span>
+<span class="sd">        Relative path for where load profile will be saved</span>
+<span class="sd">    ssl_verify : bool</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">    proxy_settings : dict</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">    n_attempts : int</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">while</span> <span class="n">attempt_download</span><span class="p">:</span>
+        <span class="n">n_tries</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">n_tries</span> <span class="o">&gt;=</span> <span class="n">n_attempts</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Hit download retry limit.&#39;</span><span class="p">)</span>
+            <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+        
+        <span class="c1"># if App.get_running_app().root.stop.is_set():</span>
+        <span class="c1">#     return</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">req</span><span class="p">:</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                    <span class="n">page</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProxyError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Could not connect to proxy.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Failed to establish a connection to the host server.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: The connection timed out.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Something else went wrong.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: An unexpected error has occurred. (</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">data_down</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">encoding</span><span class="p">)</span>
+            <span class="n">csv_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">data_down</span><span class="p">))</span>
+
+            <span class="n">electricity_data</span> <span class="o">=</span> <span class="n">csv_data</span><span class="p">[[</span><span class="s1">&#39;Date/Time&#39;</span><span class="p">,</span> <span class="s1">&#39;Electricity:Facility [kW](Hourly)&#39;</span><span class="p">]]</span>
+
+            <span class="c1"># Save to persistent object on disk.</span>
+            <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+            <span class="n">destination_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_directory</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="n">electricity_data</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">destination_file</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">connection_error_occurred</span></div>
+
+
+<div class="viewcode-block" id="get_residential_load_types"><a class="viewcode-back" href="../../../downloaders/building_data.html#es_gui.downloaders.building_data.get_residential_load_types">[docs]</a><span class="k">def</span> <span class="nf">get_residential_load_types</span><span class="p">(</span><span class="n">ssl_verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_attempts</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the available load types for residential building load profiles.</span>
+
+<span class="sd">    This function checks the database for which types of load profiles are available for residential buildings. Examples include `base`, `high`, and `low`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ssl_verify : bool</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">    proxy_settings : dict</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">    n_attempts : int</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;name&#39;, &#39;link&#39;]</span>
+<span class="sd">    </span>
+<span class="sd">    bool</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">load_types</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">while</span> <span class="n">attempt_download</span><span class="p">:</span>
+        <span class="n">n_tries</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">n_tries</span> <span class="o">&gt;=</span> <span class="n">n_attempts</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Hit download retry limit.&#39;</span><span class="p">)</span>
+            <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+        
+        <span class="c1"># if App.get_running_app().root.stop.is_set():</span>
+        <span class="c1">#     return</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">req</span><span class="p">:</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">RESIDENTIAL_LOAD_ROOT</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                    <span class="n">page</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProxyError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Could not connect to proxy.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Failed to establish a connection to the host server.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: The connection timed out.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Something else went wrong.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: An unexpected error has occurred. (</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Get the bulleted list of locations.</span>
+            <span class="n">load_tags</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">ul</span>
+            
+            <span class="c1"># Convert bulleted list to DataFrame.</span>
+            <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">load_tags</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="c1"># [1:] to skip the link to the parent directory.</span>
+                <span class="n">type_root</span> <span class="o">=</span> <span class="n">link</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+
+                <span class="n">load_types</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">type_root</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">RESIDENTIAL_LOAD_ROOT</span> <span class="o">+</span> <span class="n">type_root</span><span class="p">})</span>
+    
+    <span class="k">return</span> <span class="n">load_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span></div>
+
+
+<div class="viewcode-block" id="get_residential_geographical_locations"><a class="viewcode-back" href="../../../downloaders/building_data.html#es_gui.downloaders.building_data.get_residential_geographical_locations">[docs]</a><span class="k">def</span> <span class="nf">get_residential_geographical_locations</span><span class="p">(</span><span class="n">load_root_link</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_attempts</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the available geographical locations for the specified residential building load type.</span>
+
+<span class="sd">    This function checks the database for which geographical locations are available for the specific residential load type at `load_root_link` based on the table of URLs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    load_root_link : str</span>
+<span class="sd">        URL for the directory of a load type in the residential building load profile directorate</span>
+<span class="sd">    ssl_verify : bool</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">    proxy_settings : dict</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">    n_attempts : int</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;country&#39;, &#39;state&#39;, &#39;name&#39;, &#39;link&#39;]</span>
+<span class="sd">    </span>
+<span class="sd">    bool</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">locations</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">while</span> <span class="n">attempt_download</span><span class="p">:</span>
+        <span class="n">n_tries</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">n_tries</span> <span class="o">&gt;=</span> <span class="n">n_attempts</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Hit download retry limit.&#39;</span><span class="p">)</span>
+            <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">break</span>
+        
+        <span class="c1"># if App.get_running_app().root.stop.is_set():</span>
+        <span class="c1">#     return</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span> <span class="k">as</span> <span class="n">req</span><span class="p">:</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">req</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">load_root_link</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">verify</span><span class="o">=</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxies</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">page</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">requests</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">ok</span><span class="p">:</span>
+                    <span class="n">page</span><span class="o">.</span><span class="n">raise_for_status</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">HTTPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">ProxyError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Could not connect to proxy.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">ConnectionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: Failed to establish a connection to the host server.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">Timeout</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: The connection timed out.&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Something else went wrong.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;LoadProfileDM: An unexpected error has occurred. (</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span> 
+            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">,</span> <span class="s1">&#39;html.parser&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Get the bulleted list of locations.</span>
+            <span class="n">location_tags</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">body</span><span class="o">.</span><span class="n">ul</span>
+            
+            <span class="c1"># Convert bulleted list to DataFrame.</span>
+            <span class="n">locations</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="n">location_tags</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="c1"># [1:] to skip the link to the parent directory.</span>
+                <span class="n">loc_root</span> <span class="o">=</span> <span class="n">link</span><span class="p">[</span><span class="s1">&#39;href&#39;</span><span class="p">]</span>
+                <span class="n">country</span><span class="p">,</span> <span class="n">state_abbr</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">loc_root</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+
+                <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;country&#39;</span><span class="p">:</span> <span class="n">country</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">state_abbr</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">load_root_link</span> <span class="o">+</span> <span class="n">loc_root</span><span class="p">})</span>
+    
+    <span class="k">return</span> <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">ssl_verify</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">proxy_settings</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;http_proxy&#39;</span><span class="p">:</span> <span class="s1">&#39;wwwproxy.sandia.gov:80&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;https_proxy&#39;</span><span class="p">:</span> <span class="s1">&#39;wwwproxy.sandia.gov:80&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">download_all</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Commercial</span>
+    <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_commercial_geographical_locations</span><span class="p">(</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">download_all</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">location</span> <span class="ow">in</span> <span class="n">locations</span><span class="p">:</span>
+            <span class="n">location_root</span> <span class="o">=</span> <span class="n">location</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+            <span class="n">building_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_commercial_building_types</span><span class="p">(</span><span class="n">location_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">building_type</span> <span class="ow">in</span> <span class="n">building_types</span><span class="p">:</span>    
+                <span class="n">csv_link</span> <span class="o">=</span> <span class="n">building_type</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+                <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+                <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;building_data&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">location_root</span> <span class="o">=</span> <span class="n">locations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+        <span class="n">building_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_commercial_building_types</span><span class="p">(</span><span class="n">location_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
+ 
+        <span class="n">csv_link</span> <span class="o">=</span> <span class="n">building_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+        <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+    
+    <span class="c1"># Residential</span>
+    <span class="n">load_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_residential_load_types</span><span class="p">(</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">download_all</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">load_type</span> <span class="ow">in</span> <span class="n">load_types</span><span class="p">:</span>
+            <span class="n">load_type_root</span> <span class="o">=</span> <span class="n">load_type</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+            <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_residential_geographical_locations</span><span class="p">(</span><span class="n">load_type_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">location</span> <span class="ow">in</span> <span class="n">locations</span><span class="p">:</span>    
+                <span class="n">csv_link</span> <span class="o">=</span> <span class="n">location</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+                <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+                <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;building_data&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">load_type_root</span> <span class="o">=</span> <span class="n">load_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+        <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_residential_geographical_locations</span><span class="p">(</span><span class="n">load_type_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
+
+        <span class="n">csv_link</span> <span class="o">=</span> <span class="n">locations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+        <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+        <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../index.html">
+    <img class="logo" src="../../../_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">QuESt</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">An application suite and library for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../downloaders/building_data.html">Building Load Profiles</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sandia National Laboratories.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

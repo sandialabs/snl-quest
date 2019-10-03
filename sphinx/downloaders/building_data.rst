@@ -1,0 +1,40 @@
+Building Load Profiles
+======================
+
+The :py:mod:`~.downloaders.building_data` module is for interacting with the OpenEI database to obtain simulated hourly load profiles of commercial and residential buildings. 
+
+OpenEI hosts simulated hourly load profiles for commercial and residential buildings based on all TMY3 locations in the United States. More information about this data can be found `here <https://openei.org/doe-opendata/dataset/commercial-and-residential-hourly-load-profiles-for-all-tmy3-locations-in-the-united-states>`_.
+
+The load profiles may be browsed directly on the web server using a `directory listing <https://openei.org/datasets/files/961/pub/>`_. This directory listing is leveraged in this module. 
+
+The following example illustrates how to obtain a commercial building load profile. The :py:func:`~.downloaders.building_data.get_commercial_geographical_locations` function is used to obtain a list of records containing the available geographical locations. Without loss of generality, the final record in the list is selected using list slicing and the link of the corresponding location's directory root is obtained. This link is provided to :py:func:`~.downloaders.building_data.get_commercial_building_types` which returns a list of records of the available commercial building types for that particular location; once again, the final record in the list is selected. Finally, the link of that record is provided to :py:func:`~.downloaders.building_data.get_building_data` which downloads and formats a .csv file that is saved to the specified directory.
+
+.. code-block:: python
+    :linenos:
+
+    import os
+
+    locations, has_cnx_err = get_commercial_geographical_locations(
+                                )
+
+    # Select an arbitrary location and get the link
+    location_root = locations[-1]['link']
+
+    building_types, has_cnx_err = get_commercial_building_types(
+                                    location_root
+                                    )
+
+    # Select an arbitrary building type and get the link
+    csv_link = building_types[-1]['link']
+
+    # Save to the current working directory
+    destination_dir = ''
+
+    get_building_data(
+        csv_link, 
+        save_directory=destination_dir, 
+        )
+
+
+.. automodule:: es_gui.downloaders.building_data
+   :members:

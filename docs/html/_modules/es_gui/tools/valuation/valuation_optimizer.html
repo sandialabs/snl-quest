@@ -1,0 +1,829 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>es_gui.tools.valuation.valuation_optimizer &#8212; QuESt  documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for es_gui.tools.valuation.valuation_optimizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">from</span> <span class="nn">pyomo.environ</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">es_gui.tools</span> <span class="k">import</span> <span class="n">optimizer</span>
+<span class="kn">from</span> <span class="nn">es_gui.tools.valuation.constraints</span> <span class="k">import</span> <span class="n">ExpressionsBlock</span>
+
+
+<div class="viewcode-block" id="ValuationOptimizer"><a class="viewcode-back" href="../../../../valuation_optimizer.html#es_gui.tools.valuation.valuation_optimizer.ValuationOptimizer">[docs]</a><span class="k">class</span> <span class="nc">ValuationOptimizer</span><span class="p">(</span><span class="n">optimizer</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A framework wrapper class for creating Pyomo ConcreteModels for energy storage valuation.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">price_electricity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">price_reg_up</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">price_reg_down</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">price_reg_serv_up</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">price_reg_serv_down</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">price_regulation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">price_reg_service</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">cost_charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cost_discharge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">mileage_mult</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mileage_mult_ru</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mileage_mult_rd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">perf_score</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">perf_score_ru</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">perf_score_rd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">fraction_reg_up</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction_reg_down</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">market_type</span><span class="o">=</span><span class="s1">&#39;arbitrage&#39;</span><span class="p">,</span>
+                 <span class="n">solver</span><span class="o">=</span><span class="s1">&#39;glpk&#39;</span><span class="p">):</span>
+
+        <span class="c1"># TODO: deprecate Perf_score and mileage_ratio</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">ConcreteModel</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_market_type</span> <span class="o">=</span> <span class="n">market_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver</span> <span class="o">=</span> <span class="n">solver</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expressions_block</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_electricity</span> <span class="o">=</span> <span class="n">price_electricity</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_regulation</span> <span class="o">=</span> <span class="n">price_regulation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_up</span> <span class="o">=</span> <span class="n">price_reg_up</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_down</span> <span class="o">=</span> <span class="n">price_reg_down</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_service</span> <span class="o">=</span> <span class="n">price_reg_service</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_serv_up</span> <span class="o">=</span> <span class="n">price_reg_serv_up</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_serv_down</span> <span class="o">=</span> <span class="n">price_reg_serv_down</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_charge</span> <span class="o">=</span> <span class="n">cost_charge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_discharge</span> <span class="o">=</span> <span class="n">cost_discharge</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult</span> <span class="o">=</span> <span class="n">mileage_mult</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult_ru</span> <span class="o">=</span> <span class="n">mileage_mult_ru</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult_rd</span> <span class="o">=</span> <span class="n">mileage_mult_rd</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score</span> <span class="o">=</span> <span class="n">perf_score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score_ru</span> <span class="o">=</span> <span class="n">perf_score_ru</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score_rd</span> <span class="o">=</span> <span class="n">perf_score_rd</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_reg_up</span> <span class="o">=</span> <span class="n">fraction_reg_up</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_reg_down</span> <span class="o">=</span> <span class="n">fraction_reg_down</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gross_revenue</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_electricity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for buying electricity via energy arbitrage [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_electricity</span>
+
+    <span class="nd">@price_electricity</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_electricity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_electricity</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_regulation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for providing capacity for regulation services in pay-for-performance markets [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_regulation</span>
+
+    <span class="nd">@price_regulation</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_regulation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_regulation</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_reg_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for providing regulation up products [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_up</span>
+
+    <span class="nd">@price_reg_up</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_reg_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_up</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_reg_down</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for providing regulation down products [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_down</span>
+
+    <span class="nd">@price_reg_down</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_reg_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_down</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_reg_service</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for providing regulation services; based on mileage or performance [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_service</span>
+
+    <span class="nd">@price_reg_service</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_reg_service</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_service</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_reg_serv_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for providing regulation up service; based on mileage or performance [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_serv_up</span>
+
+    <span class="nd">@price_reg_serv_up</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_reg_serv_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_serv_up</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">price_reg_serv_down</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The price for providing regulation down service; based on mileage or performance [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_serv_down</span>
+
+    <span class="nd">@price_reg_serv_down</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">price_reg_serv_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_price_reg_serv_down</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cost_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The cost of charging the energy storage device [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_charge</span>
+
+    <span class="nd">@cost_charge</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">cost_charge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_charge</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cost_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The cost of discharging the energy storage device [$/MWh].&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_discharge</span>
+
+    <span class="nd">@cost_discharge</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">cost_discharge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_discharge</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mileage_mult</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mileage multiplier or ratio according to the selected market.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult</span>
+
+    <span class="nd">@mileage_mult</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">mileage_mult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mileage_mult_ru</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mileage multiplier or ratio for the regulation up service according to the selected market.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult_ru</span>
+
+    <span class="nd">@mileage_mult_ru</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">mileage_mult_ru</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult_ru</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">mileage_mult_rd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Mileage multiplier or ratio for the regulation down service according to the selected market.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult_rd</span>
+
+    <span class="nd">@mileage_mult_rd</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">mileage_mult_rd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mileage_mult_rd</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perf_score</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Performance score of the regulation service provided.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score</span>
+
+    <span class="nd">@perf_score</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">perf_score</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perf_score_ru</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Performance score of the regulation up service provided.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score_ru</span>
+
+    <span class="nd">@perf_score_ru</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">perf_score_ru</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score_ru</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">perf_score_rd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Performance score of the regulation down service provided.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score_rd</span>
+
+    <span class="nd">@perf_score_rd</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">perf_score_rd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_perf_score_rd</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fraction_reg_up</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The fraction of regulation up reserve capacity actually employed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_reg_up</span>
+
+    <span class="nd">@fraction_reg_up</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fraction_reg_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_reg_up</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">fraction_reg_down</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The fraction of regulation down reserve capacity actually employed.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_reg_down</span>
+
+    <span class="nd">@fraction_reg_down</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">fraction_reg_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fraction_reg_down</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">solver</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The name of the solver for Pyomo to use, defaults to &#39;glpk&#39;.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver</span>
+
+    <span class="nd">@solver</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">solver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expressions_block</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;ExpressionsBlock object for setting model objectives and constraints.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expressions_block</span>
+
+    <span class="nd">@expressions_block</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">expressions_block</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_expressions_block</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">market_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The name of the market formulation to be modeled, defaults to &#39;arbitrage&#39;.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_market_type</span>
+
+    <span class="nd">@market_type</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">market_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_market_type</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;market_type property must be of type str.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Pandas DataFrame containing results.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
+
+    <span class="nd">@results</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;results must be a Pandas DataFrame.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">gross_revenue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The net revenue generated over the time period as solved for in the optimization.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gross_revenue</span>
+
+    <span class="nd">@gross_revenue</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">gross_revenue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gross_revenue</span> <span class="o">=</span> <span class="n">value</span>
+
+    <span class="k">def</span> <span class="nf">_set_model_param</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the model params for the Pyomo ConcreteModel.&quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+
+        <span class="c1"># Check if params common to all formulations are set.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Power_rating&#39;</span><span class="p">):</span>
+            <span class="c1"># Power rating; equivalently, the maximum energy charged in one hour [MW].</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No Power_rating provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Power_rating</span> <span class="o">=</span> <span class="mi">20</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;R&#39;</span><span class="p">):</span>
+            <span class="c1"># Discount/interest rate [hour^(-1)].</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No R provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">R</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Energy_capacity&#39;</span><span class="p">):</span>
+            <span class="c1"># Energy capacity [MWh].</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No Energy_capacity provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Energy_capacity</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Self_discharge_efficiency&#39;</span><span class="p">):</span>
+            <span class="c1"># Fraction of energy maintained over one time period.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No Self_discharge_efficiency provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Self_discharge_efficiency</span> <span class="o">=</span> <span class="mf">1.00</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Self_discharge_efficiency&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: Self_discharge_efficiency provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Self_discharge_efficiency</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">Self_discharge_efficiency</span><span class="o">/</span><span class="mi">100</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Round_trip_efficiency&#39;</span><span class="p">):</span>
+            <span class="c1"># Fraction of input energy that gets stored over one time period.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No Round_trip_efficiency provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Round_trip_efficiency</span> <span class="o">=</span> <span class="mf">0.85</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Round_trip_efficiency&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: Round_trip_efficiency provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Round_trip_efficiency</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">Round_trip_efficiency</span><span class="o">/</span><span class="mi">100</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Reserve_reg_min&#39;</span><span class="p">):</span>
+            <span class="c1"># Fraction of q_reg bid to increase state of charge minimum by.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No Reserve_reg_min provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Reserve_reg_min</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Reserve_reg_min&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: Reserve_reg_min provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Reserve_reg_min</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">Reserve_reg_min</span><span class="o">/</span><span class="mi">100</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Reserve_reg_max&#39;</span><span class="p">):</span>
+            <span class="c1"># Fraction of q_reg bid to decrease state of charge maximum by.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No Reserve_reg_max provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Reserve_reg_max</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Reserve_reg_max&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: Reserve_reg_max provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">Reserve_reg_max</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">Reserve_reg_max</span><span class="o">/</span><span class="mi">100</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_min&#39;</span><span class="p">):</span>
+            <span class="c1"># Fraction of energy capacity representing the minimum state of charge.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No State_of_charge_min provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_min</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_min&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: State_of_charge_min provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_min</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_min</span><span class="o">/</span><span class="mi">100</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_max&#39;</span><span class="p">):</span>
+            <span class="c1"># Fraction of energy capacity representing the maximum state of charge.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No State_of_charge_max provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_max</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_max&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: State_of_charge_max provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_max</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_max</span><span class="o">/</span><span class="mi">100</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_init&#39;</span><span class="p">):</span>
+            <span class="c1"># Initial state of charge as a fraction of energy capacity.</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No State_of_charge_init provided, setting default...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_init</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="k">elif</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;State_of_charge_init&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: State_of_charge_init provided is greater than 1.0, interpreting as percentage...&#39;</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_init</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_init</span><span class="o">/</span><span class="mi">100</span>
+
+        <span class="c1"># Check if params necessary for certain market types are set if required.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;ercot_arbreg&#39;</span><span class="p">,</span> <span class="s1">&#39;pjm_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;miso_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;isone_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;nyiso_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;spp_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;caiso_pfp&#39;</span><span class="p">}:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;fraction_reg_up&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No fraction_reg_up provided, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span> <span class="o">=</span> <span class="mf">0.25</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># fraction_reg_up is array-like</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: fraction_reg_up array-like provided has None values, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span> <span class="o">=</span> <span class="mf">0.25</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;fraction_reg_down&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No fraction_reg_down provided, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span> <span class="o">=</span> <span class="mf">0.25</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># fraction_reg_down is array-like</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: fraction_reg_down array-like provided has None values, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span> <span class="o">=</span> <span class="mf">0.25</span>
+
+            <span class="c1"># Converts fraction_reg_up and fraction_reg_down to arrays.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">))</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">))</span>
+
+        <span class="c1">###############################################################################################################</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;pjm_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;miso_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;nyiso_pfp&#39;</span><span class="p">,</span> <span class="s1">&#39;isone_pfp&#39;</span><span class="p">}:</span> <span class="c1"># TODO: Figure out ISO NE for this?</span>
+            <span class="c1"># Performance score for regulation service for pay-for-performance models.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;perf_score&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No perf_score provided, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span> <span class="o">=</span> <span class="mf">0.95</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># perf_score is array-like</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: perf_score array-like provided has None values, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span> <span class="o">=</span> <span class="mf">0.95</span>
+
+            <span class="c1"># Converts perf_score to array.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># TODO: what if it is an array but longer than price of electricity??</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: A perf_score array was provided but is shorter than the price_electricity array.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span><span class="p">(</span><span class="n">IncompatibleDataException</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: There was a mismatch in array sizes between perf_score and price_electricity.&#39;</span><span class="p">))</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;caiso_pfp&#39;</span><span class="p">}:</span> <span class="c1"># TODO: Figure out SPP for this?</span>
+            <span class="c1"># Performance score for regulation up and down services for pay-for-performance models.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;perf_score_ru&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No perf_score_ru provided, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span> <span class="o">=</span> <span class="mf">0.95</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># fraction_reg_up is array-like</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: perf_score_ru array-like provided has None values, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span> <span class="o">=</span> <span class="mf">0.95</span>
+
+            <span class="c1"># Performance score for regulation up and down services for pay-for-performance models.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;perf_score_rd&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: No perf_score_rd provided, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span> <span class="o">=</span> <span class="mf">0.95</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>  <span class="c1"># fraction_reg_up is array-like</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: perf_score_rd array-like provided has None values, setting default...&#39;</span><span class="p">)</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span> <span class="o">=</span> <span class="mf">0.95</span>
+
+            <span class="c1"># Converts perf_score_ru and perf_score_rd to arrays.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># TODO: what if it is an array but longer than price of electricity, better to prompt an error??</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: A perf_score_ru array was provided but is shorter than the price_electricity array.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span><span class="p">(</span><span class="n">IncompatibleDataException</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: There was a mismatch in array sizes between perf_score_ru and price_electricity.&#39;</span><span class="p">))</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># TODO: what if it is an array but longer than price of electricity, better to prompt an error??</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: A perf_score_rd array was provided but is shorter than the price_electricity array.&#39;</span><span class="p">)</span>
+                <span class="k">raise</span><span class="p">(</span><span class="n">IncompatibleDataException</span><span class="p">(</span><span class="s1">&#39;ValuationOptimizer: There was a mismatch in array sizes between perf_score_rd and price_electricity.&#39;</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="ow">in</span> <span class="p">{</span><span class="s1">&#39;miso_pfp&#39;</span><span class="p">}:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;Make_whole&#39;</span><span class="p">):</span>
+                <span class="c1"># Adjusts the credit for providing regulation services in MISO.</span>
+                <span class="n">m</span><span class="o">.</span><span class="n">Make_whole</span> <span class="o">=</span> <span class="mf">0.03</span>
+
+    <span class="k">def</span> <span class="nf">_set_model_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the model vars for the Pyomo ConcreteModel.&quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_s_init</span><span class="p">(</span><span class="n">_m</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;The energy storage device&#39;s state of charge [MWh].&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="n">State_of_charge_init</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">Energy_capacity</span>
+
+            <span class="n">m</span><span class="o">.</span><span class="n">s</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">soc_time</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">_s_init</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;q_r&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_q_r_init</span><span class="p">(</span><span class="n">_m</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;The quantity of energy allocated for charging via energy arbitrage [MWh].&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+
+            <span class="n">m</span><span class="o">.</span><span class="n">q_r</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">_q_r_init</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;q_d&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_q_d_init</span><span class="p">(</span><span class="n">_m</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;The quantity of energy allocated for discharging via energy arbitrage [MWh].&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+
+            <span class="n">m</span><span class="o">.</span><span class="n">q_d</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">_q_d_init</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;q_ru&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_q_ru_init</span><span class="p">(</span><span class="n">_m</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;The quantity of energy offered into the regulation up market [MWh].&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+
+            <span class="n">m</span><span class="o">.</span><span class="n">q_ru</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">_q_ru_init</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;q_rd&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_q_rd_init</span><span class="p">(</span><span class="n">_m</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;The quantity of energy offered into the regulation down market [MWh].&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+
+            <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">_q_rd_init</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s1">&#39;q_reg&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">_q_reg_init</span><span class="p">(</span><span class="n">_m</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot;The quantity of energy offered into the regulation market [MWh]. For single product frequency regulation markets.&quot;&quot;&quot;</span>
+                <span class="k">return</span> <span class="mf">0.0</span>
+
+            <span class="n">m</span><span class="o">.</span><span class="n">q_reg</span> <span class="o">=</span> <span class="n">Var</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="n">_q_reg_init</span><span class="p">,</span> <span class="n">within</span><span class="o">=</span><span class="n">NonNegativeReals</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ValuationOptimizer.instantiate_model"><a class="viewcode-back" href="../../../../valuation_optimizer.html#es_gui.tools.valuation.valuation_optimizer.ValuationOptimizer.instantiate_model">[docs]</a>    <span class="k">def</span> <span class="nf">instantiate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Instantiates the Pyomo ConcreteModel and populates it with supplied time series data.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;model&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">ConcreteModel</span><span class="p">()</span>
+
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="n">RangeSet</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">soc_time</span> <span class="o">=</span> <span class="n">RangeSet</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+            <span class="c1"># self.price_electricity is of type &#39;NoneType&#39;</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">time</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">soc_time</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_electricity</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">price_regulation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_regulation</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">price_reg_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_reg_up</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">price_reg_down</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_reg_down</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">price_reg_service</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_reg_service</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">price_reg_serv_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_reg_serv_up</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">price_reg_serv_down</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price_reg_serv_down</span>
+
+        <span class="n">m</span><span class="o">.</span><span class="n">cost_charge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_charge</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">cost_discharge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost_discharge</span>
+
+        <span class="c1"># m.reg_a = self.mileage_slow</span>
+        <span class="c1"># m.reg_d = self.mileage_fast</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">mi_mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mileage_mult</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">mi_mult_ru</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mileage_mult_ru</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">mi_mult_rd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mileage_mult_rd</span>
+
+        <span class="c1"># If fraction_reg_up/fraction_reg_down are provided to the instance, set them in the ConcreteModel.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_reg_up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_reg_up</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_reg_down</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction_reg_down</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_score</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_score</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_score_ru</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_score_ru</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_score_rd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_score_rd</span></div>
+
+<div class="viewcode-block" id="ValuationOptimizer.populate_model"><a class="viewcode-back" href="../../../../valuation_optimizer.html#es_gui.tools.valuation.valuation_optimizer.ValuationOptimizer.populate_model">[docs]</a>    <span class="k">def</span> <span class="nf">populate_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Populates the Pyomo ConcreteModel based on the specified market_type.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective_expr</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_model_param</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_model_var</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">expressions_block</span> <span class="o">=</span> <span class="n">ExpressionsBlock</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">market_type</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expressions_block</span><span class="o">.</span><span class="n">set_expressions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># Array-like object(s) do(es) not match the length of the price_electricity array-like.</span>
+            <span class="k">raise</span><span class="p">(</span><span class="n">IncompatibleDataException</span><span class="p">(</span><span class="s1">&#39;At least one of the array-like parameter objects is not the expected length. (It should match the length of the price_electricity object.)&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective</span> <span class="o">=</span> <span class="n">Objective</span><span class="p">(</span><span class="n">expr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">objective_expr</span><span class="p">,</span> <span class="n">sense</span><span class="o">=</span><span class="n">maximize</span><span class="p">)</span></div>
+        
+        <span class="c1"># if self.model.objective.value == 0.0:</span>
+        <span class="c1">#     # Detect constant objective function value.</span>
+        <span class="c1">#     raise(IncompatibleDataException(&#39;The objective function was ill-formed, resulting in a constant objective function.&#39;))</span>
+
+
+    <span class="k">def</span> <span class="nf">_process_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Processes optimization results for further evaluation.&quot;&quot;&quot;</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span>
+        <span class="n">q_r</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">q_d</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">q_ru</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">q_rd</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">q_reg</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">soc</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">s</span><span class="p">[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+        <span class="n">price_electricity</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]</span>
+
+        <span class="n">run_results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="n">t</span><span class="p">,</span> <span class="s1">&#39;q_r&#39;</span><span class="p">:</span> <span class="n">q_r</span><span class="p">,</span> <span class="s1">&#39;q_d&#39;</span><span class="p">:</span> <span class="n">q_d</span><span class="p">,</span> <span class="s1">&#39;q_ru&#39;</span><span class="p">:</span> <span class="n">q_ru</span><span class="p">,</span> <span class="s1">&#39;q_rd&#39;</span><span class="p">:</span> <span class="n">q_rd</span><span class="p">,</span> <span class="s1">&#39;q_reg&#39;</span><span class="p">:</span> <span class="n">q_reg</span><span class="p">,</span>
+                       <span class="s1">&#39;state of charge&#39;</span><span class="p">:</span> <span class="n">soc</span><span class="p">,</span> <span class="s1">&#39;price of electricity&#39;</span><span class="p">:</span> <span class="n">price_electricity</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;pjm_pfp&#39;</span><span class="p">:</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">mi_mult</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">price_reg_service</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_regulation</span><span class="p">[</span><span class="n">t</span><span class="p">])</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;miso_pfp&#39;</span><span class="p">:</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">Make_whole</span><span class="p">)</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">price_regulation</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="c1">#//////////////////////////////////////////////////#</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;isone_pfp&#39;</span><span class="p">:</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">m</span><span class="o">.</span><span class="n">mi_mult</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">price_reg_service</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_regulation</span><span class="p">[</span><span class="n">t</span><span class="p">])</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="c1">#//////////////////////////////////////////////////#</span>
+        <span class="c1">#######################################################################################################################</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;nyiso_pfp&#39;</span><span class="p">:</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">price_regulation</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">1.1</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">perf_score</span><span class="p">[</span><span class="n">t</span><span class="p">]))</span>
+                                          <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                                          <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_reg</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                                          <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="c1">#######################################################################################################################</span>
+        <span class="c1">#######################################################################################################################</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;spp_pfp&#39;</span><span class="p">:</span>
+            <span class="c1"># TODO: copied from &#39;ercot_arbreg&#39; -make sure is correct for this market</span>
+            <span class="c1"># rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value</span>
+            <span class="c1">#                                                       + m.q_ru[t].value*m.fraction_reg_up[t]</span>
+            <span class="c1">#                                                       - m.q_rd[t].value*m.fraction_reg_down[t])</span>
+            <span class="c1">#                               for t in m.time]))</span>
+            <span class="c1"># rev_reg = np.cumsum(np.array([m.ru[t]*m.q_ru[t].value + m.rd[t]*m.q_rd[t].value for t in m.time]))</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                                          <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                                          <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                                          <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="c1">#######################################################################################################################</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;caiso_pfp&#39;</span><span class="p">:</span>
+            <span class="c1"># rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value</span>
+            <span class="c1">#                                                       + m.q_ru[t].value*m.fraction_reg_up[t]</span>
+            <span class="c1">#                                                       - m.q_rd[t].value*m.fraction_reg_down[t])</span>
+            <span class="c1">#                               for t in m.time]))</span>
+            <span class="c1"># rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value</span>
+            <span class="c1">#                               + m.perf_score_ru[t] * m.mi_mult_ru[t] * m.price_reg_serv_up[t]</span>
+            <span class="c1">#                               + m.perf_score_rd[t] * m.mi_mult_rd[t] * m.price_reg_serv_down[t]</span>
+            <span class="c1">#                               for t in m.time]))</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                                          <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">perf_score_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">mi_mult_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">price_reg_serv_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                                          <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">perf_score_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">mi_mult_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">price_reg_serv_down</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                                          <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                                          <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                                          <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="c1">#######################################################################################################################</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">market_type</span> <span class="o">==</span> <span class="s1">&#39;ercot_arbreg&#39;</span><span class="p">:</span>
+            <span class="c1"># rev_arb = np.cumsum(np.array([m.price_electricity[t]*(m.q_d[t].value - m.q_r[t].value</span>
+            <span class="c1">#                                                       + m.q_ru[t].value*m.fraction_reg_up[t]</span>
+            <span class="c1">#                                                       - m.q_rd[t].value*m.fraction_reg_down[t])</span>
+            <span class="c1">#                               for t in m.time]))</span>
+            <span class="c1"># # rev_reg = np.cumsum(np.array([m.ru[t] * m.q_ru[t].value + m.rd[t] * m.q_rd[t].value for t in m.time]))</span>
+            <span class="c1"># rev_reg = np.cumsum(np.array([m.price_reg_up[t] * m.q_ru[t].value + m.price_reg_down[t] * m.q_rd[t].value for t in m.time]))</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+                                          <span class="o">+</span> <span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_ru</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_up</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+                                          <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_rd</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">m</span><span class="o">.</span><span class="n">fraction_reg_down</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+                                          <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rev_arb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">price_electricity</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">q_d</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">m</span><span class="o">.</span><span class="n">q_r</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                                          <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+            <span class="n">rev_reg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">m</span><span class="o">.</span><span class="n">time</span><span class="p">]))</span>
+
+            <span class="n">revenue</span> <span class="o">=</span> <span class="n">rev_arb</span> <span class="o">+</span> <span class="n">rev_reg</span>
+
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_arb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_arb</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;rev_reg&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rev_reg</span>
+            <span class="n">run_results</span><span class="p">[</span><span class="s1">&#39;revenue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">revenue</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gross_revenue</span> <span class="o">=</span> <span class="n">revenue</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># Revenue is of length-0, likely due to no price_electricity array-like being given before solving.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gross_revenue</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">run_results</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ValuationOptimizer.get_results"><a class="viewcode-back" href="../../../../valuation_optimizer.html#es_gui.tools.valuation.valuation_optimizer.ValuationOptimizer.get_results">[docs]</a>    <span class="k">def</span> <span class="nf">get_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns the decision variables and derived quantities in a DataFrame, plus the net revenue.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gross_revenue</span></div></div>
+
+
+<div class="viewcode-block" id="BadParameterException"><a class="viewcode-back" href="../../../../valuation_optimizer.html#es_gui.tools.valuation.valuation_optimizer.BadParameterException">[docs]</a><span class="k">class</span> <span class="nc">BadParameterException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="IncompatibleDataException"><a class="viewcode-back" href="../../../../valuation_optimizer.html#es_gui.tools.valuation.valuation_optimizer.IncompatibleDataException">[docs]</a><span class="k">class</span> <span class="nc">IncompatibleDataException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;valuation_optimizer.log&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s1">&#39;valuation_optimizer.log&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;[</span><span class="si">%(levelname)s</span><span class="s1">] </span><span class="si">%(asctime)s</span><span class="s1">: </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">,</span>
+                        <span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../../../../index.html">
+    <img class="logo" src="../../../../_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">QuESt</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">An application suite and library for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../downloaders.html">Building Data</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sandia National Laboratories.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

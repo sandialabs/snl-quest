@@ -1,0 +1,261 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Building Data &#8212; QuESt  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Constraints" href="constraints.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="building-data">
+<h1>Building Data<a class="headerlink" href="#building-data" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-es_gui.downloaders.building_data" title="es_gui.downloaders.building_data"><code class="xref py py-mod docutils literal notranslate"><span class="pre">building_data</span></code></a> module is for interacting with the OpenEI database to obtain simulated hourly load profiles of commercial and residential buildings.</p>
+<p>This example</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">locations</span><span class="p">,</span> <span class="n">has_cnx_err</span> <span class="o">=</span> <span class="n">get_commercial_geographical_locations</span><span class="p">(</span>
+                            <span class="n">ssl_verify</span><span class="p">,</span>
+                            <span class="n">proxy_settings</span>
+                            <span class="p">)</span>
+
+<span class="n">location_root</span> <span class="o">=</span> <span class="n">locations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+<span class="n">building_types</span><span class="p">,</span> <span class="n">has_cnx_err</span> <span class="o">=</span> <span class="n">get_commercial_building_types</span><span class="p">(</span>
+                                <span class="n">location_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span>
+                                <span class="p">)</span>
+
+<span class="n">csv_link</span> <span class="o">=</span> <span class="n">building_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+<span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
+<span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">get_building_data</span><span class="p">(</span>
+    <span class="n">csv_link</span><span class="p">,</span>
+    <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span>
+    <span class="n">ssl_verify</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+    <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+<span class="target" id="module-es_gui.downloaders.building_data"></span><p>This module contains functions for obtaining load profiles from the OpenEI database.</p>
+<dl class="function">
+<dt id="es_gui.downloaders.building_data.get_building_data">
+<code class="sig-prename descclassname">es_gui.downloaders.building_data.</code><code class="sig-name descname">get_building_data</code><span class="sig-paren">(</span><em class="sig-param">csv_link</em>, <em class="sig-param">save_directory</em>, <em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/es_gui/downloaders/building_data.html#get_building_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.building_data.get_building_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the hourly load profile to a .csv file on disk.</p>
+<p>This function saves the load profile at <cite>csv_link</cite> to the directory <cite>save_directory</cite>. The format has two columns: <cite>Date/Time</cite> and <cite>Electricity:Facility [kW](Hourly)</cite>. The filename is based on the specific data obtained. Additional directories will be created in <cite>save_directory</cite> in which the .csv file will be saved.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>csv_link</strong> (<em>str</em>) – URL for the .csv file containing the load profile</p></li>
+<li><p><strong>save_directory</strong> (<em>str</em>) – Relative path for where load profile will be saved</p></li>
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.building_data.get_commercial_building_types">
+<code class="sig-prename descclassname">es_gui.downloaders.building_data.</code><code class="sig-name descname">get_commercial_building_types</code><span class="sig-paren">(</span><em class="sig-param">location_root</em>, <em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/es_gui/downloaders/building_data.html#get_commercial_building_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.building_data.get_commercial_building_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the available commercial building types for a given geographical location.</p>
+<p>This function checks the specified geographical location root URL and documents the available commercial building types that can be selected based on the table of URLs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>location_root</strong> (<em>str</em>) – URL for the directory of a geographical location in the commercial building load profile directorate</p></li>
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – Records as list of dictionaries with keys [‘name’, ‘link’]</p></li>
+<li><p><em>bool</em> – True if a connection error occurred during the requests and the number of retries hit the specified limit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.building_data.get_commercial_geographical_locations">
+<code class="sig-prename descclassname">es_gui.downloaders.building_data.</code><code class="sig-name descname">get_commercial_geographical_locations</code><span class="sig-paren">(</span><em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/es_gui/downloaders/building_data.html#get_commercial_geographical_locations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.building_data.get_commercial_geographical_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the available geographical locations for commercial building load profiles.</p>
+<p>This function checks the root of the commercial building database and documents the available geographical locations that can be selected based on the table of URLs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – Records as list of dictionaries with keys [‘country’, ‘name’, ‘state’, ‘link’]</p></li>
+<li><p><em>bool</em> – True if a connection error occurred during the requests and the number of retries hit the specified limit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.building_data.get_residential_geographical_locations">
+<code class="sig-prename descclassname">es_gui.downloaders.building_data.</code><code class="sig-name descname">get_residential_geographical_locations</code><span class="sig-paren">(</span><em class="sig-param">load_root_link</em>, <em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/es_gui/downloaders/building_data.html#get_residential_geographical_locations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.building_data.get_residential_geographical_locations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the available geographical locations for the specified residential building load type.</p>
+<p>This function checks the database for which geographical locations are available for the specific residential load type at <cite>load_root_link</cite> based on the table of URLs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>load_root_link</strong> (<em>str</em>) – URL for the directory of a load type in the residential building load profile directorate</p></li>
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – Records as list of dictionaries with keys [‘country’, ‘state’, ‘name’, ‘link’]</p></li>
+<li><p><em>bool</em> – True if a connection error occurred during the requests and the number of retries hit the specified limit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.building_data.get_residential_load_types">
+<code class="sig-prename descclassname">es_gui.downloaders.building_data.</code><code class="sig-name descname">get_residential_load_types</code><span class="sig-paren">(</span><em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/es_gui/downloaders/building_data.html#get_residential_load_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.building_data.get_residential_load_types" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the available load types for residential building load profiles.</p>
+<p>This function checks the database for which types of load profiles are available for residential buildings. Examples include <cite>base</cite>, <cite>high</cite>, and <cite>low</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – Records as list of dictionaries with keys [‘name’, ‘link’]</p></li>
+<li><p><em>bool</em> – True if a connection error occurred during the requests and the number of retries hit the specified limit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">QuESt</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">An application suite and library for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html">Constraints</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Building Data</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="constraints.html" title="previous chapter">Constraints</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sandia National Laboratories.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/downloaders.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
