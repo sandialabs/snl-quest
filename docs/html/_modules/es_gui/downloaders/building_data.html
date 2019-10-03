@@ -446,67 +446,6 @@
                 <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s1">&#39;country&#39;</span><span class="p">:</span> <span class="n">country</span><span class="p">,</span> <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">state_abbr</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s1">&#39;link&#39;</span><span class="p">:</span> <span class="n">load_root_link</span> <span class="o">+</span> <span class="n">loc_root</span><span class="p">})</span>
     
     <span class="k">return</span> <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">ssl_verify</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">download_all</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="c1"># Commercial</span>
-    <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_commercial_geographical_locations</span><span class="p">(</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">download_all</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">location</span> <span class="ow">in</span> <span class="n">locations</span><span class="p">:</span>
-            <span class="n">location_root</span> <span class="o">=</span> <span class="n">location</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-            <span class="n">building_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_commercial_building_types</span><span class="p">(</span><span class="n">location_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">building_type</span> <span class="ow">in</span> <span class="n">building_types</span><span class="p">:</span>    
-                <span class="n">csv_link</span> <span class="o">=</span> <span class="n">building_type</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-
-                <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-                <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;building_data&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-                <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">location_root</span> <span class="o">=</span> <span class="n">locations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-        <span class="n">building_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_commercial_building_types</span><span class="p">(</span><span class="n">location_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
- 
-        <span class="n">csv_link</span> <span class="o">=</span> <span class="n">building_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-
-        <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-        <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
-    
-    <span class="c1"># Residential</span>
-    <span class="n">load_types</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_residential_load_types</span><span class="p">(</span><span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">download_all</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">load_type</span> <span class="ow">in</span> <span class="n">load_types</span><span class="p">:</span>
-            <span class="n">load_type_root</span> <span class="o">=</span> <span class="n">load_type</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-            <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_residential_geographical_locations</span><span class="p">(</span><span class="n">load_type_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">location</span> <span class="ow">in</span> <span class="n">locations</span><span class="p">:</span>    
-                <span class="n">csv_link</span> <span class="o">=</span> <span class="n">location</span><span class="p">[</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-
-                <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-                <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;building_data&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-                <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">load_type_root</span> <span class="o">=</span> <span class="n">load_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-        <span class="n">locations</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_residential_geographical_locations</span><span class="p">(</span><span class="n">load_type_root</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="p">)</span>
-
-        <span class="n">csv_link</span> <span class="o">=</span> <span class="n">locations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
-
-        <span class="n">url_split</span> <span class="o">=</span> <span class="n">csv_link</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-        <span class="n">destination_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">url_split</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-        <span class="n">get_building_data</span><span class="p">(</span><span class="n">csv_link</span><span class="p">,</span> <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="n">proxy_settings</span><span class="p">)</span>
 </pre></div>
 
           </div>
