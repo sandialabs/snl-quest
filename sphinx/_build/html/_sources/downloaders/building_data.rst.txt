@@ -1,4 +1,4 @@
-Building Load Profiles
+Building load profiles
 ======================
 
 The :py:mod:`~.downloaders.building_data` module is for interacting with the OpenEI database to obtain simulated hourly load profiles of commercial and residential buildings. 
@@ -34,7 +34,6 @@ The following example illustrates how to obtain a commercial building load profi
         csv_link, 
         save_directory=destination_dir, 
         )
-
 
 .. automodule:: es_gui.downloaders.building_data
    :members:

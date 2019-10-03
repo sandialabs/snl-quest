@@ -47,8 +47,16 @@
 
 
 <span class="n">DATASET_ROOT</span> <span class="o">=</span> <span class="s1">&#39;https://openei.org/datasets/files/961/pub/&#39;</span>
+<span class="sd">&quot;&quot;&quot;The URL for the root of the OpenEI load profile database directory.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="n">COMMERCIAL_LOAD_ROOT</span> <span class="o">=</span> <span class="n">DATASET_ROOT</span> <span class="o">+</span> <span class="s1">&#39;COMMERCIAL_LOAD_DATA_E_PLUS_OUTPUT/&#39;</span>
+<span class="sd">&quot;&quot;&quot;The URL for the root of the OpenEI commercial building load profile database directory.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
 <span class="n">RESIDENTIAL_LOAD_ROOT</span> <span class="o">=</span> <span class="n">DATASET_ROOT</span> <span class="o">+</span> <span class="s1">&#39;RESIDENTIAL_LOAD_DATA_E_PLUS_OUTPUT/&#39;</span>
+<span class="sd">&quot;&quot;&quot;The URL for the root of the OpenEI residential building load profile database directory.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 
 <div class="viewcode-block" id="get_commercial_geographical_locations"><a class="viewcode-back" href="../../../downloaders/building_data.html#es_gui.downloaders.building_data.get_commercial_geographical_locations">[docs]</a><span class="k">def</span> <span class="nf">get_commercial_geographical_locations</span><span class="p">(</span><span class="n">ssl_verify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">proxy_settings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_attempts</span><span class="o">=</span><span class="mi">7</span><span class="p">):</span>
@@ -59,19 +67,19 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ssl_verify : bool</span>
-<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True.</span>
 <span class="sd">    proxy_settings : dict</span>
-<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None.</span>
 <span class="sd">    n_attempts : int</span>
-<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    list</span>
-<span class="sd">        Records as list of dictionaries with keys [&#39;country&#39;, &#39;name&#39;, &#39;state&#39;, &#39;link&#39;]</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;country&#39;, &#39;name&#39;, &#39;state&#39;, &#39;link&#39;].</span>
 <span class="sd">    </span>
 <span class="sd">    bool</span>
-<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
@@ -138,21 +146,21 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    location_root : str</span>
-<span class="sd">        URL for the directory of a geographical location in the commercial building load profile directorate</span>
+<span class="sd">        URL for the directory of a geographical location in the commercial building load profile directorate.</span>
 <span class="sd">    ssl_verify : bool</span>
-<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True.</span>
 <span class="sd">    proxy_settings : dict</span>
-<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None.</span>
 <span class="sd">    n_attempts : int</span>
-<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    list</span>
-<span class="sd">        Records as list of dictionaries with keys [&#39;name&#39;, &#39;link&#39;]</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;name&#39;, &#39;link&#39;].</span>
 <span class="sd">    </span>
 <span class="sd">    bool</span>
-<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Convert root page content to BeautifulSoup</span>
     <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
@@ -220,15 +228,15 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    csv_link : str</span>
-<span class="sd">        URL for the .csv file containing the load profile</span>
+<span class="sd">        URL for the .csv file containing the load profile.</span>
 <span class="sd">    save_directory : str</span>
-<span class="sd">        Relative path for where load profile will be saved</span>
+<span class="sd">        Relative path for where load profile will be saved.</span>
 <span class="sd">    ssl_verify : bool</span>
-<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True.</span>
 <span class="sd">    proxy_settings : dict</span>
-<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None.</span>
 <span class="sd">    n_attempts : int</span>
-<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
@@ -289,19 +297,19 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ssl_verify : bool</span>
-<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True.</span>
 <span class="sd">    proxy_settings : dict</span>
-<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None.</span>
 <span class="sd">    n_attempts : int</span>
-<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    list</span>
-<span class="sd">        Records as list of dictionaries with keys [&#39;name&#39;, &#39;link&#39;]</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;name&#39;, &#39;link&#39;].</span>
 <span class="sd">    </span>
 <span class="sd">    bool</span>
-<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
@@ -365,21 +373,21 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    load_root_link : str</span>
-<span class="sd">        URL for the directory of a load type in the residential building load profile directorate</span>
+<span class="sd">        URL for the directory of a load type in the residential building load profile directorate.</span>
 <span class="sd">    ssl_verify : bool</span>
-<span class="sd">        True if the URL request should use SSL verification, defaults to True</span>
+<span class="sd">        True if the URL request should use SSL verification, defaults to True.</span>
 <span class="sd">    proxy_settings : dict</span>
-<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None</span>
+<span class="sd">        HTTP and HTTPS proxies for URL request; format is {&#39;http_proxy&#39;: &#39;...&#39;, &#39;https_proxy&#39;: &#39;...&#39;}, defaults to None.</span>
 <span class="sd">    n_attempts : int</span>
-<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7</span>
+<span class="sd">        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    list</span>
-<span class="sd">        Records as list of dictionaries with keys [&#39;country&#39;, &#39;state&#39;, &#39;name&#39;, &#39;link&#39;]</span>
+<span class="sd">        Records as list of dictionaries with keys [&#39;country&#39;, &#39;state&#39;, &#39;name&#39;, &#39;link&#39;].</span>
 <span class="sd">    </span>
 <span class="sd">    bool</span>
-<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit</span>
+<span class="sd">        True if a connection error occurred during the requests and the number of retries hit the specified limit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">attempt_download</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">n_tries</span> <span class="o">=</span> <span class="mi">0</span>
@@ -442,11 +450,6 @@
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
     <span class="n">ssl_verify</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">proxy_settings</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;http_proxy&#39;</span><span class="p">:</span> <span class="s1">&#39;wwwproxy.sandia.gov:80&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;https_proxy&#39;</span><span class="p">:</span> <span class="s1">&#39;wwwproxy.sandia.gov:80&#39;</span><span class="p">,</span>
-    <span class="p">}</span>
-
     <span class="n">download_all</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># Commercial</span>
@@ -538,7 +541,8 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../optimizer.html">Optimizer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../valuation_optimizer.html">ValuationOptimizer</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../constraints.html">Constraints</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../downloaders/building_data.html">Building Load Profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../downloaders/building_data.html">Building load profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../downloaders/pv_power_data.html">PV power profiles</a></li>
 </ul>
 
 <div class="relations">

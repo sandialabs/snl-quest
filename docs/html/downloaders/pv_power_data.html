@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>PV power profiles &#8212; QuESt  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Building load profiles" href="building_data.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pv-power-profiles">
+<h1>PV power profiles<a class="headerlink" href="#pv-power-profiles" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">pv_power_data</span></code> module is for interacting with the <a class="reference external" href="https://developer.nrel.gov/docs/solar/pvwatts/v6/">PVWatts API</a> to obtain simulated hourly generation profiles of photovoltaic power arrays.</p>
+<p>The following example illustrates how to perform a proper query. The <code class="xref py py-func docutils literal notranslate"><span class="pre">get_pv_profile_data()</span></code> function is used to perform an API query with the given parameters and save the resulting .json to disk.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">pv_params</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tmy3&#39;</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;radius&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;timeframe&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;hourly&#39;</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;api_key&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="c1"># Use your NREL Developer Network/OpenEI API key</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">35.08</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">106.65</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;system_capacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;losses&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">14</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;azimuth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">180</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;tilt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">35.08</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;array_type&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="mi">0</span>
+<span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;module_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="n">get_pv_profile_data</span><span class="p">(</span><span class="n">pv_params</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="s1">&#39;test_pv.json&#39;</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+<span class="target" id="module-es_gui.downloaders.pv_power"></span><p>This module contains functions for obtaining photovoltaic power profiles from the PVWatts API.</p>
+<dl class="data">
+<dt id="es_gui.downloaders.pv_power.URL_PVWATTS">
+<code class="sig-prename descclassname">es_gui.downloaders.pv_power.</code><code class="sig-name descname">URL_PVWATTS</code><em class="property"> = 'https://developer.nrel.gov/api/pvwatts/v6.json?'</em><a class="headerlink" href="#es_gui.downloaders.pv_power.URL_PVWATTS" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL for the root of the PVWatts API.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.pv_power.get_pv_profile_data">
+<code class="sig-prename descclassname">es_gui.downloaders.pv_power.</code><code class="sig-name descname">get_pv_profile_data</code><span class="sig-paren">(</span><em class="sig-param">query_parameters</em>, <em class="sig-param">save_path</em>, <em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/es_gui/downloaders/pv_power.html#get_pv_profile_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.pv_power.get_pv_profile_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the hourly photovoltaic (PV) power profile and metadata to a .json file on disk.</p>
+<p>This function saves the PV profile from the PVWatts query described by <cite>query_parameters</cite> to the path <cite>save_path</cite>. The format is a .json file with the format described by the PVWatts API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>query_parameters</strong> (<em>dict</em>) – Dictionary of parameters for PVWatts API query. The keys must match the request parameters described by the API. Parameters marked as required must be provided. See notes for more details.</p></li>
+<li><p><strong>save_path</strong> (<em>str</em>) – Relative path, including file name and extension, for where the profile data is to be saved. The extension should be .json.</p></li>
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True.</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None.</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if a connection error occurred during the requests and the number of retries hit the specified limit</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Details about the API including request parameter names and requirements can be found here:</p>
+<p><a class="reference external" href="https://developer.nrel.gov/docs/solar/pvwatts/v6/">https://developer.nrel.gov/docs/solar/pvwatts/v6/</a></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">QuESt</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">An application suite and library for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_data.html">Building load profiles</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">PV power profiles</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="building_data.html" title="previous chapter">Building load profiles</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sandia National Laboratories.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/downloaders/pv_power_data.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

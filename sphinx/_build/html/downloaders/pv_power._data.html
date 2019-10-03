@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>PV Power Profiles &#8212; QuESt  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="pv-power-profiles">
+<h1>PV Power Profiles<a class="headerlink" href="#pv-power-profiles" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="building_data.html#module-es_gui.downloaders.building_data" title="es_gui.downloaders.building_data"><code class="xref py py-mod docutils literal notranslate"><span class="pre">building_data</span></code></a> module is for interacting with the OpenEI database to obtain simulated hourly load profiles of commercial and residential buildings.</p>
+<p>OpenEI hosts simulated hourly load profiles for commercial and residential buildings based on all TMY3 locations in the United States. More information about this data can be found <a class="reference external" href="https://openei.org/doe-opendata/dataset/commercial-and-residential-hourly-load-profiles-for-all-tmy3-locations-in-the-united-states">here</a>.</p>
+<p>The load profiles may be browsed directly on the web server using a <a class="reference external" href="https://openei.org/datasets/files/961/pub/">directory listing</a>. This directory listing is leveraged in this module.</p>
+<p>The following example illustrates how to obtain a commercial building load profile. The <a class="reference internal" href="building_data.html#es_gui.downloaders.building_data.get_commercial_geographical_locations" title="es_gui.downloaders.building_data.get_commercial_geographical_locations"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_commercial_geographical_locations()</span></code></a> function is used to obtain a list of records containing the available geographical locations. Without loss of generality, the final record in the list is selected using list slicing and the link of the corresponding location’s directory root is obtained. This link is provided to <a class="reference internal" href="building_data.html#es_gui.downloaders.building_data.get_commercial_building_types" title="es_gui.downloaders.building_data.get_commercial_building_types"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_commercial_building_types()</span></code></a> which returns a list of records of the available commercial building types for that particular location; once again, the final record in the list is selected. Finally, the link of that record is provided to <a class="reference internal" href="building_data.html#es_gui.downloaders.building_data.get_building_data" title="es_gui.downloaders.building_data.get_building_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_building_data()</span></code></a> which downloads and formats a .csv file that is saved to the specified directory.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">locations</span><span class="p">,</span> <span class="n">has_cnx_err</span> <span class="o">=</span> <span class="n">get_commercial_geographical_locations</span><span class="p">(</span>
+                            <span class="p">)</span>
+
+<span class="c1"># Select an arbitrary location and get the link</span>
+<span class="n">location_root</span> <span class="o">=</span> <span class="n">locations</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+<span class="n">building_types</span><span class="p">,</span> <span class="n">has_cnx_err</span> <span class="o">=</span> <span class="n">get_commercial_building_types</span><span class="p">(</span>
+                                <span class="n">location_root</span>
+                                <span class="p">)</span>
+
+<span class="c1"># Select an arbitrary building type and get the link</span>
+<span class="n">csv_link</span> <span class="o">=</span> <span class="n">building_types</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;link&#39;</span><span class="p">]</span>
+
+<span class="c1"># Save to the current working directory</span>
+<span class="n">destination_dir</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+<span class="n">get_building_data</span><span class="p">(</span>
+    <span class="n">csv_link</span><span class="p">,</span>
+    <span class="n">save_directory</span><span class="o">=</span><span class="n">destination_dir</span><span class="p">,</span>
+    <span class="p">)</span>
+</pre></div>
+</td></tr></table></div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">QuESt</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">An application suite and library for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_data.html">Building Load Profiles</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sandia National Laboratories.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/downloaders/pv_power._data.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
