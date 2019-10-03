@@ -33,19 +33,19 @@ def get_commercial_geographical_locations(ssl_verify=True, proxy_settings=None, 
     Parameters
     ----------
     ssl_verify : bool
-        True if the URL request should use SSL verification, defaults to True
+        True if the URL request should use SSL verification, defaults to True.
     proxy_settings : dict
-        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
     n_attempts : int
-        The maximum number of retries for the URL request before declaring connection errors, defaults to 7
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
 
     Returns
     -------
     list
-        Records as list of dictionaries with keys ['country', 'name', 'state', 'link']
+        Records as list of dictionaries with keys ['country', 'name', 'state', 'link'].
     
     bool
-        True if a connection error occurred during the requests and the number of retries hit the specified limit
+        True if a connection error occurred during the requests and the number of retries hit the specified limit.
     """
     attempt_download = True
     n_tries = 0
@@ -112,21 +112,21 @@ def get_commercial_building_types(location_root, ssl_verify=True, proxy_settings
     Parameters
     ----------
     location_root : str
-        URL for the directory of a geographical location in the commercial building load profile directorate
+        URL for the directory of a geographical location in the commercial building load profile directorate.
     ssl_verify : bool
-        True if the URL request should use SSL verification, defaults to True
+        True if the URL request should use SSL verification, defaults to True.
     proxy_settings : dict
-        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
     n_attempts : int
-        The maximum number of retries for the URL request before declaring connection errors, defaults to 7
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
 
     Returns
     -------
     list
-        Records as list of dictionaries with keys ['name', 'link']
+        Records as list of dictionaries with keys ['name', 'link'].
     
     bool
-        True if a connection error occurred during the requests and the number of retries hit the specified limit
+        True if a connection error occurred during the requests and the number of retries hit the specified limit.
     """
     # Convert root page content to BeautifulSoup
     attempt_download = True
@@ -194,15 +194,15 @@ def get_building_data(csv_link, save_directory, ssl_verify=True, proxy_settings=
     Parameters
     ----------
     csv_link : str
-        URL for the .csv file containing the load profile
+        URL for the .csv file containing the load profile.
     save_directory : str
-        Relative path for where load profile will be saved
+        Relative path for where load profile will be saved.
     ssl_verify : bool
-        True if the URL request should use SSL verification, defaults to True
+        True if the URL request should use SSL verification, defaults to True.
     proxy_settings : dict
-        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
     n_attempts : int
-        The maximum number of retries for the URL request before declaring connection errors, defaults to 7
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
     """
     attempt_download = True
     n_tries = 0
@@ -263,19 +263,19 @@ def get_residential_load_types(ssl_verify=True, proxy_settings=None, n_attempts=
     Parameters
     ----------
     ssl_verify : bool
-        True if the URL request should use SSL verification, defaults to True
+        True if the URL request should use SSL verification, defaults to True.
     proxy_settings : dict
-        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
     n_attempts : int
-        The maximum number of retries for the URL request before declaring connection errors, defaults to 7
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
 
     Returns
     -------
     list
-        Records as list of dictionaries with keys ['name', 'link']
+        Records as list of dictionaries with keys ['name', 'link'].
     
     bool
-        True if a connection error occurred during the requests and the number of retries hit the specified limit
+        True if a connection error occurred during the requests and the number of retries hit the specified limit.
     """
     attempt_download = True
     n_tries = 0
@@ -339,21 +339,21 @@ def get_residential_geographical_locations(load_root_link, ssl_verify=True, prox
     Parameters
     ----------
     load_root_link : str
-        URL for the directory of a load type in the residential building load profile directorate
+        URL for the directory of a load type in the residential building load profile directorate.
     ssl_verify : bool
-        True if the URL request should use SSL verification, defaults to True
+        True if the URL request should use SSL verification, defaults to True.
     proxy_settings : dict
-        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
     n_attempts : int
-        The maximum number of retries for the URL request before declaring connection errors, defaults to 7
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
 
     Returns
     -------
     list
-        Records as list of dictionaries with keys ['country', 'state', 'name', 'link']
+        Records as list of dictionaries with keys ['country', 'state', 'name', 'link'].
     
     bool
-        True if a connection error occurred during the requests and the number of retries hit the specified limit
+        True if a connection error occurred during the requests and the number of retries hit the specified limit.
     """
     attempt_download = True
     n_tries = 0
@@ -412,64 +412,3 @@ def get_residential_geographical_locations(load_root_link, ssl_verify=True, prox
                 locations.append({'country': country, 'state': state_abbr, 'name': name, 'link': load_root_link + loc_root})
     
     return locations, connection_error_occurred
-
-
-if __name__ == '__main__':
-    ssl_verify = False
-    download_all = False
-
-    # Commercial
-    locations, connection_error_occurred = get_commercial_geographical_locations(ssl_verify, proxy_settings)
-
-    if download_all:
-        for location in locations:
-            location_root = location['link']
-            building_types, connection_error_occurred = get_commercial_building_types(location_root, ssl_verify, proxy_settings)
-
-            for building_type in building_types:    
-                csv_link = building_type['link']
-
-                url_split = csv_link.split('/')
-                destination_dir = os.path.join('building_data', url_split[-2])
-                os.makedirs(destination_dir, exist_ok=True)
-
-                get_building_data(csv_link, save_directory=destination_dir, ssl_verify=False, proxy_settings=proxy_settings)
-    else:
-        location_root = locations[-1]['link']
-        building_types, connection_error_occurred = get_commercial_building_types(location_root, ssl_verify, proxy_settings)
- 
-        csv_link = building_types[-1]['link']
-
-        url_split = csv_link.split('/')
-        destination_dir = os.path.join('', url_split[-2])
-        os.makedirs(destination_dir, exist_ok=True)
-
-        get_building_data(csv_link, save_directory=destination_dir, ssl_verify=False, proxy_settings=proxy_settings)
-    
-    # Residential
-    load_types, connection_error_occurred = get_residential_load_types(ssl_verify, proxy_settings)
-
-    if download_all:
-        for load_type in load_types:
-            load_type_root = load_type['link']
-            locations, connection_error_occurred = get_residential_geographical_locations(load_type_root, ssl_verify, proxy_settings)
-
-            for location in locations:    
-                csv_link = location['link']
-
-                url_split = csv_link.split('/')
-                destination_dir = os.path.join('building_data', url_split[-2])
-                os.makedirs(destination_dir, exist_ok=True)
-
-                get_building_data(csv_link, save_directory=destination_dir, ssl_verify=False, proxy_settings=proxy_settings)
-    else:
-        load_type_root = load_types[-1]['link']
-        locations, connection_error_occurred = get_residential_geographical_locations(load_type_root, ssl_verify, proxy_settings)
-
-        csv_link = locations[-1]['link']
-
-        url_split = csv_link.split('/')
-        destination_dir = os.path.join('', url_split[-2])
-        os.makedirs(destination_dir, exist_ok=True)
-
-        get_building_data(csv_link, save_directory=destination_dir, ssl_verify=False, proxy_settings=proxy_settings)

@@ -30,6 +30,7 @@ from es_gui.resources.widgets.common import InputError, WarningPopup, Connection
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
+from es_gui.downloaders.pv_power import get_pv_profile_data
 
 MAX_WHILE_ATTEMPTS = 7
 
@@ -131,10 +132,9 @@ class PVwattsSearchScreen(Screen):
                 query_segs.append('{key}={value}'.format(key=k, value=v))
             
             api_query += '&'.join(query_segs)
-            # print(api_query)
             
             try:
-                self._query_api(api_query)
+                self._query_api(pv_params)
             except requests.ConnectionError:
                 popup = ConnectionErrorPopup()
                 popup.popup_text.text = 'There was an issue connecting to the API. Check your connection settings and try again.'
@@ -143,75 +143,48 @@ class PVwattsSearchScreen(Screen):
             # thread_query = threading.Thread(target=self._query_api, args=[api_query])
             # thread_query.start()
     
-    def _query_api(self, api_query):
+    def _query_api(self, pv_params):
         """Uses PVWatts API to query for a PV profile."""
         ssl_verify, proxy_settings = check_connection_settings()
 
-        try:
-            with requests.Session() as req:
-                http_request = req.get(api_query,
-                                        proxies=proxy_settings, 
-                                        timeout=10, 
-                                        verify=ssl_verify,
-                                        stream=True)
-                if http_request.status_code != requests.codes.ok:
-                    http_request.raise_for_status()
-        except requests.HTTPError as e:
-            logging.error('PVProfileDM: {0}'.format(repr(e)))
-            raise requests.ConnectionError
-        except requests.exceptions.ProxyError:
-            logging.error('PVProfileDM: Could not connect to proxy.')
-            raise requests.ConnectionError
-        except requests.ConnectionError as e:
-            logging.error('PVProfileDM: Failed to establish a connection to the host server.')
-            raise requests.ConnectionError
-        except requests.Timeout as e:
-            logging.error('PVProfileDM: The connection timed out.')
-            raise requests.ConnectionError
-        except requests.RequestException as e:
-            logging.error('PVProfileDM: {0}'.format(repr(e)))
-            raise requests.ConnectionError
-        except Exception as e:
-            # Something else went wrong.
-            logging.error('PVProfileDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-            raise requests.ConnectionError
+        if not self.save_name_field.text:
+            popup = WarningPopup()
+            popup.popup_text.text = 'Please specify a name to save the PV profile as.'
+            popup.open()
+            return
         else:
-            request_content = http_request.json()
+            outname = self.save_name_field.text
+        
+        # Strip non-alphanumeric chars from given name for filename.
+        delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
+        outname = outname.translate({ord(i): None for i in delchars})
 
-            if not self.save_name_field.text:
-                popup = WarningPopup()
-                popup.popup_text.text = 'Please specify a name to save the PV profile as.'
-                popup.open()
-                return
-            else:
-                outname = self.save_name_field.text
+        destination_dir = os.path.join(DATA_HOME, 'pv')
+        os.makedirs(destination_dir, exist_ok=True)
+        destination_file = os.path.join(destination_dir, outname + '.json')
 
-            # Strip non-alphanumeric chars from given name for filename.
-            delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
-            outname = outname.translate({ord(i): None for i in delchars})
-
-            # Save.
-            destination_dir = os.path.join(DATA_HOME, 'pv')
-            os.makedirs(destination_dir, exist_ok=True)
-            destination_file = os.path.join(destination_dir, outname + '.json')
-
-            if not os.path.exists(destination_file):
-                with open(destination_file, 'w') as outfile:
-                    json.dump(request_content, outfile)
-                
-                logging.info('PVProfileDM: Profile successfully saved.')
-                
-                popup = WarningPopup()
-                popup.title = 'Success!'
-                popup.popup_text.text = 'PV profile successfully saved.'
-                popup.open()
-            else:
-                # File already exists with same name.
-                popup = WarningPopup()
-                popup.popup_text.text = 'A PV profile with the provided name already exists. Please specify a new name.'
-                popup.open()
-        finally:
-            self.save_button.disabled = False
+        if not os.path.exists(destination_file):
+            connection_error_occurred = get_pv_profile_data(
+                pv_params,
+                save_path=destination_file,
+                ssl_verify=ssl_verify,
+                proxy_settings=proxy_settings,
+                n_attempts=MAX_WHILE_ATTEMPTS
+            )
+            
+            logging.info('PVProfileDM: Profile successfully saved.')
+            
+            popup = WarningPopup()
+            popup.title = 'Success!'
+            popup.popup_text.text = 'PV profile successfully saved.'
+            popup.open()
+        else:
+            # File already exists with same name.
+            popup = WarningPopup()
+            popup.popup_text.text = 'A PV profile with the provided name already exists. Please specify a new name.'
+            popup.open()
+        
+        self.save_button.disabled = False
     
     def get_selections(self):
         """Retrieves UI selections."""
