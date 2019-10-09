@@ -91,11 +91,14 @@ class DataManagerCommercialLoadScreen(Screen):
         self.df_locations = pd.DataFrame.from_records(locations)
 
         # Populate state RecycleView.
-        records = [{'name': state} for state in self.df_locations['state'].unique()]
-        records = sorted(records, key=lambda t: t['name'])
+        if self.df_locations.empty:
+            return
+        else: 
+            records = [{'name': state} for state in self.df_locations['state'].unique()]
+            records = sorted(records, key=lambda t: t['name'])
 
-        self.state_rv.data = records
-        self.state_rv.unfiltered_data = records
+            self.state_rv.data = records
+            self.state_rv.unfiltered_data = records
 
     def _get_building_types(self, location_root, ssl_verify=True, proxy_settings=None):
         self.connection_error_occurred = False

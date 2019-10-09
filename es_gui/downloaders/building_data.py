@@ -51,6 +51,8 @@ def get_commercial_geographical_locations(ssl_verify=True, proxy_settings=None, 
     n_tries = 0
     connection_error_occurred = False
 
+    locations = []
+
     while attempt_download:
         n_tries += 1
 
