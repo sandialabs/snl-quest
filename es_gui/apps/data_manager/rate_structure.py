@@ -31,6 +31,7 @@ from es_gui.resources.widgets.common import BodyTextBase, InputError, WarningPop
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME, STATE_ABBR_TO_NAME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
+from es_gui.downloaders.utility_rates import get_utility_reference_table
 
 
 MAX_WHILE_ATTEMPTS = 7
@@ -130,103 +131,20 @@ class RateStructureUtilitySearchScreen(Screen):
         """Downloads and builds the utility reference table from OpenEI."""
         ssl_verify, proxy_settings = check_connection_settings()
 
-        # Invester-owned utilities.
-        attempt_download = True
-        n_tries = 0
+        try:
+            utility_reference_table, connection_error_occurred = get_utility_reference_table(
+                ssl_verify=ssl_verify,
+                proxy_settings=proxy_settings,
+                n_attempts=MAX_WHILE_ATTEMPTS
+            )
+        except requests.ConnectionError:
+            pass
+        else:
+            # Add column for state/district name.
+            utility_reference_table['state name'] = utility_reference_table['state'].apply(lambda state_abbr: STATE_ABBR_TO_NAME.get(state_abbr, ''))
 
-        while attempt_download:
-            n_tries += 1
-
-            if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('RateStructureDM: Hit download retry limit.')
-                attempt_download = False
-                break
-            
-            if App.get_running_app().root.stop.is_set():
-                return
-
-            try:
-                with requests.Session() as req:
-                    http_request = req.get(URL_OPENEI_IOU,
-                                            proxies=proxy_settings, 
-                                            timeout=6, 
-                                            verify=ssl_verify,
-                                            stream=True)
-                    if http_request.status_code != requests.codes.ok:
-                        http_request.raise_for_status()
-                    else:
-                        attempt_download = False
-            except requests.HTTPError as e:
-                logging.error('RateStructureDM: {0}'.format(repr(e)))
-            except requests.exceptions.ProxyError:
-                logging.error('RateStructureDM: Could not connect to proxy.')
-            except requests.ConnectionError as e:
-                logging.error('RateStructureDM: Failed to establish a connection to the host server.')
-            except requests.Timeout as e:
-                logging.error('RateStructureDM: The connection timed out.')
-            except requests.RequestException as e:
-                logging.error('RateStructureDM: {0}'.format(repr(e)))
-            except Exception as e:
-                # Something else went wrong.
-                logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-            else:
-                data_down = http_request.content.decode(http_request.encoding)
-                data_iou = pd.read_csv(io.StringIO(data_down))
-        
-        # Non-investor-owned utilities.
-        attempt_download = True
-        n_tries = 0
-
-        while attempt_download:
-            n_tries += 1
-
-            if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('RateStructureDM: Hit download retry limit.')
-                attempt_download = False
-                break
-            
-            if App.get_running_app().root.stop.is_set():
-                return
-        
-            try:
-                with requests.Session() as req:
-                    http_request = req.get(URL_OPENEI_NONIOU,
-                                            proxies=proxy_settings, 
-                                            timeout=6, 
-                                            verify=ssl_verify,
-                                            stream=True)
-                    if http_request.status_code != requests.codes.ok:
-                        http_request.raise_for_status()
-                    else:
-                        attempt_download = False
-            except requests.HTTPError as e:
-                logging.error('RateStructureDM: {0}'.format(repr(e)))
-            except requests.exceptions.ProxyError:
-                logging.error('RateStructureDM: Could not connect to proxy.')
-            except requests.ConnectionError as e:
-                logging.error('RateStructureDM: Failed to establish a connection to the host server.')
-            except requests.Timeout as e:
-                logging.error('RateStructureDM: The connection timed out.')
-            except requests.RequestException as e:
-                logging.error('RateStructureDM: {0}'.format(repr(e)))
-            except Exception as e:
-                # Something else went wrong.
-                logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-            else:
-                data_down = http_request.content.decode(http_request.encoding)
-                data_noniou = pd.read_csv(io.StringIO(data_down))
-            
-            try:
-                df_combined = pd.concat([data_iou, data_noniou], ignore_index=True)
-            except NameError:
-                # Connection error prevented downloads.
-                raise requests.ConnectionError
-            else:
-                # Add column for state/district name.
-                df_combined['state name'] = df_combined['state'].apply(lambda state_abbr: STATE_ABBR_TO_NAME.get(state_abbr, ''))
-
-                self.utility_ref_table = df_combined
-                logging.info('RateStructureDM: Retrieved list of all utilities.')
+            self.utility_ref_table = utility_reference_table
+            logging.info('RateStructureDM: Retrieved list of all utilities.')
 
     def _validate_inputs(self):      
         """Validates the search parameters."""  
@@ -304,6 +222,7 @@ class RateStructureUtilitySearchScreen(Screen):
                         self.search_button.disabled = False
                 
                 # Filter DataFrame by search type/query and drop duplicate entries.
+                # TODO: Use fuzzy string matching or similar for filtering
                 if search_type == 'state':
                     utility_data_filtered = self.utility_ref_table.loc[self.utility_ref_table['state'].str.lower().str.contains(search_query)
                     | self.utility_ref_table['state name'].str.lower().str.contains(search_query)]
@@ -331,9 +250,11 @@ class RateStructureUtilitySearchScreen(Screen):
 
                 # Animation.stop_all(self.loading_screen.logo, 'opacity')
                 # self.loading_screen.dismiss()
-
-            thread_query = threading.Thread(target=_execute_search)
-            thread_query.start()
+            
+            # TODO: For some reason, creating the WarningPopup is causing the application to hang when _execute_search() is called using a new thread.
+            _execute_search()
+            # thread_query = threading.Thread(target=_execute_search)
+            # thread_query.start()
     
     def _populate_utility_selector(self, df):
         """Generates utility RecycleView based on search results."""
@@ -375,9 +296,6 @@ class RateStructureUtilitySearchScreen(Screen):
             popup.open()
         finally:
             self.search_button.disabled = False
-
-        # thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
-        # thread_query.start()
 
         # Open loading screen.
         self.loading_screen = LoadingModalView()

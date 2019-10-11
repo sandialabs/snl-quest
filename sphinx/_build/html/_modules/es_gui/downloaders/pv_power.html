@@ -143,25 +143,6 @@
                     <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">request_content</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
     
     <span class="k">return</span> <span class="n">connection_error_occurred</span></div>
-
-
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
-    <span class="n">pv_params</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;dataset&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;tmy3&#39;</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;radius&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;0&#39;</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;timeframe&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;hourly&#39;</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;api_key&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;AHKRnsqzqRbhOZ9XU2C63gwFEsPASXtQJl3b1Pd0&#39;</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">35.08</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">106.65</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;system_capacity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;losses&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">14</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;azimuth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">180</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;tilt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">35.08</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;array_type&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="mi">0</span>
-    <span class="n">pv_params</span><span class="p">[</span><span class="s1">&#39;module_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="n">get_pv_profile_data</span><span class="p">(</span><span class="n">pv_params</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="s1">&#39;test_pv.json&#39;</span><span class="p">,</span> <span class="n">ssl_verify</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 
           </div>
