@@ -320,7 +320,7 @@ The rate structure files are stored as .json files in `/data/rate_structures/` a
   * energy sell price - fixed $/kWh for net metering 1.0; use null for type == true (net metering 2.0)
 
 #### PV profile
-The PV profile files are stored as .json files in `/data/pvp/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. The format is essentially that of the direct files from the PVWatts API. The relevant fields are described as follows:
+The PV profile files are stored as .json files in `/data/pv/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. The format is essentially that of the direct files from the PVWatts API. The relevant fields are described as follows:
 
 * inputs - the API inputs for this resulting .json object; these are for display purposes only 
 * station_info - same as the inputs
