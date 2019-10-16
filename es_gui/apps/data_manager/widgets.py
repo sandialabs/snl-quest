@@ -2218,7 +2218,7 @@ class DataManagerPanelCAISO(BoxLayout):
                             df_data.to_csv(destination_file, sep=',')
                     else:
                         # print('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
-                        logging.info('CAISOdownloader: {0}: File already exits, skipping...'.format(log_identifier))
+                        logging.info('CAISOdownloader: {0}: File already exists, skipping...'.format(log_identifier))
                     
                     Clock.schedule_once(self.increment_progress_bar, 0)
 
@@ -2767,7 +2767,7 @@ class DataManagerPanelPJM(BoxLayout):
                             Clock.schedule_once(partial(self.update_output_log, '{0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e))), 0)
                             self.thread_failed = True
                     else:
-                        logging.info('PJMdownloader: {0}: File already exits, skipping...'.format(log_identifier))
+                        logging.info('PJMdownloader: {0}: File already exists, skipping...'.format(log_identifier))
                     
                     Clock.schedule_once(self.increment_progress_bar, 0)
 

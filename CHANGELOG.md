@@ -6,9 +6,14 @@
   * [#16] Previously: reports were generated in place using the same name if of the same type. For example, if two reports for different wizard runs in QuESt BTMs were generated, the newer one would overwrite the older one because they shared the same name.
   * [#16] Previously: figures for reports of the same type would overwrite older figures. For example, a new report generated in QuESt BTM would overwrite the figures of a previous report. However, if the HTML file for the report was not overwritten (e.g., the file name was changed), then the previous report could still be opened. Unfortunately, since the image links in that older report refer to the same path, they would then refer to the newer figures with the same filenames that most likely refer to the incorrect simulation run. An analogous issue occurs in QuESt Valuation. This caused considerable confusion.
   * Now: reports and their figures are saved in separate folders which are timestamped when they are generated. Due to the nature of HTML files, we still encourage users to save the report to a more permanent format (such as PDF) when moving or distributing these reports.
-* In general, errors during optimization solving are now reported more explicitly.
-  * [#18] Previously: A generic error message would be displayed that would obfuscate underlying causes for errors. For example, an exception from the optimization solver being unable to be found and an exception from mismatched time series data would be reported identically. The user would be unable to know that his or her selected solver was unable to be located or was not installed.
+* Errors during optimization solving are now reported more explicitly.
+  * Previously: A generic error message would be displayed that would obfuscate underlying causes for errors. For example, an exception from the optimization solver being unable to be found and an exception from mismatched time series data would be reported identically. The user would be unable to know that his or her selected solver was unable to be located or was not installed.
   * Now: Specific errors that are identified are enumerated in the completion popup window. For example, in a batch run with multiple months selected, months for which the data is mismatched are specifically listed.
+
+#### QuESt Valuation
+* The formulation for participating in frequency regulation in ISO-NE has been adjusted.
+  * The mileage is now estimated using a simulated AGC signal. This signal is automatically downloaded when acquiring data for ISO-NE in QuESt Data Manager.
+  * This mileage is used to obtain a mileage multiplier time series for use in performance credit calculations.
 
 ### Resolved issues
 * An issue where using a search bar to search by state for "VA" would not yield "Virginia".

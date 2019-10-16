@@ -1,9 +1,19 @@
 <img src="es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt: Optimizing Energy Storage
-Current release version: 1.2.d
+[![Build Status](https://travis-ci.com/rconcep/snl-quest.svg?branch=master)](https://travis-ci.com/rconcep/snl-quest)
 
-Release date: 06/04/19
+Current release version: 1.2.e
+
+Release date: 10/14/19
+
+## Contact
+For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
+
+### Email
+Entity account `@sandia.gov: snl-quest`
+
+Project maintainer (Ricky Concepcion) `@sandia.gov: rconcep`
 
 ## Table of contents
 - [Introduction](#intro)
@@ -76,7 +86,7 @@ When running the executable version of QuESt, a solver compatible for Pyomo is r
 
 ##### Installing GLPK (for Windows)
 1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
-2. The glpk.dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. These files need to be in the system path for Windows. The easiest way to do this is to move those files to the `C:\windows\system32` directory. You can also place them in the same directory as the QuESt executable.
+2. The glpk_*.dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. Select the pair for the appropriate version of Windows that you are using. You can place them in the same directory as the QuESt executable. Alternatively, you can place those files to the `C:\windows\system32` directory in order to have them in your system path.
 3. (When placing the files in your system path) Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 
 ### Installing from source code (advanced)
@@ -166,7 +176,7 @@ So far, this issue has been observed on a variety of laptops of both Windows and
 
 If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts.
 
-If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not have to download all the data again if you would like.
+If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not have to download all the data again if you would like. You can also move your `/quest.ini` file to migrate your settings.
 
 ### QuESt Data Manager
 <a id="faq-data-manager"></a>
@@ -282,3 +292,44 @@ No, but this is a known issue. The easiest workaround is to reset the entire wiz
 > Sometimes the figures in the cost savings wizard report do not appear.
 
 This is a known issue. You can try to generate the report again in order to fix it.
+
+> I want to use my own rate structure / PV profile / load profile.
+
+We are planning on implementing interfaces for importing your own data. However, it is possible to bring your own data.
+
+#### Rate structure
+The rate structure files are stored as .json files in `/data/rate_structures/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. The general structure of the .json object is as follows:
+
+* name - the display name
+* utility
+  * utility name - display name for utility 
+  * rate structure - display name for rate structure
+* energy rate structure
+  * weekday schedule - a 2D array where the entries correspond to the integer-valued period of that hour. Each row represents a month. Each column represents an hour.
+  * weekend schedule - same as weekday schedule
+  * energy rates - each field name corresponds to the integer-valued periods from the weekday and weekend schedule and each field value is the $/kWh time-of-use energy rate for that period
+* demand rate structure
+  * weekday schedule - same as energy rate structure
+  * weekend schedule - same as energy rate structure
+  * time of use rates - same as energy rates but with values in $/kW
+  * flat rates - each field name is the abbreviation of the month and each field value is the $/kW flat demand charge for the peak demand of that month, if applicable
+  * minimum peak demand - minimum peak demand in kW for this rate structure
+  * maximum peak demand - maximum peak demand in kW for this rate structure
+* net metering
+  * type - true if net metering 2.0 (use time-of-use energy rate), false if net metering 1.0 (use a fixed $/kWh)
+  * energy sell price - fixed $/kWh for net metering 1.0; use null for type == true (net metering 2.0)
+
+#### PV profile
+The PV profile files are stored as .json files in `/data/pv/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. The format is essentially that of the direct files from the PVWatts API. The relevant fields are described as follows:
+
+* inputs - the API inputs for this resulting .json object; these are for display purposes only 
+* station_info - same as the inputs
+* outputs
+  * ac - the hourly AC output in Watts in a single 1D array; this is what QuESt uses (after internal conversion to kW)
+
+#### Load profile
+The load profile files are stored as .csv files in `/data/load/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. You can create a new directory under `commercial` for example like `/data/load/commercial/custom` and add a new .csv file.
+
+The format is basically two columns; the "Date/Time" column gives the month, day, and hour and the second column is the hourly kW load. The "Date/Time" columna is used for parsing the correct data for a selected month, for example. A year is not provided because the building data is simulated based on TMY3 (typical meteorological year).
+
+Once new files are added to the `data` bank appropriately, they should be picked up in the relevant applications when you are prompted to make a selection.

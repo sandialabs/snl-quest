@@ -130,7 +130,7 @@ class AboutScreen(ModalView):
             elif value == 'sandia':
                 webbrowser.open('http://sandia.gov/')
         
-        version_statement = 'QuESt v1.2.d \n 2019.06.04'
+        version_statement = 'QuESt v1.2.e \n 2019.10.14'
 
         developed_by = '{app_name} is developed by the {ess} and {espr} departments at {sandia}.'.format(app_name=APP_NAME, ess=_ref_link('Energy Storage Technology and Systems', 'sandia-ess'), espr=_ref_link('Electric Power Systems Research', 'sandia-espr'), sandia=_ref_link('Sandia National Laboratories', 'sandia'))
 
