@@ -1,0 +1,246 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Utility rate structures &#8212; QuESt  documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="PV power profiles" href="pv_power_data.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="utility-rate-structures">
+<h1>Utility rate structures<a class="headerlink" href="#utility-rate-structures" title="Permalink to this headline">¶</a></h1>
+<p>The <a class="reference internal" href="#module-es_gui.downloaders.utility_rates" title="es_gui.downloaders.utility_rates"><code class="xref py py-mod docutils literal notranslate"><span class="pre">utility_rates</span></code></a> module is for interacting with the <a class="reference external" href="https://openei.org/apps/USURDB/">OpenEI U.S. Utility Rate Database API</a> to obtain utility rate structures.</p>
+<p>The following example illustrates how to perform a proper query. The <a class="reference internal" href="#es_gui.downloaders.utility_rates.get_utility_rate_structures" title="es_gui.downloaders.utility_rates.get_utility_rate_structures"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_utility_rate_structures()</span></code></a> function is used to perform an API query.</p>
+<div class="highlight-python notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="n">api_key</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># Use your OpenEI API key</span>
+
+<span class="c1"># Get the table of utilities in the database</span>
+<span class="n">utility_reference_table</span><span class="p">,</span> <span class="n">cnx_error_occurred</span> <span class="o">=</span> <span class="n">get_utility_reference_table</span><span class="p">()</span>
+
+<span class="c1"># Get the EIA ID of an arbitrary utility</span>
+<span class="n">eia_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">utility_reference_table</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;eiaid&#39;</span><span class="p">])</span>
+
+<span class="c1"># Get the list of records of rate structures for that utility</span>
+<span class="n">records</span><span class="p">,</span> <span class="n">connection_error_occurred</span> <span class="o">=</span> <span class="n">get_utility_rate_structures</span><span class="p">(</span>
+    <span class="n">eia_id</span><span class="p">,</span>
+    <span class="n">api_key</span>
+<span class="p">)</span>
+
+<span class="c1"># Select an arbitrary rate structure</span>
+<span class="n">rate_structure</span> <span class="o">=</span> <span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</td></tr></table></div>
+<span class="target" id="module-es_gui.downloaders.utility_rates"></span><p>This module contains functions for obtaining utility rates from OpenEI.</p>
+<dl class="data">
+<dt id="es_gui.downloaders.utility_rates.APIROOT_OPENEI">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">APIROOT_OPENEI</code><em class="property"> = 'https://api.openei.org/utility_rates?'</em><a class="headerlink" href="#es_gui.downloaders.utility_rates.APIROOT_OPENEI" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL to the root of OpenEI utility rate API queries.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="es_gui.downloaders.utility_rates.DETAIL_OPENEI">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">DETAIL_OPENEI</code><em class="property"> = '&amp;detail=full'</em><a class="headerlink" href="#es_gui.downloaders.utility_rates.DETAIL_OPENEI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment of OpenEI utility rate API query denoting the level of detail to use.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="es_gui.downloaders.utility_rates.REQUEST_FMT_OPENEI">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">REQUEST_FMT_OPENEI</code><em class="property"> = '&amp;format=json'</em><a class="headerlink" href="#es_gui.downloaders.utility_rates.REQUEST_FMT_OPENEI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment of OpenEI utility rate API query denoting which return format to use.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="es_gui.downloaders.utility_rates.URL_OPENEI_IOU">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">URL_OPENEI_IOU</code><em class="property"> = 'https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/500990ae-ada2-4791-9206-01dc68e36f12/download/iouzipcodes2017.csv'</em><a class="headerlink" href="#es_gui.downloaders.utility_rates.URL_OPENEI_IOU" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL to the OpenEI table of investor-owned utilities.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="es_gui.downloaders.utility_rates.URL_OPENEI_NONIOU">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">URL_OPENEI_NONIOU</code><em class="property"> = 'https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/672523aa-0d8a-4e6c-8a10-67e311bb1691/download/noniouzipcodes2017.csv'</em><a class="headerlink" href="#es_gui.downloaders.utility_rates.URL_OPENEI_NONIOU" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL to the OpenEI table of non-investor-owned utilities.</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="es_gui.downloaders.utility_rates.VERSION_OPENEI">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">VERSION_OPENEI</code><em class="property"> = 'version=latest'</em><a class="headerlink" href="#es_gui.downloaders.utility_rates.VERSION_OPENEI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Segment of OpenEI utility rate API query denoting which version to use.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.utility_rates.get_utility_rate_structures">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">get_utility_rate_structures</code><span class="sig-paren">(</span><em class="sig-param">eia_id</em>, <em class="sig-param">api_key</em>, <em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/es_gui/downloaders/utility_rates.html#get_utility_rate_structures"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.utility_rates.get_utility_rate_structures" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains a list of records for all rate structures for the utility identified by eia_id.</p>
+<p>This function forms an API query using the api_key and eia_id which identifies the utility.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eia_id</strong> (<em>str</em>) – Numeric EIA ID that identifies the utility.</p></li>
+<li><p><strong>api_key</strong> (<em>str</em>) – Alphanumeric API key for Data.gov / NREL Developer Network resources.</p></li>
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True.</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None.</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>list</em> – Records of utility rates in the database for the utility. The keys are the rate structure names augmented with the effective date. The values are from the JSON object returned for each rate structure. The records are sorted alphabetically and then by most recent effective date.</p></li>
+<li><p><em>bool</em> – True if a connection error occurred during the requests and the number of retries hit the specified limit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="es_gui.downloaders.utility_rates.get_utility_reference_table">
+<code class="sig-prename descclassname">es_gui.downloaders.utility_rates.</code><code class="sig-name descname">get_utility_reference_table</code><span class="sig-paren">(</span><em class="sig-param">ssl_verify=True</em>, <em class="sig-param">proxy_settings=None</em>, <em class="sig-param">n_attempts=7</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/es_gui/downloaders/utility_rates.html#get_utility_reference_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#es_gui.downloaders.utility_rates.get_utility_reference_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Obtains a table of records for all utilities in the U.S. utility rate database.</p>
+<p>This function downloads the invester-owned and non-investor-owned utility reference tables from OpenEI and combines them into a single Pandas DataFrame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ssl_verify</strong> (<em>bool</em>) – True if the URL request should use SSL verification, defaults to True.</p></li>
+<li><p><strong>proxy_settings</strong> (<em>dict</em>) – HTTP and HTTPS proxies for URL request; format is {‘http_proxy’: ‘…’, ‘https_proxy’: ‘…’}, defaults to None.</p></li>
+<li><p><strong>n_attempts</strong> (<em>int</em>) – The maximum number of retries for the URL request before declaring connection errors, defaults to 7.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>DataFrame</em> – Records of U.S. utilities in the database with keys: [‘zip’, ‘eiaid’, ‘utility_name’, ‘state’, ‘service_type’, ‘ownership’, ‘comm_rate’, ‘ind_rate’, ‘res_rate’]</p></li>
+<li><p><em>bool</em> – True if a connection error occurred during the requests and the number of retries hit the specified limit</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>See the U.S. Utility Rate Database here:</p>
+<p><a class="reference external" href="https://openei.org/apps/USURDB/">https://openei.org/apps/USURDB/</a></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="../index.html">
+    <img class="logo" src="../_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">QuESt</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">An application suite and library for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../constraints.html">Constraints</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_data.html">Building load profiles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pv_power_data.html">PV power profiles</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Utility rate structures</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="pv_power_data.html" title="previous chapter">PV power profiles</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Sandia National Laboratories.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/downloaders/rate_structures.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

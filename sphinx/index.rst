@@ -9,6 +9,7 @@
    constraints
    downloaders/building_data
    downloaders/pv_power_data
+   downloaders/rate_structures
 
 This is a Python module that uses the Pyomo optimization modeling language to construct a linear program for the valuation of an energy storage device in a given electricity market.
 

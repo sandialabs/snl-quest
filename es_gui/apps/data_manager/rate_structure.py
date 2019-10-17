@@ -31,7 +31,7 @@ from es_gui.resources.widgets.common import BodyTextBase, InputError, WarningPop
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME, STATE_ABBR_TO_NAME
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
-from es_gui.downloaders.utility_rates import get_utility_reference_table
+from es_gui.downloaders.utility_rates import get_utility_reference_table, get_utility_rate_structures
 
 
 MAX_WHILE_ATTEMPTS = 7
@@ -131,20 +131,32 @@ class RateStructureUtilitySearchScreen(Screen):
         """Downloads and builds the utility reference table from OpenEI."""
         ssl_verify, proxy_settings = check_connection_settings()
 
-        try:
-            utility_reference_table, connection_error_occurred = get_utility_reference_table(
-                ssl_verify=ssl_verify,
-                proxy_settings=proxy_settings,
-                n_attempts=MAX_WHILE_ATTEMPTS
-            )
-        except requests.ConnectionError:
-            pass
-        else:
-            # Add column for state/district name.
-            utility_reference_table['state name'] = utility_reference_table['state'].apply(lambda state_abbr: STATE_ABBR_TO_NAME.get(state_abbr, ''))
+        utility_reference_table, connection_error_occurred = get_utility_reference_table(
+            ssl_verify=ssl_verify,
+            proxy_settings=proxy_settings,
+            n_attempts=MAX_WHILE_ATTEMPTS
+        )
 
-            self.utility_ref_table = utility_reference_table
-            logging.info('RateStructureDM: Retrieved list of all utilities.')
+        # Add column for state/district name.
+        utility_reference_table['state name'] = utility_reference_table['state'].apply(lambda state_abbr: STATE_ABBR_TO_NAME.get(state_abbr, ''))
+
+        self.utility_ref_table = utility_reference_table
+        logging.info('RateStructureDM: Retrieved list of all utilities.')
+
+        # try:
+        #     utility_reference_table, connection_error_occurred = get_utility_reference_table(
+        #         ssl_verify=ssl_verify,
+        #         proxy_settings=proxy_settings,
+        #         n_attempts=MAX_WHILE_ATTEMPTS
+        #     )
+        # except requests.ConnectionError:
+        #     pass
+        # else:
+        #     # Add column for state/district name.
+        #     utility_reference_table['state name'] = utility_reference_table['state'].apply(lambda state_abbr: STATE_ABBR_TO_NAME.get(state_abbr, ''))
+
+        #     self.utility_ref_table = utility_reference_table
+        #     logging.info('RateStructureDM: Retrieved list of all utilities.')
 
     def _validate_inputs(self):      
         """Validates the search parameters."""  
@@ -284,11 +296,11 @@ class RateStructureUtilitySearchScreen(Screen):
             
     def _populate_utility_rate_structures(self, eia_id):
         """Executes OpenEI API query for given EIA ID."""
-        api_root = APIROOT_OPENEI + VERSION_OPENEI + REQUEST_FMT_OPENEI + DETAIL_OPENEI
-        api_query = api_root + '&api_key=' + self.api_key + '&eia=' + eia_id
+        # api_root = APIROOT_OPENEI + VERSION_OPENEI + REQUEST_FMT_OPENEI + DETAIL_OPENEI
+        # api_query = api_root + '&api_key=' + self.api_key + '&eia=' + eia_id
 
         try:
-            thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[api_query])
+            thread_query = threading.Thread(target=self._query_api_for_rate_structures, args=[eia_id, self.api_key])
             thread_query.start()
         except requests.ConnectionError:
             popup = ConnectionErrorPopup()
@@ -302,87 +314,33 @@ class RateStructureUtilitySearchScreen(Screen):
         self.loading_screen.loading_text.text = 'Retrieving rate structures...'
         self.loading_screen.open()
     
-    def _query_api_for_rate_structures(self, api_query):
+    def _query_api_for_rate_structures(self, eia_id, api_key):
         """Uses OpenEI API to query the rate structures for given EIA ID and populates rate structure RecycleView."""
         ssl_verify, proxy_settings = check_connection_settings()
 
         attempt_download = True
         n_tries = 0
+        
+        try:
+            records, connection_error_occurred = get_utility_rate_structures(
+                eia_id, 
+                api_key, 
+                ssl_verify=ssl_verify, 
+                proxy_settings=proxy_settings, 
+                n_attempts=MAX_WHILE_ATTEMPTS
+            )
+        except requests.ConnectionError:
+            popup = ConnectionErrorPopup()
+            popup.popup_text.text = 'There was an issue querying the OpenEI database. Check your connection settings and try again.'
+            popup.open()
+        else:
+            self.rate_structure_rv.data = records
+            self.rate_structure_rv.unfiltered_data = records
 
-        while attempt_download:
-            n_tries += 1
-            
-            if n_tries >= MAX_WHILE_ATTEMPTS:
-                logging.warning('RateStructureDM: Hit download retry limit.')
-                attempt_download = False
-                break
-            
-            if App.get_running_app().root.stop.is_set():
-                return
+            logging.info('RateStructureDM: Retrieved utility rate structures.')
+            fade_in_animation(self.rate_structure_select_bx)
 
-            try:
-                with requests.Session() as req:
-                    http_request = req.get(api_query,
-                                            proxies=proxy_settings, 
-                                            timeout=10, 
-                                            verify=ssl_verify,
-                                            stream=True)
-                    if http_request.status_code != requests.codes.ok:
-                        http_request.raise_for_status()
-                    else:
-                        attempt_download = False
-            except requests.HTTPError as e:
-                logging.error('RateStructureDM: {0}'.format(repr(e)))
-                raise requests.ConnectionError
-            except requests.exceptions.ProxyError:
-                logging.error('RateStructureDM: Could not connect to proxy.')
-                raise requests.ConnectionError
-            except requests.ConnectionError as e:
-                logging.error('RateStructureDM: Failed to establish a connection to the host server.')
-                raise requests.ConnectionError
-            except requests.Timeout as e:
-                logging.error('RateStructureDM: The connection timed out.')
-                raise requests.ConnectionError
-            except requests.RequestException as e:
-                logging.error('RateStructureDM: {0}'.format(repr(e)))
-                raise requests.ConnectionError
-            except Exception as e:
-                # Something else went wrong.
-                logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
-                raise requests.ConnectionError
-            else:
-                structure_list = http_request.json()['items']
-
-                structure_df = pd.DataFrame.from_records(structure_list)
-                structure_df.dropna(subset=['energyratestructure'], inplace=True)
-
-                # Filter out entries whose energyratestructure array does not contain "rate" terms.
-                mask = structure_df['energyratestructure'].apply(lambda x: all(['rate' in hr.keys() for row in x for hr in row]))
-                structure_df = structure_df[mask]
-
-                structure_list = structure_df.to_dict(orient='records')
-
-                # First, sort by effective date.
-                # structure_list = sorted(structure_list, key=lambda x: (x['name'], x.get('startdate', np.nan)))
-                structure_list = sorted(structure_list, key=lambda x: x.get('startdate', np.nan), reverse=True)
-
-                # Then, sort by name.
-                structure_list = sorted(structure_list, key=lambda x: x['name'])                
-
-                # Display name: Name (record['startdate']).
-                effective_dates = ['(Effective Date : {0})'.format(dt.datetime.fromtimestamp(record['startdate']).strftime('%m/%d/%Y')) if not np.isnan(record['startdate']) else '' for record in structure_list]
-
-                records = [{'name': record['name'] + ' ' + effective_dates[ix] , 'record': record} 
-                for ix, record in enumerate(structure_list, start=0)]
-                # records = sorted(records, key=lambda t: t['name'])
-
-                self.rate_structure_rv.data = records
-                self.rate_structure_rv.unfiltered_data = records
-
-                logging.info('RateStructureDM: Retrieved utility rate structures.')
-                fade_in_animation(self.rate_structure_select_bx)
-            finally:
-                self.loading_screen.dismiss()
+        self.loading_screen.dismiss()
     
     def on_rate_structure_selected(self, instance, value):
         try:
@@ -396,7 +354,6 @@ class RateStructureUtilitySearchScreen(Screen):
             self.manager.get_screen('finish').populate_peak_demand_limits(value)
         
         try:
-            # print(value)
             self.rate_structure_desc.text = value.get('description', 'No description provided.')
         except ValueError:
             pass
