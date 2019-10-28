@@ -161,7 +161,10 @@ class DataManagerPanelERCOT(BoxLayout):
             self.cancel_download_button.disabled = False
 
             # Compute the range of years to iterate over.
-            year_range = pd.date_range(datetime_start, datetime_end, freq='YS')
+            year_range = pd.date_range(
+                datetime_start, datetime_end, 
+                freq='YS'
+                )
             year_range.union([year_range[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
@@ -187,19 +190,6 @@ class DataManagerPanelERCOT(BoxLayout):
                     kwargs={'year': batch, 'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'update_function': update_function}
                 )
                 thread_downloader.start()
-    
-    # def _download_ercot_data(self, year='all', typedat='both', foldersave=os.path.join('data'), ssl_verify=True, proxy_settings=None, update_function=None):
-    #     cnx_error_occurred = download_ercot_data(
-    #         save_directory=foldersave,
-    #         year=year,
-    #         typedat=typedat,
-    #         ssl_verify=ssl_verify,
-    #         proxy_settings=proxy_settings,
-    #         n_attempts=MAX_WHILE_ATTEMPTS,
-    #         update_function=update_function
-    #     )        
-            
-    #     self.n_active_threads -= 1
 
 
 class DataManagerPanelISONE(BoxLayout):
@@ -2774,14 +2764,7 @@ def batch_splitter(date_range, frequency='month'):
 
 
 def _build_update_progress_function(panel_instance):
-    """Updates the GUI (output log and/or progress bar) based on feedback from the data downloader function.
-
-    This function is passed to the data downloader function and is called when GUI updates are instructed.
-
-    Parameters
-    ----------
-    update : int or str
-        The update passed back from the data downloader function. An int update will increment the progress bar by 
+    """Builds the data download update progress function specific to the panel_instance object.
     """
     def update_progress_function(update):
         """Updates the GUI (output log and/or progress bar) based on feedback from the data downloader function.
@@ -2791,14 +2774,17 @@ def _build_update_progress_function(panel_instance):
         Parameters
         ----------
         update : int or str
-            The update passed back from the data downloader function. An int update will increment the progress bar by 
+            The update passed back from the data downloader function.
         """
         if isinstance(update, int):
             if update == -1:
+                # Decrement the number of active threads.
                 panel_instance.n_active_threads -= 1
             else:
+                # Increment the progress bar.
                 Clock.schedule_once(panel_instance.increment_progress_bar, 0)
         elif isinstance(update, str):
+            # Print a message to the output log.
             Clock.schedule_once(partial(panel_instance.update_output_log, update), 0)
     
     return update_progress_function
