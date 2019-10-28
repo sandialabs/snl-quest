@@ -45,17 +45,11 @@ from es_gui.apps.data_manager.data_manager import DataManagerException
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.utils import check_connection_settings
+from es_gui.downloaders.market_data import download_ercot_data
 
 
 MAX_THREADS = 4
 MAX_WHILE_ATTEMPTS = 7
-
-URL_OPENEI_IOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/500990ae-ada2-4791-9206-01dc68e36f12/download/iouzipcodes2017.csv"
-URL_OPENEI_NONIOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/672523aa-0d8a-4e6c-8a10-67e311bb1691/download/noniouzipcodes2017.csv"
-APIROOT_OPENEI = "https://api.openei.org/utility_rates?"
-VERSION_OPENEI = "version=latest"
-REQUEST_FMT_OPENEI = "&format=json"
-DETAIL_OPENEI = "&detail=full"
 
 
 class DataManagerRTOMOdataScreen(Screen):
@@ -183,142 +177,29 @@ class DataManagerPanelERCOT(BoxLayout):
             # Check connection settings.
             ssl_verify, proxy_settings = check_connection_settings()
 
+            update_function = _build_update_progress_function(self)
+
             # Spawn a new thread for each download_ercot_data call.
             for batch in job_batches:
-                thread_downloader = threading.Thread(target=self._download_ercot_data, 
-                kwargs={'year': batch, 'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings})
+                thread_downloader = threading.Thread(
+                    target=download_ercot_data, 
+                    args=[os.path.join('data')],
+                    kwargs={'year': batch, 'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'update_function': update_function}
+                )
                 thread_downloader.start()
     
-    def _download_ercot_data(self, year='all', typedat='both', foldersave=os.path.join('data'), ssl_verify=True, proxy_settings=None):
-        """Downloads and extracts specified ERCOT data to the specified local directory.
-        
-        :param year: An int, str, or list of int/str specifying the year(s) of data to download, defaults to 'all'
-        :param year: str, optional
-        :param typedat: The type of data to download. 'spp' for settlement point price, 'ccp' for capacity clearing price, or 'both' for both, defaults to 'both'
-        :param typedat: {'spp', 'ccp', 'both'}, optional
-        :param foldersave: The root directory to save the downloaded and extracted data, defaults to os.path.join('data')
-        :param foldersave: str, optional
-        """
-        # Base URLs for ERCOT website.
-        urlERCOTdown_ini = "http://mis.ercot.com/"
-        urlERCOT_spp = "http://mis.ercot.com/misapp/GetReports.do?reportTypeId=13060&reportTitle=Historical%20DAM%20Load%20Zone%20and%20Hub%20Prices&showHTMLView=&mimicKey/"
-        urlERCOT_ccp = "http://mis.ercot.com/misapp/GetReports.do?reportTypeId=13091&reportTitle=Historical%20DAM%20Clearing%20Prices%20for%20Capacity&showHTMLView=&mimicKey/"
-
-        # Determine which categories of data to download and save.
-        urlERCOT_list = []
-        folderprice = []
-        if typedat == "both":
-            urlERCOT_list.append(urlERCOT_spp)
-            urlERCOT_list.append(urlERCOT_ccp)
-            folderprice.append("/ERCOT/SPP/")
-            folderprice.append("/ERCOT/CCP/")
-        elif typedat == "spp":
-            urlERCOT_list.append(urlERCOT_spp)
-            folderprice.append("/ERCOT/SPP/")
-        elif typedat == "ccp":
-            urlERCOT_list.append(urlERCOT_ccp)
-            folderprice.append("/ERCOT/CCP/")
-
-        # Iterate through the requested data categories.
-        for ixlp, urlERCOT_list_x in enumerate(urlERCOT_list):
-            try:
-                # Retrieve the webpage and parse for .zip files.
-                page = requests.get(urlERCOT_list_x, timeout=10, proxies=proxy_settings, verify=ssl_verify)
-                soup_ERCOT_page = BeautifulSoup(page.content, 'html.parser')
-
-                zipfileslinks_ERCOT_page = []
-                for link in soup_ERCOT_page.find_all('a'):
-                    zipfileslinks_ERCOT_page.append(link.get('href'))
-                    #print(link.get('href'))
-                #print(zipfileslinks_ERCOT_page)
-
-                zipfilesnames_ERCOT_page = []
-                for tdlink in soup_ERCOT_page.find_all('td', attrs={'class': 'labelOptional_ind'}):
-                    zipfilesnames_ERCOT_page.append(tdlink.text)
-                    #print(tdlink.text)
-                #print(zipfilesnames_ERCOT_page)
-
-                # Find the .zip files for the requested years of data.
-                if year == "all":
-                    ixloop = range(len(zipfilesnames_ERCOT_page))
-                else:
-                    yearlist = year
-                    if type(year) is str:
-                        yearlist = []
-                        yearlist.append(year)
-                    elif type(year) is int:
-                        yearlist = []
-                        yearlist.append(str(year))
-                    ixloop = []
-                    for year_x in yearlist:
-                        #logging.info('ERCOTdownloader: Downloading data for {0}...'.format(year_x))
-                        #Clock.schedule_once(partial(self.update_output_log, 'Downloading data for {0}...'.format(year_x)))
-                        
-                        yearstr = str(year_x)
-                        yearzip = "_" + yearstr + ".zip"
-                        ixloop_x = [ix for ix, x in enumerate(zipfilesnames_ERCOT_page) if yearzip in x]
-                        ixloop.append(ixloop_x[0])
-
-                # Extract the .zip files to the specified local directory.
-                for jx in ixloop:
-                    zipfilename = zipfilesnames_ERCOT_page[jx]
-                    yearzip = zipfilename[-8:-4]
-                    #print(yearzip)
-                    urldown = urlERCOTdown_ini + zipfileslinks_ERCOT_page[jx]
-                    des_dir = foldersave + folderprice[ixlp] + yearzip + "/"
-
-                    #logging.info('ERCOTdownloader: Extracting to {0}'.format(des_dir))
-                    #self.update_output_log('Extracting to {0}'.format(des_dir))
-
-                    if not os.path.exists(des_dir):
-                        os.makedirs(des_dir)
-
-                    r = requests.get(urldown, timeout=10, proxies=proxy_settings, verify=ssl_verify)
-                    z = zipfile.ZipFile(io.BytesIO(r.content))
-                    z.extractall(des_dir)
-            except IndexError as e:
-                logging.error('ERCOTdownloader: An invalid year was provided. (got {0})'.format(year))
-                self.thread_failed = True
-            except requests.exceptions.ProxyError:
-                logging.error('ERCOTdownloader: {0}: Could not connect to proxy.'.format(year))
-                Clock.schedule_once(partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(year)), 0)
-                self.thread_failed = True
-            except socket.timeout:
-                logging.error('ERCOTdownloader: The connection timed out.')
-                self.update_output_log('The connection for downloading {year} data timed out.'.format(year=year))
-                self.thread_failed = True
-            except requests.HTTPError as e:
-                logging.error('ERCOTdownloader: {0}: {1}'.format(year, repr(e)))
-                Clock.schedule_once(partial(self.update_output_log, '{0}: HTTPError: {1}'.format(year, e.response.status_code)), 0)
-                self.thread_failed = True
-            except requests.ConnectionError as e:
-                logging.error('ERCOTdownloader: {0}: Failed to establish a connection to the host server.'.format(year))
-                Clock.schedule_once(partial(self.update_output_log, '{0}: Failed to establish a connection to the host server.'.format(year)), 0)
-                self.thread_failed = True
-            except requests.Timeout as e:
-                logging.error('ERCOTdownloader: {0}: The connection timed out.'.format(year))
-                Clock.schedule_once(partial(self.update_output_log, '{0}: The connection timed out.'.format(year)), 0)
-                self.thread_failed = True
-            except requests.RequestException as e:
-                logging.error('ERCOTdownloader: {0}: {1}'.format(year, repr(e)))
-                self.thread_failed = True
-            except Exception as e:
-                # Something else went wrong.
-                logging.error('ERCOTdownloader: {0}: An unexpected error has occurred. ({1})'.format(year, repr(e)))
-                Clock.schedule_once(partial(self.update_output_log, '{0}: An unexpected error has occurred. ({1})'.format(year, repr(e))), 0)
-                self.thread_failed = True
-            else:
-                logging.info('ERCOTdownloader: {0} data successfully downloaded and extracted.'.format(year))
-            finally:
-                Clock.schedule_once(self.increment_progress_bar, 0)
-
-                # Quit?
-                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
-                    # Stop running this thread so the main Python process can exit.
-                    self.n_active_threads -= 1
-                    return
+    # def _download_ercot_data(self, year='all', typedat='both', foldersave=os.path.join('data'), ssl_verify=True, proxy_settings=None, update_function=None):
+    #     cnx_error_occurred = download_ercot_data(
+    #         save_directory=foldersave,
+    #         year=year,
+    #         typedat=typedat,
+    #         ssl_verify=ssl_verify,
+    #         proxy_settings=proxy_settings,
+    #         n_attempts=MAX_WHILE_ATTEMPTS,
+    #         update_function=update_function
+    #     )        
             
-        self.n_active_threads -= 1
+    #     self.n_active_threads -= 1
 
 
 class DataManagerPanelISONE(BoxLayout):
@@ -2890,3 +2771,34 @@ def batch_splitter(date_range, frequency='month'):
         job_batches.append(batch)
     
     return job_batches
+
+
+def _build_update_progress_function(panel_instance):
+    """Updates the GUI (output log and/or progress bar) based on feedback from the data downloader function.
+
+    This function is passed to the data downloader function and is called when GUI updates are instructed.
+
+    Parameters
+    ----------
+    update : int or str
+        The update passed back from the data downloader function. An int update will increment the progress bar by 
+    """
+    def update_progress_function(update):
+        """Updates the GUI (output log and/or progress bar) based on feedback from the data downloader function.
+
+        This function is passed to the data downloader function and is called when GUI updates are instructed.
+
+        Parameters
+        ----------
+        update : int or str
+            The update passed back from the data downloader function. An int update will increment the progress bar by 
+        """
+        if isinstance(update, int):
+            if update == -1:
+                panel_instance.n_active_threads -= 1
+            else:
+                Clock.schedule_once(panel_instance.increment_progress_bar, 0)
+        elif isinstance(update, str):
+            Clock.schedule_once(partial(panel_instance.update_output_log, update), 0)
+    
+    return update_progress_function
