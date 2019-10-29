@@ -57,6 +57,10 @@ def download_ercot_data(save_directory, year='all', typedat='both', ssl_verify=T
     -------
     bool
         True if a connection error occurred during the requests and the number of retries hit the specified limit
+
+    Notes
+    -----
+    Validated for 2010 and later.
     """
     # Base URLs for ERCOT website.
     urlERCOTdown_ini = "http://mis.ercot.com/"
@@ -215,7 +219,7 @@ def download_isone_data(username, password, save_directory, datetime_start, date
     password : str
         Password for ISO-NE ISO Express API
     save_directory : str
-        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | ERCOT.
+        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | ISONE.
     datetime_start : datetime.datetime
         The beginning month and year for which to obtain data 
     datetime_end : datetime.datetime
@@ -241,6 +245,8 @@ def download_isone_data(username, password, save_directory, datetime_start, date
 
     Notes
     -----
+    Validated for 2016 and later.
+
     User credentials may be obtained by signing up for ISO Express access on the ISO-NE website.
 
     Before December 2017, day ahead (hourly) data for both LMP and RCP were posted. After December 2017, for RCP data only real time (five minute) data is posted. This function downloads five minute data for LMP and RCP and takes the hourly average for those dates.
@@ -567,7 +573,7 @@ def download_isone_data(username, password, save_directory, datetime_start, date
 def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat='all', bus_loc='both', ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
     """Downloads specified SPP data to the specified local directory.
 
-    Downloads day-ahead LMP and RCP data into monthly packages using API calls accessed with user credentials. See notes for details. This function also obtains a sample energy neutral AGC dispatch signal to estimate mileage parameters.
+    Downloads day-ahead LMP and MCP (for operating reserve products) data into monthly packages using the SPP integrated marketplace portal. 
 
     Parameters
     ----------
@@ -597,7 +603,7 @@ def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat
 
     Notes
     -----
-    Valid for SPP data starting on Jan 2014. SPP shares data starting in May/June 2013 but it is completely disorganized in certain parts.
+    Validated for 2014 and later. SPP shares data starting in May/June 2013 but it is completely disorganized in certain parts.
 
     Per summary descriptions on https://marketplace.spp.org/groups/day-ahead-market
 
@@ -838,6 +844,284 @@ def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat
     return connection_error_occurred
 
 
+def download_nyiso_data(save_directory, datetime_start, datetime_end=None, typedat='both', RT_DAM='both', zone_gen='both', ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
+    """Downloads specified NYISO data to the specified local directory.
+
+    Downloads day-ahead and/or real-time LBMP and/or ASP data using the NYISO OASIS portal. The files are downloaded as compressed .zip archives and extracted into monthly folders.
+
+    Parameters
+    ----------
+    save_directory : str
+        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | NYISO.
+    datetime_start : datetime.datetime
+        The beginning month and year for which to obtain data 
+    datetime_end : datetime.datetime
+        The ending month and year, inclusive, for which to obtain data, defaults to None. If None, then only the month specified by datetime_start is used.
+    typedat : str
+        The type of data to download: 'lbmp' for location-based marginal price, 'asp' for ancillary service price, or 'both' for both, defaults to 'both'
+    RT_DAM : str
+        The type of data to download: 'RT' for real-time, 'DAM' for day-ahead, or 'both' for both, defaults to 'both' 
+    zone_gen : str
+        The class of nodes to download data for: 'zone' for zonal, 'gen' for generator, or 'both' for both, defaults to 'both'
+    ssl_verify : bool
+        True if the URL request should use SSL verification, defaults to True.
+    proxy_settings : dict
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
+    n_attempts : int
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
+    update_function : function
+        An optional function handle for hooking into download progress updates, defaults to None. See module notes for specifications.
+    
+    Returns
+    -------
+    bool
+        True if a connection error occurred during the requests and the number of retries hit the specified limit
+
+    Notes
+    -----
+    Validated for 2013 and later.
+    """
+    connection_error_occurred = False
+
+    if not datetime_end:
+        datetime_end = datetime_start
+
+    # Compute the range of months to iterate over.
+    monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+    monthrange.union([monthrange[-1] + 1])
+
+    # Note NYISO has .zip files with months
+
+    # ASP
+    zone_or_gen_ASP_nam = []
+    zone_or_gen_ASP_folder = []
+    dam_or_rt_ASP_folder = []
+    dam_or_rt_ASP_nam = []
+    if RT_DAM == "RT":
+        zone_or_gen_ASP_nam.append("")
+        zone_or_gen_ASP_folder.append("")
+        dam_or_rt_ASP_nam.append("rtasp")
+        dam_or_rt_ASP_folder.append("RT")
+    elif RT_DAM == "DAM":
+        zone_or_gen_ASP_nam.append("")
+        zone_or_gen_ASP_folder.append("")
+        dam_or_rt_ASP_nam.append("damasp")
+        dam_or_rt_ASP_folder.append("DAM")
+    elif RT_DAM == "both":
+        zone_or_gen_ASP_nam.append("")
+        zone_or_gen_ASP_nam.append("")
+        zone_or_gen_ASP_folder.append("")
+        zone_or_gen_ASP_folder.append("")
+        dam_or_rt_ASP_nam.append("rtasp")
+        dam_or_rt_ASP_nam.append("damasp")
+        dam_or_rt_ASP_folder.append("RT")
+        dam_or_rt_ASP_folder.append("DAM")
+
+    # LBMP
+    zone_or_gen_LBMP_nam = []
+    zone_or_gen_LBMP_folder = []
+    dam_or_rt_LBMP_folder = []
+    dam_or_rt_LBMP_nam = []
+    if zone_gen == 'zone' or zone_gen == 'both':
+        if RT_DAM == "RT":
+            dam_or_rt_LBMP_nam.append("realtime")
+            dam_or_rt_LBMP_folder.append("RT")
+            zone_or_gen_LBMP_nam.append("_zone")
+            zone_or_gen_LBMP_folder.append("zone")
+        elif RT_DAM == "DAM":
+            dam_or_rt_LBMP_nam.append("damlbmp")
+            dam_or_rt_LBMP_folder.append("DAM")
+            zone_or_gen_LBMP_nam.append("_zone")
+            zone_or_gen_LBMP_folder.append("zone")
+        elif RT_DAM == "both":
+            dam_or_rt_LBMP_nam.append("realtime")
+            dam_or_rt_LBMP_nam.append("damlbmp")
+            dam_or_rt_LBMP_folder.append("RT")
+            dam_or_rt_LBMP_folder.append("DAM")
+            zone_or_gen_LBMP_nam.append("_zone")
+            zone_or_gen_LBMP_nam.append("_zone")
+            zone_or_gen_LBMP_folder.append("zone")
+            zone_or_gen_LBMP_folder.append("zone")
+
+    if zone_gen == 'gen' or zone_gen == 'both':
+        if RT_DAM == "RT":
+            dam_or_rt_LBMP_nam.append("realtime")
+            dam_or_rt_LBMP_folder.append("RT")
+            zone_or_gen_LBMP_nam.append("_gen")
+            zone_or_gen_LBMP_folder.append("gen")
+        elif RT_DAM == "DAM":
+            dam_or_rt_LBMP_nam.append("damlbmp")
+            dam_or_rt_LBMP_folder.append("DAM")
+            zone_or_gen_LBMP_nam.append("_gen")
+            zone_or_gen_LBMP_folder.append("gen")
+        elif RT_DAM == "both":
+            dam_or_rt_LBMP_nam.append("realtime")
+            dam_or_rt_LBMP_nam.append("damlbmp")
+            dam_or_rt_LBMP_folder.append("RT")
+            dam_or_rt_LBMP_folder.append("DAM")
+            zone_or_gen_LBMP_nam.append("_gen")
+            zone_or_gen_LBMP_nam.append("_gen")
+            zone_or_gen_LBMP_folder.append("gen")
+            zone_or_gen_LBMP_folder.append("gen")
+
+    zone_or_gen_nam = []
+    zone_or_gen_folder = []
+    dam_or_rt_nam = []
+    dam_or_rt_folder = []
+    lbmp_or_asp_folder = []
+    if typedat == "asp":
+        zone_or_gen_nam = zone_or_gen_ASP_nam
+        zone_or_gen_folder = zone_or_gen_ASP_folder
+        dam_or_rt_folder = dam_or_rt_ASP_folder
+        dam_or_rt_nam = dam_or_rt_ASP_nam
+        lbmp_or_asp_folder = ["ASP"] * len(dam_or_rt_ASP_nam)
+    elif typedat == "lbmp":
+        zone_or_gen_nam = zone_or_gen_LBMP_nam
+        zone_or_gen_folder = zone_or_gen_LBMP_folder
+        dam_or_rt_folder = dam_or_rt_LBMP_folder
+        dam_or_rt_nam = dam_or_rt_LBMP_nam
+        lbmp_or_asp_folder = ["LBMP"] * len(dam_or_rt_LBMP_nam)
+    elif typedat == "both":
+        zone_or_gen_nam = zone_or_gen_ASP_nam + zone_or_gen_LBMP_nam
+        zone_or_gen_folder = zone_or_gen_ASP_folder + zone_or_gen_LBMP_folder
+        dam_or_rt_folder = dam_or_rt_ASP_folder + dam_or_rt_LBMP_folder
+        dam_or_rt_nam = dam_or_rt_ASP_nam + dam_or_rt_LBMP_nam
+        lbmp_or_asp_folder = ["ASP"] * len(dam_or_rt_ASP_nam) + ["LBMP"] * len(dam_or_rt_LBMP_nam)
+
+    for date in monthrange:
+        date_str = date.strftime('%Y%m')
+
+        for sx, dam_or_rt_nam_x in enumerate(dam_or_rt_nam):
+
+            # Data download call.
+            datadownload_url = ''.join(
+                ['http://mis.nyiso.com/public/csv/', 
+                dam_or_rt_nam_x, '/', 
+                date_str, '01', 
+                dam_or_rt_nam_x,
+                zone_or_gen_nam[sx], "_csv.zip"]
+            )
+
+            destination_dir = os.path.join(save_directory, 'NYISO', lbmp_or_asp_folder[sx], dam_or_rt_folder[sx],
+                                            zone_or_gen_folder[sx], date.strftime('%Y'), date.strftime('%m'))
+            first_name_file = os.path.join(destination_dir,
+                                            ''.join([date_str, '01', dam_or_rt_nam_x, zone_or_gen_nam[sx], '.csv']))
+
+            if not os.path.exists(first_name_file):
+                trydownloaddate = True
+                wx = 0
+                while trydownloaddate:
+                    # # Quit?
+                    # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                    #     # Stop running this thread so the main Python process can exit.
+                    #     self.n_active_threads -= 1
+                    #     return
+
+                    wx = wx + 1
+                    if wx >= n_attempts:
+                        logging.warning('market_data: {0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx]))
+
+                        if update_function is not None:
+                            update_message = '{0} {1}: Hit download retry limit.'.format(date_str, lbmp_or_asp_folder[sx])
+                            update_function(update_message)
+
+                        trydownloaddate = False
+                        break
+                    
+                    try:
+                        with requests.Session() as req:
+                            http_request = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
+                                                    verify=ssl_verify, stream=True)
+
+                        if http_request.status_code == requests.codes.ok:
+                            trydownloaddate = False
+                        else:
+                            http_request.raise_for_status()
+                    except requests.HTTPError as e:
+                        logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                        if update_function is not None:
+                            update_message = '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)
+                            update_function(update_function)
+
+                        if wx >= (n_attempts  - 1):
+                            connection_error_occurred = True
+                    except requests.exceptions.ProxyError:
+                        logging.error('market_data: {0}: Could not connect to proxy.'.format(date_str))
+
+                        if update_function is not None:
+                            update_message = '{0}: Could not connect to proxy.'.format(date_str)
+                            update_function(update_message)
+
+                        if wx >= (n_attempts - 1):
+                            connection_error_occurred = True
+                    except requests.ConnectionError as e:
+                        logging.error(
+                            'market_data: {0}: Failed to establish a connection to the host server.'.format(
+                                date_str))
+
+                        if update_function is not None:
+                            update_message = '{0}: Failed to establish a connection to the host server.'.format(date_str)
+                            update_function(update_message)
+
+                        if wx >= (n_attempts - 1):
+                            connection_error_occurred = True
+                    except requests.Timeout as e:
+                        trydownloaddate = True
+                        logging.error('market_data: {0}: The connection timed out.'.format(date_str))
+
+                        if update_function is not None:
+                            update_message = '{0}: The connection timed out.'.format(date_str)
+                            update_function(update_message)
+
+                        if wx >= (n_attempts - 1):
+                            connection_error_occurred = True
+                    except requests.RequestException as e:
+                        logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                        if wx >= (n_attempts - 1):
+                            connection_error_occurred = True
+                    except Exception as e:
+                        # Something else went wrong.
+                        logging.error(
+                            'market_data: {0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))
+                        )
+
+                        if update_function is not None:
+                            update_message = '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))
+                            update_function(update_message)
+
+                        if wx >= (n_attempts - 1):
+                            connection_error_occurred = True
+                    else:
+                        os.makedirs(destination_dir, exist_ok=True)
+                        z = zipfile.ZipFile(io.BytesIO(http_request.content))
+                        z.extractall(destination_dir)
+            else:
+                # Skip downloading the daily file if it already exists where expected.
+                logging.info('market_data: {0}: {1} file already exists, skipping...'.format(
+                    date_str, lbmp_or_asp_folder[sx])
+                    )
+                
+                # if update_function is not None:
+                #     update_message = '{0}: {1} file already exists, skipping...'.format(date_str, lbmp_or_asp_folder[sx])
+                #     update_function(update_message)
+
+            if update_function is not None:
+                update_function(1)
+
+            # # Quit?
+            # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+            #     # Stop running this thread so the main Python process can exit.
+            #     self.n_active_threads -= 1
+            #     return
+
+    if update_function is not None:
+        update_function(-1)
+    
+    return connection_error_occurred
+
+
 if __name__ == '__main__':
     import urllib3
     urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -870,9 +1154,9 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    node_list = ['HUBS',]
-    username = 'rconcep@sandia.gov'
-    password = getpass.getpass(prompt='ISO-NE ISO Express password: ')
+    # node_list = ['HUBS',]
+    # username = 'rconcep@sandia.gov'
+    # password = getpass.getpass(prompt='ISO-NE ISO Express password: ')
     
     # cnx_error = download_isone_data(
     #     username=username, 
@@ -888,15 +1172,28 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    cnx_error = download_spp_data(
+    # cnx_error = download_spp_data(
+    #     save_directory=save_directory, 
+    #     datetime_start=datetime_start, 
+    #     datetime_end=None, 
+    #     bus_loc='both', 
+    #     typedat='all', 
+    #     ssl_verify=ssl_verify, 
+    #     proxy_settings=proxy_settings, 
+    #     n_attempts=7, 
+    #     update_function=_update_function
+    # )
+
+    cnx_error = download_nyiso_data(
         save_directory=save_directory, 
         datetime_start=datetime_start, 
         datetime_end=None, 
-        bus_loc='both', 
-        typedat='all', 
+        typedat='both', 
+        RT_DAM='both', 
+        zone_gen='both', 
         ssl_verify=ssl_verify, 
         proxy_settings=proxy_settings, 
         n_attempts=7, 
         update_function=_update_function
-    )
+        )
     
