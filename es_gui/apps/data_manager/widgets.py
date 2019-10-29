@@ -45,7 +45,7 @@ from es_gui.apps.data_manager.data_manager import DataManagerException
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.utils import check_connection_settings
-from es_gui.downloaders.market_data import download_ercot_data, download_isone_data
+from es_gui.downloaders.market_data import download_ercot_data, download_isone_data, download_spp_data
 
 
 MAX_THREADS = 4
@@ -1162,242 +1162,17 @@ class DataManagerPanelSPP(BoxLayout):
             # Check connection settings.
             ssl_verify, proxy_settings = check_connection_settings()
 
+            update_function = _build_update_progress_function(self)
+
             # Spawn a new thread for each download_SPP_data call.
             for batch in job_batches:
-                thread_downloader = threading.Thread(target=self._download_SPP_data, args=(batch[0], batch[-1]),
-                                                     kwargs={'ssl_verify': ssl_verify,
-                                                             'proxy_settings': proxy_settings,
-                                                             'bus_loc': nodes_selected})
+                thread_downloader = threading.Thread(
+                    target=download_spp_data, 
+                    args=(os.path.join('data'), batch[0], batch[-1]),
+                    kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'bus_loc': nodes_selected, 'n_attempts': MAX_WHILE_ATTEMPTS, 'update_function': update_function}
+                )
 
                 thread_downloader.start()
-
-    def _download_SPP_data(self, datetime_start, datetime_end=None, typedat="all", bus_loc="both", path='data/',
-                          ssl_verify=True, proxy_settings=None):
-        """Downloads a month's worth of SPP day ahead LMP and MCP data.
-
-        :param datetime_start: the start of the range of data to download
-        :type datetime_start: datetime
-        :param datetime_end: the end of the range of data to download, defaults to one month's worth
-        :type datetime_end: datetime
-        :param path: root directory of data download location, defaults to os.path.join('data')
-        :param path: str, optional
-        :param ssl_verify: if SSL verification should be done, defaults to True
-        :param ssl_verify: bool, optional
-        """
-
-        # Valid for SPP data starting on Jan 2014. SPP shares data starting May/June 2013 but it is completely disorganized in certain parts
-
-        # print("Max attempts:" + str(MAX_WHILE_ATTEMPTS))
-        if not datetime_end:
-            datetime_end = datetime_start
-
-        # Compute the range of months to iterate over.
-        monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
-
-        url_spp_daLMP = "https://marketplace.spp.org/file-api/download/da-lmp-by-"
-        url_spp_daMCP = "https://marketplace.spp.org/file-api/download/da-mcp"
-
-        foldercompl_da = ['By_Day%2F', '']
-
-        # MCP
-        bus_or_loc_MCP_nam = []
-        bus_or_loc_MCP_folder = []
-        case_MCP_URL = []
-
-        bus_or_loc_MCP_nam.append("")
-        bus_or_loc_MCP_folder.append("")
-        case_MCP_URL.append(url_spp_daMCP)
-
-        # LMP
-        bus_or_loc_LMP_nam = []
-        bus_or_loc_LMP_folder = []
-        case_LMP_URL = []
-        if bus_loc == 'bus' or bus_loc == 'both':
-            bus_or_loc_LMP_nam.append('B')
-            bus_or_loc_LMP_folder.append("bus")
-            case_LMP_URL.append(url_spp_daLMP)
-
-        if bus_loc == 'location' or bus_loc == 'both':
-            bus_or_loc_LMP_nam.append('SL')
-            bus_or_loc_LMP_folder.append("location")
-            case_LMP_URL.append(url_spp_daLMP)
-
-        bus_or_loc_nam = []
-        bus_or_loc_folder = []
-        lmp_or_mpc_folder = []
-        case_URL = []
-        if typedat == "mcp":
-            bus_or_loc_nam = bus_or_loc_MCP_nam
-            bus_or_loc_folder = bus_or_loc_MCP_folder
-            lmp_or_mpc_folder = ["MCP"] * len(case_MCP_URL)
-            case_URL = case_MCP_URL
-        elif typedat == "lmp":
-            bus_or_loc_nam = bus_or_loc_LMP_nam
-            bus_or_loc_folder = bus_or_loc_LMP_folder
-            lmp_or_mpc_folder = ["LMP"] * len(case_LMP_URL)
-            case_URL = case_LMP_URL
-        elif typedat == "all":
-            bus_or_loc_nam = bus_or_loc_MCP_nam + bus_or_loc_LMP_nam + [""]
-            bus_or_loc_folder = bus_or_loc_MCP_folder + bus_or_loc_LMP_folder + [""]
-            lmp_or_mpc_folder = ["MCP"] * len(case_MCP_URL) + ["LMP"] * len(case_LMP_URL)
-            case_URL = case_MCP_URL + case_LMP_URL
-
-        for sx, case_URL_x in enumerate(case_URL):
-            for date in monthrange:
-                _, n_days_month = calendar.monthrange(date.year, date.month)
-
-                for day in range(1, n_days_month + 1):
-                    date_str = date.strftime('%Y%m') + str(day).zfill(2)
-                    destination_dir = os.path.join(path, 'SPP', lmp_or_mpc_folder[sx], 'DAM', bus_or_loc_folder[sx],
-                                                   date.strftime('%Y'), date.strftime('%m'))
-
-                    if lmp_or_mpc_folder[sx] == "LMP":
-                        name_file = "DA-LMP-{0:s}-{1:d}{2:02d}{3:02d}0100.csv".format(bus_or_loc_nam[sx], date.year,
-                                                                                      date.month, day)
-                        URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F{2:s}".format(date.year, date.month, foldercompl_da[0])
-
-                    elif lmp_or_mpc_folder[sx] == "MCP":
-                        name_file = "DA-MCP-{0:d}{1:02d}{2:02d}0100.csv".format(date.year, date.month, day)
-                        URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F".format(date.year, date.month)
-
-                    destination_file = os.path.join(destination_dir, name_file)
-                    datadownload_url = ''.join([case_URL_x, bus_or_loc_folder[sx], URL_compl, name_file])
-
-                    if not os.path.exists(destination_file):
-
-                        # print(datadownload_url)
-
-                        trydownloaddate = True
-                        wx = 0
-                        while trydownloaddate:
-                            # Quit?
-                            if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
-                                # Stop running this thread so the main Python process can exit.
-                                self.n_active_threads -= 1
-                                return
-
-                            wx = wx + 1
-                            if wx >= MAX_WHILE_ATTEMPTS:
-                                logging.warning('SPPdownloader: {0} {1}: Hit download retry limit.'.format(date_str, lmp_or_mpc_folder[sx]))
-                                Clock.schedule_once(partial(self.update_output_log,
-                                                            '{0} {1}: Hit download retry limit'.format(date_str, lmp_or_mpc_folder[sx])), 0)
-
-                                print("Hit wx limit")
-                                trydownloaddate = False
-                                break
-
-                            try:
-                                with requests.Session() as req:
-                                    http_request = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
-                                                           verify=ssl_verify, stream=True)
-
-                                http_request_f = http_request
-                                if http_request.status_code == requests.codes.ok:
-                                    trydownloaddate = False
-                                    # self.thread_failed = False
-                                elif http_request.status_code == 406:
-                                    # Try again!
-                                    if lmp_or_mpc_folder[sx] == "LMP":
-                                        name_file = "DA-LMP-{0:s}-{1:d}{2:02d}{3:02d}0100.csv".format(bus_or_loc_nam[sx], date.year, date.month, day)
-                                        URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F{2:s}".format(date.year, date.month, foldercompl_da[1])
-                                    datadownload_url = ''.join(
-                                        [case_URL_x, bus_or_loc_folder[sx], URL_compl, name_file])
-                                    # print(datadownload_url)
-                                    # print('Try LMP again!!!')
-                                    with requests.Session() as req:
-                                        http_request2 = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
-                                                                verify=ssl_verify, stream=True)
-                                    if http_request2.status_code == requests.codes.ok:
-                                        trydownloaddate = False
-                                        foldercompl_aux = foldercompl_da[1]
-                                        foldercompl_da[1] = foldercompl_da[0]
-                                        foldercompl_da[0] = foldercompl_aux
-                                        http_request_f = http_request2
-                                    elif http_request.status_code == 406:
-                                        trydownloaddate = False
-                                        http_request.raise_for_status()
-                                        http_request2.raise_for_status()
-                                    else:
-                                        http_request.raise_for_status()
-                                        http_request2.raise_for_status()
-                                else:
-                                    http_request.raise_for_status()
-
-                            except requests.HTTPError as e:
-                                logging.error('SPPdownloader: {0}: {1}'.format(date_str, repr(e)))
-                                Clock.schedule_once(partial(self.update_output_log,
-                                                            '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
-                                if wx >= (MAX_WHILE_ATTEMPTS-1):
-                                    self.thread_failed = True
-                            except requests.exceptions.ProxyError:
-                                logging.error('SPPdownloader: {0}: Could not connect to proxy.'.format(date_str))
-                                Clock.schedule_once(
-                                    partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
-                                if wx >= (MAX_WHILE_ATTEMPTS-1):
-                                    self.thread_failed = True
-                            except requests.ConnectionError as e:
-                                logging.error(
-                                    'SPPdownloader: {0}: Failed to establish a connection to the host server.'.format(
-                                        date_str))
-                                Clock.schedule_once(partial(self.update_output_log,
-                                                            '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
-                                if wx >= (MAX_WHILE_ATTEMPTS-1):
-                                    self.thread_failed = True
-                            except requests.Timeout as e:
-                                trydownloaddate = True
-                                logging.error('SPPdownloader: {0}: The connection timed out.'.format(date_str))
-                                Clock.schedule_once(
-                                    partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
-                                if wx >= (MAX_WHILE_ATTEMPTS-1):
-                                    self.thread_failed = True
-                            except requests.RequestException as e:
-                                logging.error('SPPdownloader: {0}: {1}'.format(date_str, repr(e)))
-                                if wx >= (MAX_WHILE_ATTEMPTS-1):
-                                    self.thread_failed = True
-                            except Exception as e:
-                                # Something else went wrong.
-                                logging.error(
-                                    'SPPdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str,
-                                                                                                         repr(e)))
-                                Clock.schedule_once(partial(self.update_output_log,
-                                                            '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))), 0)
-                                if wx >= (MAX_WHILE_ATTEMPTS-1):
-                                    self.thread_failed = True
-                            
-                            try:
-                                urldata_str = http_request_f.content.decode('utf-8')
-                            except NameError:
-                                # http_request_f not yet defined
-                                pass
-                            except AttributeError:
-                                # http_request_f not an object returned by requests.get()
-                                pass
-                            except requests.exceptions.ConnectionError:
-                                # ConnectionError raised when decoding.
-                                # See requests.models.response.iter_content()
-                                pass
-                            else:
-                                if len(urldata_str) > 0:
-                                    os.makedirs(destination_dir, exist_ok=True)
-                                    output_file = open(destination_file, 'w')
-                                    output_file.write(urldata_str)
-                                    output_file.close()
-
-                    else:
-                        # Skip downloading the daily file if it already exists where expected.
-                        logging.info('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
-                        # print('SPPdownloader: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
-
-                    Clock.schedule_once(self.increment_progress_bar, 0)
-
-                    # Quit?
-                    if App.get_running_app().root.stop.is_set():
-                        # Stop running this thread so the main Python process can exit.
-                        self.n_active_threads -= 1
-                        return
-
-        self.n_active_threads -= 1
 
 
 class DataManagerPanelCAISO(BoxLayout):

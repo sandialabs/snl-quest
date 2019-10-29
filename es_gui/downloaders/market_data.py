@@ -564,14 +564,292 @@ def download_isone_data(username, password, save_directory, datetime_start, date
     return connection_error_occurred
 
 
+def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat='all', bus_loc='both', ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
+    """Downloads specified SPP data to the specified local directory.
+
+    Downloads day-ahead LMP and RCP data into monthly packages using API calls accessed with user credentials. See notes for details. This function also obtains a sample energy neutral AGC dispatch signal to estimate mileage parameters.
+
+    Parameters
+    ----------
+    save_directory : str
+        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | SPP.
+    datetime_start : datetime.datetime
+        The beginning month and year for which to obtain data 
+    datetime_end : datetime.datetime
+        The ending month and year, inclusive, for which to obtain data, defaults to None. If None, then only the month specified by datetime_start is used.
+    typedat : str
+        The type of data to download: 'lmp' for locational marginal price, 'mcp' for market clearing price (Operating Reserve product), or 'all' for both, defaults to 'all'
+    bus_loc : str
+        The pricing nodes for which to obtain LMP data. Valid values are 'bus', 'location', and 'both', defaults to 'both'
+    ssl_verify : bool
+        True if the URL request should use SSL verification, defaults to True.
+    proxy_settings : dict
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
+    n_attempts : int
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
+    update_function : function
+        An optional function handle for hooking into download progress updates, defaults to None. See module notes for specifications.
+    
+    Returns
+    -------
+    bool
+        True if a connection error occurred during the requests and the number of retries hit the specified limit
+
+    Notes
+    -----
+    Valid for SPP data starting on Jan 2014. SPP shares data starting in May/June 2013 but it is completely disorganized in certain parts.
+
+    Per summary descriptions on https://marketplace.spp.org/groups/day-ahead-market
+
+    bus_loc = 'bus' : 'Provides LMP information by Pnode location for each Day-Ahead Market solution for each Operating Day.'
+
+    bus_loc = 'location' : 'Provides LMP information by Pnode location and corresponding Settlement Location for each Day-Ahead Market solution for each Operating Day.'
+    """
+    connection_error_occurred = False
+
+    if not datetime_end:
+        datetime_end = datetime_start
+
+    # Compute the range of months to iterate over.
+    monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+    monthrange.union([monthrange[-1] + 1])
+
+    url_spp_daLMP = "https://marketplace.spp.org/file-api/download/da-lmp-by-"
+    url_spp_daMCP = "https://marketplace.spp.org/file-api/download/da-mcp"
+
+    foldercompl_da = ['By_Day%2F', '']
+
+    # MCP
+    bus_or_loc_MCP_nam = []
+    bus_or_loc_MCP_folder = []
+    case_MCP_URL = []
+
+    bus_or_loc_MCP_nam.append("")
+    bus_or_loc_MCP_folder.append("")
+    case_MCP_URL.append(url_spp_daMCP)
+
+    # LMP
+    bus_or_loc_LMP_nam = []
+    bus_or_loc_LMP_folder = []
+    case_LMP_URL = []
+    if bus_loc == 'bus' or bus_loc == 'both':
+        bus_or_loc_LMP_nam.append('B')
+        bus_or_loc_LMP_folder.append("bus")
+        case_LMP_URL.append(url_spp_daLMP)
+
+    if bus_loc == 'location' or bus_loc == 'both':
+        bus_or_loc_LMP_nam.append('SL')
+        bus_or_loc_LMP_folder.append("location")
+        case_LMP_URL.append(url_spp_daLMP)
+
+    bus_or_loc_nam = []
+    bus_or_loc_folder = []
+    lmp_or_mpc_folder = []
+    case_URL = []
+    if typedat == "mcp":
+        bus_or_loc_nam = bus_or_loc_MCP_nam
+        bus_or_loc_folder = bus_or_loc_MCP_folder
+        lmp_or_mpc_folder = ["MCP"] * len(case_MCP_URL)
+        case_URL = case_MCP_URL
+    elif typedat == "lmp":
+        bus_or_loc_nam = bus_or_loc_LMP_nam
+        bus_or_loc_folder = bus_or_loc_LMP_folder
+        lmp_or_mpc_folder = ["LMP"] * len(case_LMP_URL)
+        case_URL = case_LMP_URL
+    elif typedat == "all":
+        bus_or_loc_nam = bus_or_loc_MCP_nam + bus_or_loc_LMP_nam + [""]
+        bus_or_loc_folder = bus_or_loc_MCP_folder + bus_or_loc_LMP_folder + [""]
+        lmp_or_mpc_folder = ["MCP"] * len(case_MCP_URL) + ["LMP"] * len(case_LMP_URL)
+        case_URL = case_MCP_URL + case_LMP_URL
+
+    for sx, case_URL_x in enumerate(case_URL):
+        for date in monthrange:
+            _, n_days_month = calendar.monthrange(date.year, date.month)
+
+            for day in range(1, n_days_month + 1):
+                date_str = date.strftime('%Y%m') + str(day).zfill(2)
+                destination_dir = os.path.join(save_directory, 'SPP', lmp_or_mpc_folder[sx], 'DAM', bus_or_loc_folder[sx],
+                                                date.strftime('%Y'), date.strftime('%m'))
+
+                if lmp_or_mpc_folder[sx] == "LMP":
+                    name_file = "DA-LMP-{0:s}-{1:d}{2:02d}{3:02d}0100.csv".format(bus_or_loc_nam[sx], date.year,
+                                                                                    date.month, day)
+                    URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F{2:s}".format(date.year, date.month, foldercompl_da[0])
+
+                elif lmp_or_mpc_folder[sx] == "MCP":
+                    name_file = "DA-MCP-{0:d}{1:02d}{2:02d}0100.csv".format(date.year, date.month, day)
+                    URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F".format(date.year, date.month)
+
+                destination_file = os.path.join(destination_dir, name_file)
+                datadownload_url = ''.join([case_URL_x, bus_or_loc_folder[sx], URL_compl, name_file])
+
+                if not os.path.exists(destination_file):
+                    trydownloaddate = True
+                    wx = 0
+
+                    while trydownloaddate:
+                        # # Quit?
+                        # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                        #     # Stop running this thread so the main Python process can exit.
+                        #     self.n_active_threads -= 1
+                        #     return
+
+                        wx = wx + 1
+                        if wx >= n_attempts:
+                            logging.warning('market_data: {0} {1}: Hit download retry limit.'.format(date_str, lmp_or_mpc_folder[sx]))
+
+                            if update_function is not None:
+                                update_message = '{0} {1}: Hit download retry limit.'.format(date_str, lmp_or_mpc_folder[sx])
+                                update_function(update_message)
+
+                            trydownloaddate = False
+                            break
+
+                        try:
+                            with requests.Session() as req:
+                                http_request = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
+                                                        verify=ssl_verify, stream=True)
+
+                            http_request_f = http_request
+                            if http_request.status_code == requests.codes.ok:
+                                trydownloaddate = False
+                            elif http_request.status_code == 406:
+                                # Try again!
+                                if lmp_or_mpc_folder[sx] == "LMP":
+                                    name_file = "DA-LMP-{0:s}-{1:d}{2:02d}{3:02d}0100.csv".format(bus_or_loc_nam[sx], date.year, date.month, day)
+                                    URL_compl = "?path=%2F{0:d}%2F{1:02d}%2F{2:s}".format(date.year, date.month, foldercompl_da[1])
+                                
+                                datadownload_url = ''.join(
+                                    [case_URL_x, bus_or_loc_folder[sx], URL_compl, name_file]
+                                    )
+
+                                with requests.Session() as req:
+                                    http_request2 = req.get(datadownload_url, proxies=proxy_settings, timeout=6,
+                                                            verify=ssl_verify, stream=True)
+                                if http_request2.status_code == requests.codes.ok:
+                                    trydownloaddate = False
+                                    foldercompl_aux = foldercompl_da[1]
+                                    foldercompl_da[1] = foldercompl_da[0]
+                                    foldercompl_da[0] = foldercompl_aux
+                                    http_request_f = http_request2
+                                elif http_request.status_code == 406:
+                                    trydownloaddate = False
+                                    http_request.raise_for_status()
+                                    http_request2.raise_for_status()
+                                else:
+                                    http_request.raise_for_status()
+                                    http_request2.raise_for_status()
+                            else:
+                                http_request.raise_for_status()
+
+                        except requests.HTTPError as e:
+                            logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                            if update_function is not None:
+                                update_message = '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)
+                                update_function(update_message)
+
+                            if wx >= (n_attempts - 1):
+                                connection_error_occurred = True
+                        except requests.exceptions.ProxyError:
+                            logging.error('market_data: {0}: Could not connect to proxy.'.format(date_str))
+
+                            if update_function is not None:
+                                update_message = '{0}: Could not connect to proxy.'.format(date_str)
+                                update_function(update_message
+                                )
+
+                            if wx >= (n_attempts - 1):
+                                connection_error_occurred = True
+                        except requests.ConnectionError as e:
+                            logging.error(
+                                'market_data: {0}: Failed to establish a connection to the host server.'.format(
+                                    date_str))
+
+                            if update_function is not None:
+                                update_message = '{0}: Failed to establish a connection to the host server.'.format(date_str)
+                                update_function(update_message)
+
+                            if wx >= (n_attempts - 1):
+                                connection_error_occurred = True
+                        except requests.Timeout as e:
+                            trydownloaddate = True
+                            logging.error('market_data: {0}: The connection timed out.'.format(date_str))
+
+                            if update_function is not None:
+                                update_message = '{0}: The connection timed out.'.format(date_str)
+                                update_function(update_message)
+
+                            if wx >= (n_attempts - 1):
+                                connection_error_occurred = True
+                        except requests.RequestException as e:
+                            logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                            if wx >= (n_attempts - 1):
+                                connection_error_occurred = True
+                        except Exception as e:
+                            # Something else went wrong.
+                            logging.error(
+                                'market_data: {0}: An unexpected error has occurred. ({1})'.format(date_str,
+                                                                                                        repr(e)))
+
+                            if update_function is not None:
+                                update_message = '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))
+                                update_function(update_message)
+
+                            if wx >= (n_attempts - 1):
+                                connection_error_occurred = True
+                        
+                        try:
+                            urldata_str = http_request_f.content.decode('utf-8')
+                        except NameError:
+                            # http_request_f not yet defined
+                            pass
+                        except AttributeError:
+                            # http_request_f not an object returned by requests.get()
+                            pass
+                        except requests.exceptions.ConnectionError:
+                            # ConnectionError raised when decoding.
+                            # See requests.models.response.iter_content()
+                            pass
+                        else:
+                            if len(urldata_str) > 0:
+                                os.makedirs(destination_dir, exist_ok=True)
+                                output_file = open(destination_file, 'w')
+                                output_file.write(urldata_str)
+                                output_file.close()
+
+                else:
+                    # Skip downloading the daily file if it already exists where expected.
+                    logging.info('market_data: {0}: {1} file already exists, skipping...'.format(date_str, lmp_or_mpc_folder[sx]))
+
+                if update_function is not None:
+                    update_function(1)
+
+                # # Quit?
+                # if App.get_running_app().root.stop.is_set():
+                #     # Stop running this thread so the main Python process can exit.
+                #     self.n_active_threads -= 1
+                #     return
+
+    if update_function is not None:
+        update_function(-1)
+
+    return connection_error_occurred
+
+
 if __name__ == '__main__':
     import urllib3
     urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
+
+    import getpass
 
     ssl_verify = False
     proxy_settings = {'http_proxy': 'wwwproxy.sandia.gov:80', 'https_proxy': 'wwwproxy.sandia.gov:80'}
 
     save_directory = 'test'
+
+    datetime_start = datetime.datetime(2019, 9, 1)
 
     def _update_function(update):
         if isinstance(update, int):
@@ -592,22 +870,33 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    username = 'rconcep@sandia.gov'
-    password = 'wjsnEXYs2'
-    datetime_start = datetime.datetime(2019, 9, 1)
     node_list = ['HUBS',]
+    username = 'rconcep@sandia.gov'
+    password = getpass.getpass(prompt='ISO-NE ISO Express password: ')
     
-    cnx_error = download_isone_data(
-        username=username, 
-        password=password, 
+    # cnx_error = download_isone_data(
+    #     username=username, 
+    #     password=password, 
+    #     save_directory=save_directory, 
+    #     datetime_start=datetime_start, 
+    #     datetime_end=None, 
+    #     nodes=node_list, 
+    #     typedat='all', 
+    #     ssl_verify=ssl_verify, 
+    #     proxy_settings=proxy_settings, 
+    #     n_attempts=7, 
+    #     update_function=_update_function
+    #     )
+
+    cnx_error = download_spp_data(
         save_directory=save_directory, 
         datetime_start=datetime_start, 
         datetime_end=None, 
-        nodes=node_list, 
+        bus_loc='both', 
         typedat='all', 
         ssl_verify=ssl_verify, 
         proxy_settings=proxy_settings, 
         n_attempts=7, 
         update_function=_update_function
-        )
+    )
     
