@@ -1122,6 +1122,204 @@ def download_nyiso_data(save_directory, datetime_start, datetime_end=None, typed
     return connection_error_occurred
 
 
+def download_miso_data(save_directory, datetime_start, datetime_end=None, ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
+    """Downloads specified MISO data to the specified local directory.
+
+    Downloads day-ahead LMP and MCP data into monthly packages using the MISO market reports portal.
+
+    Parameters
+    ----------
+    save_directory : str
+        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | MISO.
+    datetime_start : datetime.datetime
+        The beginning month and year for which to obtain data 
+    datetime_end : datetime.datetime
+        The ending month and year, inclusive, for which to obtain data, defaults to None. If None, then only the month specified by datetime_start is used.
+    ssl_verify : bool
+        True if the URL request should use SSL verification, defaults to True.
+    proxy_settings : dict
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
+    n_attempts : int
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
+    update_function : function
+        An optional function handle for hooking into download progress updates, defaults to None. See module notes for specifications.
+    
+    Returns
+    -------
+    bool
+        True if a connection error occurred during the requests and the number of retries hit the specified limit
+
+    Notes
+    -----
+    Validated for 2015 and later.
+    """
+    connection_error_occurred = False
+
+    if not datetime_end:
+        datetime_end = datetime_start
+
+    # Compute the range of months to iterate over.
+    monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+    monthrange.union([monthrange[-1] + 1])
+
+    for date in monthrange:
+        year = date.year
+        month = date.month
+
+        # Compute the range of days to iterate over.
+        _, n_days_month = calendar.monthrange(year, month)
+
+        for day in [x+1 for x in range(n_days_month)]:
+            # # Quit?
+            # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+            #     # Stop running this thread so the main Python process can exit.
+            #     self.n_active_threads -= 1
+            #     return
+
+            date = dt.date(year, month, day)
+            date_str = date.strftime('%Y%m%d')
+
+            # LMP call.
+            lmp_url = ''.join(['https://docs.misoenergy.org/marketreports/', date_str, '_da_exante_lmp.csv'])
+            destination_dir = os.path.join(save_directory, 'MISO', 'LMP', date.strftime('%Y'), date.strftime('%m'))
+            destination_file = os.path.join(destination_dir, '_'.join([date_str, 'da_exante_lmp.csv']))
+
+            if os.path.exists(destination_file):
+                # Skip downloading the daily file if it already exists where expected.
+                logging.info('market_data: {0}: LMP file already exists, skipping...'.format(date_str))
+            else:
+                try:
+                    with requests.Session() as s:
+                        http_request = s.get(lmp_url, stream=True, proxies=proxy_settings, verify=ssl_verify)
+                    
+                    # Check the HTTP status code.
+                    if http_request.status_code == requests.codes.ok:
+                        data = http_request.content.decode('utf-8')
+                    else:
+                        http_request.raise_for_status()
+                except requests.HTTPError as e:
+                    logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                    if update_function is not None:
+                        update_message = '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.ConnectionError as e:
+                    logging.error('market_data: {0}: Failed to establish a connection to the host server.'.format(date_str))
+
+                    if update_function is not None:
+                        update_message = '{0}: Failed to establish a connection to the host server.'.format(date_str)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.Timeout as e:
+                    logging.error('market_data: {0}: The connection timed out.'.format(date_str))
+
+                    if update_function is not None:
+                        update_message = '{0}: The connection timed out.'.format(date_str)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.RequestException as e:
+                    logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                    connection_error_occurred = True
+                except Exception as e:
+                    # Something else went wrong.
+                    logging.error('market_data: {0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e)))
+
+                    if update_function is not None:
+                        update_message = '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                else:
+                    os.makedirs(destination_dir, exist_ok=True)
+                    output_file = open(destination_file, 'w')
+                    output_file.write(data)
+                    output_file.close()
+
+            if update_function is not None:
+                update_function(1)
+            
+            # MCP call.
+            mcp_url = ''.join(['https://docs.misoenergy.org/marketreports/', date_str, '_asm_exante_damcp.csv'])
+            destination_dir = os.path.join(save_directory, 'MISO', 'MCP', date.strftime('%Y'), date.strftime('%m'))
+            destination_file = os.path.join(destination_dir, '_'.join([date_str, 'asm_exante_damcp.csv']))
+
+            if os.path.exists(destination_file):
+                # Skip downloading the daily file if it already exists where expected.
+                logging.info('market_data: {0}: MCP file already exists, skipping...'.format(date_str))
+            else:
+                try:
+                    with requests.Session() as s:
+                        http_request = s.get(mcp_url, stream=True, proxies=proxy_settings, verify=ssl_verify)
+                    
+                    # Check the HTTP status code.
+                    if http_request.status_code == requests.codes.ok:
+                        data = http_request.content.decode('utf-8')
+                    else:
+                        http_request.raise_for_status()
+                except requests.HTTPError as e:
+                    logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+
+                    if update_function is not None:
+                        update_message = '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.exceptions.ProxyError:
+                    logging.error('market_data: {0}: Could not connect to proxy.'.format(date_str))
+
+                    if update_function is not None:
+                        update_message = '{0}: Could not connect to proxy.'.format(date_str)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.ConnectionError as e:
+                    logging.error('market_data: {0}: Failed to establish a connection to the host server.'.format(date_str))
+
+                    if update_function is not None:
+                        update_message = '{0}: Failed to establish a connection to the host server.'.format(date_str)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.Timeout as e:
+                    logging.error('market_data: {0}: The connection timed out.'.format(date_str))
+
+                    if update_function is not None:
+                        update_message = '{0}: The connection timed out.'.format(date_str)
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                except requests.RequestException as e:
+                    logging.error('market_data: {0}: {1}'.format(date_str, repr(e)))
+                    connection_error_occurred = True
+                except Exception as e:
+                    # Something else went wrong.
+                    logging.error('market_data: {0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e)))
+
+                    if update_function is not None:
+                        update_message = '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))
+                        update_function(update_message)
+
+                    connection_error_occurred = True
+                else:
+                    os.makedirs(destination_dir, exist_ok=True)
+                    output_file = open(destination_file, 'w')
+                    output_file.write(data)
+                    output_file.close()
+            
+            if update_function is not None:
+                update_function(1)
+
+    if update_function is not None:
+        update_function(-1)
+    
+    return connection_error_occurred
+
+
 if __name__ == '__main__':
     import urllib3
     urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -1184,16 +1382,26 @@ if __name__ == '__main__':
     #     update_function=_update_function
     # )
 
-    cnx_error = download_nyiso_data(
+    # cnx_error = download_nyiso_data(
+    #     save_directory=save_directory, 
+    #     datetime_start=datetime_start, 
+    #     datetime_end=None, 
+    #     typedat='both', 
+    #     RT_DAM='both', 
+    #     zone_gen='both', 
+    #     ssl_verify=ssl_verify, 
+    #     proxy_settings=proxy_settings, 
+    #     n_attempts=7, 
+    #     update_function=_update_function
+    #     )
+
+    cnx_error = download_miso_data(
         save_directory=save_directory, 
         datetime_start=datetime_start, 
         datetime_end=None, 
-        typedat='both', 
-        RT_DAM='both', 
-        zone_gen='both', 
         ssl_verify=ssl_verify, 
         proxy_settings=proxy_settings, 
         n_attempts=7, 
         update_function=_update_function
-        )
+    )
     

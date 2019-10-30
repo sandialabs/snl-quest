@@ -45,7 +45,7 @@ from es_gui.apps.data_manager.data_manager import DataManagerException
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.utils import check_connection_settings
-from es_gui.downloaders.market_data import download_ercot_data, download_isone_data, download_spp_data, download_nyiso_data
+from es_gui.downloaders.market_data import download_ercot_data, download_isone_data, download_spp_data, download_nyiso_data, download_miso_data
 
 
 MAX_THREADS = 4
@@ -484,149 +484,17 @@ class DataManagerPanelMISO(BoxLayout):
             # Check connection settings.
             ssl_verify, proxy_settings = check_connection_settings()
 
+            update_function = _build_update_progress_function(self)
+
             # Spawn a new thread for each download_MISO_data call.
             for batch in job_batches:
-                thread_downloader = threading.Thread(target=self._download_MISO_data, 
-                args=(batch[0], batch[-1]),
-                kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings})
+                thread_downloader = threading.Thread(
+                    target=download_miso_data, 
+                    args=(os.path.join('data'), batch[0], batch[-1]),
+                    kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'n_attempts': MAX_WHILE_ATTEMPTS, 'update_function': update_function}
+                )
+
                 thread_downloader.start()
-    
-    def _download_MISO_data(self, datetime_start, datetime_end=None, path='data', ssl_verify=True, proxy_settings=None):
-        """Downloads a range of monthly MISO day ahead LMP and MCP data.
-        
-        :param datetime_start: the start of the range of data to download
-        :type datetime_start: datetime
-        :param datetime_end: the end of the range of data to download, defaults to one month's worth
-        :type datetime_end: datetime
-        :param path: root directory of data download location, defaults to 'data'
-        :param path: str, optional
-        :param ssl_verify: if SSL verification should be done, defaults to True
-        :param ssl_verify: bool, optional
-        :param proxy_settings: dictionary of proxy settings, defaults to None
-        :param proxy_settings: dict, optional
-        """
-
-        if not datetime_end:
-            datetime_end = datetime_start
-
-        # Compute the range of months to iterate over.
-        monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
-
-        for date in monthrange:
-            year = date.year
-            month = date.month
-
-            # Compute the range of days to iterate over.
-            _, n_days_month = calendar.monthrange(year, month)
-
-            for day in [x+1 for x in range(n_days_month)]:
-                # Quit?
-                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
-                    # Stop running this thread so the main Python process can exit.
-                    self.n_active_threads -= 1
-                    return
-
-                date = dt.date(year, month, day)
-                date_str = date.strftime('%Y%m%d')
-
-                # LMP call.
-                lmp_url = ''.join(['https://docs.misoenergy.org/marketreports/', date_str, '_da_exante_lmp.csv'])
-                destination_dir = os.path.join(path, 'MISO', 'LMP', date.strftime('%Y'), date.strftime('%m'))
-                destination_file = os.path.join(destination_dir, '_'.join([date_str, 'da_exante_lmp.csv']))
-
-                if os.path.exists(destination_file):
-                    # Skip downloading the daily file if it already exists where expected.
-                    logging.info('MISOdownloader: {0}: LMP file already exists, skipping...'.format(date_str))
-                else:
-                    try:
-                        with requests.Session() as s:
-                            http_request = s.get(lmp_url, stream=True, proxies=proxy_settings, verify=ssl_verify)
-                        
-                        # Check the HTTP status code.
-                        if http_request.status_code == requests.codes.ok:
-                            data = http_request.content.decode('utf-8')
-                        else:
-                            http_request.raise_for_status()
-                    except requests.HTTPError as e:
-                        logging.error('MISOdownloader: {0}: {1}'.format(date_str, repr(e)))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: HTTPError: {1}'.format(date_str, e.response.status_code)), 0)
-                        self.thread_failed = True
-                    except requests.ConnectionError as e:
-                        logging.error('MISOdownloader: {0}: Failed to establish a connection to the host server.'.format(date_str))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
-                        self.thread_failed = True
-                    except requests.Timeout as e:
-                        logging.error('MISOdownloader: {0}: The connection timed out.'.format(date_str))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
-                        self.thread_failed = True
-                    except requests.RequestException as e:
-                        logging.error('MISOdownloader: {0}: {1}'.format(date_str, repr(e)))
-                        self.thread_failed = True
-                    except Exception as e:
-                        # Something else went wrong.
-                        logging.error('MISOdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e)))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))), 0)
-                        self.thread_failed = True
-                    else:
-                        os.makedirs(destination_dir, exist_ok=True)
-                        output_file = open(destination_file, 'w')
-                        output_file.write(data)
-                        output_file.close()
-
-                Clock.schedule_once(self.increment_progress_bar, 0)
-                
-                # MCP call.
-                mcp_url = ''.join(['https://docs.misoenergy.org/marketreports/', date_str, '_asm_exante_damcp.csv'])
-                destination_dir = os.path.join(path, 'MISO', 'MCP', date.strftime('%Y'), date.strftime('%m'))
-                destination_file = os.path.join(destination_dir, '_'.join([date_str, 'asm_exante_damcp.csv']))
-
-                if os.path.exists(destination_file):
-                    # Skip downloading the daily file if it already exists where expected.
-                    logging.info('MISOdownloader: {0}: MCP file already exists, skipping...'.format(date_str))
-                else:
-                    try:
-                        with requests.Session() as s:
-                            http_request = s.get(mcp_url, stream=True, proxies=proxy_settings, verify=ssl_verify)
-                        
-                        # Check the HTTP status code.
-                        if http_request.status_code == requests.codes.ok:
-                            data = http_request.content.decode('utf-8')
-                        else:
-                            http_request.raise_for_status()
-                    except requests.HTTPError as e:
-                        logging.error('MISOdownloader: {0}: {1}'.format(date_str, repr(e)))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: HTTPError: {1}'.format(date_str, e.response.status_code), 0))
-                        self.thread_failed = True
-                    except requests.exceptions.ProxyError:
-                        logging.error('MISOdownloader: {0}: Could not connect to proxy.'.format(date_str))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(date_str)), 0)
-                        self.thread_failed = True
-                    except requests.ConnectionError as e:
-                        logging.error('MISOdownloader: {0}: Failed to establish a connection to the host server.'.format(date_str))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: Failed to establish a connection to the host server.'.format(date_str)), 0)
-                        self.thread_failed = True
-                    except requests.Timeout as e:
-                        logging.error('MISOdownloader: {0}: The connection timed out.'.format(date_str))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: The connection timed out.'.format(date_str)), 0)
-                        self.thread_failed = True
-                    except requests.RequestException as e:
-                        logging.error('MISOdownloader: {0}: {1}'.format(date_str, repr(e)))
-                        self.thread_failed = True
-                    except Exception as e:
-                        # Something else went wrong.
-                        logging.error('MISOdownloader: {0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e)))
-                        Clock.schedule_once(partial(self.update_output_log, '{0}: An unexpected error has occurred. ({1})'.format(date_str, repr(e))), 0)
-                        self.thread_failed = True
-                    else:
-                        os.makedirs(destination_dir, exist_ok=True)
-                        output_file = open(destination_file, 'w')
-                        output_file.write(data)
-                        output_file.close()
-                
-                Clock.schedule_once(self.increment_progress_bar, 0)
-
-        self.n_active_threads -= 1
 
 
 class DataManagerPanelNYISO(BoxLayout):
