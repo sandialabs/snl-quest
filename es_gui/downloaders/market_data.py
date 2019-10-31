@@ -6,7 +6,7 @@ update_function optional keyword arguments are available for each download funct
 
 update_function(str) : When an update message is returned, such as a completion notice or handled exception.
 
-update_function(1) : When progress has incremented by one unit.
+update_function(n) (n > 0) : When progress has incremented by n units.
 
 update_function(-1) : When the function is completed; signals that this work thread is terminated.
 
@@ -25,6 +25,7 @@ import logging
 import datetime as dt
 import json
 import zipfile
+import time
 
 import requests
 import pandas as pd
@@ -1719,18 +1720,481 @@ def download_pjm_data(save_directory, subs_key, datetime_start, datetime_end=Non
     return connection_error_occurred
 
 
+def download_caiso_data(save_directory, datetime_start, datetime_end=None, typedat='all', nodes=[], ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
+    """Downloads specified CAISO data to the specified local directory.
+
+    Downloads data into monthly packages using the CAISO API.
+
+    Parameters
+    ----------
+    save_directory : str
+        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | CAISO.
+    datetime_start : datetime.datetime
+        The beginning month and year for which to obtain data 
+    datetime_end : datetime.datetime
+        The ending month and year, inclusive, for which to obtain data, defaults to None. If None, then only the month specified by datetime_start is used.
+    typedat : str
+        The type of data to download: 'lmp' for locational marginal price, 'asp' for ancillary service price, 'mileage' for regulation mileage, or 'all' for all, defaults to 'all'
+    nodes : list[str]
+        Node IDs and/or node types to obtain LMPs for. Node types include: 'TH', 'ASP'
+    ssl_verify : bool
+        True if the URL request should use SSL verification, defaults to True.
+    proxy_settings : dict
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
+    n_attempts : int
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
+    update_function : function
+        An optional function handle for hooking into download progress updates, defaults to None. See module notes for specifications.
+    
+    Returns
+    -------
+    bool
+        True if a connection error occurred during the requests and the number of retries hit the specified limit
+
+    Notes
+    -----
+    Validated for 2015 and later.
+
+    The CAISO API limits requests to approximately one every five seconds. Sleep/wait functions are used to accomodate this restriction. Since ASP data is acquired in daily calls, it may take especially long to download ASP data.
+    """
+    connection_error_occurred = False
+
+    if not datetime_end:
+        datetime_end = datetime_start
+    
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    listnodes_file = os.path.join(current_dir, '..', 'apps', 'data_manager', '_static', 'nodes_caiso.csv')
+
+    if not nodes:
+        df_listnodes = pd.read_csv(listnodes_file, index_col=False)
+        nodelist = df_listnodes['Node ID']
+    else:
+        nodelist = []
+        for node_x in nodes:
+            if node_x == 'TH' or node_x == 'ASP':
+                df_listnodes = pd.read_csv(listnodes_file, index_col=False)
+                ixnodes_sel = df_listnodes['Node Type'] == node_x
+                selnodelist = df_listnodes.loc[ixnodes_sel, 'Node ID'].tolist()
+                nodelist = nodelist + selnodelist
+            else:
+                nodelist.append(node_x)
+
+    monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
+    monthrange.union([monthrange[-1] + 1])
+
+    url_CAISO = "http://oasis.caiso.com/oasisapi/SingleZip?"
+
+    case_dwn = []
+    folderdata = []
+
+    if typedat == "all":
+        folderdata.append("LMP")
+        folderdata.append("ASP")
+        folderdata.append("MILEAGE")
+        case_dwn = ["lmp", "asp", "mileage"]
+    elif typedat == "lmp":
+        folderdata.append("LMP")
+        case_dwn = ["lmp"]
+    elif typedat == "asp":
+        folderdata.append("ASP")
+        case_dwn = ["asp"]
+    elif typedat == "mileage":
+        folderdata.append("MILEAGE")
+        case_dwn = ["mileage"]
+
+    for ixlp, case_dwn_x in enumerate(case_dwn):
+
+        for date in monthrange:
+            date_str = date.strftime('%Y%m')
+            _, n_days_month = calendar.monthrange(date.year, date.month)
+
+            GMT_PST_chunk = dt.timedelta(hours=7)
+            day_chunk = dt.timedelta(hours=24)
+
+            datetime_start_x = dt.datetime(date.year, date.month, 1)
+            datetime_end_x = dt.datetime(date.year, date.month, n_days_month)
+            date_start_x = datetime_start_x + GMT_PST_chunk
+            date_end_x = datetime_end_x + GMT_PST_chunk + day_chunk
+
+            pnode_look_list = ["n/a"]
+            if case_dwn[ixlp] == "lmp":
+                pnode_look_list = nodelist
+
+            for pnode_look in pnode_look_list:
+                log_identifier = '{date}, {pnode}, {dtype}'.format(date=date_str, dtype=case_dwn[ixlp],
+                                                                    pnode=pnode_look)
+
+                nfilesave = "error.csv"
+                if case_dwn[ixlp] == "lmp":
+                    destination_dir = os.path.join(save_directory, 'CAISO', folderdata[ixlp], pnode_look, date.strftime('%Y'))
+                    destination_file = os.path.join(destination_dir,
+                                                    ''.join([date_str, "_dalmp_", pnode_look, ".csv"]))
+                elif case_dwn[ixlp] == "asp":
+                    destination_dir = os.path.join(save_directory, 'CAISO', folderdata[ixlp], date.strftime('%Y'))
+                    destination_file = os.path.join(destination_dir, ''.join([date_str, "_asp.csv"]))
+                elif case_dwn[ixlp] == "mileage":
+                    destination_dir = os.path.join(save_directory, 'CAISO', folderdata[ixlp], date.strftime('%Y'))
+                    destination_file = os.path.join(destination_dir, ''.join([date_str, "_regm.csv"]))
+
+                if not os.path.exists(destination_file):
+                    if case_dwn[ixlp] == "asp":
+                        dwn_ok = True
+                        for dayx in range(n_days_month):
+                            # # Quit?
+                            # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                            #     # Stop running this thread so the main Python process can exit.
+                            #     self.n_active_threads -= 1
+                            #     return
+
+                            log_identifier = '{date}, {pnode}, {dtype}'.format(date=date_str+str(dayx+1).zfill(2), dtype=case_dwn[ixlp], pnode=pnode_look)
+                            datetime_start_loop = dt.datetime(date.year, date.month, dayx + 1)
+                            date_start_loop = datetime_start_loop + GMT_PST_chunk
+                            date_end_loop = datetime_start_loop + GMT_PST_chunk + day_chunk
+                            """
+                            Note that ancillary services prices can only be downloaded on a daily basis and that they
+                            can't be controlled via T0XX
+                            """
+                            datesquery_start = "{0:d}{1:02d}{2:02d}T010:00-0000".format(date_start_loop.year,
+                                                                                        date_start_loop.month,
+                                                                                        date_start_loop.day)
+                            datesquery_end = "{0:d}{1:02d}{2:02d}T010:00-0000".format(date_end_loop.year,
+                                                                                        date_end_loop.month,
+                                                                                        date_end_loop.day)
+
+                            df_data_x, dwn_ok_x, connection_error_occurred = _ddownloader_caiso(
+                                url_CAISO, 
+                                case_dwn[ixlp], 
+                                datesquery_start,
+                                datesquery_end, 
+                                pnode_look, 
+                                log_identifier,
+                                ssl_verify=ssl_verify,
+                                proxy_settings=proxy_settings,
+                                n_attempts=n_attempts,
+                                update_function=update_function
+                                )
+                            dwn_ok = dwn_ok and dwn_ok_x
+                            if dwn_ok:
+                                if dayx == 0:
+                                    df_data = df_data_x
+                                else:
+                                    df_data = pd.concat([df_data, df_data_x], ignore_index=True)
+                            else:
+                                break
+
+                    else:
+                        # # Quit?
+                        # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                        #     # Stop running this thread so the main Python process can exit.
+                        #     self.n_active_threads -= 1
+                        #     return
+                        if date_start_x.month == 3:
+                            HTstart = 8
+                            HTend = 7
+                        elif date_start_x.month == 11:
+                            HTstart = 7
+                            HTend = 8
+                        elif date_start_x.month >= 4 and date_start_x.month <= 10:
+                            HTstart = 7
+                            HTend = 7
+                        else:
+                            HTstart = 8
+                            HTend = 8
+
+                        datesquery_start = "{0:d}{1:02d}{2:02d}T{3:02d}:00-0000".format(date_start_x.year,
+                                                                                        date_start_x.month,
+                                                                                        date_start_x.day, HTstart)
+                        datesquery_end = "{0:d}{1:02d}{2:02d}T{3:02d}:00-0000".format(date_end_x.year,
+                                                                                        date_end_x.month,
+                                                                                        date_end_x.day, HTend)
+
+                        # datesquery_start = "{0:d}{1:02d}{2:02d}T07:00-0000".format(date_start_x.year,date_start_x.month,date_start_x.day)
+                        # datesquery_end = "{0:d}{1:02d}{2:02d}T07:00-0000".format(date_end_x.year, date_end_x.month,date_end_x.day)
+
+                        # If January or December... do things differently
+                        if date_start_x.month == 1 or date_start_x.month == 12:
+                            date_start_x = datetime_start_x + GMT_PST_chunk
+                            date_end_x = datetime_end_x + GMT_PST_chunk
+                            datesquery_start = "{0:d}{1:02d}{2:02d}T08:00-0000".format(date_start_x.year,
+                                                                                        date_start_x.month,
+                                                                                        date_start_x.day)
+                            datesquery_end = "{0:d}{1:02d}{2:02d}T08:00-0000".format(date_end_x.year,
+                                                                                        date_end_x.month,
+                                                                                        date_end_x.day)
+
+                            # 1st download
+                            log_identifier = '{date}A, {pnode}, {dtype}'.format(date=date_str, dtype=case_dwn[ixlp],
+                                                                                pnode=pnode_look)
+                            df_data1, dwn1_ok, connection_error_occured = _ddownloader_caiso(
+                                url_CAISO, 
+                                case_dwn[ixlp], 
+                                datesquery_start,
+                                datesquery_end,
+                                pnode_look, 
+                                log_identifier, 
+                                ssl_verify=ssl_verify,
+                                proxy_settings=proxy_settings,
+                                n_attempts=n_attempts,
+                                update_function=update_function
+                                )
+
+                            # 2nd download
+                            log_identifier = '{date}B, {pnode}, {dtype}'.format(date=date_str, dtype=case_dwn[ixlp],
+                                                                                pnode=pnode_look)
+                            date_start_x = datetime_end_x + GMT_PST_chunk
+                            date_end_x = datetime_end_x + GMT_PST_chunk + day_chunk
+                            datesquery_start = "{0:d}{1:02d}{2:02d}T08:00-0000".format(date_start_x.year,
+                                                                                        date_start_x.month,
+                                                                                        date_start_x.day)
+                            datesquery_end = "{0:d}{1:02d}{2:02d}T08:00-0000".format(date_end_x.year,
+                                                                                        date_end_x.month,
+                                                                                        date_end_x.day)
+                            df_data2, dwn2_ok, connection_error_occured = _ddownloader_caiso(
+                                url_CAISO, 
+                                case_dwn[ixlp], 
+                                datesquery_start,
+                                datesquery_end,
+                                pnode_look, 
+                                log_identifier, 
+                                ssl_verify=ssl_verify,
+                                proxy_settings=proxy_settings,
+                                n_attempts=n_attempts,
+                                update_function=update_function
+                                )
+
+                            # Concatenate the two dataframes
+                            dwn_ok = dwn1_ok and dwn2_ok
+
+                            if dwn_ok:
+                                df_data = pd.concat([df_data1, df_data2], ignore_index=True)
+                        else:
+                            df_data, dwn_ok, connection_error_occured = _ddownloader_caiso(
+                                url_CAISO, 
+                                case_dwn[ixlp], 
+                                datesquery_start,
+                                datesquery_end,
+                                pnode_look, 
+                                log_identifier, 
+                                ssl_verify=ssl_verify,
+                                proxy_settings=proxy_settings,
+                                n_attempts=n_attempts,
+                                update_function=update_function
+                                )
+
+                    if dwn_ok:
+                        if case_dwn[ixlp] == "lmp":
+                            df_data = df_data.pivot(index='INTERVALSTARTTIME_GMT', columns='LMP_TYPE', values='MW')
+                        elif case_dwn[ixlp] == "asp":
+                            aregtyp_col = df_data['ANC_REGION'] + "_" + df_data['XML_DATA_ITEM']
+                            df_data['REGION_ANC_TYPE'] = aregtyp_col
+                            df_data = df_data.pivot(index='INTERVALSTARTTIME_GMT', columns='REGION_ANC_TYPE',
+                                                    values='MW')
+                        elif case_dwn[ixlp] == "mileage":
+                            df_data = df_data.pivot(index='INTERVALSTARTTIME_GMT', columns='XML_DATA_TYPE',
+                                                    values='MW')
+
+                        df_data.sort_index(ascending=True, inplace=True)
+                        os.makedirs(destination_dir, exist_ok=True)
+                        df_data.to_csv(destination_file, sep=',')
+                else:
+                    logging.info('market_data: {0}: File already exists, skipping...'.format(log_identifier))
+                
+                if update_function is not None:
+                    update_function(1)
+
+    if update_function is not None:
+        update_function(-1)
+    
+    return connection_error_occurred
+
+
+def _ddownloader_caiso(URL, case_dwn_x, datesquery_start, datesquery_end, pnode_look, log_identifier, ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
+    """Helper function for download_caiso_data() that executes the API query.
+    """
+    url_CAISO = URL
+
+    connection_error_occurred = False
+
+    if case_dwn_x == "lmp":
+        params_dict = {
+            # Request parameters
+            'queryname': 'PRC_LMP',
+            'startdatetime': datesquery_start,
+            'enddatetime': datesquery_end,
+            'version': '1',
+            'market_run_id': 'DAM',
+            'node': pnode_look,
+            'resultformat': '6'  # SO it's .csv
+        }
+    elif case_dwn_x == "asp":
+        params_dict = {
+            # Request parameters
+            'queryname': 'PRC_AS',
+            'startdatetime': datesquery_start,
+            'enddatetime': datesquery_end,
+            'version': '1',
+            'market_run_id': 'DAM',
+            'anc_type': 'ALL',
+            'anc_region': 'ALL',
+            'resultformat': '6'
+        }
+    elif case_dwn_x == "mileage":
+        params_dict = {
+            # Request parameters
+            'queryname': 'AS_MILEAGE_CALC',
+            'startdatetime': datesquery_start,
+            'enddatetime': datesquery_end,
+            'version': '1',
+            'anc_type': 'ALL',
+            'resultformat': '6'
+        }
+
+    df_data = np.empty([0])
+
+    trydownloaddate = True
+    dwn_ok = False
+    wx = 0
+    while trydownloaddate:
+        # # Quit?
+        # if App.get_running_app().root.stop.is_set():
+        #     # Stop running this thread so the main Python process can exit.
+        #     trydownloaddate = False
+        #     break
+
+        wx = wx + 1
+
+        if wx >= n_attempts:
+            print("Hit wx limit")
+            trydownloaddate = False
+            break
+
+        try:
+            with requests.Session() as req:
+                http_request = req.get(url_CAISO, params=params_dict, proxies=proxy_settings, timeout=7,
+                                        verify=ssl_verify)
+
+                # Check the HTTP status code.
+                if http_request.status_code == requests.codes.ok:
+                    trydownloaddate = False
+                elif http_request.status_code == 429:
+                    # time.sleep(5.5)  # delays for 5.5 seconds
+                    http_request.raise_for_status()
+                else:
+                    # time.sleep(5.1)  # delays for 5.1 seconds
+                    http_request.raise_for_status()
+        except requests.HTTPError as e:
+            logging.error('market_data: {0}: {1}'.format(log_identifier, repr(e)))
+
+            if update_function is not None:
+                update_message = '{0}: HTTPError: {1}'.format(log_identifier, e.response.status_code)
+                update_function(update_message)
+
+            if wx >= (n_attempts - 1):
+                connection_error_occurred = True
+        except requests.exceptions.ProxyError:
+            logging.error('market_data: {0}: Could not connect to proxy.'.format(log_identifier))
+
+            if update_function is not None:
+                update_message = '{0}: Could not connect to proxy.'.format(log_identifier)
+                update_function(update_message)
+
+            if wx >= (n_attempts - 1):
+                connection_error_occurred = True
+        except requests.ConnectionError as e:
+            logging.error(
+                'market_data: {0}: Failed to establish a connection to the host server.'.format(log_identifier))
+            
+            if update_function is not None:
+                update_message = '{0}: Failed to establish a connection to the host server.'.format(log_identifier)
+                update_function(update_message)
+
+            if wx >= (n_attempts - 1):
+                connection_error_occurred = True
+        except (socket.timeout, requests.Timeout) as e:
+            logging.error('market_data: {0}: The connection timed out.'.format(log_identifier))
+
+            if update_function is not None:
+                update_message = '{0}: The connection timed out.'.format(log_identifier)
+                update_function(update_message)
+
+            if wx >= (n_attempts - 1):
+                connection_error_occurred = True
+        except requests.RequestException as e:
+            logging.error('market_data: {0}: {1}'.format(log_identifier, repr(e)))
+
+            if wx >= (n_attempts - 1):
+                connection_error_occurred = True
+        except Exception as e:
+            # Something else went wrong.
+            logging.error(
+                'market_data: {0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e)))
+
+            if update_function is not None:
+                update_message = '{0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e))
+                update_function(update_message)
+
+            if wx >= (n_attempts - 1):
+                connection_error_occurred = True
+        else:
+            trydownloaddate = False
+
+            z = zipfile.ZipFile(io.BytesIO(http_request.content))
+            fnameopen = z.filelist[0].filename
+
+            if fnameopen[-4:] == '.csv':
+                fcsv = z.open(fnameopen)
+                df_data = pd.read_csv(fcsv)
+
+                logging.info('market_data: {0}: Successfully downloaded.'.format(log_identifier))
+
+                # time.sleep(5.2)  # delays for 5.2 seconds
+                dwn_ok = True
+            elif fnameopen[-4:] == '.xml':
+                fxml = z.open(fnameopen)
+                # xmlsoup = BeautifulSoup(fxml, 'xml')
+                xmlsoup = BeautifulSoup(fxml, 'html.parser')
+                err_xml = xmlsoup.find_all('ERR_CODE')
+
+                try:
+                    err_xml = err_xml[0].contents[0]
+                    if err_xml=='1015':
+                        trydownloaddate = True
+                    else:
+                        dwn_ok = False
+                        logging.info('market_data: {0}: 1015: GroupZip DownLoad is in Processing, Please Submit request after Sometime.'.format(log_identifier))
+                except IndexError:
+                    dwn_ok = False
+                    logging.info('market_data: {0}: No data returned for this request.'.format(log_identifier))
+            else:
+                dwn_ok = False
+                logging.info('market_data: {0}: Not a valid download request.'.format(log_identifier))
+
+        time.sleep(5.1)  # delays for 5.1 seconds
+
+    return df_data, dwn_ok, connection_error_occurred
+
+
 if __name__ == '__main__':
     import urllib3
     urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
     import getpass
 
+    log_name = 'market_data.log'
+
+    with open(log_name, 'w'):
+        pass
+
+    logging.basicConfig(filename=log_name, format='[%(levelname)s] %(asctime)s: %(message)s',
+                        level=logging.INFO)
+    logging.getLogger().addHandler(logging.StreamHandler())
+
     ssl_verify = False
     proxy_settings = {'http_proxy': 'wwwproxy.sandia.gov:80', 'https_proxy': 'wwwproxy.sandia.gov:80'}
 
     save_directory = 'test'
 
-    datetime_start = datetime.datetime(2019, 9, 1)
+    datetime_start = datetime.datetime(2019, 10, 1)
 
     def _update_function(update):
         if isinstance(update, int):
@@ -1739,7 +2203,7 @@ if __name__ == '__main__':
             else:
                 print('incrementing progress_bar')
         elif isinstance(update, str):
-            print(update)
+            print('>>', update)
 
     # cnx_error = download_ercot_data(
     #     save_directory, 
@@ -1804,7 +2268,7 @@ if __name__ == '__main__':
     #     update_function=_update_function
     # )
 
-    subs_key = '7eed848380df4fe5b2401d125aaecc8f'
+    # subs_key = '7eed848380df4fe5b2401d125aaecc8f'
 
     # node_list = get_pjm_nodes(
     #     subs_key=subs_key,
@@ -1815,13 +2279,25 @@ if __name__ == '__main__':
     # )
     # print(node_list)
 
-    cnx_error = download_pjm_data(
+    # cnx_error = download_pjm_data(
+    #     save_directory=save_directory, 
+    #     subs_key=subs_key,
+    #     datetime_start=datetime_start, 
+    #     datetime_end=None, 
+    #     typedat='all', 
+    #     nodes=['HUB',], 
+    #     ssl_verify=ssl_verify, 
+    #     proxy_settings=proxy_settings, 
+    #     n_attempts=7, 
+    #     update_function=_update_function
+    #     )
+
+    cnx_error = download_caiso_data(
         save_directory=save_directory, 
-        subs_key=subs_key,
         datetime_start=datetime_start, 
         datetime_end=None, 
         typedat='all', 
-        nodes=['HUB',], 
+        nodes=['ASP',], 
         ssl_verify=ssl_verify, 
         proxy_settings=proxy_settings, 
         n_attempts=7, 
