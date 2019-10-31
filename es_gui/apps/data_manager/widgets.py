@@ -45,7 +45,7 @@ from es_gui.apps.data_manager.data_manager import DataManagerException
 from es_gui.tools.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.utils import check_connection_settings
-from es_gui.downloaders.market_data import download_ercot_data, download_isone_data, download_spp_data, download_nyiso_data, download_miso_data
+from es_gui.downloaders.market_data import download_ercot_data, download_isone_data, download_spp_data, download_nyiso_data, download_miso_data, download_pjm_data
 
 
 MAX_THREADS = 4
@@ -1467,7 +1467,6 @@ class DataManagerPanelPJM(BoxLayout):
 
     def execute_download(self):
         """Executes the data downloader for PJM data based on options selected in GUI.
-        
         """
         try:
             sub_key, datetime_start, datetime_end, node_type_selected = self.get_inputs()
@@ -1500,265 +1499,17 @@ class DataManagerPanelPJM(BoxLayout):
             # Check connection settings.
             ssl_verify, proxy_settings = check_connection_settings()
 
+            update_function = _build_update_progress_function(self)
+
             # Spawn a new thread for each download_PJM_data call.
             for batch in job_batches:
-                thread_downloader = threading.Thread(target=self._download_PJM_data, 
-                args=(sub_key, batch[0], batch[-1]),
-                kwargs={'ssl_verify': ssl_verify, 'proxy_options': proxy_settings, 'nodes': node_type_selected})
+                thread_downloader = threading.Thread(
+                    target=download_pjm_data, 
+                    args=(os.path.join('data'), sub_key, batch[0], batch[-1]),
+                    kwargs={'ssl_verify': ssl_verify, 'proxy_settings': proxy_settings, 'nodes': node_type_selected, 'n_attempts': MAX_WHILE_ATTEMPTS, 'update_function': update_function}
+                    )
+
                 thread_downloader.start()
-
-            # thread_downloader = threading.Thread(target=self._download_PJM_data, args=(sub_key, datetime_start, datetime_end), kwargs={'nodes': node_type_selected, 'ssl_verify': False})
-            # thread_downloader.start()
-    
-    def _download_PJM_data(self, subs_key, datetime_start, datetime_end=None, typedat="all", nodes=[], foldersave='data', proxy_options={}, ssl_verify=True):
-        
-        # Request headers.
-        headers = {
-            'Ocp-Apim-Subscription-Key': subs_key,
-        }
-
-        if not datetime_end:
-            datetime_end = datetime_start
-
-        startyear = datetime_start.year
-        endyear = datetime_end.year
-        startmonth = datetime_start.month
-        endmonth = datetime_end.month
-
-        # loop through the months and from them do the start and end
-        date_download = []
-        for yx in range(startyear,endyear+1):
-            # print(yx)
-            if yx == startyear:
-                startmonth_x = startmonth
-            else:
-                startmonth_x = 1
-
-            if yx == endyear:
-                endmonth_x = endmonth
-            else:
-                endmonth_x = 12
-
-            for mx in range(startmonth_x,endmonth_x+1):
-                date_download.append(str(yx)+str(mx).zfill(2))
-
-        # Request URL roots.
-        urlPJM_lmp = "https://api.pjm.com/api/v1/da_hrl_lmps?"
-        urlPJM_reg = "https://api.pjm.com//api/v1/reg_zone_prelim_bill?"
-        urlPJM_mileage = "https://api.pjm.com/api/v1/reg_market_results?"
-
-        lmp_or_reg = []
-        urlPJM_list = []
-        folderprice = []
-        params_dict_list = []
-
-        if typedat == "all":
-            urlPJM_list.append(urlPJM_lmp)
-            urlPJM_list.append(urlPJM_reg)
-            urlPJM_list.append(urlPJM_mileage)
-            folderprice.append("/PJM/LMP/")
-            folderprice.append("/PJM/REG/")
-            folderprice.append("/PJM/MILEAGE/")
-            lmp_or_reg = ["lmp", "reg", "mileage"]
-        elif typedat == "lmp":
-            urlPJM_list.append(urlPJM_lmp)
-            folderprice.append("/PJM/LMP/")
-            lmp_or_reg = ["lmp"]
-        elif typedat == "reg":
-            urlPJM_list.append(urlPJM_reg)
-            folderprice.append("/PJM/REG/")
-            lmp_or_reg = ["reg"]
-        elif typedat == "mileage":
-            urlPJM_list.append(urlPJM_mileage)
-            folderprice.append("/PJM/MILEAGE/")
-            lmp_or_reg = ["mileage"]
-
-        for ixlp, urlPJM_list_x in enumerate(urlPJM_list):
-            for dx in date_download:
-                yearx = dx[0:4]
-                monthx = dx[4:]
-
-                ndaysmonthx = calendar.monthrange(int(yearx), int(monthx))
-                ndaysmonthx = int(ndaysmonthx[1])
-
-                nodetypesPJM = ['ZONE', 'LOAD', 'GEN', 'AGGREGATE', 'HUB', 'EHV', 'INTERFACE', 'EXT', 'RESIDUAL_METERED_EDC']
-
-                pnode_look_list = []
-                if lmp_or_reg[ixlp] == "lmp":
-                    if not nodes:
-                        nodelist = getPJMnodes(subs_key, dx, nodetype=[], proxydict=proxy_options, ssl_verify=ssl_verify)
-                    else:
-                        nodelist = []
-                        for node_x in nodes:
-
-                            isnodetype = [True for nodetypePJM_x in nodetypesPJM if node_x == nodetypePJM_x]
-
-                            if isnodetype:
-                                nodelist_x = getPJMnodes(subs_key, dx, nodetype=node_x, proxydict=proxy_options, ssl_verify=ssl_verify)
-                                nodelist = nodelist + nodelist_x
-                            else:
-                                nodelist.append(node_x)
-
-                    logging.info('PJMdownloader: Number of nodes in this call: {0}.'.format(str(len(nodelist))))
-                    pnode_look_list = nodelist
-                elif lmp_or_reg[ixlp] == "reg":
-                    pnode_look_list = ["n/a"]
-                elif lmp_or_reg[ixlp] == "mileage":
-                    pnode_look_list = ["n/a"]
-                
-                self.progress_bar.max += len(pnode_look_list)
-
-                for pnode_x in pnode_look_list:
-                    pnode_look = pnode_x
-
-                    log_identifier = '{date}, {pnode}, {dtype}'.format(date=dx, dtype=lmp_or_reg[ixlp], pnode=pnode_look)
-
-                    nfilesave = "error.csv"
-                    if lmp_or_reg[ixlp] == "lmp":
-                        des_dir = foldersave + folderprice[ixlp] + pnode_look + "/" + yearx + "/"
-                        nfilesave = dx + "_dalmp_" + pnode_look + ".csv"
-                    elif lmp_or_reg[ixlp] == "reg":
-                        # des_dir = foldersave + folderprice[ixlp] + yearx + "/" + monthx + "/"
-                        des_dir = foldersave + folderprice[ixlp] + yearx + "/"
-                        nfilesave = dx + "_regp" + ".csv"
-                    elif lmp_or_reg[ixlp] == "mileage":
-                        des_dir = foldersave + folderprice[ixlp] + yearx + "/"
-                        nfilesave = dx + "_regm" + ".csv"
-
-                    if not os.path.exists(des_dir + nfilesave):
-                        datesquery = "{0:d}-01-{1:d} 00:00 to {0:d}-{2:02d}-{1:d} 23:59".format(int(monthx), int(yearx), ndaysmonthx)
-                        date_str = datetime.date(int(yearx), int(monthx), ndaysmonthx).strftime('%Y%m')
-
-                        if lmp_or_reg[ixlp] == "lmp":
-                            params_dict = {
-                                # Request parameters
-                                'download': 'true',  ### if true it returns some sort of gzip
-                                'rowCount': '50000',
-                                'sort': 'datetime_beginning_ept',
-                                'order': 'asc',
-                                'startRow': '1',  ### required if any other parameter is specified
-                                'datetime_beginning_ept': datesquery,  #
-                                'pnode_id': pnode_look,
-                            }
-                        elif lmp_or_reg[ixlp] == "reg":
-                            params_dict = {
-                                # Request parameters
-                                'download': 'true',
-                                'rowCount': '50000',
-                                'sort': 'datetime_beginning_ept',
-                                'order': 'asc',
-                                'startRow': '1',
-                                'datetime_beginning_ept': datesquery,  #
-                            }
-                        elif lmp_or_reg[ixlp] == "mileage":
-                            params_dict = {
-                                # Request parameters
-                                'download': 'true',
-                                'rowCount': '50000',
-                                'sort': 'datetime_beginning_ept',
-                                'order': 'asc',
-                                'startRow': '1',
-                                'datetime_beginning_ept': datesquery,  #
-                            }
-
-                        try:
-                            dodownload = True
-                            ix = 0
-                            while dodownload:
-                                # Quit?
-                                if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
-                                    # Stop running this thread so the main Python process can exit.
-                                    self.n_active_threads -= 1
-                                    return
-
-                                with requests.Session() as response:
-                                    response = requests.get(urlPJM_list_x, params=params_dict,headers=headers, proxies=proxy_options,timeout=10, verify=ssl_verify)
-                                    # Check the HTTP status code.
-
-                                #print(response.status_code, response.reason)
-                                if response.status_code == requests.codes.ok:
-                                    dataheaders = response.headers
-                                    data_text = response.json()
-                                    df_data = pd.DataFrame.from_dict(data_text)
-                                    total_nrows = float(dataheaders['X-TotalRows'])
-
-                                    #print(total_nrows)
-
-                                    if ix == 0:
-                                        df_data_all = df_data
-                                    else:
-                                        df_data_all = pd.concat([df_data_all, df_data], ignore_index=True)
-                                    #print(50000 * (ix + 1) + 1)
-                                    params_dict['startRow'] = str(50000 * (ix + 1) + 1)
-
-                                    nloops = math.ceil(total_nrows / 50000) - 1
-
-                                    if ix >= nloops:
-                                        dodownload = False
-
-                                    ix += 1
-                                if total_nrows != 0:
-                                    df_data_all.set_index('datetime_beginning_ept', inplace=True)
-
-                                    columns_del = []
-                                    if lmp_or_reg[ixlp] == "lmp":
-                                        columns_del = ['equipment',
-                                                    'pnode_name','row_is_current','system_energy_price_da',
-                                                    'version_nbr','voltage','zone',
-                                                        'type','pnode_id','congestion_price_da',
-                                                    'marginal_loss_price_da']
-                                    elif lmp_or_reg[ixlp] == "reg":
-                                        columns_del = ['datetime_ending_ept', 'datetime_ending_utc', 'total_pjm_assigned_reg',
-                                                    'total_pjm_loc_credit', 'total_pjm_reg_purchases', 'total_pjm_rmccp_cr',
-                                                    'total_pjm_rmpcp_cr', 'total_pjm_rt_load_mwh', 'total_pjm_self_sched_reg'
-                                                    ]
-                                    elif lmp_or_reg[ixlp] == "mileage":
-                                        columns_del = ['deficiency', 'is_approved', 'modified_datetime_utc', 'rega_mileage', 
-                                        'rega_procure', 'rega_ssmw', 'regd_mileage', 'regd_procure', 'regd_ssmw', 
-                                        'requirement', 'rto_perfscore', 'total_mw']
-                                    df_data_all.drop(columns_del, inplace=True, axis=1)
-                                    os.makedirs(des_dir, exist_ok=True)
-
-                                    df_data_all.to_csv(des_dir + nfilesave, sep=',')
-                                    logging.info('PJMdownloader: {0}: Successfully downloaded.'.format(log_identifier))
-                                else:
-                                    logging.warning('PJMdownloader: {0}: No data retrieved in this API call.'.format(log_identifier))
-                        except requests.HTTPError as e:
-                            logging.error('PJMdownloader: {0}: {1}'.format(log_identifier, repr(e)))
-                            Clock.schedule_once(partial(self.update_output_log, '{0}: HTTPError: {1}'.format(log_identifier, e.response.status_code), 0))
-                            self.thread_failed = True
-                        except requests.exceptions.ProxyError:
-                            logging.error('PJMdownloader: {0}: Could not connect to proxy.'.format(log_identifier))
-                            Clock.schedule_once(partial(self.update_output_log, '{0}: Could not connect to proxy.'.format(log_identifier)), 0)
-                            self.thread_failed = True
-                        except requests.ConnectionError as e:
-                            logging.error('PJMdownloader: {0}: Failed to establish a connection to the host server.'.format(log_identifier))
-                            Clock.schedule_once(partial(self.update_output_log, '{0}: Failed to establish a connection to the host server.'.format(log_identifier)), 0)
-                            self.thread_failed = True
-                        except (socket.timeout, requests.Timeout) as e:
-                            logging.error('PJMdownloader: {0}: The connection timed out.'.format(log_identifier))
-                            Clock.schedule_once(partial(self.update_output_log, '{0}: The connection timed out.'.format(log_identifier)), 0)
-                            self.thread_failed = True
-                        except requests.RequestException as e:
-                            logging.error('PJMdownloader: {0}: {1}'.format(log_identifier, repr(e)))
-                            self.thread_failed = True
-                        except Exception as e:
-                            # Something else went wrong.
-                            logging.error('PJMdownloader: {0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e)))
-                            Clock.schedule_once(partial(self.update_output_log, '{0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e))), 0)
-                            self.thread_failed = True
-                    else:
-                        logging.info('PJMdownloader: {0}: File already exists, skipping...'.format(log_identifier))
-                    
-                    Clock.schedule_once(self.increment_progress_bar, 0)
-
-                    # Quit?
-                    if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
-                        # Stop running this thread so the main Python process can exit.
-                        self.n_active_threads -= 1
-                        return
-        
-        self.n_active_threads -= 1
         
 
 class DataManagerCheckbox(CheckBox):
@@ -1772,75 +1523,6 @@ class DataManagerPJMSubKeyHelp(ModalView):
 class DataManagerISONEAccHelp(ModalView):
     pass
 
-
-def getPJMnodes(subs_key, startdate, nodetype=[], proxydict={}, ssl_verify=True):
-    """
-    """
-
-
-    startyear = int(startdate[0:4])
-    startmonth = int(startdate[4:])
-
-
-    headers = {
-        # Request headers
-        'Ocp-Apim-Subscription-Key': subs_key,
-    }
-
-    datesquery = "{0:d}-01-{1:d} 00:00 to {0:d}-01-{1:d} 2:59".format(int(startmonth), int(startyear))
-    params_dict = {
-        # Request parameters
-        'download': 'true',  ### if true it returns some sort of gzip
-        'rowCount': '50000',
-        'sort': 'datetime_beginning_ept',
-        'order': 'asc',
-        'startRow': '1',  ### required if any other parameter is specified
-        'datetime_beginning_ept': datesquery,  #
-    }
-    if nodetype:
-        params_dict['type'] = nodetype
-
-    try:
-        dodownload = True
-        ix = 0
-
-        while dodownload:
-            response = requests.get("https://api.pjm.com/api/v1/da_hrl_lmps?", params=params_dict, headers=headers, proxies=proxydict, timeout=10, verify=ssl_verify)
-            #print(response.status_code, response.reason)
-
-            dataheaders = response.headers
-            data_text = response.json()
-            df_data = pd.DataFrame.from_dict(data_text)
-            total_nrows = float(dataheaders['X-TotalRows'])
-
-            #print(total_nrows)
-
-            if total_nrows > 1000000:
-                raise ValueError("Can't get so much data in a particular API search!!!")
-
-            if ix == 0:
-                df_data_all = df_data
-            else:
-                df_data_all = pd.concat([df_data_all, df_data], ignore_index=True)
-            #print(50000 * (ix + 1) + 1)
-            params_dict['startRow'] = str(50000 * (ix + 1) + 1)
-
-            nloops = math.ceil(total_nrows / 50000) - 1
-
-            if ix >= nloops:
-                dodownload = False
-
-            ix += 1
-
-        nodelist = df_data_all.pnode_id.unique()
-        nodelist = nodelist.astype(str)
-        nodelist = nodelist.tolist()
-        #print(type(nodelist))
-
-        return nodelist
-    except Exception as e:
-        print(repr(e))
-        return []
 
 def batch_splitter(date_range, frequency='month'):
     """Splits a Pandas date_range evenly to allocate data download workload among different threads.
@@ -1892,7 +1574,12 @@ def _build_update_progress_function(panel_instance):
                 panel_instance.n_active_threads -= 1
             else:
                 # Increment the progress bar.
-                Clock.schedule_once(panel_instance.increment_progress_bar, 0)
+                # Increase progress bar maximum if necessary (PJM data downloader computes progress bar max during node lookup).
+                if panel_instance.progress_bar.value + update > panel_instance.progress_bar.max:
+                    panel_instance.progress_bar.max += update
+                else:
+                    for ix in range(update):
+                        Clock.schedule_once(panel_instance.increment_progress_bar, 0)
         elif isinstance(update, str):
             # Print a message to the output log.
             Clock.schedule_once(partial(panel_instance.update_output_log, update), 0)

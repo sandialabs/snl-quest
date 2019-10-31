@@ -18,6 +18,7 @@ If update_function is None or is not provided, no such functionality will exist.
 import os
 import io
 import socket
+import math
 import calendar
 import datetime
 import logging
@@ -1320,6 +1321,404 @@ def download_miso_data(save_directory, datetime_start, datetime_end=None, ssl_ve
     return connection_error_occurred
 
 
+def get_pjm_nodes(subs_key, startdate, nodetype=None, proxy_settings=None, ssl_verify=True):
+    """Returns the list of node IDs in PJM for which day-ahead hourly LMP data is available.
+
+    This function queries the day-ahead hourly LMP API for PJM, filtering for nodes of type `nodetype`. 
+
+    Parameters
+    ----------
+    subs_key : str
+        PJM Data Miner 2 API subscription key
+    startdate : str
+        The beginning month and year for which to collect the nodes list from, format is 'YYYYMM' 
+    nodetype : str
+        'ZONE', 'LOAD', 'GEN', 'AGGREGATE', 'HUB', 'EHV', 'INTERFACE', 'EXT', 'RESIDUAL_METERED_EDC'
+    ssl_verify : bool
+        True if the URL request should use SSL verification, defaults to True.
+    proxy_settings : dict
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
+    
+    Returns
+    -------
+    list[str]
+        List of node IDs of type `nodetype` from `startdate` to the present
+    """
+    startyear = int(startdate[0:4])
+    startmonth = int(startdate[4:])
+
+    headers = {
+        # Request headers
+        'Ocp-Apim-Subscription-Key': subs_key,
+    }
+
+    datesquery = "{0:d}-01-{1:d} 00:00 to {0:d}-01-{1:d} 2:59".format(int(startmonth), int(startyear))
+    params_dict = {
+        # Request parameters
+        'download': 'true',  ### if true it returns some sort of gzip
+        'rowCount': '50000',
+        'sort': 'datetime_beginning_ept',
+        'order': 'asc',
+        'startRow': '1',  ### required if any other parameter is specified
+        'datetime_beginning_ept': datesquery,  #
+    }
+
+    if nodetype is not None:
+        params_dict['type'] = nodetype
+    else:
+        return []
+
+    try:
+        dodownload = True
+        ix = 0
+
+        while dodownload:
+            response = requests.get("https://api.pjm.com/api/v1/da_hrl_lmps?", params=params_dict, headers=headers, proxies=proxy_settings, timeout=10, verify=ssl_verify)
+
+            dataheaders = response.headers
+            data_text = response.json()
+            df_data = pd.DataFrame.from_dict(data_text)
+            total_nrows = float(dataheaders['X-TotalRows'])
+
+            if total_nrows > 1000000:
+                raise ValueError("Can't get so much data in a particular API search!!!")
+
+            if ix == 0:
+                df_data_all = df_data
+            else:
+                df_data_all = pd.concat([df_data_all, df_data], ignore_index=True)
+
+            params_dict['startRow'] = str(50000 * (ix + 1) + 1)
+
+            nloops = math.ceil(total_nrows / 50000) - 1
+
+            if ix >= nloops:
+                dodownload = False
+
+            ix += 1
+
+        nodelist = df_data_all.pnode_id.unique()
+        nodelist = nodelist.astype(str)
+        nodelist = nodelist.tolist()
+
+        return nodelist
+    except Exception as e:
+        print(repr(e))
+        return []
+
+
+def download_pjm_data(save_directory, subs_key, datetime_start, datetime_end=None, typedat='all', nodes=[], ssl_verify=True, proxy_settings=None, n_attempts=7, update_function=None):
+    """Downloads specified PJM data to the specified local directory.
+
+    Downloads data into monthly packages using the PJM Data Miner 2 API.
+
+    Parameters
+    ----------
+    save_directory : str
+        The base directory where the requested data is to be saved. Subdirectories will be created under the structure of save_directory | MISO.
+    subs_key : str
+        PJM Data Miner 2 API subscription key
+    datetime_start : datetime.datetime
+        The beginning month and year for which to obtain data 
+    datetime_end : datetime.datetime
+        The ending month and year, inclusive, for which to obtain data, defaults to None. If None, then only the month specified by datetime_start is used.
+    typedat : str
+        The type of data to download: 'lmp' for locational marginal price, 'reg' for regulation price, or 'mileage' for regulation mileage, 'all' for all, defaults to 'all'
+    nodes : list[str]
+        Node IDs and/or node types to obtain LMPs for. Node types include: 'ZONE', 'LOAD', 'GEN', 'AGGREGATE', 'HUB', 'EHV', 'INTERFACE', 'EXT', 'RESIDUAL_METERED_EDC'
+    ssl_verify : bool
+        True if the URL request should use SSL verification, defaults to True.
+    proxy_settings : dict
+        HTTP and HTTPS proxies for URL request; format is {'http_proxy': '...', 'https_proxy': '...'}, defaults to None.
+    n_attempts : int
+        The maximum number of retries for the URL request before declaring connection errors, defaults to 7.
+    update_function : function
+        An optional function handle for hooking into download progress updates, defaults to None. See module notes for specifications.
+    
+    Returns
+    -------
+    bool
+        True if a connection error occurred during the requests and the number of retries hit the specified limit
+
+    Notes
+    -----
+    Validated for 2009 and later.
+    """
+    connection_error_occurred = False
+
+    # Request headers.
+    headers = {
+        'Ocp-Apim-Subscription-Key': subs_key,
+    }
+
+    if not datetime_end:
+        datetime_end = datetime_start
+
+    startyear = datetime_start.year
+    endyear = datetime_end.year
+    startmonth = datetime_start.month
+    endmonth = datetime_end.month
+
+    # loop through the months and from them do the start and end
+    date_download = []
+    for yx in range(startyear,endyear+1):
+        # print(yx)
+        if yx == startyear:
+            startmonth_x = startmonth
+        else:
+            startmonth_x = 1
+
+        if yx == endyear:
+            endmonth_x = endmonth
+        else:
+            endmonth_x = 12
+
+        for mx in range(startmonth_x,endmonth_x+1):
+            date_download.append(str(yx)+str(mx).zfill(2))
+
+    # Request URL roots.
+    urlPJM_lmp = "https://api.pjm.com/api/v1/da_hrl_lmps?"
+    urlPJM_reg = "https://api.pjm.com//api/v1/reg_zone_prelim_bill?"
+    urlPJM_mileage = "https://api.pjm.com/api/v1/reg_market_results?"
+
+    lmp_or_reg = []
+    urlPJM_list = []
+    folderprice = []
+    params_dict_list = []
+
+    if typedat == "all":
+        urlPJM_list.append(urlPJM_lmp)
+        urlPJM_list.append(urlPJM_reg)
+        urlPJM_list.append(urlPJM_mileage)
+        folderprice.append("/PJM/LMP/")
+        folderprice.append("/PJM/REG/")
+        folderprice.append("/PJM/MILEAGE/")
+        lmp_or_reg = ["lmp", "reg", "mileage"]
+    elif typedat == "lmp":
+        urlPJM_list.append(urlPJM_lmp)
+        folderprice.append("/PJM/LMP/")
+        lmp_or_reg = ["lmp"]
+    elif typedat == "reg":
+        urlPJM_list.append(urlPJM_reg)
+        folderprice.append("/PJM/REG/")
+        lmp_or_reg = ["reg"]
+    elif typedat == "mileage":
+        urlPJM_list.append(urlPJM_mileage)
+        folderprice.append("/PJM/MILEAGE/")
+        lmp_or_reg = ["mileage"]
+
+    for ixlp, urlPJM_list_x in enumerate(urlPJM_list):
+        for dx in date_download:
+            yearx = dx[0:4]
+            monthx = dx[4:]
+
+            ndaysmonthx = calendar.monthrange(int(yearx), int(monthx))
+            ndaysmonthx = int(ndaysmonthx[1])
+
+            nodetypesPJM = ['ZONE', 'LOAD', 'GEN', 'AGGREGATE', 'HUB', 'EHV', 'INTERFACE', 'EXT', 'RESIDUAL_METERED_EDC']
+
+            pnode_look_list = []
+            if lmp_or_reg[ixlp] == "lmp":
+                if not nodes:
+                    nodelist = get_pjm_nodes(subs_key, dx, nodetype=[], proxy_settings=proxy_settings, ssl_verify=ssl_verify)
+                else:
+                    nodelist = []
+                    for node_x in nodes:
+
+                        isnodetype = [True for nodetypePJM_x in nodetypesPJM if node_x == nodetypePJM_x]
+
+                        if isnodetype:
+                            nodelist_x = get_pjm_nodes(subs_key, dx, nodetype=node_x, proxy_settings=proxy_settings, ssl_verify=ssl_verify)
+                            nodelist = nodelist + nodelist_x
+                        else:
+                            nodelist.append(node_x)
+
+                logging.info('PJMdownloader: Number of nodes in this call: {0}.'.format(str(len(nodelist))))
+                pnode_look_list = nodelist
+            elif lmp_or_reg[ixlp] == "reg":
+                pnode_look_list = ["n/a"]
+            elif lmp_or_reg[ixlp] == "mileage":
+                pnode_look_list = ["n/a"]
+            
+            if update_function is not None:
+                # Increase progress bar maximum by number of nodes.
+                update_function(len(pnode_look_list))
+
+            for pnode_x in pnode_look_list:
+                pnode_look = pnode_x
+
+                log_identifier = '{date}, {pnode}, {dtype}'.format(date=dx, dtype=lmp_or_reg[ixlp], pnode=pnode_look)
+
+                nfilesave = "error.csv"
+                if lmp_or_reg[ixlp] == "lmp":
+                    des_dir = save_directory + folderprice[ixlp] + pnode_look + "/" + yearx + "/"
+                    nfilesave = dx + "_dalmp_" + pnode_look + ".csv"
+                elif lmp_or_reg[ixlp] == "reg":
+                    # des_dir = foldersave + folderprice[ixlp] + yearx + "/" + monthx + "/"
+                    des_dir = save_directory + folderprice[ixlp] + yearx + "/"
+                    nfilesave = dx + "_regp" + ".csv"
+                elif lmp_or_reg[ixlp] == "mileage":
+                    des_dir = save_directory + folderprice[ixlp] + yearx + "/"
+                    nfilesave = dx + "_regm" + ".csv"
+
+                if not os.path.exists(des_dir + nfilesave):
+                    datesquery = "{0:d}-01-{1:d} 00:00 to {0:d}-{2:02d}-{1:d} 23:59".format(int(monthx), int(yearx), ndaysmonthx)
+                    date_str = datetime.date(int(yearx), int(monthx), ndaysmonthx).strftime('%Y%m')
+
+                    if lmp_or_reg[ixlp] == "lmp":
+                        params_dict = {
+                            # Request parameters
+                            'download': 'true',  ### if true it returns some sort of gzip
+                            'rowCount': '50000',
+                            'sort': 'datetime_beginning_ept',
+                            'order': 'asc',
+                            'startRow': '1',  ### required if any other parameter is specified
+                            'datetime_beginning_ept': datesquery,  #
+                            'pnode_id': pnode_look,
+                        }
+                    elif lmp_or_reg[ixlp] == "reg":
+                        params_dict = {
+                            # Request parameters
+                            'download': 'true',
+                            'rowCount': '50000',
+                            'sort': 'datetime_beginning_ept',
+                            'order': 'asc',
+                            'startRow': '1',
+                            'datetime_beginning_ept': datesquery,  #
+                        }
+                    elif lmp_or_reg[ixlp] == "mileage":
+                        params_dict = {
+                            # Request parameters
+                            'download': 'true',
+                            'rowCount': '50000',
+                            'sort': 'datetime_beginning_ept',
+                            'order': 'asc',
+                            'startRow': '1',
+                            'datetime_beginning_ept': datesquery,  #
+                        }
+
+                    try:
+                        dodownload = True
+                        ix = 0
+                        while dodownload:
+                            # # Quit?
+                            # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                            #     # Stop running this thread so the main Python process can exit.
+                            #     self.n_active_threads -= 1
+                            #     return
+
+                            with requests.Session() as response:
+                                response = requests.get(urlPJM_list_x, params=params_dict,headers=headers, proxies=proxy_settings, timeout=10, verify=ssl_verify)
+                            
+                            # Check the HTTP status code.
+                            if response.status_code == requests.codes.ok:
+                                dataheaders = response.headers
+                                data_text = response.json()
+                                df_data = pd.DataFrame.from_dict(data_text)
+                                total_nrows = float(dataheaders['X-TotalRows'])
+
+                                if ix == 0:
+                                    df_data_all = df_data
+                                else:
+                                    df_data_all = pd.concat([df_data_all, df_data], ignore_index=True)
+
+                                params_dict['startRow'] = str(50000 * (ix + 1) + 1)
+
+                                nloops = math.ceil(total_nrows / 50000) - 1
+
+                                if ix >= nloops:
+                                    dodownload = False
+
+                                ix += 1
+                            if total_nrows != 0:
+                                df_data_all.set_index('datetime_beginning_ept', inplace=True)
+
+                                columns_del = []
+                                if lmp_or_reg[ixlp] == "lmp":
+                                    columns_del = ['equipment',
+                                                'pnode_name','row_is_current','system_energy_price_da',
+                                                'version_nbr','voltage','zone',
+                                                    'type','pnode_id','congestion_price_da',
+                                                'marginal_loss_price_da']
+                                elif lmp_or_reg[ixlp] == "reg":
+                                    columns_del = ['datetime_ending_ept', 'datetime_ending_utc', 'total_pjm_assigned_reg',
+                                                'total_pjm_loc_credit', 'total_pjm_reg_purchases', 'total_pjm_rmccp_cr',
+                                                'total_pjm_rmpcp_cr', 'total_pjm_rt_load_mwh', 'total_pjm_self_sched_reg'
+                                                ]
+                                elif lmp_or_reg[ixlp] == "mileage":
+                                    columns_del = ['deficiency', 'is_approved', 'modified_datetime_utc', 'rega_mileage', 
+                                    'rega_procure', 'rega_ssmw', 'regd_mileage', 'regd_procure', 'regd_ssmw', 
+                                    'requirement', 'rto_perfscore', 'total_mw']
+                                df_data_all.drop(columns_del, inplace=True, axis=1)
+                                os.makedirs(des_dir, exist_ok=True)
+
+                                df_data_all.to_csv(des_dir + nfilesave, sep=',')
+                                logging.info('PJMdownloader: {0}: Successfully downloaded.'.format(log_identifier))
+                            else:
+                                logging.warning('PJMdownloader: {0}: No data retrieved in this API call.'.format(log_identifier))
+                    except requests.HTTPError as e:
+                        logging.error('PJMdownloader: {0}: {1}'.format(log_identifier, repr(e)))
+
+                        if update_function is not None:
+                            update_message = '{0}: HTTPError: {1}'.format(log_identifier, e.response.status_code)
+                            update_function(update_message)
+
+                        connection_error_occurred = True
+                    except requests.exceptions.ProxyError:
+                        logging.error('PJMdownloader: {0}: Could not connect to proxy.'.format(log_identifier))
+
+                        if update_function is not None:
+                            update_message = '{0}: Could not connect to proxy.'.format(log_identifier)
+                            update_function(update_message)
+
+                        connection_error_occurred = True
+                    except requests.ConnectionError as e:
+                        logging.error('PJMdownloader: {0}: Failed to establish a connection to the host server.'.format(log_identifier))
+
+                        if update_function is not None:
+                            update_message = '{0}: Failed to establish a connection to the host server.'.format(log_identifier)
+                            update_function(update_message)
+
+                        connection_error_occurred = True
+                    except (socket.timeout, requests.Timeout) as e:
+                        logging.error('PJMdownloader: {0}: The connection timed out.'.format(log_identifier))
+
+                        if update_function is not None:
+                            update_message = '{0}: The connection timed out.'.format(log_identifier)
+                            update_function(update_message)
+
+                        connection_error_occurred = True
+                    except requests.RequestException as e:
+                        logging.error('PJMdownloader: {0}: {1}'.format(log_identifier, repr(e)))
+
+                        connection_error_occurred = True
+                    except Exception as e:
+                        # Something else went wrong.
+                        logging.error('PJMdownloader: {0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e)))
+
+                        if update_function is not None:
+                            update_message = '{0}: An unexpected error has occurred. ({1})'.format(log_identifier, repr(e))
+                            update_function(update_message)
+
+                        connection_error_occurred = True
+                else:
+                    logging.info('PJMdownloader: {0}: File already exists, skipping...'.format(log_identifier))
+                
+                if update_function is not None:
+                    update_function(1)
+
+                # # Quit?
+                # if App.get_running_app().root.stop.is_set() or self.request_cancel.is_set():
+                #     # Stop running this thread so the main Python process can exit.
+                #     self.n_active_threads -= 1
+                #     return
+    
+    if update_function is not None:
+        update_function(-1)
+    
+    return connection_error_occurred
+
+
 if __name__ == '__main__':
     import urllib3
     urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
@@ -1395,13 +1794,37 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    cnx_error = download_miso_data(
+    # cnx_error = download_miso_data(
+    #     save_directory=save_directory, 
+    #     datetime_start=datetime_start, 
+    #     datetime_end=None, 
+    #     ssl_verify=ssl_verify, 
+    #     proxy_settings=proxy_settings, 
+    #     n_attempts=7, 
+    #     update_function=_update_function
+    # )
+
+    subs_key = '7eed848380df4fe5b2401d125aaecc8f'
+
+    # node_list = get_pjm_nodes(
+    #     subs_key=subs_key,
+    #     startdate='201909',
+    #     nodetype='HUB',
+    #     proxy_settings=proxy_settings,
+    #     ssl_verify=ssl_verify
+    # )
+    # print(node_list)
+
+    cnx_error = download_pjm_data(
         save_directory=save_directory, 
+        subs_key=subs_key,
         datetime_start=datetime_start, 
         datetime_end=None, 
+        typedat='all', 
+        nodes=['HUB',], 
         ssl_verify=ssl_verify, 
         proxy_settings=proxy_settings, 
         n_attempts=7, 
         update_function=_update_function
-    )
+        )
     
