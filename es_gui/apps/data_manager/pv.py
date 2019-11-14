@@ -28,7 +28,7 @@ urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWar
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp, ParameterRow
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
-from es_gui.tools.charts import RateScheduleChart
+from es_gui.proving_grounds.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
 
 MAX_WHILE_ATTEMPTS = 7

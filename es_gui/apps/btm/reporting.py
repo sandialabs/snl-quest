@@ -15,7 +15,7 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.modalview import ModalView
 from kivy.clock import Clock
 
-from es_gui.tools.charts import BarChart, StackedBarChart, MultisetBarChart, PieChart, DonutChart, format_dollar_string
+from es_gui.proving_grounds.charts import BarChart, StackedBarChart, MultisetBarChart, PieChart, DonutChart, format_dollar_string
 from es_gui.resources.widgets.common import TWO_ABC_WIDTH, THREE_ABC_WIDTH, MyPopup, TileButton, PALETTE, rgba_to_fraction, ReportScreen, WizardReportInterface, ReportChartToggle
 
 
