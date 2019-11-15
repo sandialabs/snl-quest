@@ -1,0 +1,167 @@
+#:include es_gui/resources/widgets/common.kv
+
+<DataImporter>:
+    size_hint: (0.9, 0.9)
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 15
+        spacing: 10
+
+        # canvas.before:
+        #     Color:
+        #         rgba: C(hex_cloud_dancer)
+        #     Rectangle:
+        #         size: self.size
+        #         pos: self.pos
+
+        TitleTextBase:
+            size_hint_y: 0.1
+            text: 'Bring your own data'
+            color: C(hex_secondary)
+        
+        ScreenManager:
+            size_hint_y: 0.85
+
+            DataImporterFileChooserScreen:
+                name: 'FileChooser'
+
+            DataImporterFormatAnalyzerScreen:
+                name: 'FileAnalyzer'
+        
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            size_hint_y: 0.1
+
+            BoxLayout:
+                size_hint_x: 0.2
+
+                Button:
+                    text: 'Dismiss'
+                    on_release: root.dismiss()
+
+
+<DataImporterFileChooserScreen>:
+    filechooser: filechooser
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+
+        # canvas.before:
+        #     Color:
+        #         rgba: C(hex_cloud_dancer)
+        #     Rectangle:
+        #         size: self.size
+        #         pos: self.pos
+
+        DataImporterFileChooser:
+            id: filechooser
+            size_hint_y: 0.85
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.15
+
+            Label:
+                size_hint_x: 0.9
+                text: 'Select a .csv file to import data from.'
+
+            Button:
+                size_hint_x: 0.1
+                text: 'Import'
+                on_release: root.file_selected()
+
+
+<DataImporterFormatAnalyzerScreen>:
+    datetime_col_bx: datetime_col_bx
+    datetime_col_rv: datetime_col_rv
+    data_col_bx: data_col_bx
+    data_col_rv: data_col_rv
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+
+        # canvas.before:
+        #     Color:
+        #         rgba: C(hex_cloud_dancer)
+        #     Rectangle:
+        #         size: self.size
+        #         pos: self.pos
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            spacing: 50
+            padding: (50, 0)
+
+            BoxLayout:
+                id: datetime_col_bx
+                orientation: 'vertical'
+                size_hint_x: 0.5
+                spacing: 5
+                # opacity: 0.05
+
+                TitleTextBase:
+                    text: 'Select the datetime column.'
+                    color: C(hex_pms312)
+                    size_hint_y: 0.1
+                    font_size: large_font
+
+                TextInput:
+                    size_hint_y: 0.1
+                    on_text: datetime_col_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: datetime_col_rv
+                    viewclass: 'DatetimeColumnRecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+
+            BoxLayout:
+                id: data_col_bx
+                orientation: 'vertical'
+                size_hint_x: 0.5
+                spacing: 5
+                # opacity: 0.05
+
+                TitleTextBase:
+                    text: 'Select the data column.'
+                    color: C(hex_pms312)
+                    size_hint_y: 0.1
+                    font_size: large_font
+                
+                TextInput:
+                    size_hint_y: 0.1
+                    on_text: data_col_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: data_col_rv
+                    viewclass: 'DataColumnRecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.15
+
+            Label:
+                size_hint_x: 0.9
+                text: 'Specify the datetime and data columns.'
+
+            Button:
+                size_hint_x: 0.1
+                text: 'Import'
+                on_release: root.columns_selected()
+        
