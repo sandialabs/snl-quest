@@ -292,6 +292,7 @@
     content: content
     load_profile_rv: load_profile_rv
     next_button: next_button
+    open_data_importer_button: open_data_importer_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -360,6 +361,7 @@
                         anchor_y: 'top'
 
                         TileButton:
+                            id: open_data_importer_button
                             size_hint_y: 0.3
                             text: 'Open data importer'
                             on_release: root.open_data_importer()

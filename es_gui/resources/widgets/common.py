@@ -66,6 +66,12 @@ def fade_in_animation(content, *args):
     anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
     anim.start(content)
 
+def slow_blinking_animation(content, *args):
+    """Slow blinking animation (on opacity); to be used with Clock scheduler."""
+    anim = Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
+    anim.repeat = True
+    anim.start(content)
+
 
 class LeftAlignedText(Label):
     """Label subclass for left-aligned text labels."""

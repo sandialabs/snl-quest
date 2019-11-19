@@ -30,7 +30,7 @@ from kivy.uix.textinput import TextInput
 
 # from es_gui.apps.valuation.reporting import Report
 from .reporting import BtmCostSavingsReport
-from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup, ParameterRow, ParameterGridWidget
+from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, slow_blinking_animation, WizardCompletePopup, ParameterRow, ParameterGridWidget
 from es_gui.proving_grounds.data_importer import DataImporter
 from es_gui.apps.data_manager.data_manager import DATA_HOME
 from es_gui.tools.btm.readutdata import get_pv_profile_string
@@ -281,6 +281,7 @@ class CostSavingsWizardLoadSelect(Screen):
     """The load profile selection screen for the cost savings wizard."""
     load_profile_selected = DictProperty()
     has_selection = BooleanProperty(False)
+    imported_data_selected = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(CostSavingsWizardLoadSelect, self).__init__(**kwargs)
@@ -312,9 +313,23 @@ class CostSavingsWizardLoadSelect(Screen):
             self.has_selection = False
         else:
             self.has_selection = True
+            self.imported_data_selected = False
 
     def on_has_selection(self, instance, value):
         self.next_button.disabled = not value
+    
+    def on_imported_data_selected(self, instance, value):
+        if value:
+            self.open_data_importer_button.text = 'Data imported'
+            self.open_data_importer_button.background_color = rgba_to_fraction(PALETTE[3])
+            Clock.schedule_once(partial(slow_blinking_animation, self.open_data_importer_button), 0)
+
+            self.load_profile_rv.deselect_all_nodes()
+        else:
+            self.open_data_importer_button.text = 'Open data importer'
+            self.open_data_importer_button.background_color = rgba_to_fraction(PALETTE[0])
+            self.open_data_importer_button.opacity = 1
+            Animation.cancel_all(self.open_data_importer_button, 'opacity')
     
     def open_data_importer(self):
         write_directory = os.path.join(DATA_HOME, 'load', 'imported')
@@ -330,6 +345,7 @@ class CostSavingsWizardLoadSelect(Screen):
             else:
                 logging.info('DataImporter: Data import complete.')
                 self.load_profile_selected = {'name': 'Custom', 'path': import_filename}
+                self.imported_data_selected = True
         
         self.data_importer.bind(on_dismiss=lambda t: _check_data_importer_on_dismissal())
         self.data_importer.open()
