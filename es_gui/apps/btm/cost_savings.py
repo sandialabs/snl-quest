@@ -31,6 +31,8 @@ from kivy.uix.textinput import TextInput
 # from es_gui.apps.valuation.reporting import Report
 from .reporting import BtmCostSavingsReport
 from es_gui.resources.widgets.common import BodyTextBase, MyPopup, WarningPopup, TileButton, RecycleViewRow, InputError, BASE_TRANSITION_DUR, BUTTON_FLASH_DUR, ANIM_STAGGER, FADEIN_DUR, SLIDER_DUR, PALETTE, rgba_to_fraction, fade_in_animation, WizardCompletePopup, ParameterRow, ParameterGridWidget
+from es_gui.proving_grounds.data_importer import DataImporter
+from es_gui.apps.data_manager.data_manager import DATA_HOME
 from es_gui.tools.btm.readutdata import get_pv_profile_string
 
 
@@ -313,6 +315,24 @@ class CostSavingsWizardLoadSelect(Screen):
 
     def on_has_selection(self, instance, value):
         self.next_button.disabled = not value
+    
+    def open_data_importer(self):
+        write_directory = os.path.join(DATA_HOME, 'load', 'imported')
+        self.data_importer = DataImporter(write_directory=write_directory)
+
+        def _check_data_importer_on_dismissal():
+            try:
+                import_filename = self.data_importer.get_import_selections()
+            except AttributeError:
+                logging.warning('DataImporter: Nothing was imported.')
+            except KeyError:
+                logging.warning('DataImporter: Import process was terminated early.')
+            else:
+                logging.info('DataImporter: Data import complete.')
+                self.load_profile_selected = {'name': 'Custom', 'path': import_filename}
+        
+        self.data_importer.bind(on_dismiss=lambda t: _check_data_importer_on_dismissal())
+        self.data_importer.open()
     
     def _validate_inputs(self):
         # TODO: Progress already impeded until a profile is selected so...

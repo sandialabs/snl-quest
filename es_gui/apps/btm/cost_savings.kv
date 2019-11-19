@@ -306,7 +306,7 @@
             size_hint_y: 0.8
             id: content
             opacity: 0
-            padding: (WIZ_PADDING_X, 0)
+            padding: (WIZ_PADDING_X, 10)
             spacing: 10
 
             WizardBodyText:
@@ -314,24 +314,55 @@
                 text: 'Select a load profile to represent the demand connected to the energy storage system.'
             
             BoxLayout:
-                orientation: 'vertical'
+                orientation: 'horizontal'
                 size_hint_y: 0.9
-                spacing: 10
+                spacing: 20
                 padding: (0, 10)
 
-                TextInput:
-                    size_hint_y: 0.1
-                    on_text: load_profile_rv.filter_rv_data(self.text)
-                    hint_text: 'Filter by name'
-                    multiline: False
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.8
 
-                MyRecycleView:
-                    id: load_profile_rv
-                    viewclass: 'LoadProfileRecycleViewRow'
+                    TitleTextBase:
+                        size_hint_y: 0.05
+                        color: C(hex_secondary)
+                        text: 'Data bank'
+                        font_size: large_font
 
-                    SelectableRecycleBoxLayout:
-                        multiselect: False
-                        touch_multiselect: False
+                    TextInput:
+                        size_hint_y: 0.1
+                        on_text: load_profile_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: load_profile_rv
+                        viewclass: 'LoadProfileRecycleViewRow'
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.2
+                
+                    TitleTextBase:
+                        size_hint_y: 0.05
+                        color: C(hex_secondary)
+                        text: 'Use my own'
+                        font_size: large_font
+                    
+                    AnchorLayout:
+                        anchor_x: 'center'
+                        anchor_y: 'top'
+
+                        TileButton:
+                            size_hint_y: 0.3
+                            text: 'Open data importer'
+                            on_release: root.open_data_importer()
     
         BoxLayout:
             size_hint_y: 0.05

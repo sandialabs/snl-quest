@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pandas as pd
 
@@ -7,7 +8,7 @@ from kivy.uix.filechooser import FileChooserListView
 from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import StringProperty, BooleanProperty
 
-from es_gui.resources.widgets.common import RecycleViewRow
+from es_gui.resources.widgets.common import RecycleViewRow, WarningPopup
 
 
 class DataImporterFileChooser(FileChooserListView):
@@ -83,17 +84,29 @@ class DataImporterFormatAnalyzerScreen(Screen):
     def on_has_selections(self, instance, value):
         if value:
             logging.info('DataImporter: Both columns have been selected.')
+        
+        self.import_button.disabled = not value
     
-    def columns_selected(self):
-        self._validate_columns_selected()
+    def finalize_selections(self):
+        import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
+
+        popup = WarningPopup()
+        popup.title = 'Success!'
+        popup.popup_text.text = 'Data successfully imported.'
+        popup.open()
+
+        return import_df, datetime_column_name, data_column_name
     
     def _validate_columns_selected(self):
         # TODO: Pass validation rules from instance?
         datetime_column = self.file_selected_df[self.datetime_column]
         data_column = self.file_selected_df[self.data_column]
-
-        print(datetime_column)
-        print(data_column)
+        
+        # if validation passes, return dataframe, datetime column, data column
+        return self.file_selected_df, self.datetime_column, self.data_column
+    
+    def get_selections(self):
+        return self.file_selected_df, self.datetime_column, self.data_column
 
 
 class DatetimeColumnRecycleViewRow(RecycleViewRow):
@@ -135,6 +148,35 @@ class DataColumnRecycleViewRow(RecycleViewRow):
 
 
 class DataImporter(ModalView):
-    pass
+    """A ModalView with a series of prompts for importing time series data from a csv file."""
+    def __init__(self, write_directory=None, **kwargs):
+        super(DataImporter, self).__init__(**kwargs)
 
+        if write_directory is None:
+            self._write_directory = ""
+        else:
+            self._write_directory = write_directory
+
+    @property
+    def write_directory(self):
+        """The directory where the imported time series data will be saved."""
+        return self._write_directory
+    
+    @write_directory.setter
+    def write_directory(self, value):
+        self._write_directory = value
+    
+    def get_import_selections(self):
+        imported_filename = self.screen_manager.file_selected
+        import_df, datetime_column_name, data_column_name = self.screen_manager.get_screen('FileAnalyzer').get_selections()
+
+        # Write imported time series data to write_directory.
+        os.makedirs(self.write_directory, exist_ok=True)
+        generated_save_name = '_'.join([os.path.split(imported_filename)[-1][:-4], data_column_name]) + '.csv'
+        
+        save_destination = os.path.join(self.write_directory, generated_save_name)
+        import_df[[datetime_column_name, data_column_name]].to_csv(save_destination, index=False)
+        logging.info('DataImporter: Selected time series saved to {0}'.format(save_destination))
+
+        return save_destination
         

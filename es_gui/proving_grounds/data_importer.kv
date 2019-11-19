@@ -1,28 +1,23 @@
-#:include es_gui/resources/widgets/common.kv
+# #:include es_gui/resources/widgets/common.kv
 
 <DataImporter>:
-    size_hint: (0.9, 0.9)
+    size_hint: (0.7, 0.7)
     auto_dismiss: False
+    screen_manager: screen_manager
 
     BoxLayout:
         orientation: 'vertical'
         padding: 15
         spacing: 10
 
-        # canvas.before:
-        #     Color:
-        #         rgba: C(hex_cloud_dancer)
-        #     Rectangle:
-        #         size: self.size
-        #         pos: self.pos
-
         TitleTextBase:
             size_hint_y: 0.1
-            text: 'Bring your own data'
+            text: 'Import a time series'
             color: C(hex_secondary)
         
         ScreenManager:
             size_hint_y: 0.85
+            id: screen_manager
 
             DataImporterFileChooserScreen:
                 name: 'FileChooser'
@@ -50,13 +45,6 @@
         orientation: 'vertical'
         spacing: 10
 
-        # canvas.before:
-        #     Color:
-        #         rgba: C(hex_cloud_dancer)
-        #     Rectangle:
-        #         size: self.size
-        #         pos: self.pos
-
         DataImporterFileChooser:
             id: filechooser
             size_hint_y: 0.85
@@ -71,7 +59,7 @@
 
             Button:
                 size_hint_x: 0.1
-                text: 'Import'
+                text: 'Select'
                 on_release: root.file_selected()
 
 
@@ -80,17 +68,11 @@
     datetime_col_rv: datetime_col_rv
     data_col_bx: data_col_bx
     data_col_rv: data_col_rv
+    import_button: import_button
 
     BoxLayout:
         orientation: 'vertical'
         spacing: 10
-
-        # canvas.before:
-        #     Color:
-        #         rgba: C(hex_cloud_dancer)
-        #     Rectangle:
-        #         size: self.size
-        #         pos: self.pos
 
         BoxLayout:
             orientation: 'horizontal'
@@ -161,7 +143,9 @@
                 text: 'Specify the datetime and data columns.'
 
             Button:
+                id: import_button
                 size_hint_x: 0.1
                 text: 'Import'
-                on_release: root.columns_selected()
+                on_release: root.finalize_selections()
+                disabled: True
         

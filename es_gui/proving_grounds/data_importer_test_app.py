@@ -11,12 +11,14 @@ Config.set('kivy', 'desktop', 1)
 import os
 
 from kivy.app import App
+from kivy.app import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
 from kivy.core.text import LabelBase
 
 from es_gui.proving_grounds.data_importer import DataImporter
 
+Builder.load_file(os.path.join('es_gui', 'resources', 'widgets', 'common.kv'))
 
 LabelBase.register(name='Exo 2',
                    fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Regular.ttf'),

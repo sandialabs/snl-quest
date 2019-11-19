@@ -190,14 +190,17 @@ def read_load_profile(path, month):
     if isinstance(month, str):
         month = int(month)
 
+    # Assumptions: column 0 is datetime, column 1 is data
+    data_column_name = load_df.columns[-1]
+
     # Parse the Date/Time field.
-    load_df['dt split'] = load_df['Date/Time'].str.split()
+    load_df['dt split'] = load_df.iloc[:, 0].str.split()
 
     load_df['month'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[0]))
     load_df['day'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[-1]))
     load_df['hour'] = load_df['dt split'].apply(lambda x: int(x[1].split(':')[0]))
 
-    load_profile = load_df.loc[load_df['month'] == month]['Electricity:Facility [kW](Hourly)'].values
+    load_profile = load_df.loc[load_df['month'] == month, data_column_name].values
 
     return load_profile
 
