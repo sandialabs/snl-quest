@@ -333,7 +333,7 @@ class CostSavingsWizardLoadSelect(Screen):
     
     def open_data_importer(self):
         write_directory = os.path.join(DATA_HOME, 'load', 'imported')
-        self.data_importer = DataImporter(write_directory=write_directory)
+        self.data_importer = DataImporter(write_directory=write_directory, format_description="The datetime information will be used for managing time horizons.")
 
         def _check_data_importer_on_dismissal():
             try:

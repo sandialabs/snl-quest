@@ -90,9 +90,7 @@ class DataImporterFormatAnalyzerScreen(Screen):
     def finalize_selections(self):
         import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
 
-        popup = WarningPopup()
-        popup.title = 'Success!'
-        popup.popup_text.text = 'Data successfully imported.'
+        popup = self.manager.completion_popup
         popup.open()
 
         return import_df, datetime_column_name, data_column_name
@@ -101,7 +99,7 @@ class DataImporterFormatAnalyzerScreen(Screen):
         # TODO: Pass validation rules from instance?
         datetime_column = self.file_selected_df[self.datetime_column]
         data_column = self.file_selected_df[self.data_column]
-        
+
         # if validation passes, return dataframe, datetime column, data column
         return self.file_selected_df, self.datetime_column, self.data_column
     
@@ -148,14 +146,71 @@ class DataColumnRecycleViewRow(RecycleViewRow):
 
 
 class DataImporter(ModalView):
-    """A ModalView with a series of prompts for importing time series data from a csv file."""
-    def __init__(self, write_directory=None, **kwargs):
+    """A ModalView with a series of prompts for importing time series data from a csv file.
+    
+    Parameters
+    ----------
+
+    Notes
+    -----
+    
+    """
+    def __init__(self, write_directory=None, write_function=None, chooser_description=None, format_description=None, **kwargs):
         super(DataImporter, self).__init__(**kwargs)
 
         if write_directory is None:
             self._write_directory = ""
         else:
             self._write_directory = write_directory
+        
+        if write_function is None:
+            def _write_time_series_csv(fname, dataframe):
+                """Writes a generic time series dataframe to a two-column csv.
+
+                Parameters
+                ----------
+                fname : str
+                    Name of the file to be saved without an extension
+                dataframe : Pandas DataFrame
+                    Two-column DataFrame where the first column is datetime and the second column is the data
+                
+                Returns
+                -------
+                str
+                    The save destination of the resulting file.
+                """
+                save_destination = os.path.join(self.write_directory, fname + '.csv')
+                dataframe.to_csv(save_destination, index=False)
+                
+                return save_destination
+            
+            self._write_function = _write_time_series_csv
+        else:
+            self._write_function = write_function
+
+        if chooser_description is None:
+            self.chooser_description = "Select a .csv file to import data from."
+        else:
+            self.chooser_description = chooser_description
+        
+        file_chooser_screen = self.screen_manager.get_screen("FileChooser")
+        file_chooser_screen.file_chooser_body_text.text = self.chooser_description
+
+        if format_description is None:
+            self.format_description = "Specify the datetime and data columns."
+        else:
+            self.format_description = format_description
+
+        format_analyzer_screen = self.screen_manager.get_screen("FormatAnalyzer")
+        format_analyzer_screen.format_analyzer_body_text.text = self.format_description
+
+        # Bind DataImporter dismissal to successful data import.
+        completion_popup = WarningPopup()
+        completion_popup.title = "Success!"
+        completion_popup.popup_text.text = "Data successfully imported."
+        completion_popup.bind(on_dismiss=self.dismiss)
+
+        self.screen_manager.completion_popup = completion_popup
 
     @property
     def write_directory(self):
@@ -166,16 +221,57 @@ class DataImporter(ModalView):
     def write_directory(self, value):
         self._write_directory = value
     
+    @property
+    def write_function(self):
+        """The function used to write the imported data to disk."""
+        return self._write_function
+    
+    @write_function.setter
+    def write_function(self, value):
+        self._write_function = value
+    
+    @property
+    def chooser_description(self):
+        """Description displayed on the file chooser screen."""
+        return self._chooser_description
+    
+    @chooser_description.setter
+    def chooser_description(self, value):
+        self._chooser_description = value
+        file_chooser_screen = self.screen_manager.get_screen("FileChooser")
+        file_chooser_screen.file_chooser_body_text.text = self.chooser_description
+    
+    @property
+    def format_description(self):
+        """Description displayed on the format analyzer screen."""
+        return self._format_description
+    
+    @format_description.setter
+    def format_description(self, value):
+        self._format_description = value
+        format_analyzer_screen = self.screen_manager.get_screen("FormatAnalyzer")
+        format_analyzer_screen.format_analyzer_body_text.text = self.format_description
+    
     def get_import_selections(self):
+        """Returns the destination of the processed imported data.
+
+        This method pulls the selections from the DataImporter prompts. 
+        Using the selected data, it writes a formatted version of the data to disk according to specification.
+        
+        Returns
+        -------
+        str
+            The save destination of the file with the imported data.
+        """
         imported_filename = self.screen_manager.file_selected
-        import_df, datetime_column_name, data_column_name = self.screen_manager.get_screen('FileAnalyzer').get_selections()
+        import_df, datetime_column_name, data_column_name = self.screen_manager.get_screen("FormatAnalyzer").get_selections()
 
         # Write imported time series data to write_directory.
         os.makedirs(self.write_directory, exist_ok=True)
-        generated_save_name = '_'.join([os.path.split(imported_filename)[-1][:-4], data_column_name]) + '.csv'
-        
-        save_destination = os.path.join(self.write_directory, generated_save_name)
-        import_df[[datetime_column_name, data_column_name]].to_csv(save_destination, index=False)
+        generated_save_name = '_'.join([os.path.split(imported_filename)[-1][:-4], data_column_name])
+        dataframe = import_df[[datetime_column_name, data_column_name]]
+
+        save_destination = self.write_function(generated_save_name, dataframe)
         logging.info('DataImporter: Selected time series saved to {0}'.format(save_destination))
 
         return save_destination
