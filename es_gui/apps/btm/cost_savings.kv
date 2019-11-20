@@ -395,6 +395,7 @@
 <CostSavingsWizardPVSelect>:
     content: content
     pv_profile_rv: pv_profile_rv
+    open_data_importer_button: open_data_importer_button
 
     BoxLayout:
         orientation: 'vertical'
@@ -409,7 +410,7 @@
             size_hint_y: 0.8
             id: content
             opacity: 0
-            padding: (WIZ_PADDING_X, 0)
+            padding: (WIZ_PADDING_X, 10)
             spacing: 10
 
             WizardBodyText:
@@ -422,24 +423,55 @@
                 text: "If there is no PV connected, feel free to skip this step."
             
             BoxLayout:
-                orientation: 'vertical'
+                orientation: 'horizontal'
                 size_hint_y: 0.9
-                spacing: 10
+                spacing: 20
                 padding: (0, 10)
 
-                TextInput:
-                    size_hint_y: 0.1
-                    on_text: pv_profile_rv.filter_rv_data(self.text)
-                    hint_text: 'Filter by name'
-                    multiline: False
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.8
+                
+                    TitleTextBase:
+                        size_hint_y: 0.05
+                        color: C(hex_secondary)
+                        text: 'Data bank'
+                        font_size: large_font
 
-                MyRecycleView:
-                    id: pv_profile_rv
-                    viewclass: 'PVProfileRecycleViewRow'
+                    TextInput:
+                        size_hint_y: 0.1
+                        on_text: pv_profile_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
 
-                    SelectableRecycleBoxLayout:
-                        multiselect: False
-                        touch_multiselect: False
+                    MyRecycleView:
+                        id: pv_profile_rv
+                        viewclass: 'PVProfileRecycleViewRow'
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.2
+                
+                    TitleTextBase:
+                        size_hint_y: 0.05
+                        color: C(hex_secondary)
+                        text: 'Use my own'
+                        font_size: large_font
+                    
+                    AnchorLayout:
+                        anchor_x: 'center'
+                        anchor_y: 'top'
+
+                        TileButton:
+                            id: open_data_importer_button
+                            size_hint_y: 0.3
+                            text: 'Open data importer'
+                            on_release: root.open_data_importer()
     
         BoxLayout:
             size_hint_y: 0.05

@@ -233,10 +233,15 @@ def get_pv_profile_string(path):
     with open(path) as f:
         profile_obj = json.load(f)
     
-    module_type_list = ['Standard', 'Premium', 'Thin Film']
-    array_type_list = ['Fixed (open rack)', 'Fixed (roof mounted)', '1-axis', '1-axis (backtracking)', '2-axis']
+    module_type_list = ['Standard', 'Premium', 'Thin Film', 'N/A']
+    array_type_list = ['Fixed (open rack)', 'Fixed (roof mounted)', '1-axis', '1-axis (backtracking)', '2-axis', 'N/A']
     
     query_inputs = profile_obj['inputs']
+
+    # Skip if this is a custom/imported profile.
+    if query_inputs["array_type"] == -1:
+        return ["Custom",]
+
     coordinates = 'Location: {lat}, {lon}'.format(lat=query_inputs['lat'], lon=query_inputs['lon'])
     system_capacity = 'System Capacity: {0} kW'.format(query_inputs['system_capacity'])
     azimuth = 'Azimuth: {0} deg'.format(query_inputs['azimuth'])

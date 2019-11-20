@@ -7,6 +7,7 @@ import calendar
 import os
 import numpy as np
 import threading
+import json
 
 from kivy.uix.screenmanager import Screen, ScreenManager, SlideTransition, ScreenManagerException
 from kivy.uix.label import Label
@@ -333,7 +334,8 @@ class CostSavingsWizardLoadSelect(Screen):
     
     def open_data_importer(self):
         write_directory = os.path.join(DATA_HOME, 'load', 'imported')
-        self.data_importer = DataImporter(write_directory=write_directory, format_description="The datetime information will be used for managing time horizons.")
+        self.data_importer = DataImporter(write_directory=write_directory, format_description="The data units should be in kilowatts and there should be 8,760 samples (hourly for one standard year).")
+        self.data_importer.title.text = "Import a load time series"
 
         def _check_data_importer_on_dismissal():
             try:
@@ -404,6 +406,8 @@ class LoadProfileRecycleViewRow(RecycleViewRow):
 class CostSavingsWizardPVSelect(Screen):
     """The optional PV profile selection screen for the cost savings wizard."""
     pv_profile_selected = DictProperty()
+    has_selection = BooleanProperty(False)
+    imported_data_selected = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super(CostSavingsWizardPVSelect, self).__init__(**kwargs)
@@ -431,7 +435,7 @@ class CostSavingsWizardPVSelect(Screen):
         Animation.stop_all(self.content, 'opacity')
         self.content.opacity = 0
     
-    def on_load_profile_selected(self, instance, value):
+    def on_pv_profile_selected(self, instance, value):
         try:
             logging.info('CostSavings: PV profile selection changed to {0}.'.format(value['name']))
         except KeyError:
@@ -439,6 +443,71 @@ class CostSavingsWizardPVSelect(Screen):
             self.has_selection = False
         else:
             self.has_selection = True
+            self.imported_data_selected = False
+    
+    def on_imported_data_selected(self, instance, value):
+        if value:
+            self.open_data_importer_button.text = 'Data imported'
+            self.open_data_importer_button.background_color = rgba_to_fraction(PALETTE[3])
+            Clock.schedule_once(partial(slow_blinking_animation, self.open_data_importer_button), 0)
+
+            self.pv_profile_rv.deselect_all_nodes()
+        else:
+            self.open_data_importer_button.text = 'Open data importer'
+            self.open_data_importer_button.background_color = rgba_to_fraction(PALETTE[0])
+            self.open_data_importer_button.opacity = 1
+            Animation.cancel_all(self.open_data_importer_button, 'opacity')
+    
+    def open_data_importer(self):
+        write_directory = os.path.join(DATA_HOME, 'pv')
+
+        def _write_pv_profile_json(fname, dataframe):
+            """Writes a generic time series dataframe to a PV profile json.
+
+            Parameters
+            ----------
+            fname : str
+                Name of the file to be saved without an extension
+            dataframe : Pandas DataFrame
+                Two-column DataFrame where the first column is datetime and the second column is the PV power profile in watts
+            
+            Returns
+            -------
+            str
+                The save destination of the resulting file.
+            """
+            pv_profile_template_file = os.path.join('es_gui', 'resources', 'import_templates', 'pv_profile.json')
+
+            with open(pv_profile_template_file, 'r') as f:
+                pv_profile_template = json.load(f)
+            
+            ac_output_w = dataframe.iloc[:, 1].tolist()
+            pv_profile_template['outputs']['ac'] = ac_output_w
+
+            save_destination = os.path.join(write_directory, fname + '.json')
+            
+            with open(save_destination, 'w') as f:
+                json.dump(pv_profile_template, f)
+            
+            return save_destination
+
+        self.data_importer = DataImporter(write_directory=write_directory, write_function=_write_pv_profile_json,  format_description="The data units should be in watts and there should be 8,760 samples (hourly for one standard year).")
+        self.data_importer.title.text = "Import a PV power time series"
+
+        def _check_data_importer_on_dismissal():
+            try:
+                import_filename = self.data_importer.get_import_selections()
+            # except AttributeError:
+            #     logging.warning('DataImporter: Nothing was imported.')
+            except KeyError:
+                logging.warning('DataImporter: Import process was terminated early.')
+            else:
+                logging.info('DataImporter: Data import complete.')
+                self.pv_profile_selected = {'name': 'Custom', 'path': import_filename, 'descriptors': get_pv_profile_string(import_filename)}
+                self.imported_data_selected = True
+        
+        self.data_importer.bind(on_dismiss=lambda t: _check_data_importer_on_dismissal())
+        self.data_importer.open()
     
     def _validate_inputs(self):
         return self.pv_profile_selected
@@ -484,7 +553,6 @@ class PVProfileRecycleViewRow(RecycleViewRow):
     
     def deselect_node(self):
         super(PVProfileRecycleViewRow, self).deselect_node(self)
-        print('hi all')
 
 
 class CostSavingsWizardSystemParameters(Screen):
