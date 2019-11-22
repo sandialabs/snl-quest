@@ -12,6 +12,8 @@ from es_gui.resources.widgets.common import RecycleViewRow, WarningPopup
 
 
 class DataImporterFileChooser(FileChooserListView):
+    """FileChooserListView for selecting file to import.
+    """
     def __init__(self, *args, **kwargs):
         super(DataImporterFileChooser, self).__init__(**kwargs)
 
@@ -23,6 +25,8 @@ class DataImporterFileChooser(FileChooserListView):
 
 
 class DataImporterFileChooserScreen(Screen):
+    """DataImporter screen for selecting which file to import.
+    """
     def __init__(self, *args, **kwargs):
         super(DataImporterFileChooserScreen, self).__init__(**kwargs)
 
@@ -49,6 +53,8 @@ class DataImporterFileChooserScreen(Screen):
 
 
 class DataImporterFormatAnalyzerScreen(Screen):
+    """DataImporter screen for selecting which columns to use and completing the import process.
+    """
     datetime_column = StringProperty("")
     data_column = StringProperty("")
     has_selections = BooleanProperty(False)
@@ -60,6 +66,8 @@ class DataImporterFormatAnalyzerScreen(Screen):
         DataColumnRecycleViewRow.data_analyzer_screen = self
 
     def on_pre_enter(self):
+        """Populates the recycle views with column names based on selected file.
+        """
         file_selected = self.manager.file_selected
         self.file_selected_df = pd.read_csv(file_selected)
 
@@ -72,39 +80,87 @@ class DataImporterFormatAnalyzerScreen(Screen):
         self.data_col_rv.unfiltered_data = column_options
     
     def on_datetime_column(self, instance, value):
+        """Checks if both columns have been specified.
+        """
         logging.info('DataImporter: Datetime column changed to {0}.'.format(self.datetime_column))
 
         self.has_selections = (self.datetime_column != "") and (self.data_column != "")
     
     def on_data_column(self, instance, value):
+        """Checks if both columns have been specified.
+        """
         logging.info('DataImporter: Data column changed to {0}.'.format(self.data_column))
 
         self.has_selections = (self.datetime_column != "") and (self.data_column != "")
 
     def on_has_selections(self, instance, value):
+        """Activates the import button if both columns have been specified.
+        """
         if value:
             logging.info('DataImporter: Both columns have been selected.')
         
         self.import_button.disabled = not value
     
     def finalize_selections(self):
-        import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
+        """Validates the specified data based on the selected columns using a validation function.
 
-        popup = self.manager.completion_popup
-        popup.open()
+        Returns
+        -------
+        Pandas DataFrame
+            Two-column dataframe with the datetime and data series
 
-        return import_df, datetime_column_name, data_column_name
+        str
+            Name of the datetime column
+        
+        str
+            Name of the data column
+        """
+        try:
+            import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
+        except ValueError as e:
+            exception_popup = WarningPopup()
+            exception_popup.popup_text.text = e.args[0]
+            exception_popup.open()
+        else:
+            logging.info("DataImporter: Data format validation completed without issues.")
+
+            completion_popup = self.manager.completion_popup
+            completion_popup.open()
+
+            return import_df, datetime_column_name, data_column_name
     
     def _validate_columns_selected(self):
-        # TODO: Pass validation rules from instance?
+        """Validates the data using a validation function.
+
+        Raises
+        ------
+        ValueError
+            If validation fails based on ``self.validation_function``
+        """
         datetime_column = self.file_selected_df[self.datetime_column]
         data_column = self.file_selected_df[self.data_column]
 
-        # if validation passes, return dataframe, datetime column, data column
+        self.data_validation_function(self.file_selected_df)
+
         return self.file_selected_df, self.datetime_column, self.data_column
     
     def get_selections(self):
-        return self.file_selected_df, self.datetime_column, self.data_column
+        """Returns the data import results.
+
+        Returns
+        -------
+        Pandas DataFrame
+            Two-column dataframe with the datetime and data series
+
+        str
+            Name of the datetime column
+        
+        str
+            Name of the data column
+        """
+        import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
+
+        return import_df, datetime_column_name, data_column_name
 
 
 class DatetimeColumnRecycleViewRow(RecycleViewRow):
@@ -150,18 +206,33 @@ class DataImporter(ModalView):
     
     Parameters
     ----------
+    write_directory : str
+        Path of directory where the imported data will be written
+
+    write_function : func
+        Function describing how to write the imported data to a persistent file
+    
+    chooser_description : str
+        Description displayed on the DataImporter file chooser screen
+    
+    format_description : str
+        Description displayed on the DataImporter format analyzer screen
+    
+    data_validation_function : str
+        Function used to validate the selected data
 
     Notes
     -----
-    
+    ``write_function`` should handle saving the persistent object (e.g., csv file) to disk.
+    ``data_validation_function`` should raise a ValueError to indicate failing validation with a relevant reason why it failed.    
     """
-    def __init__(self, write_directory=None, write_function=None, chooser_description=None, format_description=None, **kwargs):
+    def __init__(self, write_directory=None, write_function=None, chooser_description=None, format_description=None, data_validation_function=None, **kwargs):
         super(DataImporter, self).__init__(**kwargs)
 
         if write_directory is None:
-            self._write_directory = ""
+            self.write_directory = ""
         else:
-            self._write_directory = write_directory
+            self.write_directory = write_directory
         
         if write_function is None:
             def _write_time_series_csv(fname, dataframe):
@@ -184,9 +255,9 @@ class DataImporter(ModalView):
                 
                 return save_destination
             
-            self._write_function = _write_time_series_csv
+            self.write_function = _write_time_series_csv
         else:
-            self._write_function = write_function
+            self.write_function = write_function
 
         if chooser_description is None:
             self.chooser_description = "Select a .csv file to import data from."
@@ -203,6 +274,15 @@ class DataImporter(ModalView):
 
         format_analyzer_screen = self.screen_manager.get_screen("FormatAnalyzer")
         format_analyzer_screen.format_analyzer_body_text.text = self.format_description
+    
+        if data_validation_function is None:
+            def _default_data_validation_function(dataframe):
+                if len(dataframe) != 8760:
+                    raise ValueError("The length of the time series must be 8760 (got {0}).".format(len(dataframe)))
+
+            self.data_validation_function = _default_data_validation_function
+        else:
+            self.data_validation_function = data_validation_function
 
         # Bind DataImporter dismissal to successful data import.
         completion_popup = WarningPopup()
@@ -251,6 +331,17 @@ class DataImporter(ModalView):
         self._format_description = value
         format_analyzer_screen = self.screen_manager.get_screen("FormatAnalyzer")
         format_analyzer_screen.format_analyzer_body_text.text = self.format_description
+    
+    @property
+    def data_validation_function(self):
+        """"The function used to validate the format of the selected data."""
+        return self._data_validation_function
+    
+    @data_validation_function.setter
+    def data_validation_function(self, value):
+        self._data_validation_function = value
+        format_analyzer_screen = self.screen_manager.get_screen("FormatAnalyzer")
+        format_analyzer_screen.data_validation_function = self.data_validation_function
     
     def get_import_selections(self):
         """Returns the destination of the processed imported data.

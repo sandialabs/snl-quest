@@ -340,7 +340,7 @@ class CostSavingsWizardLoadSelect(Screen):
         def _check_data_importer_on_dismissal():
             try:
                 import_filename = self.data_importer.get_import_selections()
-            except AttributeError:
+            except (ValueError, AttributeError):
                 logging.warning('DataImporter: Nothing was imported.')
             except KeyError:
                 logging.warning('DataImporter: Import process was terminated early.')
@@ -497,8 +497,8 @@ class CostSavingsWizardPVSelect(Screen):
         def _check_data_importer_on_dismissal():
             try:
                 import_filename = self.data_importer.get_import_selections()
-            # except AttributeError:
-            #     logging.warning('DataImporter: Nothing was imported.')
+            except (ValueError, AttributeError):
+                logging.warning('DataImporter: Nothing was imported.')
             except KeyError:
                 logging.warning('DataImporter: Import process was terminated early.')
             else:

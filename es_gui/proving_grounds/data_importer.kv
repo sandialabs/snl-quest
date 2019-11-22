@@ -1,5 +1,5 @@
 <DataImporter>:
-    size_hint: (0.8, 0.8)
+    size_hint: (0.9, 0.9)
     auto_dismiss: False
     screen_manager: screen_manager
     title: title
@@ -7,7 +7,7 @@
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 10
+        padding: 5
         spacing: 10
 
         TitleTextBase:
@@ -22,7 +22,7 @@
             text: 'Time series data will also be available in the data bank after being imported.'
         
         ScreenManager:
-            size_hint_y: 0.8
+            size_hint_y: 0.75
             id: screen_manager
 
             DataImporterFileChooserScreen:
@@ -34,7 +34,8 @@
         AnchorLayout:
             anchor_x: 'center'
             anchor_y: 'center'
-            size_hint_y: 0.05
+            size_hint_y: 0.1
+            padding: 10
 
             BoxLayout:
                 size_hint_x: 0.2
