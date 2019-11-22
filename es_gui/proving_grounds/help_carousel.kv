@@ -1,0 +1,72 @@
+<HelpCarouselModalView>:
+    size_hint: (0.8, 0.8)
+    auto_dismiss: True
+    padding: 10
+    carousel: carousel
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 5
+        spacing: 10
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        TitleTextBase:
+            size_hint_y: 0.1
+            text: 'QuESt'
+            color: C(hex_secondary)
+            id: title
+        
+        Carousel:
+            id: carousel
+            # size_hint_y: 0.7
+            direction: 'right'
+
+            BodyTextBase:
+                text: 'Me'
+
+            BodyTextBase:
+                text: 'Me'
+            
+            BodyTextBase:
+                text: 'Me'
+
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.1
+            padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.30
+                spacing: 5
+
+                TileButton:
+                    id: select_data_button
+                    text: '<<'
+                    on_release: carousel.load_previous()
+
+                TileButton:
+                    id: set_parameters_button
+                    text: '>>'
+                    on_release: carousel.load_next()
+            
+            # AnchorLayout:
+            #     anchor_x: 'center'
+            #     anchor_y: 'center'
+            #     size_hint_y: 0.1
+            #     padding: 10
+
+            #     BoxLayout:
+            #         size_hint_x: 0.2
+
+            #         Button:
+            #             text: 'Dismiss'
+            #             on_release: root.dismiss()
