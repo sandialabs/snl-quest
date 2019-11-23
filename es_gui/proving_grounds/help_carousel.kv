@@ -1,12 +1,32 @@
+<HelpCarouselSlide>:
+    orientation: 'horizontal'
+    spacing: 20
+    img: img
+    img_caption: img_caption
+
+    Image:
+        allow_stretch: True
+        size_hint_x: 0.8
+        id: img
+    
+    BodyTextBase:
+        id: img_caption
+        size_hint_x: 0.2
+        text_size: self.size
+        height: self.texture_size[1]
+        # halign: 'justify'
+        valign: 'top'
+        markup: True
+
 <HelpCarouselModalView>:
-    size_hint: (0.8, 0.8)
+    size_hint: (0.85, 0.85)
     auto_dismiss: True
-    padding: 10
     carousel: carousel
+    title: title
 
     BoxLayout:
         orientation: 'vertical'
-        padding: 5
+        padding: 20
         spacing: 10
 
         canvas.before:
@@ -19,29 +39,17 @@
 
         TitleTextBase:
             size_hint_y: 0.1
-            text: 'QuESt'
-            color: C(hex_secondary)
             id: title
         
         Carousel:
             id: carousel
-            # size_hint_y: 0.7
             direction: 'right'
-
-            BodyTextBase:
-                text: 'Me'
-
-            BodyTextBase:
-                text: 'Me'
-            
-            BodyTextBase:
-                text: 'Me'
 
         AnchorLayout:
             anchor_y: 'center'
             anchor_x: 'center'
-            size_hint_y: 0.1
-            padding: 10
+            size_hint_y: 0.05
+            # padding: 10
 
             BoxLayout:
                 orientation: 'horizontal'

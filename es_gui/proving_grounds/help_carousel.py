@@ -4,11 +4,14 @@ import os
 import pandas as pd
 
 from kivy.uix.modalview import ModalView
-from kivy.uix.filechooser import FileChooserListView
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, BooleanProperty
 
 from es_gui.resources.widgets.common import RecycleViewRow, WarningPopup
+
+
+class HelpCarouselSlide(BoxLayout):
+    pass
 
 
 class HelpCarouselModalView(ModalView):
@@ -36,4 +39,12 @@ class HelpCarouselModalView(ModalView):
     ``write_function`` should handle saving the persistent object (e.g., csv file) to disk.
     ``data_validation_function`` should raise a ValueError to indicate failing validation with a relevant reason why it failed.    
     """
-    pass
+    def add_slides(self, slide_deck):
+        """
+        """
+        for source, caption in slide_deck:
+            slide = HelpCarouselSlide()
+            slide.img.source = source
+            slide.img_caption.text = caption
+
+            self.carousel.add_widget(slide)

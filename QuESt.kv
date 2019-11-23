@@ -25,6 +25,7 @@
 #:include es_gui/apps/btm/reporting.kv
 
 #:include es_gui/proving_grounds/data_importer.kv
+#:include es_gui/proving_grounds/help_carousel.kv
 
 <IndexScreen>:
     name: 'index'
@@ -61,9 +62,22 @@
                 #     color: C(hex_primary)
                 #     markup: True
 
-                BoxLayout:
-                    orientation: 'vertical'
+                AnchorLayout:
+                    anchor_x: 'center'
+                    anchor_y: 'center'
                     size_hint_x: 0.65
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        spacing: 10
+                        size_hint: (0.25, 0.9)
+
+                        BodyTextBase:
+                            text: 'New or returning user?'
+
+                        TileButton:
+                            text: 'Open quickstart guide'
+                            on_release: root.open_intro_help_carousel()
                 
                 BoxLayout:
                     size_hint_x: 0.15

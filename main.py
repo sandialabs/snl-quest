@@ -54,6 +54,7 @@ from kivy.core.text import LabelBase
 
 from es_gui.apps.data_manager.data_manager import DataManager
 from es_gui.resources.widgets.common import MyPopup, WarningPopup, APP_NAME, APP_TAGLINE
+from es_gui.proving_grounds.help_carousel import HelpCarouselModalView
 
 dirname = os.path.dirname(__file__)
 
@@ -100,6 +101,30 @@ class IndexScreen(Screen):
     def on_leave(self):
         """Sets NavigationBar.reset_nav_bar() to fire on_enter for the index screen after the first time loading it."""
         self.bind(on_enter=self.manager.nav_bar.reset_nav_bar)
+    
+    def open_intro_help_carousel(self):
+        """
+        """
+        help_carousel_view = HelpCarouselModalView()
+        help_carousel_view.title.text = "Welcome to QuESt"
+
+        slide_01_text = "QuESt is an application suite for energy storage valuation.\n\nThe list on the left contains the currently available applications. Click on an application to learn a little more about it. Once you have selected an application, click on the 'Get started' button underneath its description to open it."
+
+        slide_02_text = "At the top of the QuESt window is the action bar. The QuESt logo on the left end of the action bar serves as a back button; click on it to return to the previous screen.\n\nOn the right end of the action bar is the navigation toolbar. The buttons here change depending on the context but several, like those pictured, persist.\n\nYou can use the 'home' button to return to this index screen at any time."
+
+        slide_03_text = "In QuESt, input data management is separate from the analysis tools. Use the QuESt Data Manager to acquire data before proceeding to other QuESt applications and using their analysis tools."
+
+        slide_04_text = "In some QuESt applications, it is possible to import and use your own data. Look out for prompts such as these to open the data importer interface. Please refer to each individual application and tool for specific details!"
+
+        slides = [
+            (os.path.join("es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "03.png"), slide_03_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "04.png"), slide_04_text),
+        ]
+
+        help_carousel_view.add_slides(slides)
+        help_carousel_view.open()
 
 
 class HelpScreen(Screen):
