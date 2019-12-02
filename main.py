@@ -48,12 +48,12 @@ from kivy.uix.button import Button
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.actionbar import ActionBar, ActionButton, ActionGroup
+from kivy.uix.actionbar import ActionBar, ActionGroup
 from kivy.properties import ObjectProperty
 from kivy.core.text import LabelBase
 
 from es_gui.apps.data_manager.data_manager import DataManager
-from es_gui.resources.widgets.common import MyPopup, WarningPopup, APP_NAME, APP_TAGLINE
+from es_gui.resources.widgets.common import MyPopup, WarningPopup, APP_NAME, APP_TAGLINE, NavigationButton
 from es_gui.proving_grounds.help_carousel import HelpCarouselModalView
 
 dirname = os.path.dirname(__file__)
@@ -116,11 +116,14 @@ class IndexScreen(Screen):
 
         slide_04_text = "In some QuESt applications, it is possible to import and use your own data. Look out for prompts such as these to open the data importer interface. Please refer to each individual application and tool for specific details!"
 
+        slide_05_text = "Looking for more help? Check the navigation bar while in each QuESt application for a 'help' button to open an information carousel like this one for application-specific help."
+
         slides = [
             (os.path.join("es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
             (os.path.join("es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
             (os.path.join("es_gui", "resources", "help_views", "index", "03.png"), slide_03_text),
             (os.path.join("es_gui", "resources", "help_views", "index", "04.png"), slide_04_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "05.png"), slide_05_text),
         ]
 
         help_carousel_view.add_slides(slides)
@@ -427,10 +430,6 @@ class NavigationBar(ActionBar):
     def set_title(self, title):
         """Sets the title of the navigation bar."""
         self.action_view.action_previous.title = title
-
-
-class NavigationButton(ActionButton):
-    pass
 
 
 class HelpPopup(MyPopup):

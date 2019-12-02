@@ -15,6 +15,7 @@ from kivy.clock import Clock
 from kivy.utils import get_color_from_hex
 from kivy.core.window import Window
 from kivy.animation import Animation
+from kivy.uix.actionbar import ActionButton
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -71,6 +72,10 @@ def slow_blinking_animation(content, *args):
     anim = Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
     anim.repeat = True
     anim.start(content)
+
+
+class NavigationButton(ActionButton):
+    pass
 
 
 class LeftAlignedText(Label):

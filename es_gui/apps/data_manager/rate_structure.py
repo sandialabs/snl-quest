@@ -47,7 +47,6 @@ class RateStructureDataScreen(Screen):
     """"""
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Utility Rate Structure Data')
 
 

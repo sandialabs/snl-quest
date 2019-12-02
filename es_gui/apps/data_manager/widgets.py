@@ -61,7 +61,6 @@ DETAIL_OPENEI = "&detail=full"
 class DataManagerRTOMOdataScreen(Screen):
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: ISO/RTO Market and Operations Data')
 
 

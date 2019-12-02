@@ -51,7 +51,6 @@ class PVwattsSearchScreen(Screen):
     
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Photovoltaic Power Profiles')
 
     def open_api_key_help(self):
