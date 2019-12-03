@@ -30,7 +30,6 @@ class ValuationResultsViewer(ResultsViewer):
         """Updates the navigation bar's title."""
         ab = self.manager.nav_bar
         ab.build_valuation_results_nav_bar()
-        ab.set_title('Results Viewer')
 
         #Window.bind(on_key_down=self._on_keyboard_down)
 

@@ -36,7 +36,7 @@ class DataManagerHomeScreen(Screen):
 
         slide_04_text = "Rate structure tables can be modified before saving. You can change the rate for each period. Click on the [font=Modern Pictograms]D[/font] button to copy the value to the next row."
 
-        slide_05_text = "The tables on the right describe the rate schedule for weekdays and weekends. Each row corresponds to a month and each column corresponds to an hour. The value in each cell corresponds to a rate in the rates table; you can change each of these values as needed. You can use the 'Tab' and arrow keys to navigate each table quickly.\n\nNote that you cannot change the number of different periods."
+        slide_05_text = "The tables on the right describe the rate schedule for weekdays and weekends. Each row corresponds to a month and each column an hour. The value in each cell matches to a rate in the rates table; you can change each of these as needed. Try using the 'Tab' and arrow keys to navigate each table more quickly.\n\nNote that you cannot change the number of periods."
 
         slides = [
             (os.path.join("es_gui", "resources", "help_views", "data_manager", "01.png"), slide_01_text),

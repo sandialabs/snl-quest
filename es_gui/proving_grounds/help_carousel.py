@@ -8,8 +8,6 @@ from kivy.uix.modalview import ModalView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 
-from es_gui.resources.widgets.common import RecycleViewRow, WarningPopup
-
 
 class HelpCarouselSlide(BoxLayout):
     pass
