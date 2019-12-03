@@ -23,6 +23,7 @@
     auto_dismiss: True
     carousel: carousel
     title: title
+    slide_progress_bx: slide_progress_bx
 
     BoxLayout:
         orientation: 'vertical'
@@ -46,10 +47,20 @@
             direction: 'right'
 
         AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.10
+                spacing: 5
+                id: slide_progress_bx
+
+        AnchorLayout:
             anchor_y: 'center'
             anchor_x: 'center'
             size_hint_y: 0.05
-            # padding: 10
 
             BoxLayout:
                 orientation: 'horizontal'
@@ -59,22 +70,16 @@
                 TileButton:
                     id: select_data_button
                     text: '<<'
-                    on_release: carousel.load_previous()
+                    on_release: root.change_slide('previous')
 
                 TileButton:
                     id: set_parameters_button
                     text: '>>'
-                    on_release: carousel.load_next()
-            
-            # AnchorLayout:
-            #     anchor_x: 'center'
-            #     anchor_y: 'center'
-            #     size_hint_y: 0.1
-            #     padding: 10
+                    on_release: root.change_slide('next')
 
-            #     BoxLayout:
-            #         size_hint_x: 0.2
-
-            #         Button:
-            #             text: 'Dismiss'
-            #             on_release: root.dismiss()
+<SlideProgressRadioButton>:
+    group: 'slides'
+    disabled: True
+    color: C(hex_secondary)
+    background_radio_disabled_down: self.background_radio_down
+    background_radio_disabled_normal: self.background_radio_normal
