@@ -41,7 +41,6 @@ class CostSavingsWizard(Screen):
     """The main screen for the cost savings wizard. This hosts the nested screen manager for the actual wizard."""
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.reset_nav_bar()
         ab.set_title('Time-of-Use Cost Savings')
 
         # self.sm.generate_start()
