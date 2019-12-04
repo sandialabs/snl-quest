@@ -376,7 +376,7 @@ class ResultsViewer(Screen):
         ab.set_title('Results Viewer')
 
         help_button = NavigationButton(
-            text='help',
+            text='help (results viewer)',
             on_release=self.open_help_carousel,
         )
 

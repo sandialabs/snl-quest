@@ -67,11 +67,14 @@ class BehindTheMeterHomeScreen(Screen):
 
         slide_04_text = "This document includes your input selections, a primer on the mathematical model used, and all of the charts from the wizard summary reports.\n\nThe resulting HTML document and images are saved to the /results/*/report directory. You can view the report in a web browser."
 
+        slide_05_text = "You can view simulation results in more detail using the Results Viewer tool. You can plot time series data and export simulation results for external processing."
+
         slides = [
             (os.path.join("es_gui", "resources", "help_views", "btm", "01.png"), slide_01_text),
             (os.path.join("es_gui", "resources", "help_views", "btm", "02.png"), slide_02_text),
             (os.path.join("es_gui", "resources", "help_views", "common", "wizard_report", "01.png"), slide_03_text),
             (os.path.join("es_gui", "resources", "help_views", "common", "wizard_report", "02.png"), slide_04_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "00.png"), slide_05_text),
         ]
 
         help_carousel_view.add_slides(slides)
