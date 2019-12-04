@@ -40,7 +40,6 @@
         AnchorLayout:
             anchor_x: 'left'
             anchor_y: 'top'
-            #orientation: 'horizontal'
             size_hint_y: 0.15
             spacing: 5
 
@@ -55,13 +54,6 @@
                         source: os.path.join('es_gui', 'resources', 'logo', 'Quest_Logo_RGB.png')
                         allow_stretch: False
 
-                # TitleTextBase:
-                #     size_hint_x: 0.6
-                #     text: WELCOME_TITLE
-                #     font_name: 'Rajdhani'
-                #     color: C(hex_primary)
-                #     markup: True
-
                 AnchorLayout:
                     anchor_x: 'center'
                     anchor_y: 'center'
@@ -70,13 +62,15 @@
                     BoxLayout:
                         orientation: 'vertical'
                         spacing: 10
-                        size_hint: (0.25, 0.9)
+                        size_hint: (0.25, 0.8)
 
                         BodyTextBase:
+                            font_name: 'Exo 2'
                             text: 'New or returning user?'
 
                         TileButton:
-                            text: 'Open quickstart guide'
+                            text: 'Take a quick tour'
+                            background_color: C(hex_pms312)
                             on_release: root.open_intro_help_carousel()
                 
                 BoxLayout:

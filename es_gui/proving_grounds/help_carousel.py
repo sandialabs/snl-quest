@@ -1,3 +1,10 @@
+"""This module is for the HelpCarousel widget.
+
+A HelpCarousel is a modal view. It contains a carousel which hosts a series of slides with accompanying text. The primary purpose of this widget is to provide additional help illustrated with screenshots or other relevant figures without overloading the main user interface with information. The modal view includes previous and next buttons to navigate the slides in addition to a group of radio buttons to indicate progress in the carousel's slide deck. The view does not have a dismiss button but auto_dismiss is enabled; the view can be dismissed by clicking outside of it.
+
+The HelpCarouselModalView is designed to be instantiated then populated using the `add_slides()` class method. This method populates the carousel's slides with pairs of image sources and text.
+"""
+
 import logging
 import os
 
@@ -10,6 +17,8 @@ from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 
 
 class HelpCarouselSlide(BoxLayout):
+    """A slide for the HelpCarousel consisting of a large image (80%) and text (20%) in horizontal orientation.
+    """
     pass
 
 

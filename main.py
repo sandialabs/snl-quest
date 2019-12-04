@@ -130,14 +130,6 @@ class IndexScreen(Screen):
         help_carousel_view.open()
 
 
-class HelpScreen(Screen):
-    """The documentation/help screen."""
-    def on_enter(self):
-        ab = self.manager.nav_bar
-        ab.reset_nav_bar()
-        ab.set_title('Help')
-
-
 class AboutScreen(ModalView):
     """The about/contact screen."""
     def __init__(self, **kwargs):
@@ -229,7 +221,6 @@ class QuEStScreenManager(ScreenManager):
 
         # Add new screens here.
         self.add_widget(IndexScreen())
-        self.help_popup = HelpPopup()
         self.about_screen = AboutScreen()
         self.settings_screen = SettingsScreen()
 
@@ -430,28 +421,6 @@ class NavigationBar(ActionBar):
     def set_title(self, title):
         """Sets the title of the navigation bar."""
         self.action_view.action_previous.title = title
-
-
-class HelpPopup(MyPopup):
-    def __init__(self, **kwargs):
-        super(HelpPopup, self).__init__(**kwargs)
-
-        self._keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
-
-        if self._keyboard.widget:
-            pass
-
-        self._keyboard.bind(on_key_down=self._on_keyboard_down)
-
-    def _keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        if keycode[1] in ('enter', 'numpadenter'):
-            self.dismiss()
-
-        return True
 
 
 class QuEStApp(App):

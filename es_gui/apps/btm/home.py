@@ -59,9 +59,9 @@ class BehindTheMeterHomeScreen(Screen):
         help_carousel_view = HelpCarouselModalView()
         help_carousel_view.title.text = "QuESt BTM"
 
-        slide_01_text = "QuESt BTM is a collection of tools for behind-the-meter energy storage use cases."
+        slide_01_text = "QuESt BTM is an application with tools for analyzing behind-the-meter energy storage use cases."
 
-        slide_02_text = "The Time-of-Use Cost Savings wizard estimates the cost savings with behind-the-meter energy storage, particularly for time-of-use and/or net metering customers. You will need the following data to use this tool:\n* Utility rate structure\n* Load profile (or import your own)\n\nYou may also add a co-located photovoltaic power profile or import your own."
+        slide_02_text = "The Time-of-Use Cost Savings wizard estimates the cost savings with behind-the-meter energy storage.\n\nYou will need the following data to use this tool:\n* Utility rate structure\n* Load profile (or import your own)\n\nYou may also add a co-located photovoltaic power profile or import your own."
 
         slide_03_text = "Upon completion of the wizard, you will be taken to the summary report screen. There a number of reports you can browse through that summarize different aspects of the simulation results. A brief synopsis of each component of the results including some key numbers.\n\nThe 'Generate report' button can be used to produce a document that summarizes the wizard run."
 
