@@ -63,9 +63,15 @@ class BehindTheMeterHomeScreen(Screen):
 
         slide_02_text = "The Time-of-Use Cost Savings wizard estimates the cost savings with behind-the-meter energy storage, particularly for time-of-use and/or net metering customers. You will need the following data to use this tool:\n* Utility rate structure\n* Load profile (or import your own)\n\nYou may also add a co-located photovoltaic power profile or import your own."
 
+        slide_03_text = "Upon completion of the wizard, you will be taken to the summary report screen. There a number of reports you can browse through that summarize different aspects of the simulation results. A brief synopsis of each component of the results including some key numbers.\n\nThe 'Generate report' button can be used to produce a document that summarizes the wizard run."
+
+        slide_04_text = "This document includes your input selections, a primer on the mathematical model used, and all of the charts from the wizard summary reports.\n\nThe resulting HTML document and images are saved to the /results/*/report directory. You can view the report in a web browser."
+
         slides = [
             (os.path.join("es_gui", "resources", "help_views", "btm", "01.png"), slide_01_text),
             (os.path.join("es_gui", "resources", "help_views", "btm", "02.png"), slide_02_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "wizard_report", "01.png"), slide_03_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "wizard_report", "02.png"), slide_04_text),
         ]
 
         help_carousel_view.add_slides(slides)
