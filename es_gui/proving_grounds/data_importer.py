@@ -140,7 +140,7 @@ class DataImporterFormatAnalyzerScreen(Screen):
         datetime_column = self.file_selected_df[self.datetime_column]
         data_column = self.file_selected_df[self.data_column]
 
-        self.data_validation_function(self.file_selected_df)
+        self.data_validation_function(self.file_selected_df, self.datetime_column, self.data_column)
 
         return self.file_selected_df, self.datetime_column, self.data_column
     
@@ -276,9 +276,23 @@ class DataImporter(ModalView):
         format_analyzer_screen.format_analyzer_body_text.text = self.format_description
     
         if data_validation_function is None:
-            def _default_data_validation_function(dataframe):
+            def _default_data_validation_function(dataframe, datetime_column_name, data_column_name):
                 if len(dataframe) != 8760:
                     raise ValueError("The length of the time series must be 8760 (got {0}).".format(len(dataframe)))
+                
+                datetime_column = dataframe[datetime_column_name]
+                data_column = dataframe[data_column_name]
+
+                try:
+                    pd.to_datetime(datetime_column)
+                except ValueError:
+                    raise ValueError("The selected datetime column could not be interpreted as datetime values.")
+                    
+                try:
+                    data_column.astype("float")
+                except ValueError:
+                    raise ValueError("The selected data column could not be interpeted as numeric float values.")
+
 
             self.data_validation_function = _default_data_validation_function
         else:
