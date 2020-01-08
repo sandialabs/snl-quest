@@ -3,9 +3,9 @@
 # QuESt: Optimizing Energy Storage
 [![Build Status](https://travis-ci.com/rconcep/snl-quest.svg?branch=master)](https://travis-ci.com/rconcep/snl-quest)
 
-Current release version: 1.2.e
+Current release version: 1.2.f
 
-Release date: 10/14/19
+Release date: 01/08/20
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
@@ -86,8 +86,9 @@ When running the executable version of QuESt, a solver compatible for Pyomo is r
 
 ##### Installing GLPK (for Windows)
 1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
-2. The glpk_*.dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. Select the pair for the appropriate version of Windows that you are using. You can place them in the same directory as the QuESt executable. Alternatively, you can place those files to the `C:\windows\system32` directory in order to have them in your system path.
-3. (When placing the files in your system path) Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
+2. The glpk_*.dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. Select the pair for the appropriate version of Windows that you are using. You can place them in the same directory as the QuESt executable. 
+   * Alternatively, you can place those files to the `C:\windows\system32` directory in order to have them in your system path. This will make GLPK available for the rest of your system instead of just for QuESt.
+   * (When placing the files in your system path) Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 
 ### Installing from source code (advanced)
 For all platforms, you can instead install QuESt using the codebase in this repository.
@@ -114,7 +115,7 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
 
 ### Solvers for Pyomo
-At least one solver compatible with Pyomo is required to solve optimization problems. For QuESt Valuation, a solver capable of solving linear programs is required. GLPK is a suggested option.
+At least one solver compatible with Pyomo is required to solve optimization problems. Currently, a solver capable of solving linear programs is required. GLPK and CBC are suggested options for freely available solvers.
 
 #### Installing GLPK (for Windows via Anaconda)
 If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following (according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html)):
@@ -133,9 +134,10 @@ You will need to either build GLPK from source or install it using the [homebrew
 If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following (according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html)):
 
 ``conda install -c conda-forge glpk``
+
 ``conda install -c conda-forge coincbc``
 
-##### Installing IPOPT (for Windows)
+#### Installing IPOPT (for Windows)
 1. Download and extract the pre-compiled binaries linked [here](https://www.coin-or.org/download/binary/Ipopt/). Select the latest version appropriate for your system and OS.
 2. Add the directory with the `ipopt.exe` executable file to your path system environment variable. For example, if you extracted the archive to `C:\ipopt`, then `C:\ipopt\bin` must be added to your path.
 3. Try running the command ``ipopt`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
@@ -174,9 +176,13 @@ So far, this issue has been observed on a variety of laptops of both Windows and
 
 > How do I update QuESt?
 
-If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts.
+If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts. The master branch of the repository is reserved for release versions and is the most stable.
 
 If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not have to download all the data again if you would like. You can also move your `/quest.ini` file to migrate your settings.
+
+> Are there any help tutorials/manuals/etc. for QuESt?
+
+We strive to make QuESt as lightweight and intuitive to use as possible through its design. In version 1.2.f, we integrated additional help carousels within QuESt to provide additional details throughout the software. We currently do not intend to make a comprehensive manual but may share presentation materials such as mini tutorials that may be of interest. Additionally, we aim to compile the publications and technical writings on which QuESt is based.
 
 ### QuESt Data Manager
 <a id="faq-data-manager"></a>
