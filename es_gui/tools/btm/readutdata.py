@@ -193,14 +193,15 @@ def read_load_profile(path, month):
     # Assumptions: column 0 is datetime, column 1 is data
     data_column_name = load_df.columns[-1]
 
-    # Parse the Date/Time field.
-    load_df['dt split'] = load_df.iloc[:, 0].str.split()
+    # NOTE: This ignores the provided datetime column and creates its own index based on hourly samples starting from January 1. This aligns with the indexing used for PV profile data.
+    # Apply datetime index for filtering.
+    datetime_start = datetime(2019, 1, 1, 1)
+    hour_range = pd.date_range(start=datetime_start, periods=len(load_df), freq='H')
+    load_df['dt'] = hour_range
 
-    load_df['month'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[0]))
-    load_df['day'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[-1]))
-    load_df['hour'] = load_df['dt split'].apply(lambda x: int(x[1].split(':')[0]))
-
-    load_profile = load_df.loc[load_df['month'] == month, data_column_name].values
+    # Filter by given month.
+    load_df_month = load_df.loc[load_df['dt'].apply(lambda x: x.month == month)]
+    load_profile = load_df_month[data_column_name].values
 
     return load_profile
 
