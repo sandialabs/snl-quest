@@ -73,8 +73,6 @@
 
 
 <DataImporterFormatAnalyzerScreen>:
-    datetime_col_bx: datetime_col_bx
-    datetime_col_rv: datetime_col_rv
     data_col_bx: data_col_bx
     data_col_rv: data_col_rv
     import_button: import_button
@@ -95,27 +93,10 @@
                 orientation: 'vertical'
                 size_hint_x: 0.5
                 spacing: 5
-                # opacity: 0.05
 
-                TitleTextBase:
-                    text: 'Select the datetime column.'
-                    color: C(hex_pms312)
-                    size_hint_y: 0.1
-                    font_size: large_font
-
-                TextInput:
-                    size_hint_y: 0.1
-                    on_text: datetime_col_rv.filter_rv_data(self.text)
-                    hint_text: 'Filter by name'
-                    multiline: False
-
-                MyRecycleView:
-                    id: datetime_col_rv
-                    viewclass: 'DatetimeColumnRecycleViewRow'
-
-                    SelectableRecycleBoxLayout:
-                        multiselect: False
-                        touch_multiselect: False
+                BodyTextBase:
+                    id: format_analyzer_body_text
+                    color: C(hex_white)
 
             BoxLayout:
                 id: data_col_bx
@@ -148,10 +129,8 @@
             orientation: 'horizontal'
             size_hint_y: 0.1
 
-            BodyTextBase:
+            BoxLayout:
                 size_hint_x: 0.9
-                id: format_analyzer_body_text
-                color: C(hex_white)
 
             Button:
                 id: import_button

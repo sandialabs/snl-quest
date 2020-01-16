@@ -191,16 +191,12 @@ def read_load_profile(path, month):
         month = int(month)
 
     # Assumptions: column 0 is datetime, column 1 is data
+    datetime_column_name = load_df.columns[0]
     data_column_name = load_df.columns[-1]
 
-    # NOTE: This ignores the provided datetime column and creates its own index based on hourly samples starting from January 1. This aligns with the indexing used for PV profile data.
-    # Apply datetime index for filtering.
-    datetime_start = datetime(2019, 1, 1, 1)
-    hour_range = pd.date_range(start=datetime_start, periods=len(load_df), freq='H')
-    load_df['dt'] = hour_range
-
     # Filter by given month.
-    load_df_month = load_df.loc[load_df['dt'].apply(lambda x: x.month == month)]
+    datetime_column = pd.to_datetime(load_df[datetime_column_name])
+    load_df_month = load_df.loc[datetime_column.apply(lambda x: x.month == month)]
     load_profile = load_df_month[data_column_name].values
 
     return load_profile
@@ -219,7 +215,7 @@ def read_pv_profile(path, month):
     df_pv_output = pd.DataFrame(pv_output_w, columns=['kW'])*1e-3
 
     # Apply datetime index for filtering.
-    datetime_start = datetime(2019, 1, 1, 1)
+    datetime_start = datetime(2019, 1, 1, 0)
     hour_range = pd.date_range(start=datetime_start, periods=len(pv_output_w), freq='H')
     df_pv_output['dt'] = hour_range
 

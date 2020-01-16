@@ -297,7 +297,6 @@ class CostSavingsWizardLoadSelect(Screen):
             self.load_profile_rv.unfiltered_data = load_profile_options
         except KeyError as e:
             logging.warning('CostSavings: No load profiles available to select.')
-            # TODO: Warning popup
         
         Clock.schedule_once(partial(fade_in_animation, self.content), 0)
     
@@ -333,7 +332,10 @@ class CostSavingsWizardLoadSelect(Screen):
     
     def open_data_importer(self):
         write_directory = os.path.join(DATA_HOME, 'load', 'imported')
-        self.data_importer = DataImporter(write_directory=write_directory, format_description="The data units should be in kilowatts and there should be 8,760 samples (hourly for one standard year).")
+        self.data_importer = DataImporter(
+            write_directory=write_directory, 
+            format_description="The data units should be in kilowatts and there should be 8,760 samples (hourly for one standard year). The time series is assumed to run January through December at an hourly resolution."
+        )
         self.data_importer.title.text = "Import a load time series"
 
         def _check_data_importer_on_dismissal():
@@ -468,7 +470,7 @@ class CostSavingsWizardPVSelect(Screen):
             fname : str
                 Name of the file to be saved without an extension
             dataframe : Pandas DataFrame
-                Two-column DataFrame where the first column is datetime and the second column is the PV power profile in watts
+                DataFrame with one Series which is the PV power profile in watts
             
             Returns
             -------
@@ -480,7 +482,7 @@ class CostSavingsWizardPVSelect(Screen):
             with open(pv_profile_template_file, 'r') as f:
                 pv_profile_template = json.load(f)
             
-            ac_output_w = dataframe.iloc[:, 1].tolist()
+            ac_output_w = dataframe.iloc[:, 0].tolist()
             pv_profile_template['outputs']['ac'] = ac_output_w
 
             save_destination = os.path.join(write_directory, fname + '.json')
@@ -490,7 +492,11 @@ class CostSavingsWizardPVSelect(Screen):
             
             return save_destination
 
-        self.data_importer = DataImporter(write_directory=write_directory, write_function=_write_pv_profile_json,  format_description="The data units should be in watts and there should be 8,760 samples (hourly for one standard year).")
+        self.data_importer = DataImporter(
+            write_directory=write_directory, 
+            write_function=_write_pv_profile_json, 
+            format_description="The data units should be in watts and there should be 8,760 samples (hourly for one standard year). The time series is assumed to run January through December at an hourly resolution."
+            )
         self.data_importer.title.text = "Import a PV power time series"
 
         def _check_data_importer_on_dismissal():

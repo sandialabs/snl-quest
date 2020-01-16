@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime
 
 import pandas as pd
 
@@ -53,7 +54,7 @@ class DataImporterFileChooserScreen(Screen):
 
 
 class DataImporterFormatAnalyzerScreen(Screen):
-    """DataImporter screen for selecting which columns to use and completing the import process.
+    """DataImporter screen for selecting which column to use and completing the import process.
     """
     datetime_column = StringProperty("")
     data_column = StringProperty("")
@@ -62,11 +63,10 @@ class DataImporterFormatAnalyzerScreen(Screen):
     def __init__(self, **kwargs):
         super(DataImporterFormatAnalyzerScreen, self).__init__(**kwargs)
 
-        DatetimeColumnRecycleViewRow.data_analyzer_screen = self
         DataColumnRecycleViewRow.data_analyzer_screen = self
 
     def on_pre_enter(self):
-        """Populates the recycle views with column names based on selected file.
+        """Populates the recycle view with column names based on selected file.
         """
         file_selected = self.manager.file_selected
         self.file_selected_df = pd.read_csv(file_selected)
@@ -74,30 +74,22 @@ class DataImporterFormatAnalyzerScreen(Screen):
         column_options = [{'name': column} 
         for column in self.file_selected_df.columns
         ]
-        self.datetime_col_rv.data = column_options
-        self.datetime_col_rv.unfiltered_data = column_options
+
         self.data_col_rv.data = column_options
         self.data_col_rv.unfiltered_data = column_options
     
-    def on_datetime_column(self, instance, value):
-        """Checks if both columns have been specified.
-        """
-        logging.info('DataImporter: Datetime column changed to {0}.'.format(self.datetime_column))
-
-        self.has_selections = (self.datetime_column != "") and (self.data_column != "")
-    
     def on_data_column(self, instance, value):
-        """Checks if both columns have been specified.
+        """Checks if data column has been specified.
         """
         logging.info('DataImporter: Data column changed to {0}.'.format(self.data_column))
 
-        self.has_selections = (self.datetime_column != "") and (self.data_column != "")
+        self.has_selections = (self.data_column != "")
 
     def on_has_selections(self, instance, value):
         """Activates the import button if both columns have been specified.
         """
         if value:
-            logging.info('DataImporter: Both columns have been selected.')
+            logging.info("DataImporter: All selections have been made.")
         
         self.import_button.disabled = not value
     
@@ -107,16 +99,13 @@ class DataImporterFormatAnalyzerScreen(Screen):
         Returns
         -------
         Pandas DataFrame
-            Two-column dataframe with the datetime and data series
-
-        str
-            Name of the datetime column
+            Dataframe with the data series
         
         str
             Name of the data column
         """
         try:
-            import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
+            import_df, data_column_name = self._validate_columns_selected()
         except ValueError as e:
             exception_popup = WarningPopup()
             exception_popup.popup_text.text = e.args[0]
@@ -127,7 +116,7 @@ class DataImporterFormatAnalyzerScreen(Screen):
             completion_popup = self.manager.completion_popup
             completion_popup.open()
 
-            return import_df, datetime_column_name, data_column_name
+            return import_df, data_column_name
     
     def _validate_columns_selected(self):
         """Validates the data using a validation function.
@@ -137,12 +126,9 @@ class DataImporterFormatAnalyzerScreen(Screen):
         ValueError
             If validation fails based on ``self.validation_function``
         """
-        datetime_column = self.file_selected_df[self.datetime_column]
-        data_column = self.file_selected_df[self.data_column]
+        self.data_validation_function(self.file_selected_df, self.data_column)
 
-        self.data_validation_function(self.file_selected_df, self.datetime_column, self.data_column)
-
-        return self.file_selected_df, self.datetime_column, self.data_column
+        return self.file_selected_df, self.data_column
     
     def get_selections(self):
         """Returns the data import results.
@@ -150,36 +136,14 @@ class DataImporterFormatAnalyzerScreen(Screen):
         Returns
         -------
         Pandas DataFrame
-            Two-column dataframe with the datetime and data series
-
-        str
-            Name of the datetime column
+            DataFrame containing a single Series for the data
         
         str
             Name of the data column
         """
-        import_df, datetime_column_name, data_column_name = self._validate_columns_selected()
+        import_df, data_column_name = self._validate_columns_selected()
 
-        return import_df, datetime_column_name, data_column_name
-
-
-class DatetimeColumnRecycleViewRow(RecycleViewRow):
-    """The representation widget for column names in the datetime column selector RecycleView."""
-    data_analyzer_screen = None
-
-    def on_touch_down(self, touch):
-        """Add selection on touch down."""
-        if super(DatetimeColumnRecycleViewRow, self).on_touch_down(touch):
-            return True
-        if self.collide_point(*touch.pos) and self.selectable:
-            return self.parent.select_with_touch(self.index, touch)
-
-    def apply_selection(self, rv, index, is_selected):
-        """Respond to the selection of items in the view."""
-        self.selected = is_selected
-
-        if is_selected:
-            self.data_analyzer_screen.datetime_column = rv.data[self.index]['name']
+        return import_df, data_column_name
 
 
 class DataColumnRecycleViewRow(RecycleViewRow):
@@ -236,22 +200,31 @@ class DataImporter(ModalView):
         
         if write_function is None:
             def _write_time_series_csv(fname, dataframe):
-                """Writes a generic time series dataframe to a two-column csv.
+                """Writes a generic time series dataframe to a two-column csv. 
+                
+                The data is inferred to be at an hourly time resolution for one standard year.
 
                 Parameters
                 ----------
                 fname : str
                     Name of the file to be saved without an extension
                 dataframe : Pandas DataFrame
-                    Two-column DataFrame where the first column is datetime and the second column is the data
+                    DataFrame containing a single Series of the data
                 
                 Returns
                 -------
                 str
                     The save destination of the resulting file.
                 """
-                save_destination = os.path.join(self.write_directory, fname + '.csv')
-                dataframe.to_csv(save_destination, index=False)
+                save_destination = os.path.join(self.write_directory, fname + ".csv")
+
+                data_column_name = dataframe.columns[0]
+
+                datetime_start = datetime(2019, 1, 1, 0)
+                hour_range = pd.date_range(start=datetime_start, periods=len(dataframe), freq="H")
+                dataframe["DateTime"] = hour_range
+
+                dataframe[["DateTime", data_column_name]].to_csv(save_destination, index=False)
                 
                 return save_destination
             
@@ -268,7 +241,7 @@ class DataImporter(ModalView):
         file_chooser_screen.file_chooser_body_text.text = self.chooser_description
 
         if format_description is None:
-            self.format_description = "Specify the datetime and data columns."
+            self.format_description = "Specify the data column."
         else:
             self.format_description = format_description
 
@@ -276,18 +249,12 @@ class DataImporter(ModalView):
         format_analyzer_screen.format_analyzer_body_text.text = self.format_description
     
         if data_validation_function is None:
-            def _default_data_validation_function(dataframe, datetime_column_name, data_column_name):
+            def _default_data_validation_function(dataframe, data_column_name):
                 if len(dataframe) != 8760:
                     raise ValueError("The length of the time series must be 8760 (got {0}).".format(len(dataframe)))
                 
-                datetime_column = dataframe[datetime_column_name]
                 data_column = dataframe[data_column_name]
 
-                try:
-                    pd.to_datetime(datetime_column)
-                except ValueError:
-                    raise ValueError("The selected datetime column could not be interpreted as datetime values.")
-                    
                 try:
                     data_column.astype("float")
                 except ValueError:
@@ -369,12 +336,16 @@ class DataImporter(ModalView):
             The save destination of the file with the imported data.
         """
         imported_filename = self.screen_manager.file_selected
-        import_df, datetime_column_name, data_column_name = self.screen_manager.get_screen("FormatAnalyzer").get_selections()
+        import_df, data_column_name = self.screen_manager.get_screen("FormatAnalyzer").get_selections()
 
         # Write imported time series data to write_directory.
         os.makedirs(self.write_directory, exist_ok=True)
-        generated_save_name = '_'.join([os.path.split(imported_filename)[-1][:-4], data_column_name])
-        dataframe = import_df[[datetime_column_name, data_column_name]]
+
+        # Strip non-alphanumeric chars from data column name.
+        delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
+
+        generated_save_name = "_".join([os.path.split(imported_filename)[-1][:-4], data_column_name.translate({ord(i): None for i in delchars})])
+        dataframe = import_df[[data_column_name]]
 
         save_destination = self.write_function(generated_save_name, dataframe)
         logging.info('DataImporter: Selected time series saved to {0}'.format(save_destination))
