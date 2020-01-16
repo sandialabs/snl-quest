@@ -194,6 +194,11 @@ def read_load_profile(path, month):
     datetime_column_name = load_df.columns[0]
     data_column_name = load_df.columns[-1]
 
+    # Overwrite DateTime column (esp. for data obtained from OpenEI)
+    datetime_start = datetime(2019, 1, 1, 0)
+    hour_range = pd.date_range(start=datetime_start, periods=len(load_df), freq="H")
+    load_df[datetime_column_name] = hour_range
+
     # Filter by given month.
     datetime_column = pd.to_datetime(load_df[datetime_column_name])
     load_df_month = load_df.loc[datetime_column.apply(lambda x: x.month == month)]
