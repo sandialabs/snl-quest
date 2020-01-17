@@ -546,13 +546,13 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
 
         chart_save_location = os.path.join(chart_images_dir, 'chart_{n}.png'.format(n=screen.name))
 
-        Clock.schedule_once(partial(screen.chart.export_to_png, chart_save_location), 0.7)
+        Clock.schedule_once(partial(screen.chart.export_to_png, chart_save_location), 1.0)
 
         # Save image name/path for report generator.
         self.graphics_locations[screen.name] = os.path.join('images', 'chart_{n}.png'.format(n=screen.name))
 
     def generate_report_screens(self):
-        screen_flip_interval = 0.8
+        screen_flip_interval = 1.2
         n_charts = len(self.host_report.chart_types.items())
 
         # Draw figures for saving to .png.
