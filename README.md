@@ -5,7 +5,7 @@
 
 Current release version: 1.2.f
 
-Release date: 01/08/20
+Release date: January 17, 2020
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
@@ -81,14 +81,8 @@ You can find the executable version with each release in the [**Releases**](http
 #### OSX, Linux
 Currently, we do not offer executable packages of QuESt for OSX or Linux operating systems. They are possible to package but we have not implemented those packaging processes yet. Installing from source code is an option.
 
-#### Solvers compatible with Pyomo
-When running the executable version of QuESt, a solver compatible for Pyomo is required to be installed and on your system path. Here are a few examples:
-
-##### Installing GLPK (for Windows)
-1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
-2. The glpk_*.dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. Select the pair for the appropriate version of Windows that you are using. You can place them in the same directory as the QuESt executable. 
-   * Alternatively, you can place those files to the `C:\windows\system32` directory in order to have them in your system path. This will make GLPK available for the rest of your system instead of just for QuESt.
-   * (When placing the files in your system path) Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
+#### Solvers
+When running the executable version of QuESt, a solver compatible for Pyomo is still required to be installed and on your system path. Please refer to the [solvers](#install-solvers) section for details.
 
 ### Installing from source code (advanced)
 For all platforms, you can instead install QuESt using the codebase in this repository.
@@ -115,17 +109,19 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
 
 ### Solvers for Pyomo
-At least one solver compatible with Pyomo is required to solve optimization problems. Currently, a solver capable of solving linear programs is required. GLPK and CBC are suggested options for freely available solvers.
+<a id="install-solvers"></a>
+At least one solver compatible with Pyomo is required to solve optimization problems. Currently, a solver capable of solving linear programs is required. GLPK and CBC are suggested options for freely available solvers. Note that this list is not meant to be exhaustive but contains the most common viable options that we have tested. 
+
+#### Installing GLPK (for Windows)
+1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
+2. The glpk_*.dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. Select the pair for the appropriate version of Windows that you are using. You can place them in the same directory as the QuESt executable. 
+   * Alternatively, you can place those files to the `C:\windows\system32` directory in order to have them in your system path. This will make GLPK available for the rest of your system instead of just for QuESt.
+   * (When placing the files in your system path) Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 
 #### Installing GLPK (for Windows via Anaconda)
 If you've installed Python using Anaconda, you may be able to install several solvers through Anaconda's package manager with the following (according to Pyomo's [installation instructions](https://pyomo.readthedocs.io/en/latest/installation.html)):
 
 ``conda install -c conda-forge glpk``
-
-#### Installing GLPK (for Windows)
-1. Download and extract the executables for Windows linked [here](http://winglpk.sourceforge.net/).
-2. The .dll and glpsol.exe files are in the `w32` and `w64` subdirectories for 32-Bit and 64-Bit Windows, respectively. These files need to be in the search path for Windows. The easiest way to do this is to move those files to the `C:\windows\system32` directory.
-3. Try running the command ``glpsol`` in the command prompt (Windows) or terminal (OSX). If you receive a message other than something like "command not found," it means the solver is successfully installed.
 
 #### Installing GLPK (for OSX)
 You will need to either build GLPK from source or install it using the [homebrew](https://brew.sh/) package manager. This [blog post](http://arnab-deka.com/posts/2010/02/installing-glpk-on-a-mac/) may be useful.
@@ -155,6 +151,15 @@ Alternatively, run ```main.py``` in a Python IDE of your choice.
 
 **NOTE: The current working directory must be where ``main.py`` is located (the root of the repository).**
 
+### Updating QuESt
+#### Installed from executable
+Download and extract the executable package as previously. You can copy over your `\data\` directory to transfer your data bank to the new version. You can also copy over your `\quest.ini` file to migrate your QuESt settings as well.
+
+#### Installed from source code
+If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts. The master branch of the repository is reserved for release versions and is the most stable.
+
+If you downloaded an archive of the master branch, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not have to download all the data again if you would like. You can also move your `/quest.ini` file to migrate your settings.
+
 ## Frequently Asked Questions
 <a id="faq"></a>
 
@@ -174,15 +179,17 @@ Scaling may also have the effect of confusing Kivy of where a UI element is and 
 
 So far, this issue has been observed on a variety of laptops of both Windows and OSX varieties. Our suggestion is to disable OS level scaling or to connect to an external display and try to launch QuESt on it.
 
-> How do I update QuESt?
-
-If you cloned the GitHub repository, you can execute a `git pull` command in the terminal/cmd while in the root of the QuESt directory. If you haven't modified any source code, there should be no conflicts. The master branch of the repository is reserved for release versions and is the most stable.
-
-If you downloaded an archive of the master branch or a release version archive, you can download the latest release version as if it were a fresh install. You can drag and drop your old data directory so that you do not have to download all the data again if you would like. You can also move your `/quest.ini` file to migrate your settings.
-
 > Are there any help tutorials/manuals/etc. for QuESt?
 
-We strive to make QuESt as lightweight and intuitive to use as possible through its design. In version 1.2.f, we integrated additional help carousels within QuESt to provide additional details throughout the software. We currently do not intend to make a comprehensive manual but may share presentation materials such as mini tutorials that may be of interest. Additionally, we aim to compile the publications and technical writings on which QuESt is based.
+We strive to make QuESt as lightweight and intuitive to use as possible through its design. In version 1.2.f, we integrated additional help carousels within QuESt to provide additional details throughout the software. We currently do not intend to make a comprehensive manual but may share presentation materials such as mini tutorials that may be of interest.
+
+> I want to know more about how the algorithms work/how the results are computed.
+
+Please see the [references](#references) for relevant publications describing the models that were implemented into QuESt. As we further develop the API and documentation, we will aggregate formulation details in those documents.
+
+> I'm interested in a tool/capability that is not currently in QuESt.
+
+Feel free to drop us a line! User feedback helps shape our development goals and priorities and we would welcome hearing what users would like to have.
 
 ### QuESt Data Manager
 <a id="faq-data-manager"></a>
@@ -274,7 +281,7 @@ Due to (rolling) data availability, data for certain periods may be absent. For 
 
 > Why can I only adjust [x] parameters for my energy storage device?
 
-To streamline the user experience in the Wizard, we decided to reduce the range of options available. Please try the "Single Run" and "Batch Runs" interfaces for fuller flexibility.
+To streamline the user experience in the Wizard, we decided to reduce the range of options available. Please try the "Batch Runs" interface for fuller flexibility.
 
 > The pro forma report's appearance doesn't seem quite right/there is a bunch of cryptic commands underneath the "Optimization formulation" section.
 
@@ -301,7 +308,7 @@ This is a known issue. You can try to generate the report again in order to fix 
 
 > I want to use my own rate structure / PV profile / load profile.
 
-We are planning on implementing interfaces for importing your own data. However, it is possible to bring your own data.
+Since version 1.2.f, you can import your own time series data (PV and load profiles) through the user interface. You can also import your own data by adding to the QuESt data bank manually. See below for details.
 
 #### Rate structure
 The rate structure files are stored as .json files in `/data/rate_structures/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. The general structure of the .json object is as follows:
@@ -339,3 +346,36 @@ The load profile files are stored as .csv files in `/data/load/` after being dow
 The format is basically two columns; the "Date/Time" column gives the month, day, and hour and the second column is the hourly kW load. The "Date/Time" columna is used for parsing the correct data for a selected month, for example. A year is not provided because the building data is simulated based on TMY3 (typical meteorological year).
 
 Once new files are added to the `data` bank appropriately, they should be picked up in the relevant applications when you are prompted to make a selection.
+
+## References
+<a id="references"></a>
+Nguyen, Tu A., David A. Copp, and Raymond H. Byrne. "Stacking Revenue of Energy Storage System from Resilience, T&D Deferral and Arbitrage." 2019 IEEE Power & Energy Society General Meeting (PESGM). IEEE, 2019.
+
+Byrne, Raymond H., Tu A. Nguyen, and Ricky J. Concepcion. "Opportunities for Energy Storage in CAISO." 2018 IEEE Power & Energy Society General Meeting (PESGM). IEEE, 2018.
+[Available online](https://www.osti.gov/servlets/purl/1489129).
+
+Byrne, Raymond H., Tu Anh Nguyen, and Ricky James Concepcion. Opportunities for Energy Storage in CAISO. No. SAND2018-5272C. Sandia National Lab.(SNL-NM), Albuquerque, NM (United States), 2018.
+[Available online](https://www.osti.gov/servlets/purl/1515132).
+
+Concepcion, Ricky J., Felipe Wilches-Bernal, and Raymond H. Byrne. "Revenue Opportunities for Electric Storage Resources in the Southwest Power Pool Integrated Marketplace." 2018 IEEE Power & Energy Society General Meeting (PESGM). IEEE, 2018.
+[Available online](https://www.osti.gov/servlets/purl/1574578).
+
+Wilches-Bernal, Felipe, Ricky J. Concepcion, and Raymond H. Byrne. "Electrical Energy Storage Participation in the NYISO Electricity and Frequency Regulation Markets." 2018 IEEE Power & Energy Society General Meeting (PESGM). IEEE, 2018.
+
+Nguyen, Tu A., and Raymond H. Byrne. "Maximizing the cost-savings for time-of-use and net-metering customers using behind-the-meter energy storage systems." 2017 North American Power Symposium (NAPS). IEEE, 2017.
+[Available online](https://www.osti.gov/servlets/purl/1431654).
+
+Nguyen, Tu A., et al. "Maximizing revenue from electrical energy storage in MISO energy & frequency regulation markets." 2017 IEEE Power & Energy Society General Meeting. IEEE, 2017.
+[Available online](https://www.osti.gov/servlets/purl/1408956).
+
+Byrne, Raymond H., Ricky J. Concepcion, and César A. Silva-Monroy. "Estimating potential revenue from electrical energy storage in PJM." 2016 IEEE Power and Energy Society General Meeting (PESGM). IEEE, 2016.
+[Available online](https://www.osti.gov/servlets/purl/1239334).
+
+Byrne, Raymond H., et al. "The value proposition for energy storage at the Sterling Municipal Light Department." 2017 IEEE Power & Energy Society General Meeting. IEEE, 2017.
+[Available online](https://www.osti.gov/servlets/purl/1427423).
+
+Byrne, Raymond H., et al. "Energy management and optimization methods for grid energy storage systems." IEEE Access 6 (2017): 13231-13260.
+[Available online](https://ieeexplore.ieee.org/abstract/document/8016321).
+
+Byrne, Raymond H., and César A. Silva-Monroy. "Potential revenue from electrical energy storage in ERCOT: The impact of location and recent trends." 2015 IEEE Power & Energy Society General Meeting. IEEE, 2015.
+[Available online](https://www.osti.gov/servlets/purl/1244909).
