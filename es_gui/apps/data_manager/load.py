@@ -30,7 +30,6 @@ class DataManagerLoadHomeScreen(Screen):
     """"""
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Hourly Commercial/Residential Load Profiles')
 
 
@@ -51,7 +50,6 @@ class DataManagerCommercialLoadScreen(Screen):
 
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Hourly Commercial Load Profiles')
 
         StateRVEntry.host_screen = self
@@ -247,7 +245,6 @@ class DataManagerResidentialLoadScreen(Screen):
 
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Hourly Residential Load Profiles')
 
         LoadTypeRVEntry.host_screen = self

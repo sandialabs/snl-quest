@@ -187,6 +187,17 @@ class DataManager(EventDispatcher):
                             profile_path = load_profile.path
 
                             load_profile_data_bank[profile_key] = profile_path
+        
+        # Imported.
+        if 'imported' in os.listdir(load_profile_root):
+            imported_root = os.path.join(load_profile_root, 'imported')
+
+            for load_profile in os.scandir(imported_root):
+                if not load_profile.name.startswith('.'):
+                    profile_key = '/'.join(['imported', load_profile.name])
+                    profile_path = load_profile.path
+
+                    load_profile_data_bank[profile_key] = profile_path
             
         self.data_bank['load profiles'] = load_profile_data_bank
     

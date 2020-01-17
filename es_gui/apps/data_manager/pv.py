@@ -28,7 +28,7 @@ urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWar
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp, ParameterRow
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
-from es_gui.tools.charts import RateScheduleChart
+from es_gui.proving_grounds.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
 from es_gui.downloaders.pv_power import get_pv_profile_data
 
@@ -52,7 +52,6 @@ class PVwattsSearchScreen(Screen):
     
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Photovoltaic Power Profiles')
 
     def open_api_key_help(self):

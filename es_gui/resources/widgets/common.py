@@ -15,6 +15,7 @@ from kivy.clock import Clock
 from kivy.utils import get_color_from_hex
 from kivy.core.window import Window
 from kivy.animation import Animation
+from kivy.uix.actionbar import ActionButton
 from kivy.uix.behaviors import FocusBehavior
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -31,6 +32,8 @@ from kivy.uix.spinner import SpinnerOption, Spinner
 from kivy.uix.label import Label
 from kivy.uix.screenmanager import Screen
 from kivy.uix.togglebutton import ToggleButton
+
+from es_gui.proving_grounds.help_carousel import HelpCarouselModalView
 
 cwd = os.getcwd()
 
@@ -65,6 +68,16 @@ def fade_in_animation(content, *args):
     """Fade in animation (on opacity); to be used with Clock scheduler."""
     anim = Animation(transition='out_expo', duration=FADEIN_DUR, opacity=1)
     anim.start(content)
+
+def slow_blinking_animation(content, *args):
+    """Slow blinking animation (on opacity); to be used with Clock scheduler."""
+    anim = Animation(transition='linear', duration=LOADING_DUR, opacity=0) + Animation(transition='linear', duration=LOADING_DUR, opacity=1)
+    anim.repeat = True
+    anim.start(content)
+
+
+class NavigationButton(ActionButton):
+    pass
 
 
 class LeftAlignedText(Label):
@@ -357,6 +370,44 @@ class ResultsViewer(Screen):
 
         self.time_selector.start_time.bind(on_text_validate=self.draw_figure)
         self.time_selector.end_time.bind(on_text_validate=self.draw_figure)
+    
+    def on_enter(self):
+        ab = self.manager.nav_bar
+        ab.set_title('Results Viewer')
+
+        help_button = NavigationButton(
+            text='help (results viewer)',
+            on_release=self.open_help_carousel,
+        )
+
+        ab.action_view.add_widget(help_button)
+    
+    def open_help_carousel(self, *args):
+        """
+        """
+        help_carousel_view = HelpCarouselModalView()
+        help_carousel_view.title.text = "Results Viewer"
+
+        slide_01_text = "The Results Viewer is a built-in tool to help you look at QuESt optimization results. The recycle view at the bottom contains each optimization run (model) performed during your current session. Typically each item will correspond to a single month.\n\nYou can select which models you want to view simultaneously. We recommend selecting no more than six at a time."
+
+        slide_02_text = "The 'Select data' spinner is for selecting which quantity to plot. The variety of choices here will differ among QuESt applications. While most selections correspond to line plots of time series, some other plots such as box-and-whisker plots may be available."
+
+        slide_03_text = "Click on the 'Plot/Redraw' to render the plot according to your current selections.\n\nNote that the figure is not interactive."
+
+        slide_04_text = "For time series plots, you can adjust the range of time shown using the 'Hours shown' field. This can be used to look at specific points in time in more detail.\n\nYou can hit the 'Enter' key after changing these values to quickly render the plot."
+
+        slide_05_text = "You can export the currently rendered plot to a PNG image file using the 'Export PNG' button.\n\nYou can also export the detailed table of results for each selected model to a CSV file using the 'Export CSV' button. An individual file will be made for each selected model. These files contain details such as decision variable values at each timestep and other relevant quantities."
+
+        slides = [
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "01.png"), slide_01_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "02.png"), slide_02_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "03.png"), slide_03_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "04.png"), slide_04_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "05.png"), slide_05_text),
+        ]
+
+        help_carousel_view.add_slides(slides)
+        help_carousel_view.open()
 
     def on_pre_enter(self):
         pass

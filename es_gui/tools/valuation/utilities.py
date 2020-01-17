@@ -170,9 +170,9 @@ def read_pjm_data(fpath, year, month, nodeid):
         dfMILEAGE['MILEAGE RATIO'] = dfMILEAGE['regd_hourly']/dfMILEAGE['rega_hourly']
 
         # TODO: Handling NaNs/missing data intelligently. The current method just fills forward.
-        rega = dfMILEAGE['rega_hourly'].fillna(method='ffill').values
-        regd = dfMILEAGE['regd_hourly'].fillna(method='ffill').values
-        mr = dfMILEAGE['MILEAGE RATIO'].fillna(method='ffill').values
+        rega = dfMILEAGE['rega_hourly'].replace([np.inf, -np.inf], np.nan).fillna(method='ffill').values
+        regd = dfMILEAGE['regd_hourly'].replace([np.inf, -np.inf], np.nan).fillna(method='ffill').values
+        mr = dfMILEAGE['MILEAGE RATIO'].replace([np.inf, -np.inf], np.nan).fillna(method='ffill').values
     except FileNotFoundError:
         logging.warning('read_pjm_data: No MILEAGE data matching input parameters found, returning empty array. (got {fname}, {year}, {month})'.format(fname=fnameMILEAGE, year=year, month=month))
 

@@ -42,7 +42,7 @@ urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWar
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, APP_NAME, APP_TAGLINE, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation
 from es_gui.apps.data_manager.data_manager import DataManagerException
-from es_gui.tools.charts import RateScheduleChart
+from es_gui.proving_grounds.charts import RateScheduleChart
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.utils import check_connection_settings
 from es_gui.downloaders.market_data import download_ercot_data, download_isone_data, download_spp_data, download_nyiso_data, download_miso_data, download_pjm_data, download_caiso_data
@@ -55,7 +55,6 @@ MAX_WHILE_ATTEMPTS = 7
 class DataManagerRTOMOdataScreen(Screen):
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: ISO/RTO Market and Operations Data')
 
 
