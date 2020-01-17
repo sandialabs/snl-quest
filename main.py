@@ -48,12 +48,13 @@ from kivy.uix.button import Button
 from kivy.uix.modalview import ModalView
 from kivy.uix.popup import Popup
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.actionbar import ActionBar, ActionButton, ActionGroup
+from kivy.uix.actionbar import ActionBar, ActionGroup
 from kivy.properties import ObjectProperty
 from kivy.core.text import LabelBase
 
 from es_gui.apps.data_manager.data_manager import DataManager
-from es_gui.resources.widgets.common import MyPopup, WarningPopup, APP_NAME, APP_TAGLINE
+from es_gui.resources.widgets.common import MyPopup, WarningPopup, APP_NAME, APP_TAGLINE, NavigationButton
+from es_gui.proving_grounds.help_carousel import HelpCarouselModalView
 
 dirname = os.path.dirname(__file__)
 
@@ -100,14 +101,33 @@ class IndexScreen(Screen):
     def on_leave(self):
         """Sets NavigationBar.reset_nav_bar() to fire on_enter for the index screen after the first time loading it."""
         self.bind(on_enter=self.manager.nav_bar.reset_nav_bar)
+    
+    def open_intro_help_carousel(self):
+        """
+        """
+        help_carousel_view = HelpCarouselModalView()
+        help_carousel_view.title.text = "Welcome to QuESt"
 
+        slide_01_text = "QuESt is an application suite for energy storage valuation.\n\nThe list on the left contains the currently available applications. Click on an application to learn a little more about it. Once you have selected an application, click on the 'Get started' button underneath its description to open it."
 
-class HelpScreen(Screen):
-    """The documentation/help screen."""
-    def on_enter(self):
-        ab = self.manager.nav_bar
-        ab.reset_nav_bar()
-        ab.set_title('Help')
+        slide_02_text = "At the top of the QuESt window is the action bar. The QuESt logo on the left end of the action bar serves as a back button; click on it to return to the previous screen. On the right end of the action bar is the navigation toolbar. The buttons here change depending on the context but several, like those pictured, persist.\n\nYou can use the 'home' button to return to this index screen at any time."
+
+        slide_03_text = "In QuESt, input data management is separate from the analysis tools. Use the QuESt Data Manager to acquire data before proceeding to other QuESt applications and using their analysis tools."
+
+        slide_04_text = "In some QuESt applications, it is possible to import and use your own data. Look out for prompts such as these to open the data importer interface. Please refer to each individual application and tool for specific details!"
+
+        slide_05_text = "Looking for more help? Check the navigation bar while in each QuESt application for a 'help' button to open an information carousel like this one for application-specific help."
+
+        slides = [
+            (os.path.join("es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "03.png"), slide_03_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "04.png"), slide_04_text),
+            (os.path.join("es_gui", "resources", "help_views", "index", "05.png"), slide_05_text),
+        ]
+
+        help_carousel_view.add_slides(slides)
+        help_carousel_view.open()
 
 
 class AboutScreen(ModalView):
@@ -130,7 +150,7 @@ class AboutScreen(ModalView):
             elif value == 'sandia':
                 webbrowser.open('http://sandia.gov/')
         
-        version_statement = 'QuESt v1.2.e \n 2019.10.14'
+        version_statement = 'QuESt v1.2.f \n 2020.01.17'
 
         developed_by = '{app_name} is developed by the {ess} and {espr} departments at {sandia}.'.format(app_name=APP_NAME, ess=_ref_link('Energy Storage Technology and Systems', 'sandia-ess'), espr=_ref_link('Electric Power Systems Research', 'sandia-espr'), sandia=_ref_link('Sandia National Laboratories', 'sandia'))
 
@@ -201,7 +221,6 @@ class QuEStScreenManager(ScreenManager):
 
         # Add new screens here.
         self.add_widget(IndexScreen())
-        self.help_popup = HelpPopup()
         self.about_screen = AboutScreen()
         self.settings_screen = SettingsScreen()
 
@@ -402,32 +421,6 @@ class NavigationBar(ActionBar):
     def set_title(self, title):
         """Sets the title of the navigation bar."""
         self.action_view.action_previous.title = title
-
-
-class NavigationButton(ActionButton):
-    pass
-
-
-class HelpPopup(MyPopup):
-    def __init__(self, **kwargs):
-        super(HelpPopup, self).__init__(**kwargs)
-
-        self._keyboard = Window.request_keyboard(self._keyboard_closed, self, 'text')
-
-        if self._keyboard.widget:
-            pass
-
-        self._keyboard.bind(on_key_down=self._on_keyboard_down)
-
-    def _keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        self._keyboard = None
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        if keycode[1] in ('enter', 'numpadenter'):
-            self.dismiss()
-
-        return True
 
 
 class QuEStApp(App):

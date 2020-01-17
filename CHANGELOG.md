@@ -1,5 +1,41 @@
 # Master branch changelog
 
+## Patch 1.2.f
+### QuESt
+* A quick-start tour is now available from the home index screen of QuESt. 
+  * <img src="patch_note_resources/patch-quickstart-tour.png" alt="A quick-start tour is now available from the home index screen of QuESt." width=600px margin="auto" />
+  * This tour consists of a sequence of slides explaining the general usage of QuESt and is aimed to help new or returning users get oriented.
+  * <img src="patch_note_resources/patch-quickstart-tour2.png" alt="Opening the quick-start tour opens a 'help' view which contains a sequence of slides explaining QuESt in general." width=600px margin="auto" />
+* Help carousel modal views (or "help" for short) are now available throughout QuESt. They may be accessed from the top navigation bar whenever available.
+  * <img src="patch_note_resources/patch-help-views.png" alt="Help carousels can be accessed from the top navigation bar whenever they are available." width=600px margin="auto" />
+  * Opening the help carousel displays a sequence of slides similar to those from the quick-start tour. The content of the help carousel is relevant to wherever it is accessed. For example, opening the help carousel while in QuESt Data Manager will show help related to that application.
+  * <img src="patch_note_resources/patch-help-views2.png" alt="The help carousel for QuESt Data Manager." width=600px margin="auto" />
+* Interfaces for users to import custom data have been implemented ("data importer").
+  * The data importer is designed to accept time series data in substitution for similar data acquired through QuESt Data Manager.
+  * Currently, data importers are available for the QuESt BTM Time-of-Use Cost Savings wizard for load profile and photovoltaic power profile.
+  * The data importer is accessible directly within the relevant application when the corresponding data is selected. Instead of selecting from the QuESt data bank, the data importer may be used.
+  * <img src="patch_note_resources/patch-data-importer.png" alt="The data importer can be used to select data from disk rather than from the QuESt data bank." width=600px margin="auto" />
+  * Upon opening the data importer, a series of prompts will appear. The file chooser can be used to select the desired CSV file to use.
+    * The drive displayed in the file chooser is based on where QuESt is launched from. Only folders and .csv files will be displayed.
+    * <img src="patch_note_resources/patch-data-importer2.png" alt="The data importer's file chooser is used to select the CSV file to use." width=600px margin="auto" /> 
+    * Folders can be expanded by clicking the dropdown arrow to the left of the folder name. Folders can be entered by clicking on the folder name. Clicking the "..\" at the top of the current directory listing will navigate up one directory level. 
+    * To finalize file selection, double-click on the desired file name or click on the file name and click on the 'Select' button.
+    * <img src="patch_note_resources/patch-data-importer3.png" alt="The data column from the selected file must be specified." width=600px margin="auto" />
+    * Next, the data column must be specified to determine the time series that will be used. The requirements for the data will vary among the different data importers, but generally, for hourly data a time series of length 8,760 (for one standard year) is expected. Please refer to the accompoanying description in the data importer window for specific details.
+    * If the selected time series passes validation, the data importer will report a successful import. Upon returning to the current application, the data importer button will change appearance to indicate that time series data was imported and will be used in the current application. 
+    * <img src="patch_note_resources/patch-data-importer4.png" alt="The datetime and data columns from the selected file must be specified." width=600px margin="auto" />
+    * Note that any data imported will be made available for future use in the QuESt data bank. The data may be denoted by an "imported/" tag (in the case of load profile data) and the name will be based on the originating CSV file name and the data column specified during the import process.
+    * Selecting from the data bank after import will override the imported data.
+    * Opening the data importer and completing the data import process again will override any previous selections or imports.
+
+### Resolved issues
+* An issue where Inf or NaN values in data would create infeasible models that could not be solved. Specifically, for PJM data where mileage ratios are computed, division by zero would result in Inf values. QuESt will use a "fill forward" interpolation method to attempt to correct these instances.
+
+### Known issues
+* An issue where dragging through slides in help carousels or similar widgets instead of using the arrow navigation buttons does not update the "progress indicator" bubbles for the slides.
+  * Clicking the navigation buttons will properly update the bubbles.
+* An issue where graphics/charts for HTML reports generated in application wizards would not save and render properly. A blank or incomplete figure would be saved and displayed in the report. We have increased the time for rendering and saving each figure during the report generation process in order to address this issue.
+
 ## Patch 1.2.e
 ### QuESt
 * Reports (HTML) generated through wizards such as those in QuESt Valuation and QuESt BTM will now be separated appropriately.

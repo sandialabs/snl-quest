@@ -29,7 +29,7 @@ urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWar
 
 from es_gui.resources.widgets.common import BodyTextBase, InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME, STATE_ABBR_TO_NAME
-from es_gui.tools.charts import RateScheduleChart
+from es_gui.proving_grounds.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings
 
 
@@ -47,7 +47,6 @@ class RateStructureDataScreen(Screen):
     """"""
     def on_enter(self):
         ab = self.manager.nav_bar
-        ab.build_data_manager_nav_bar()
         ab.set_title('Data Manager: Utility Rate Structure Data')
 
 

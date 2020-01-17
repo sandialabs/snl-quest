@@ -18,7 +18,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.core.text import LabelBase
 
-import charts as charts
+from es_gui.proving_grounds import charts
 import calendar
 
 

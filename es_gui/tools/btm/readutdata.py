@@ -190,14 +190,19 @@ def read_load_profile(path, month):
     if isinstance(month, str):
         month = int(month)
 
-    # Parse the Date/Time field.
-    load_df['dt split'] = load_df['Date/Time'].str.split()
+    # Assumptions: column 0 is datetime, column 1 is data
+    datetime_column_name = load_df.columns[0]
+    data_column_name = load_df.columns[-1]
 
-    load_df['month'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[0]))
-    load_df['day'] = load_df['dt split'].apply(lambda x: int(x[0].split('/')[-1]))
-    load_df['hour'] = load_df['dt split'].apply(lambda x: int(x[1].split(':')[0]))
+    # Overwrite DateTime column (esp. for data obtained from OpenEI)
+    datetime_start = datetime(2019, 1, 1, 0)
+    hour_range = pd.date_range(start=datetime_start, periods=len(load_df), freq="H")
+    load_df[datetime_column_name] = hour_range
 
-    load_profile = load_df.loc[load_df['month'] == month]['Electricity:Facility [kW](Hourly)'].values
+    # Filter by given month.
+    datetime_column = pd.to_datetime(load_df[datetime_column_name])
+    load_df_month = load_df.loc[datetime_column.apply(lambda x: x.month == month)]
+    load_profile = load_df_month[data_column_name].values
 
     return load_profile
 
@@ -215,7 +220,7 @@ def read_pv_profile(path, month):
     df_pv_output = pd.DataFrame(pv_output_w, columns=['kW'])*1e-3
 
     # Apply datetime index for filtering.
-    datetime_start = datetime(2019, 1, 1, 1)
+    datetime_start = datetime(2019, 1, 1, 0)
     hour_range = pd.date_range(start=datetime_start, periods=len(pv_output_w), freq='H')
     df_pv_output['dt'] = hour_range
 
@@ -230,10 +235,15 @@ def get_pv_profile_string(path):
     with open(path) as f:
         profile_obj = json.load(f)
     
-    module_type_list = ['Standard', 'Premium', 'Thin Film']
-    array_type_list = ['Fixed (open rack)', 'Fixed (roof mounted)', '1-axis', '1-axis (backtracking)', '2-axis']
+    module_type_list = ['Standard', 'Premium', 'Thin Film', 'N/A']
+    array_type_list = ['Fixed (open rack)', 'Fixed (roof mounted)', '1-axis', '1-axis (backtracking)', '2-axis', 'N/A']
     
     query_inputs = profile_obj['inputs']
+
+    # Skip if this is a custom/imported profile.
+    if query_inputs["array_type"] == -1:
+        return ["Custom",]
+
     coordinates = 'Location: {lat}, {lon}'.format(lat=query_inputs['lat'], lon=query_inputs['lon'])
     system_capacity = 'System Capacity: {0} kW'.format(query_inputs['system_capacity'])
     azimuth = 'Azimuth: {0} deg'.format(query_inputs['azimuth'])
