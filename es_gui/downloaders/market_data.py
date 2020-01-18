@@ -612,6 +612,8 @@ def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat
     bus_loc = 'bus' : 'Provides LMP information by Pnode location for each Day-Ahead Market solution for each Operating Day.'
 
     bus_loc = 'location' : 'Provides LMP information by Pnode location and corresponding Settlement Location for each Day-Ahead Market solution for each Operating Day.'
+
+    Updated 01/17/2020: API prefix changed from "file-api" to "file-browser-api"
     """
     connection_error_occurred = False
 
@@ -622,8 +624,8 @@ def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat
     monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
     monthrange.union([monthrange[-1] + 1])
 
-    url_spp_daLMP = "https://marketplace.spp.org/file-api/download/da-lmp-by-"
-    url_spp_daMCP = "https://marketplace.spp.org/file-api/download/da-mcp"
+    url_spp_daLMP = "https://marketplace.spp.org/file-browser-api/download/da-lmp-by-"
+    url_spp_daMCP = "https://marketplace.spp.org/file-browser-api/download/da-mcp"
 
     foldercompl_da = ['By_Day%2F', '']
 
@@ -2194,7 +2196,7 @@ if __name__ == '__main__':
 
     save_directory = 'test'
 
-    datetime_start = datetime.datetime(2019, 10, 1)
+    datetime_start = datetime.datetime(2019, 7, 1)
 
     def _update_function(update):
         if isinstance(update, int):
@@ -2233,17 +2235,17 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    # cnx_error = download_spp_data(
-    #     save_directory=save_directory, 
-    #     datetime_start=datetime_start, 
-    #     datetime_end=None, 
-    #     bus_loc='both', 
-    #     typedat='all', 
-    #     ssl_verify=ssl_verify, 
-    #     proxy_settings=proxy_settings, 
-    #     n_attempts=7, 
-    #     update_function=_update_function
-    # )
+    cnx_error = download_spp_data(
+        save_directory=save_directory, 
+        datetime_start=datetime_start, 
+        datetime_end=None, 
+        bus_loc='both', 
+        typedat='all', 
+        ssl_verify=ssl_verify, 
+        proxy_settings=proxy_settings, 
+        n_attempts=7, 
+        update_function=_update_function
+    )
 
     # cnx_error = download_nyiso_data(
     #     save_directory=save_directory, 
@@ -2292,15 +2294,15 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    cnx_error = download_caiso_data(
-        save_directory=save_directory, 
-        datetime_start=datetime_start, 
-        datetime_end=None, 
-        typedat='all', 
-        nodes=['ASP',], 
-        ssl_verify=ssl_verify, 
-        proxy_settings=proxy_settings, 
-        n_attempts=7, 
-        update_function=_update_function
-        )
+    # cnx_error = download_caiso_data(
+    #     save_directory=save_directory, 
+    #     datetime_start=datetime_start, 
+    #     datetime_end=None, 
+    #     typedat='all', 
+    #     nodes=['ASP',], 
+    #     ssl_verify=ssl_verify, 
+    #     proxy_settings=proxy_settings, 
+    #     n_attempts=7, 
+    #     update_function=_update_function
+    #     )
     
