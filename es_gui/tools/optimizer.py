@@ -108,3 +108,11 @@ class Optimizer(with_metaclass(ABCMeta)):
         for kw_key, kw_value in kwargs.items():
             logging.info('Optimizer: Setting {param} to {value}'.format(param=kw_key, value=kw_value))
             setattr(self.model, kw_key, kw_value)
+    
+    def reprocess_results(self, **kwargs):
+        """Reprocesses results with changes to Pyomo model parameters."""
+        for kw_key, kw_value in kwargs.items():
+            logging.info('Optimizer: Reprocessing results with adjusted {param}'.format(param=kw_key,))
+            setattr(self.model, kw_key, kw_value)
+        
+        self._process_results()
