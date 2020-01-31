@@ -29,7 +29,7 @@ def valuation_demo():
 
     year = 2017
     node_name = 'SPPSOUTH_H'
-    market_type = 'arbitrage'
+    market_type = 'spp_pfp'
 
     params = {
         'Energy_capacity': 8,
@@ -168,6 +168,11 @@ def btm_demo(rate_structure_path, load_profile_path, pv_profile_path=None):
     
     year = 2019
 
+    params = {
+        'Energy_capacity': 400,
+        'Power_rating': 100,
+    }
+
     weekday_energy_schedule = rate_structure['energy rate structure']['weekday schedule']
     weekend_energy_schedule = rate_structure['energy rate structure']['weekend schedule']
     weekday_demand_schedule = rate_structure['demand rate structure']['weekday schedule']
@@ -230,6 +235,9 @@ def btm_demo(rate_structure_path, load_profile_path, pv_profile_path=None):
 
         op.rate_structure_metadata = rate_structure
 
+        if params:
+            op.set_model_parameters(**params)
+
         op.run()
 
         charges_month['total_with_es_month'] = op.total_bill_with_es
@@ -285,6 +293,9 @@ def btm_demo(rate_structure_path, load_profile_path, pv_profile_path=None):
 
             op.rate_structure_metadata = rate_structure
             op.load_profile_metadata = load_profile
+
+            if params:
+                op.set_model_parameters(**params)
 
             op.run()
             solved_op = op
@@ -369,14 +380,14 @@ def btm_demo(rate_structure_path, load_profile_path, pv_profile_path=None):
 
 
 if __name__ == '__main__':
-    rate_structure_path = os.path.join('data', 'rate_structures', 'e19medium.json')
+    rate_structure_path = os.path.join('data', 'rate_structures', 'mySFhotelPGE.json')
     load_profile_path = os.path.join('data', 'load', 'commercial', 'USA_CA_San.Francisco.Intl.AP.724940_TMY3', 'RefBldgLargeHotelNew2004_7.1_5.0_3C_USA_CA_SAN_FRANCISCO.csv')
     pv_profile_path = os.path.join('data', 'pv', '50kwSF.json')
 
-    # btm_demo(
-    #     rate_structure_path, 
-    #     load_profile_path, 
-    #     pv_profile_path
-    # )
+    btm_demo(
+        rate_structure_path, 
+        load_profile_path, 
+        pv_profile_path
+    )
 
-    valuation_demo()
+    # valuation_demo()
