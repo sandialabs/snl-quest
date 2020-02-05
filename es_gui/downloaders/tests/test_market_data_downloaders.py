@@ -58,7 +58,7 @@ class TestMarketDataDownloaders(unittest.TestCase):
         save_directory=self.save_directory, 
         datetime_start=self.datetime_start, 
         datetime_end=None, 
-        bus_loc='both', 
+        bus_loc='location', 
         typedat='all', 
         ssl_verify=self.ssl_verify, 
         proxy_settings=self.proxy_settings, 

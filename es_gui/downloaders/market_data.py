@@ -622,7 +622,6 @@ def download_spp_data(save_directory, datetime_start, datetime_end=None, typedat
 
     # Compute the range of months to iterate over.
     monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-    monthrange.union([monthrange[-1] + 1])
 
     url_spp_daLMP = "https://marketplace.spp.org/file-browser-api/download/da-lmp-by-"
     url_spp_daMCP = "https://marketplace.spp.org/file-browser-api/download/da-mcp"
@@ -892,7 +891,6 @@ def download_nyiso_data(save_directory, datetime_start, datetime_end=None, typed
 
     # Compute the range of months to iterate over.
     monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-    monthrange.union([monthrange[-1] + 1])
 
     # Note NYISO has .zip files with months
 
@@ -1164,7 +1162,6 @@ def download_miso_data(save_directory, datetime_start, datetime_end=None, ssl_ve
 
     # Compute the range of months to iterate over.
     monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-    monthrange.union([monthrange[-1] + 1])
 
     for date in monthrange:
         year = date.year
@@ -1782,7 +1779,6 @@ def download_caiso_data(save_directory, datetime_start, datetime_end=None, typed
                 nodelist.append(node_x)
 
     monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-    monthrange.union([monthrange[-1] + 1])
 
     url_CAISO = "http://oasis.caiso.com/oasisapi/SingleZip?"
 
@@ -2235,30 +2231,30 @@ if __name__ == '__main__':
     #     update_function=_update_function
     #     )
 
-    cnx_error = download_spp_data(
-        save_directory=save_directory, 
-        datetime_start=datetime_start, 
-        datetime_end=None, 
-        bus_loc='both', 
-        typedat='all', 
-        ssl_verify=ssl_verify, 
-        proxy_settings=proxy_settings, 
-        n_attempts=7, 
-        update_function=_update_function
-    )
-
-    # cnx_error = download_nyiso_data(
+    # cnx_error = download_spp_data(
     #     save_directory=save_directory, 
     #     datetime_start=datetime_start, 
     #     datetime_end=None, 
-    #     typedat='both', 
-    #     RT_DAM='both', 
-    #     zone_gen='both', 
+    #     bus_loc='both', 
+    #     typedat='all', 
     #     ssl_verify=ssl_verify, 
     #     proxy_settings=proxy_settings, 
     #     n_attempts=7, 
     #     update_function=_update_function
-    #     )
+    # )
+
+    cnx_error = download_nyiso_data(
+        save_directory=save_directory, 
+        datetime_start=datetime_start, 
+        datetime_end=None, 
+        typedat='both', 
+        RT_DAM='both', 
+        zone_gen='both', 
+        ssl_verify=ssl_verify, 
+        proxy_settings=proxy_settings, 
+        n_attempts=7, 
+        update_function=_update_function
+        )
 
     # cnx_error = download_miso_data(
     #     save_directory=save_directory, 
