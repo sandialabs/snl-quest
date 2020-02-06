@@ -278,26 +278,78 @@ def generate_multisetbar_chart(chart_data, cats=[], labels=[]):
 
     return fig, ax
 
-def generate_bar_chart(chart_data, bar_width=0.4, labels=[], orientation='vertical'):
+def generate_bar_chart(chart_data, bottoms=None, bar_width=0.4, labels=[], orientation='vertical'):
     """
     Creates a bar chart for revenue using chart_data.
     """
-    fig, ax = plt.subplots(figsize=(12, 4))
+    fig, ax = plt.subplots(figsize=(12, 6))
 
     # Get the revenue data from the ValOp objects.
     indices = np.arange(len(chart_data))
 
     # Plot.
     with sb.axes_style('whitegrid'):
-        if orientation == 'horizontal':
-            ax.barh(indices, chart_data, height=bar_width, color=PALETTE)
-            plt.yticks(indices, labels, rotation=0)
-            ax.set_xticklabels(['{:,}'.format(int(x)) for x in ax.get_xticks().tolist()])  # Comma separator for y-axis tick labels.
+        if bottoms is None:
+            if orientation == 'horizontal':
+                ax.barh(indices, chart_data, height=bar_width, color=PALETTE)
+                plt.yticks(indices, labels, rotation=0)
+                ax.set_xticklabels(['{:,}'.format(int(x)) for x in ax.get_xticks().tolist()])  # Comma separator for y-axis tick labels.
+            else:
+                ax.bar(indices, chart_data, width=bar_width, color=PALETTE)
+                plt.xticks(indices, labels, rotation=0)
+                ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks().tolist()])  # Comma separator for y-axis tick labels.
         else:
-            ax.bar(indices, chart_data, width=bar_width, color=PALETTE)
-            plt.xticks(indices, labels, rotation=0)
-            ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks().tolist()])  # Comma separator for y-axis tick labels.
+            if orientation == 'horizontal':
+                ax.barh(indices, chart_data, left=bottoms, height=bar_width, color=PALETTE)
+                plt.yticks(indices, labels, rotation=0)
+                ax.set_xticklabels(['{:,}'.format(int(x)) for x in ax.get_xticks().tolist()])  # Comma separator for y-axis tick labels.
+                # ax.set_xlim(0, max(chart_data))
+            else:
+                ax.bar(indices, chart_data, bottom=bottoms, width=bar_width, color=PALETTE)
+                plt.xticks(indices, labels, rotation=0)
+                ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks().tolist()])  # Comma separator for y-axis tick labels.
+                # ax.set_ylim(0, max(chart_data))
             
         # sb.despine(offset=10, trim=True)
+
+    return fig, ax
+
+
+def generate_revenue_stackedbar_chart(zipped_results, bar_width=0.6, labels=[], orientation='vertical'):
+    """
+    Creates a stacked bar chart to present revenue results from different estimates.
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    zipped_results_list = list(zipped_results)
+
+    # Determine which colors to use.
+    colors_list = PALETTE
+
+    n_components = len(zipped_results_list[0])
+    indices = np.arange(len(zipped_results_list))
+    bottom = np.zeros(len(indices))
+
+    chart_data = []
+
+    for result_set in zipped_results_list:
+        sorted_results = np.sort(np.array(result_set))
+        sorted_increments = np.diff(sorted_results, prepend=0)
+
+        chart_data.append(sorted_increments)
+
+    for ix in range(n_components):
+        component_color = colors_list[ix]
+        component_set = [x[ix] for x in chart_data]
+
+        ax.bar(indices, component_set, bar_width, bottom=bottom, color=component_color)
+        bottom += component_set
+
+    ax.set_yticklabels(['{:,}'.format(int(x)) for x in ax.get_yticks().tolist()])  # Comma separator for y-axis tick labels.
+
+    plt.xticks(indices, labels, rotation=0)
+    # sb.despine(offset=10, trim=True)
+
+    # # ax.yaxis.grid(True)
 
     return fig, ax

@@ -150,6 +150,29 @@ def valuation_demo():
 
     ax.set_title('Gross Revenue')
     ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.
+    
+    #
+    zipped_results = zip(revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast)
+
+    fig, ax = plotting_utils.generate_revenue_stackedbar_chart(zipped_results, labels=calendar.month_abbr[1:])
+
+    ax.set_title('Gross Revenue')
+    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.          
+
+    #
+    zipped_results = zip(revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast)
+
+    min_rev_per_month = []
+    bar_heights = []
+
+    for result_set in zipped_results:
+        min_rev_per_month.append(min(result_set))
+        bar_heights.append(max(result_set) - min(result_set))
+
+    fig, ax = plotting_utils.generate_bar_chart(bar_heights, bottoms=min_rev_per_month, labels=calendar.month_abbr[1:])
+
+    ax.set_title('Gross Revenue')
+    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.        
 
     plt.show()
 
@@ -384,10 +407,10 @@ if __name__ == '__main__':
     load_profile_path = os.path.join('data', 'load', 'commercial', 'USA_CA_San.Francisco.Intl.AP.724940_TMY3', 'RefBldgLargeHotelNew2004_7.1_5.0_3C_USA_CA_SAN_FRANCISCO.csv')
     pv_profile_path = os.path.join('data', 'pv', '50kwSF.json')
 
-    btm_demo(
-        rate_structure_path, 
-        load_profile_path, 
-        pv_profile_path
-    )
+    # btm_demo(
+    #     rate_structure_path, 
+    #     load_profile_path, 
+    #     pv_profile_path
+    # )
 
-    # valuation_demo()
+    valuation_demo()
