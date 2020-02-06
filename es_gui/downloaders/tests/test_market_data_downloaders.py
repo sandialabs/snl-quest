@@ -109,7 +109,7 @@ class TestMarketDataDownloaders(unittest.TestCase):
         nodes=['LMP',], 
         ssl_verify=self.ssl_verify, 
         proxy_settings=self.proxy_settings, 
-        n_attempts=7, 
+        n_attempts=10, 
         update_function=self.update_function
         )
 
