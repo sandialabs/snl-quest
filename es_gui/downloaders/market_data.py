@@ -297,7 +297,6 @@ def download_isone_data(username, password, save_directory, datetime_start, date
     
     # Compute the range of months to get da prices
     monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-    monthrange.union([monthrange[-1] + 1])
 
     url_ISONE = 'https://webservices.iso-ne.com/api/v1.1'
     for date in monthrange:

@@ -164,7 +164,6 @@ class DataManagerPanelERCOT(BoxLayout):
                 datetime_start, datetime_end, 
                 freq='YS'
                 )
-            year_range.union([year_range[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
             job_batches = batch_splitter(year_range, frequency='year')
@@ -312,7 +311,6 @@ class DataManagerPanelISONE(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Compute number of days in the given range.
             total_days = 0
@@ -461,7 +459,6 @@ class DataManagerPanelMISO(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Compute number of days in the given range.
             total_days = 0
@@ -620,7 +617,6 @@ class DataManagerPanelNYISO(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Distribute the requests for multiple threads.
             job_batches = batch_splitter(monthrange)
@@ -775,7 +771,6 @@ class DataManagerPanelSPP(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Compute number of days in the given range.
             total_days = 0
@@ -941,7 +936,6 @@ class DataManagerPanelCAISO(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
             total_months = len(monthrange)
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
@@ -1105,7 +1099,6 @@ class DataManagerPanelPJM(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
             job_batches = batch_splitter(monthrange)
