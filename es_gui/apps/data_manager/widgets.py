@@ -167,7 +167,6 @@ class DataManagerPanelERCOT(BoxLayout):
 
             # Compute the range of years to iterate over.
             year_range = pd.date_range(datetime_start, datetime_end, freq='YS')
-            year_range.union([year_range[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
             job_batches = batch_splitter(year_range, frequency='year')
@@ -441,7 +440,6 @@ class DataManagerPanelISONE(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Compute number of days in the given range.
             total_days = 0
@@ -530,7 +528,6 @@ class DataManagerPanelISONE(BoxLayout):
         
         # Compute the range of months to get da prices
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
     
         url_ISONE = 'https://webservices.iso-ne.com/api/v1.1'
         for date in monthrange:
@@ -892,7 +889,6 @@ class DataManagerPanelMISO(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Compute number of days in the given range.
             total_days = 0
@@ -941,7 +937,6 @@ class DataManagerPanelMISO(BoxLayout):
 
         # Compute the range of months to iterate over.
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
 
         for date in monthrange:
             year = date.year
@@ -1183,7 +1178,6 @@ class DataManagerPanelNYISO(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Distribute the requests for multiple threads.
             job_batches = batch_splitter(monthrange)
@@ -1238,7 +1232,6 @@ class DataManagerPanelNYISO(BoxLayout):
 
         # Compute the range of months to iterate over.
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
 
         # Note NYISO has .zip files with months
 
@@ -1569,7 +1562,6 @@ class DataManagerPanelSPP(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Compute number of days in the given range.
             total_days = 0
@@ -1623,7 +1615,6 @@ class DataManagerPanelSPP(BoxLayout):
 
         # Compute the range of months to iterate over.
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
 
         url_spp_daLMP = "https://marketplace.spp.org/file-api/download/da-lmp-by-"
         url_spp_daMCP = "https://marketplace.spp.org/file-api/download/da-mcp"
@@ -1960,7 +1951,6 @@ class DataManagerPanelCAISO(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
             total_months = len(monthrange)
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
@@ -2024,7 +2014,6 @@ class DataManagerPanelCAISO(BoxLayout):
         # print(nodelist)
 
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-        monthrange.union([monthrange[-1] + 1])
 
         url_CAISO = "http://oasis.caiso.com/oasisapi/SingleZip?"
 
@@ -2503,7 +2492,6 @@ class DataManagerPanelPJM(BoxLayout):
 
             # Compute the range of months to iterate over.
             monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
-            monthrange.union([monthrange[-1] + 1])
 
             # Split up the download requests to accomodate the maximum amount of allowable threads.
             job_batches = batch_splitter(monthrange)
