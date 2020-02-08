@@ -254,7 +254,7 @@ def generate_multisetbar_chart(chart_data, cats=[], labels=[]):
     """
     Creates a multiset bar chart for revenue using chart_data.
     """
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(16, 8))
 
     # Get the revenue data from the ValOp objects.
     indices = np.arange(len(chart_data[0]))
@@ -272,9 +272,9 @@ def generate_multisetbar_chart(chart_data, cats=[], labels=[]):
 
         # Put legend outside on the right.
         box = ax.get_position()
-        # ax.set_position([box.x0, box.y0, box.width * 0.95, box.height])
-        # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-        ax.legend(loc='upper right')
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        # ax.legend(loc='upper right')
 
     return fig, ax
 

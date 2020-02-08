@@ -13,9 +13,140 @@ from es_gui.tools.btm.btm_optimizer import BtmOptimizer
 import es_gui.tools.btm.readutdata as readutdata
 
 from es_gui.tools.valuation.valuation_dms import ValuationDMS
-from es_gui.tools.valuation.valuation_optimizer import ValuationOptimizer
+from es_gui.simulators.valuation import ValuationOptimizerSimulator
 
 import es_gui.tools.plotting_utils as plotting_utils
+
+
+def valuation_demo_with_simulation():
+    with open('valuation_optimizer.log', 'w'):
+        pass
+
+    logging.basicConfig(filename='bounds_demo.log', format='[%(levelname)s] %(asctime)s: %(message)s',
+                        level=logging.INFO)
+
+    dms = ValuationDMS(save_name='valuation_dms.p', home_path='data', save_data=True)
+
+    year = 2017
+    node_name = 'SPPSOUTH_H'
+    market_type = 'spp_pfp'
+
+    params = {
+        'Energy_capacity': 8,
+        'Power_rating': 2,
+    }
+
+    revenue_monthly = []
+    revenue_monthly_da_forecast = []
+    revenue_daily = []
+    revenue_daily_da_forecast = []
+
+    for ix, month in enumerate(calendar.month_abbr[1:], start=1): 
+        _, num_days = calendar.monthrange(year, ix)
+
+        lmp_da, mcpru_da, mcprd_da = dms.get_spp_data(year, ix, node_name)
+
+        properties = {
+            'market_type': 'spp_pfp',
+            'solver': 'gurobi',
+        }
+        data = {
+            'price_electricity': lmp_da,
+            'price_reg_up': mcpru_da,
+            'price_reg_down': mcprd_da,
+        }
+
+        # Monthly horizon, perfect foresight
+        sim = ValuationOptimizerSimulator()
+        sim.run(
+            properties=properties,
+            data=data,
+            simulation_type='monthly_perfect',
+            parameters=params,
+        )
+
+        revenue_monthly.append(sim.gross_revenue)
+
+        # Monthly horizon, day-ahead presistent forecast
+        sim = ValuationOptimizerSimulator()
+        sim.run(
+            properties=properties,
+            data=data,
+            simulation_type='monthly_forecast',
+            forecast_method='persistent',
+            parameters=params,
+        )
+
+        revenue_monthly_da_forecast.append(sim.gross_revenue)
+
+        # Daily horizon, perfect foresight
+        sim = ValuationOptimizerSimulator()
+        sim.run(
+            properties=properties,
+            data=data,
+            simulation_type='daily_perfect',
+            parameters=params,
+            n_days=num_days,
+        )
+
+        revenue_daily.append(sim.gross_revenue)
+
+        # Daily horizon, day-ahead persistent forecast
+        sim = ValuationOptimizerSimulator()
+        sim.run(
+            properties=properties,
+            data=data,
+            simulation_type='daily_forecast',
+            forecast_method='persistent',
+            parameters=params,
+            n_days=num_days,
+        )
+
+        revenue_daily_da_forecast.append(sim.gross_revenue)
+
+    fig, ax = plotting_utils.generate_multisetbar_chart(
+        [
+        revenue_daily, 
+        revenue_daily_da_forecast, 
+        revenue_monthly, 
+        revenue_monthly_da_forecast
+        ],
+        cats=[
+            'daily (perfect)', 
+            'daily (persistent)', 
+            'monthly (perfect)', 
+            'monthly (persistent)'
+            ],
+        labels=calendar.month_abbr[1:],
+    )
+
+    ax.set_title('Gross Revenue')
+    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.
+    
+    # Stacked bar chart
+    zipped_results = zip(revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast)
+
+    fig, ax = plotting_utils.generate_revenue_stackedbar_chart(zipped_results, labels=calendar.month_abbr[1:])
+
+    ax.set_title('Gross Revenue')
+    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.          
+
+    # Bar spread chart
+    zipped_results = zip(revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast)
+
+    min_rev_per_month = []
+    bar_heights = []
+
+    for result_set in zipped_results:
+        min_rev_per_month.append(min(result_set))
+        bar_heights.append(max(result_set) - min(result_set))
+
+    fig, ax = plotting_utils.generate_bar_chart(bar_heights, bottoms=min_rev_per_month, labels=calendar.month_abbr[1:])
+
+    ax.set_title('Gross Revenue')
+    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.
+
+    sim.results.to_csv('simulator_results.csv')
 
 
 def valuation_demo():
@@ -142,9 +273,15 @@ def valuation_demo():
         total_revenue = sum(op.gross_revenue for op in solved_ops_da_forecast)
         revenue_daily_da_forecast.append(total_revenue)
 
+    # fig, ax = plotting_utils.generate_multisetbar_chart(
+    #     [revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast],
+    #     cats=['daily horizon', 'daily horizon w/ DA forecast', 'monthly horizon', 'monthly horizon w/ DA forecast'],
+    #     labels=calendar.month_abbr[1:],
+    # )
+
     fig, ax = plotting_utils.generate_multisetbar_chart(
-        [revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast],
-        cats=['daily horizon', 'daily horizon w/ DA forecast', 'monthly horizon', 'monthly horizon w/ DA forecast'],
+        [revenue_daily, revenue_monthly,],
+        cats=['daily horizon', 'monthly horizon',],
         labels=calendar.month_abbr[1:],
     )
 
@@ -173,8 +310,7 @@ def valuation_demo():
 
     ax.set_title('Gross Revenue')
     ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.        
-
-    plt.show()
+    # plt.show()
 
 
 def btm_demo(rate_structure_path, load_profile_path, pv_profile_path=None):
@@ -413,4 +549,8 @@ if __name__ == '__main__':
     #     pv_profile_path
     # )
 
-    valuation_demo()
+    # valuation_demo()
+
+    valuation_demo_with_simulation()
+
+    plt.show()
