@@ -43,7 +43,7 @@ class ValuationOptimizerSimulator(Simulator):
         self._gross_revenue = value
 
     def run(self, properties, data, simulation_type, 
-            parameters=None, n_days=None, forecast_method=None, **kwargs
+            model_parameters=None, n_days=None, forecast_method=None, **kwargs
             ):
         """Sets up and runs all ValuationOptimizer instances as prescribed 
         by the simulation mode.
@@ -106,7 +106,7 @@ class ValuationOptimizerSimulator(Simulator):
         >>> sim = ValuationOptimizerSimulator()
 
         >>> sim.run(properties=props, data=data, simulation_type='monthly_forecast', 
-                    parameters=model_params, n_days=31, forecast_method='persistent')
+                    model_parameters=model_params, n_days=31, forecast_method='persistent')
         """
         super(ValuationOptimizerSimulator, self).run(properties, data, simulation_type, model_parameters, **kwargs)
 
@@ -123,8 +123,8 @@ class ValuationOptimizerSimulator(Simulator):
             op = self.set_optimizer_properties(op, **data)
 
             # Assign Pyomo model parameters
-            if parameters:
-                op.set_model_parameters(**parameters)
+            if model_parameters:
+                op.set_model_parameters(**model_parameters)
 
             op.run()
             self.solved_ops.append(op)
@@ -149,8 +149,8 @@ class ValuationOptimizerSimulator(Simulator):
             op = self.set_optimizer_properties(op, **forecasted_data)
 
             # Assign Pyomo model parameters
-            if parameters:
-                op.set_model_parameters(**parameters)
+            if model_parameters:
+                op.set_model_parameters(**model_parameters)
 
             op.run()
 
@@ -183,8 +183,8 @@ class ValuationOptimizerSimulator(Simulator):
                     op = self.set_optimizer_properties(op, **daily_data)
 
                     # Assign Pyomo model parameters
-                    if parameters:
-                        op.set_model_parameters(**parameters)
+                    if model_parameters:
+                        op.set_model_parameters(**model_parameters)
 
                     op.run()
 
@@ -232,8 +232,8 @@ class ValuationOptimizerSimulator(Simulator):
                     op = self.set_optimizer_properties(op, **daily_forecasted_data)
 
                     # Assign Pyomo model parameters
-                    if parameters:
-                        op.set_model_parameters(**parameters)
+                    if model_parameters:
+                        op.set_model_parameters(**model_parameters)
 
                     op.run()
 
