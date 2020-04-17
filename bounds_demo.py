@@ -106,22 +106,22 @@ def valuation_demo_with_simulation():
 
     fig, ax = plotting_utils.generate_multisetbar_chart(
         [
-        revenue_daily, 
-        revenue_daily_da_forecast, 
         revenue_monthly, 
-        revenue_monthly_da_forecast
+        revenue_daily, 
+        revenue_monthly_da_forecast,
+        revenue_daily_da_forecast, 
         ],
         cats=[
+            'monthly (perfect)',
             'daily (perfect)', 
-            'daily (persistent)', 
-            'monthly (perfect)', 
-            'monthly (persistent)'
+            'monthly (persistent)',
+            'daily (persistent)',             
             ],
         labels=calendar.month_abbr[1:],
     )
 
     ax.set_title('Gross Revenue')
-    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.
+    ax.set_ylabel('Gross Revenue [\$]')
     
     # Stacked bar chart
     zipped_results = zip(revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast)
@@ -129,7 +129,7 @@ def valuation_demo_with_simulation():
     fig, ax = plotting_utils.generate_revenue_stackedbar_chart(zipped_results, labels=calendar.month_abbr[1:])
 
     ax.set_title('Gross Revenue')
-    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.          
+    ax.set_ylabel('Gross Revenue [\$]')   
 
     # Bar spread chart
     zipped_results = zip(revenue_daily, revenue_daily_da_forecast, revenue_monthly, revenue_monthly_da_forecast)
@@ -144,9 +144,39 @@ def valuation_demo_with_simulation():
     fig, ax = plotting_utils.generate_bar_chart(bar_heights, bottoms=min_rev_per_month, labels=calendar.month_abbr[1:])
 
     ax.set_title('Gross Revenue')
-    ax.set_ylabel('Gross Revenue [\$]')  # Note the $ is escaped, assuming LaTeX is used to render text.
+    ax.set_ylabel('Gross Revenue [\$]')
 
     sim.results.to_csv('simulator_results.csv')
+
+    # Proportion bar chart
+    total_revenue_daily = sum(revenue_daily)
+    total_revenue_daily_forecast = sum(revenue_daily_da_forecast)
+    total_revenue_monthly = sum(revenue_monthly)
+    total_revenue_monthly_forecast = sum(revenue_monthly_da_forecast)
+
+    max_total = max(total_revenue_monthly, total_revenue_monthly_forecast, total_revenue_daily_forecast, total_revenue_daily)
+
+    proportion_data = [
+        ('daily (perfect)', total_revenue_daily/max_total),
+        ('daily (persistent)', total_revenue_daily_forecast/max_total),
+        ('monthly (perfect)', total_revenue_monthly/max_total),
+        ('monthly (persistent)', total_revenue_monthly_forecast/max_total),
+    ]
+
+    sorted_proportion_data = sorted(
+        proportion_data,
+        key=lambda x: x[-1],
+        reverse=True,
+    )
+
+    fig, ax = plotting_utils.generate_generic_bar_chart(
+        [x[-1] for x in sorted_proportion_data],
+        labels=[x[0] for x in sorted_proportion_data],
+        orientation='vertical',
+    )
+
+    ax.set_title('Achieving the Upper Bound')
+    ax.set_ylabel('Fraction of Potential Captured')
 
 
 def valuation_demo():
@@ -543,14 +573,14 @@ if __name__ == '__main__':
     load_profile_path = os.path.join('data', 'load', 'commercial', 'USA_CA_San.Francisco.Intl.AP.724940_TMY3', 'RefBldgLargeHotelNew2004_7.1_5.0_3C_USA_CA_SAN_FRANCISCO.csv')
     pv_profile_path = os.path.join('data', 'pv', '50kwSF.json')
 
-    # btm_demo(
-    #     rate_structure_path, 
-    #     load_profile_path, 
-    #     pv_profile_path
-    # )
+    btm_demo(
+        rate_structure_path, 
+        load_profile_path, 
+        pv_profile_path
+    )
 
     # valuation_demo()
 
-    valuation_demo_with_simulation()
+    # valuation_demo_with_simulation()
 
     plt.show()

@@ -353,3 +353,37 @@ def generate_revenue_stackedbar_chart(zipped_results, bar_width=0.6, labels=[], 
     # # ax.yaxis.grid(True)
 
     return fig, ax
+
+
+def generate_generic_bar_chart(chart_data, bottoms=None, bar_width=0.4, labels=[], orientation='vertical'):
+    """
+    Creates a bar chart for revenue using chart_data.
+    """
+    fig, ax = plt.subplots(figsize=(12, 6))
+
+    # Get the revenue data from the ValOp objects.
+    indices = np.arange(len(chart_data))
+
+    # Plot.
+    with sb.axes_style('whitegrid'):
+        if bottoms is None:
+            if orientation == 'horizontal':
+                ax.barh(y=indices, width=chart_data, height=bar_width, color=PALETTE,
+                tick_label=labels)
+                ax.set_xticklabels(['{:0.1f}'.format(x) for x in ax.get_xticks()])
+            else:
+                ax.bar(indices, chart_data, width=bar_width, color=PALETTE, tick_label=labels)
+                ax.set_yticklabels(['{:0.1f}'.format(x) for x in ax.get_yticks()])
+        else:
+            if orientation == 'horizontal':
+                ax.barh(indices, chart_data, left=bottoms, height=bar_width, color=PALETTE)
+                plt.yticks(indices, labels, rotation=0)
+                ax.set_xticklabels(['{:0.3f}'.format(x) for x in ax.get_xticks()])
+            else:
+                ax.bar(indices, chart_data, bottom=bottoms, width=bar_width, color=PALETTE)
+                plt.xticks(indices, labels, rotation=0)
+                ax.set_yticklabels(['{:0.3f}'.format(x) for x in ax.get_yticks()])
+            
+        # sb.despine(offset=10, trim=True)
+
+    return fig, ax
