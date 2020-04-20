@@ -13,7 +13,7 @@ For issues and feedback we would appreciate it if you could use the "Issues" fea
 ### Email
 Entity account `@sandia.gov: snl-quest`
 
-Project maintainer (Ricky Concepcion) `@sandia.gov: rconcep`
+Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 
 ## Table of contents
 - [Introduction](#intro)
