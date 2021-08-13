@@ -2,15 +2,15 @@ from setuptools import setup, find_packages
 from distutils.core import Extension
 
 DISTNAME = 'QuESt'
-VERSION = '1.2.f'
+VERSION = '1.2.g'
 EXTENSIONS = []
 PYTHON_REQUIRES='>=36'
 DESCRIPTION = 'Sandia National Laboratories application suite for energy storage analysis and evaluation tools.'
 LONG_DESCRIPTION = open('README.md').read()
 AUTHOR = 'Sandia National Laboratories'
-MAINTAINER_EMAIL = 'rconcep@sandia.gov'
+MAINTAINER_EMAIL = 'tunguy@sandia.gov'
 LICENSE = 'BSD 3-clause'
-URL = 'https://www.github.com/rconcep/snl-quest'
+URL = 'https://www.github.com/snl-quest/snl-quest'
 
 setuptools_kwargs = {
     'scripts': [],
