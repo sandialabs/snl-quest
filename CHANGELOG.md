@@ -1,4 +1,7 @@
 # Master branch changelog
+## Patch 1.2.g
+### Resolved issues
+* An issue in Data Manager caused by the update of utility list in OpenEI database.
 
 ## Patch 1.2.f
 ### QuESt
