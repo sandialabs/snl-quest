@@ -35,8 +35,8 @@ from es_gui.apps.data_manager.utils import check_connection_settings
 
 MAX_WHILE_ATTEMPTS = 7
 
-URL_OPENEI_IOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/500990ae-ada2-4791-9206-01dc68e36f12/download/iouzipcodes2017.csv"
-URL_OPENEI_NONIOU = "https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/672523aa-0d8a-4e6c-8a10-67e311bb1691/download/noniouzipcodes2017.csv"
+URL_OPENEI_IOU = "https://data.openei.org/files/4042/iou_zipcodes_2019.csv"
+URL_OPENEI_NONIOU = "https://data.openei.org/files/4042/non_iou_zipcodes_2019.csv"
 APIROOT_OPENEI = "https://api.openei.org/utility_rates?"
 VERSION_OPENEI = "version=latest"
 REQUEST_FMT_OPENEI = "&format=json"
@@ -169,7 +169,7 @@ class RateStructureUtilitySearchScreen(Screen):
                 # Something else went wrong.
                 logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else:
-                data_down = http_request.content.decode(http_request.encoding)
+                data_down = http_request.content.decode(http_request.apparent_encoding)
                 data_iou = pd.read_csv(io.StringIO(data_down))
         
         # Non-investor-owned utilities.
@@ -212,7 +212,7 @@ class RateStructureUtilitySearchScreen(Screen):
                 # Something else went wrong.
                 logging.error('RateStructureDM: An unexpected error has occurred. ({0})'.format(repr(e)))
             else:
-                data_down = http_request.content.decode(http_request.encoding)
+                data_down = http_request.content.decode(http_request.apparent_encoding)
                 data_noniou = pd.read_csv(io.StringIO(data_down))
             
             try:
