@@ -66,6 +66,7 @@ from es_gui.apps.data_manager.widgets import DataManagerRTOMOdataScreen
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
 from es_gui.apps.data_manager.pv import PVwattsSearchScreen
+from es_gui.apps.data_manager.nsrdb import NSRDBDataScreen
 
 # Valuation
 from es_gui.apps.valuation.home import ValuationHomeScreen
@@ -77,6 +78,10 @@ from es_gui.apps.valuation.wizard import ValuationWizard
 from es_gui.apps.btm.home import BehindTheMeterHomeScreen
 from es_gui.apps.btm.cost_savings import CostSavingsWizard
 from es_gui.apps.btm.results_viewer import BtmResultsViewer
+
+from es_gui.apps.performance.home import PerformanceHomeScreen
+from es_gui.apps.performance.performance_sim import PerformanceSimRunScreen
+from es_gui.apps.performance.results_viewer import PerformanceResultsViewer
 
 # Font registration.
 LabelBase.register(name='Exo 2',
@@ -229,6 +234,7 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
         self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
         self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
+        self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
 
         # Energy storage valuation.
         self.add_widget(ValuationHomeScreen(name='valuation_home'))
@@ -240,6 +246,11 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(BehindTheMeterHomeScreen(name='btm_home'))
         self.add_widget(CostSavingsWizard(name='cost_savings_wizard'))
         self.add_widget(BtmResultsViewer(name='btm_results_viewer'))
+        
+        #Performance applications.
+        self.add_widget(PerformanceHomeScreen(name='performance_home'))
+        self.add_widget(PerformanceSimRunScreen(name='performance_sim'))
+        self.add_widget(PerformanceResultsViewer(name='performance_results_viewer'))
     
     def launch_valuation(self):
         """"""
@@ -268,6 +279,21 @@ class QuEStScreenManager(ScreenManager):
             no_data_popup.open()
         else: 
             self.current = 'btm_home'
+            
+    def launch_performance(self):
+        """"""
+        data_manager = App.get_running_app().data_manager
+        
+        try:
+            data_manager.scan_performance_data_bank()
+            print('Work in progress')
+        except FileNotFoundError:
+            # 'data' directory does not exist.
+            no_data_popup = WarningPopup()
+            no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"
+            no_data_popup.open()
+        else: 
+            self.current = 'performance_home'
 
 
 class NavigationBar(ActionBar):
@@ -288,6 +314,9 @@ class NavigationBar(ActionBar):
                      'btm_home': 'index',
                      'cost_savings_wizard': 'btm_home',
                      'btm_results_viewer': 'btm_home',
+                     'performance_home': 'index',
+                     'performance_sim': 'performance_home',
+                     'performance_results_viewer': 'performance_home',
                      }
 
     def __init__(self, sm):
@@ -371,6 +400,18 @@ class NavigationBar(ActionBar):
 
         self.action_view.add_widget(view_results_button)
         self.action_view.add_widget(batch_processing_button)
+        
+    def build_performance_nav_bar(self):
+        """Builds the navigation bar for performance application"""
+        performance_home_button = NavigationButton(
+                text = 'performance home',
+                on_release=partial(self.go_to_screen,'performance_home'))
+        
+        
+        
+        self.reset_nav_bar()
+
+        self.action_view.add_widget(performance_home_button)
 
     def reset_nav_bar(self, *args):
         """Resets the navigation bar to its initial state."""
@@ -436,6 +477,7 @@ class QuEStApp(App):
         config.setdefaults('datamanager-pjm', {'pjm_subscription_key': ''})
         config.setdefaults('datamanager-isone', {'iso-ne_api_username': ''})
         config.setdefaults('datamanager-openei', {'openei_key': ''})
+        config.setdefaults('performance', {'performance_dms_save': 1, 'performance_dms_size': 20000})
 
     def build(self):
         # Sets the window/application title.
@@ -478,6 +520,9 @@ class QuEStApp(App):
         
         with open(os.path.join(dirname, 'es_gui', 'resources', 'settings', 'btm.json'), 'r') as settings_json:
             self.settings.add_json_panel('QuESt BTM', self.config, data=settings_json.read())
+            
+        with open(os.path.join(dirname,'es_gui','resources','settings','performance.json'),'r') as settings_json:
+            self.settings.add_json_panel('QuESt Performance',self.config,data=settings_json.read())
 
         self.settings.bind(on_close=sm.settings_screen.dismiss)
         sm.settings_screen.settings_box.add_widget(self.settings)

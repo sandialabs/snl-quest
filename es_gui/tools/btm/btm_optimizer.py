@@ -5,6 +5,7 @@ import logging
 from pyomo.environ import *
 import pandas as pd
 import numpy as np
+import os
 
 from es_gui.tools import optimizer
 from es_gui.tools.btm.constraints import ExpressionsBlock
@@ -506,8 +507,6 @@ class BtmOptimizer(optimizer.Optimizer):
 
         self.nem_charge_with_es = nem_charge_with_es
         self.nem_charge_without_es = nem_charge_without_es
-
-        # self.results.to_csv('resultssss.csv')
         
     def get_results(self):
         """Returns the decision variables and derived quantities in a DataFrame"""

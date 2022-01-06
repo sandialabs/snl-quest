@@ -13,6 +13,7 @@
 #:include es_gui/apps/data_manager/load.kv
 #:include es_gui/apps/data_manager/widgets.kv
 #:include es_gui/apps/data_manager/pv.kv
+#:include es_gui/apps/data_manager/nsrdb.kv
 
 #:include es_gui/apps/valuation/home.kv
 #:include es_gui/apps/valuation/batchrunscreen.kv
@@ -23,6 +24,9 @@
 #:include es_gui/apps/btm/home.kv
 #:include es_gui/apps/btm/cost_savings.kv
 #:include es_gui/apps/btm/reporting.kv
+
+#:include es_gui/apps/performance/home.kv
+#:include es_gui/apps/performance/performance_sim.kv
 
 #:include es_gui/proving_grounds/data_importer.kv
 #:include es_gui/proving_grounds/help_carousel.kv
@@ -114,6 +118,11 @@
                     #state: 'down'
                     text: ('[font=Modern Pictograms][size=54]p[/font][/size]\nQuESt BTM')
                     on_state: root.app_select_sm.current = 'btm'
+                    
+                AppSelectionIndexButton:
+                    #state: 'down'
+                    text: ('[font=Modern Pictograms][size=54]6[/font][/size]\nQuESt Performance')
+                    on_state: root.app_select_sm.current = 'performance'
 
             BoxLayout:
                 size_hint_x: 0.6
@@ -135,7 +144,7 @@
                                 text: 'QuESt Data Manager'
 
                             AppSelectionDescBody:
-                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles'
+                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles \n *Weather data'
 
                             AnchorLayout:
                                 anchor_x: 'center'
@@ -180,6 +189,24 @@
                                 AppIndexGoButton:
                                     text: 'Get started'
                                     on_release: root.manager.launch_btm()
+                                    
+                    Screen:
+                        name: 'performance'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt Performance'
+
+                            AppSelectionDescBody:
+                                text: 'Estimates the effect heating and cooling loads have on battery energy storage performance.'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_performance()
 
                     Screen:
                         name: 'technology selection'

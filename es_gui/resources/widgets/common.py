@@ -304,6 +304,34 @@ class ParamTextInput(TextInput):
         # limit to 8 chars
         substring = substring[:8 - len(self.text)]
         return super(ParamTextInput, self).insert_text(substring, from_undo=from_undo)
+    
+class ParameterRowText(GridLayout):
+    """Grid layout containing parameter name, description, text input, and units."""
+    def __init__(self, desc, **kwargs):
+        super(ParameterRowText, self).__init__(**kwargs)
+
+        self._desc = desc
+
+        self.name.text = self.desc.get('name', '')
+        self.notes.text = self.desc.get('notes', '')
+        self.text_input.hint_text = str(self.desc.get('default', ''))
+        self.units.text = self.desc.get('units', '')
+
+    @property
+    def desc(self):
+        return self._desc
+
+    @desc.setter
+    def desc(self, value):
+        self._desc = value
+
+
+class ParamTextInputText(TextInput):
+    """A TextInput field for entering parameter values. Limited to float values."""
+    def insert_text(self, substring, from_undo=False):
+        # limit to 25 chars
+        substring = substring[:25 - len(self.text)]
+        return super(ParamTextInputText, self).insert_text(substring, from_undo=from_undo)
 
 
 class ParameterGridWidget(GridLayout):
@@ -747,6 +775,113 @@ class ValuationParameterWidget(GridLayout):
 
 
 class ValuationParamTextInput(TextInput):
+    """A TextInput field for entering parameter value sweep range descriptors. Limited to float values."""
+    def insert_text(self, substring, from_undo=False):
+        # limit to 8 chars
+        substring = substring[:8 - len(self.text)]
+        return super(ValuationParamTextInput, self).insert_text(substring, from_undo=from_undo)
+    
+class PerformanceParameterRow(GridLayout):
+    """Grid layout containing parameter descriptor label and text input field. For QuESt Valuation interfaces."""
+    def __init__(self, lbl, desc, **kwargs):
+        super(PerformanceParameterRow, self).__init__(**kwargs)
+
+        self._lbl = lbl
+        self._desc = desc
+        self.name.text = self.desc[0]
+        self.text_input.hint_text = str(self.desc[1])
+
+    @property 
+    def lbl(self):
+        return self._lbl
+    
+    @lbl.setter
+    def lbl(self, value):
+        self._lbl = value
+        
+    @property
+    def desc(self):
+        return self._desc
+
+    @desc.setter
+    def desc(self, value):
+        self._desc = value
+    
+class PerformanceParameterWidget(GridLayout):
+    """Grid layout containing rows of ValuationParameterRow widgets. For inputting parameter values into text input fields in QuESt Valuation interfaces."""
+    def build(self):
+        # Build the widget by creating a row for each parameter.
+        data_manager = App.get_running_app().data_manager
+        MODEL_PARAMS = {
+                'eCap': ['Energy Capacity (MWh)', 1],
+                'pRat': ['Power Rating (MW)', 1],
+                'n_s' : ['Self-Discharge Efficiency', 1],
+                'n_p' : ['Power Electronics Efficiency', 0.93],
+                'q_rate': ['Battery Cell Ah Rating', 2.5],
+                'v_rate':['Battery Cell Voltage Rating', 3.6],
+                'r': ['Battery Cell Internal Resistance',0.02],
+                'k': ['Battery Cell k Parameter',0.005],
+                'tau': ['Time Step (hr)', 0.25],
+                'h_setpoint': ['Heating Setpoint (C)', 15],
+                'c_setpoint': ['Cooling Setpoint (C)', 40],
+                }
+
+        for param in MODEL_PARAMS:
+            row = PerformanceParameterRow(lbl = param, desc=MODEL_PARAMS[param])
+            self.add_widget(row)
+            setattr(self, param[0], row)
+            
+        return True
+    
+    def validate_inputs(self):
+        # Check the parameter inputs.
+        param_dict = {}
+
+        # Check for any input into the parameter rows.
+        for param_row in self.children:
+            param_name = param_row.name.text
+            attr_name = param_row.desc[0]
+
+            if param_row.text_input.text:
+                param_value = float(param_row.text_input.text)
+            else:
+                # Use the hint text (default value)
+                param_value = float(param_row.text_input.hint_text)
+
+            param_dict[attr_name] = param_value
+
+            # Values cannot be negative.
+            if param_value < 0:
+                raise InputError('"{0}" cannot be negative. (got {1})'.format(param_name, param_value))
+            
+            # Percentages cannot exceed 100.
+            if attr_name in {'Self_discharge_efficiency', 'Round_trip_efficiency', 'State_of_charge_init', 'State_of_charge_min', 'State_of_charge_max', 'Reserve_reg_min', 'Reserve_reg_max',} and param_value > 100:
+                raise InputError('"{0}" cannot exceed 100%. (got {1})'.format(param_name, param_value))
+    
+    def get_inputs(self, use_hint_text=False):
+        self.validate_inputs()
+
+        base_param_dict = {}
+
+        # Check for any input into the parameter rows.
+        for param_row in self.children:
+            param_name = param_row.name.text
+            attr_name = param_row.lbl
+            
+            if not param_row.text_input.text and not use_hint_text:
+                continue
+            elif param_row.text_input.text:
+                param_value = float(param_row.text_input.text)
+            else:
+                param_value = float(param_row.text_input.hint_text)
+            
+            base_param_dict[attr_name] = param_value
+            
+
+        return base_param_dict
+
+
+class PerformanceParamTextInput(TextInput):
     """A TextInput field for entering parameter value sweep range descriptors. Limited to float values."""
     def insert_text(self, substring, from_undo=False):
         # limit to 8 chars

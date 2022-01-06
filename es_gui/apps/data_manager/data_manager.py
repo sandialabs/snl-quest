@@ -1239,6 +1239,124 @@ class DataManager(EventDispatcher):
             model_params_all = json.load(fp)
 
         return model_params_all
+    
+    def get_nsrdb_search_params(self):
+        """Returns the list of dictionaries of parameters for the NSRDB search."""
+        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'nsrdb_data_parameters.json'), 'r') as fp:
+            model_params_all = json.load(fp)
+
+        return model_params_all
+    
+    def scan_performance_data_bank(self):
+        """Scans the behind-the-meter data bank to determine what data has been downloaded."""
+        # Check if data bank exists.
+        try:
+            os.listdir(self.data_bank_root)
+        except FileNotFoundError:
+            return
+
+        # Open loading screen.
+        self.loading_screen = LoadingModalView()
+        self.loading_screen.loading_text.text = 'Scanning data files...'
+        self.loading_screen.open()
+
+        self.n_threads_scanning = 1
+
+        def _scan_performance_data_bank():
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
+
+            self._scan_idf_data_bank()
+            self._scan_weather_data_bank()
+            self._scan_ess_profile_data_bank()
+
+            self.n_threads_scanning -= 1
+        
+        thread = threading.Thread(target=_scan_performance_data_bank)
+        thread.start() 
+        
+    def _scan_idf_data_bank(self):
+        """"""
+        idf_root = os.path.join(self.data_bank_root, 'idf')
+        idf_data_bank = {}
+
+        try:
+            os.listdir(idf_root)
+        except FileNotFoundError:
+            return
+        
+        for idf_folder in os.scandir(idf_root):
+            if not idf_folder.name.startswith('.'):
+                hvac_root = idf_folder.path
+                
+                hvac_name = idf_folder.name
+                idf_data_bank[hvac_name] = []
+                for hvac_file in os.scandir(hvac_root):
+                    if not hvac_file.name.startswith('.'):
+                        hvac_fname = hvac_file.name
+                        hvac_dir = hvac_file.path
+                        idf_data_bank[hvac_name].append([hvac_fname,hvac_dir])
+        
+        self.data_bank['idf files'] = idf_data_bank
+        
+    def _scan_weather_data_bank(self):
+        """"""
+        weather_root = os.path.join(self.data_bank_root,'weather')
+        weather_data_bank = {}
+        
+        try: 
+            os.listdir(weather_root)
+        except FileNotFoundError:
+            return
+        
+        for weather_folder in os.scandir(weather_root):
+            if not weather_folder.name.startswith('.'):
+                location_root = weather_folder.path
+                
+                weather_key = weather_folder.name
+                weather_data_bank[weather_key] = []
+                for weather_file in os.scandir(location_root):
+                    if not weather_file.name.startswith('.'):
+                        weather_name = weather_file.name
+                        weather_dir = weather_file.path
+                        
+                        weather_data_bank[weather_key].append([weather_name,weather_dir])
+                        
+        self.data_bank['weather files'] = weather_data_bank
+        
+    def _scan_ess_profile_data_bank(self):
+        """"""
+        profile_root = os.path.join(self.data_bank_root, 'profile')
+        profile_data_bank = {}
+
+        try:
+            os.listdir(profile_root)
+        except FileNotFoundError:
+            return
+        
+        for profile_folder in os.scandir(profile_root):
+            if not profile_folder.name.startswith('.'):
+                p_root = profile_folder.path
+                
+                profile_key = profile_folder.name
+                profile_data_bank[profile_key] = []
+                for profile_file in os.scandir(p_root):
+                    if not profile_file.name.startswith('.'):
+                        profile_key = profile_folder.name
+                        profile_fname = profile_file.name
+                        profile_dir = profile_file.path
+                        
+                        profile_data_bank[profile_key].append([profile_fname,profile_dir])
+        
+        self.data_bank['profiles'] = profile_data_bank
+        
+#    def get_idfs(self):
+#        
+#        try:
+#            idf_files = self.data_bank[]
+        
 
 class DataManagerException(Exception):
     pass
