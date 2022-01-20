@@ -33,7 +33,7 @@ class PerformanceResultsViewer(ResultsViewer):
     def on_pre_enter(self):
         
         self.rv.data = self.manager.handler.get_solved_sims()
-        self.variables = ['Energy','Hourly Power']
+        self.variables = ['Energy','Hourly Power','Efficiency']
         
         self._update_toolbar()        
 
@@ -93,15 +93,18 @@ class PerformanceResultsViewer(ResultsViewer):
             ax.set_xlabel('Day of Month')
             ax.set_title('Hourly HVAC Power Consumption')
         elif plot_type == 'Efficiency':
-            groupedF = groupedF.unstack(level=[0])
-            days = groupedF.index.get_level_values('Day').unique().to_list()
-            max_hours = len(groupedF.index)
-            (groupedF['Discharge Energy']/(groupedF['Charge Energy']+groupedF['HVAC Energy'])).plot(kind='line',ax=ax,legend=True,rot=0,colormap='tab20')
-            ax.set_xticks(np.linspace(0,max_hours,len(days),endpoint=False))
-            ax.set_xticklabels(days)
-#            ax.set_ylabel('kW')
-            ax.set_xlabel('Day of Month')
-            ax.set_title('Efficiency')
+#            groupedF = groupedF.unstack(level=[0])
+#            days = groupedF.index.get_level_values('Day').unique().to_list()
+#            max_hours = len(groupedF.index)
+#            (groupedF['Discharge Energy']/(groupedF['Charge Energy']+groupedF['HVAC Energy'])).plot(kind='line',ax=ax,legend=True,rot=0,colormap='tab20')
+#            ax.set_xticks(np.linspace(0,max_hours,len(days),endpoint=False))
+#            ax.set_xticklabels(days)
+##            ax.set_ylabel('kW')
+#            ax.set_xlabel('Day of Month')
+#            ax.set_title('Efficiency')
+            (monthlyF['Discharge Energy'].sum()/(monthlyF['Charge Energy'].sum()+monthlyF['HVAC Energy'].sum())).plot(kind='bar',ax=ax,legend=False,rot=0)
+#            monthlyF['Efficiency'].plot(kind='bar',ax=ax,legend=False,rot=0)
+            ax.set_title('Monthly Efficiency')
 #        elif plot_type == 'Bill':
 #            for key in results:
 #                resultsF = results[key]
