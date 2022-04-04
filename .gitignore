@@ -15,6 +15,8 @@ dist/*
 
 data/*
 
+energyplus/*
+
 results/valuation/report/**
 results/valuation/report/images/*.png
 results/valuation/csv/*.csv

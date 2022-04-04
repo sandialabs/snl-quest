@@ -57,6 +57,11 @@ An application for behind-the-meter energy storage system analysis. Tools includ
 
 <img src="patch_note_resources/gifs/08_costsavings_charts.gif" alt="Cost savings wizard charts" width=600px margin="auto" />
 
+#### QuESt Performance
+An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air conditioning loads. This tool leverages the building simulation tool EnergyPlus to model the energy consumption of a particular battery housing.
+
+<img src="patch_note_resources/gifs/performance_tool.gif" alt="Data Selection" width=600px margin="auto" />
+
 ### Who should use it?
 The software is designed to be used by anyone with an interest in performing analysis of energy storage or its applications without having to create their own models or write their own code. It’s designed to be easy to use out of the box but also modifiable by the savvy user if they so choose. The software is intended to be used as a platform for running simulations, obtaining results, and using the information to inform planning decisions. 
 

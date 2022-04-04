@@ -39,6 +39,11 @@
                 background_color: C(hex_primary)
                 text: 'Photovoltaic Power Profiles'
                 on_release: root.manager.current = 'data_manager_pvwatts'
+                
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'NSRDB Weather Data'
+                on_release: root.manager.current = 'data_manager_nsrdb'
 
 <DataManagerMenuTileButton@MenuTileButton>:
     font: huge_font

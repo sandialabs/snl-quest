@@ -1,0 +1,91 @@
+#: from es_gui.resources.common import ResultsViewer
+
+<PerformanceResultsViewer@ResultsViewer>:
+    name: 'performance_results_viewer'
+
+    rv: rv
+    plotbox: plotbox
+    plot_toolbar: plot_toolbar
+    vars_button: vars_button
+    draw_button: draw_button
+    csv_export_button: csv_export_button
+    png_export_button: png_export_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+        padding: 10
+
+        BoxLayout:
+            id: plotbox
+            size_hint_y: 0.7
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 5
+            size_hint_y: 0.3
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 5
+                size_hint_x: 0.8
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 5
+
+                    TitleTextBase:
+                        font_size: stnd_font
+                        text: 'Select solved models to plot.'
+                        size_hint_x: 0.85
+
+#                    TileButton:
+#                        text: 'Select all'
+#                        size_hint_x: 0.15
+#                        on_release: root._select_all_runs()
+
+                    TileButton:
+                        text: 'Deselect all'
+                        size_hint_x: 0.15
+                        on_release: root._deselect_all_runs()
+
+                MyRecycleView:
+                    id: rv
+                    size_hint_y: 0.85
+                    viewclass: 'RecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        default_size: None, dp(80)
+                        spacing: 5
+                        multiselect: True
+                        touch_multiselect: True
+
+            PlotToolbar:
+                id: plot_toolbar
+                size_hint_x: 0.2
+
+                TileButton:
+                    id: draw_button
+                    text: 'Plot/Redraw'
+                    background_color: C(hex_secondary)
+                    on_release: root.draw_figure()
+
+                PlotSpinner:
+                    id: vars_button
+                    text: 'Select data'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 5
+
+                    TileButton:
+                        id: csv_export_button
+                        text: 'Export CSV'
+                        on_release: root.export_csv()
+
+                    TileButton:
+                        id: png_export_button
+                        text: 'Export PNG'
+                        on_release: root.export_png()
