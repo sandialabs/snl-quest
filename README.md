@@ -62,6 +62,12 @@ An application for analyzing battery energy storage system performance due to pa
 
 <img src="patch_note_resources/gifs/performance_tool.gif" alt="Data Selection" width=600px margin="auto" />
 
+#### QuESt Technology Selection
+
+An application for identifying the energy storage technologies most suitable for a given project. This tool is based on multiple parameters that characterize each storage technology; the technologies that do not satisfy the minimum application requirements are filtered out and the remaining technologies are ranked to indicate their compatibility to the desired project.
+
+<img src="patch_note_resources/gifs/tech_selection.gif" alt="Technology selection wizard charts" width=600px margin="auto" />
+
 ### Who should use it?
 The software is designed to be used by anyone with an interest in performing analysis of energy storage or its applications without having to create their own models or write their own code. It’s designed to be easy to use out of the box but also modifiable by the savvy user if they so choose. The software is intended to be used as a platform for running simulations, obtaining results, and using the information to inform planning decisions. 
 
