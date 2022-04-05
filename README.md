@@ -3,9 +3,9 @@
 # QuESt: Optimizing Energy Storage
 [![Build Status](https://travis-ci.com/rconcep/snl-quest.svg?branch=master)](https://travis-ci.com/rconcep/snl-quest)
 
-Current release version: 1.2.g
+Current release version: 1.6
 
-Release date: August, 2021
+Release date: April, 2022
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
