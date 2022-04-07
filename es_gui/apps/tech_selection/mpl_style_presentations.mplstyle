@@ -34,4 +34,3 @@ font.family: serif
 font.serif: Times New Roman
 font.size: 2.4 ###
 mathtext.fontset: cm
-text.latex.preamble: \usepackage{pifont}

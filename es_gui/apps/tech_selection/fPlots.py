@@ -1,9 +1,8 @@
 import os
 import numpy as np
-#import matplotlib as mpl
 import matplotlib.pyplot as plt
 import seaborn as sns
-#import string
+
 color_red, color_blue = np.array([247, 140, 102])/255, np.array([102, 163, 224])/255
 cBlue = np.array([0, 102, 204])/255
 cAmber = np.array([255, 136, 0])/255
@@ -12,7 +11,6 @@ cOrange = np.array([242, 63, 0])/255
 cBlueGrey = np.array([125, 142, 160])/255
 
 plt.style.use(os.path.join('es_gui', 'apps', 'tech_selection', 'mpl_style_presentations.mplstyle'))
-
 
 
 def plot_table_feasibility(df_data, figsize=(7, 5),
@@ -28,8 +26,8 @@ def plot_table_feasibility(df_data, figsize=(7, 5),
     # Create feasibility table (as a heatmap plot)
     fig, ax = plt.subplots(figsize=figsize)
     sns.heatmap(df_data, cmap=cmap, cbar=False, linewidths=0.1,
-                annot=df_data.applymap(lambda x: '\ding{52}' if x == 1 else '\ding{56}'),
-                fmt='s', annot_kws={'fontsize': 2, 'usetex': True},
+                annot=df_data.applymap(lambda x: 'Yes' if x == 1 else 'No'),
+                fmt='s', annot_kws={'fontsize': 2},
                 xticklabels=xticklabels, yticklabels=yticklabels, ax=ax)
 
     # Update settings for x and y labels

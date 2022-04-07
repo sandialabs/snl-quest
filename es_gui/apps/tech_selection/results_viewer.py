@@ -1,12 +1,9 @@
 from __future__ import absolute_import
 
 import os
-#import textwrap
-
-#import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
-from scipy.stats.mstats import gmean
+from es_gui.apps.tech_selection import fAux
 
 from kivy.app import App
 from kivy.uix.screenmanager import Screen
@@ -113,18 +110,17 @@ class TechSelectionRanking(Screen):
     def update_scores(self):
         """"""
 
-        test_aux = self.dfRanking[['Application score', 'Location score', 'Cost score', 'Maturity score']]#.values
+        test_aux = pd.DataFrame(self.dfRanking[['Application score', 'Location score', 'Cost score', 'Maturity score']])
 
         xx = test_aux['Cost score'].values
-        old_target = 1500 # FIX!!!
+        old_target = 1500
         new_target = float(self.target_cost_value.text)
-        bb = new_target / (old_target*(1-xx)/xx + new_target)
-        # print(bb)
+        #bb = new_target / (old_target*(1-xx)/xx + new_target)
+        bb = new_target*xx / (old_target*(1-xx) + new_target*xx) # Avoid "division by zero" warnings
         test_aux['Cost score'] = bb
-        # print(test_aux)
         self.dfRanking['Cost score'] = bb
 
-        self.dfRanking['Total score'] = gmean(test_aux, axis=1, weights=[self.app_slider.value, self.location_slider.value, self.cost_slider.value, self.maturity_slider.value])
+        self.dfRanking['Total score'] = fAux.geom_mean(test_aux, weights=[self.app_slider.value, self.location_slider.value, self.cost_slider.value, self.maturity_slider.value])
         self.dfRanking.fillna(value=0, inplace=True)
         self.dfRanking.sort_values(by=['Total score', 'Application score', 'Location score', 'Cost score', 'Maturity score'], inplace=True)
 
