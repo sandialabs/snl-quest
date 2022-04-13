@@ -20,7 +20,7 @@ setuptools_kwargs = {
         "scipy",
         "pandas>=0.24.2",
         "pyomo>=5.6",
-        "matplotlib",
+        "matplotlib>=3.5.1",
         "kivy>=1.10.1",
         "kivy-garden",
         "xlrd",

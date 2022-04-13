@@ -3,7 +3,6 @@ import re
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.stats.mstats import gmean
 from es_gui.apps.tech_selection import fFeasibility, fPlots, fAux
 
 from kivy.app import App
@@ -66,8 +65,8 @@ def perform_tech_selection(selections, target_cost_kWh, target_cost_kW):
     all_app_scores['Score for duration'] = tech_data_lowest_duration[['Discharge duration (hours)']].apply(normalize_by_max)
     all_app_scores['Score for cycle life'] = tech_data_lowest_duration[['Cycle life (# of cycles)']].apply(normalize_by_max)
     all_app_scores['Score for efficiency'] = tech_data_lowest_duration[['Round-trip efficiency (%)']].apply(normalize_by_max)
-    all_app_scores['Application score'] = all_app_scores.apply(gmean, axis='columns')
-    # all_app_scores.fillna(value=0, inplace=True)
+    all_app_scores.fillna(value=0, inplace=True)
+    all_app_scores['Application score'] = fAux.geom_mean(all_app_scores)
 
     # Compute 'Total score' for all feasible technologies (based on application, location, cost, and maturity)
     all_final_scores = pd.DataFrame(index=all_feasibility.index)
@@ -75,8 +74,8 @@ def perform_tech_selection(selections, target_cost_kWh, target_cost_kW):
     all_final_scores['Location score'] = tech_data_lowest_duration[f'Score for {grid_location}']
     all_final_scores['Cost score'] = compute_cost_scores(tech_data_lowest_duration, system_size, app_type, target_cost)
     all_final_scores['Maturity score'] = tech_data_lowest_duration['Tech readiness score']
-    all_final_scores['Total score'] = all_final_scores.apply(gmean, axis='columns')
     all_final_scores.fillna(value=0, inplace=True)
+    all_final_scores['Total score'] = fAux.geom_mean(all_final_scores)
     all_final_scores.sort_values(by=['Total score', 'Application score', 'Location score', 'Cost score', 'Maturity score'], inplace=True)
 
     # Plot: feasibility heatmap

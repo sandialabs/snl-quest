@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def pdSeriesIdxWhereTrue(pdSeries):
     """
     Return the indexes of a pandas series for which the corresponding values are True (boolean).
@@ -14,3 +17,13 @@ def pdSeriesIdxWhereTrue(pdSeries):
     """
     
     return pdSeries.index[pdSeries].tolist()
+
+    
+def geom_mean(vals, weights=None):
+    
+    if weights is None:
+        weights = np.ones(vals.shape[1])
+        
+    gmean = np.prod(vals**weights, axis=1) ** (1/np.sum(weights))
+    
+    return gmean
