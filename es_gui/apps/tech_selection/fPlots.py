@@ -27,8 +27,9 @@ def plot_table_feasibility(df_data, figsize=(7, 5),
     fig, ax = plt.subplots(figsize=figsize)
     sns.heatmap(df_data, cmap=cmap, cbar=False, linewidths=0.1,
                 annot=df_data.applymap(lambda x: 'Yes' if x == 1 else 'No'),
-                fmt='s', annot_kws={'fontsize': 2},
+                fmt='s', annot_kws={'fontsize': 2, 'fontfamily': 'sans-serif', 'va': 'center_baseline'},
                 xticklabels=xticklabels, yticklabels=yticklabels, ax=ax)
+    ax.tick_params(rotation=0)
 
     # Update settings for x and y labels
     ax.set_xlabel(xlabel, fontsize=12, weight='bold')
@@ -48,14 +49,14 @@ def plot_table_feasibility(df_data, figsize=(7, 5),
     return fig
     
 def plot_ranking_techs(df_data):
-    fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(ncols=5, sharey=True, figsize=(1.9, 1))
-    for ax, column, color in zip([ax1, ax2, ax3, ax4, ax5],
-                                 ['Application score', 'Location score', 'Cost score', 'Maturity score', 'Total score'],
-                                 [cBlue, cAmber, cGreen, cOrange, cBlueGrey]):
+    fig, axs = plt.subplots(ncols=5, sharey=True, figsize=(1.9, 1))
+    for column, color, ax in zip(['Application score', 'Location score', 'Cost score', 'Maturity score', 'Total score'],
+                                 [cBlue, cAmber, cGreen, cOrange, cBlueGrey], axs):
         df_data[column].plot.barh(ax=ax, fc=color)
         ax.set_xticks([0, 0.5, 1])
         ax.set_xticklabels(['0', '0.5', '1'])
         ax.set_xlim(0, 1)
         ax.set_ylabel('')
         ax.set_title(column.replace(' score', ''))
+
     return fig
