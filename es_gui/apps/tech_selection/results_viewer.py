@@ -34,25 +34,6 @@ class TechSelectionFeasible(Screen):
         # Reload the heatmap of feasible technologies
         self.plot_feasibility_image.reload()
 
-    def techs_description(self):
-        """Create popup window for showing description of each energy storage technology."""
-
-        # Text for the popup window
-        popup_txt = ('A detailed description of the energy storage technologies used in this tool can be found in the '
-                     '[color=ffa300]U.S. DOE Energy Storage Handbook[/color].\n\nNote about lithium-ion batteries: due to '
-                     'the abundance of data, [i]lithium-ion iron phostate[/i] and [i]lithium-ion nickel-manganese-cobalt[/i] '
-                     'batteries are classified as unique technologies in this tool. On the other hand, [i]lithium-ion[/i] '
-                     'refers to generic lithium-ion batteries, regardless of the chemistry.')
-
-        # Create, populate, and display the popup window
-        popup = WarningPopup(size_hint=(0.5, 0.43))
-        popup.dismiss_button.size_hint_y = 0.05/0.43
-        popup.title = 'Description of energy storage technologies'
-        popup.popup_text.text = popup_txt
-        popup.popup_text.markup = True
-        popup.popup_text.on_ref_press = webbrowser.open('https://www.sandia.gov/ess/publications/doe-oe-resources/eshb')
-        popup.open()
-
     def _next_screen(self):
         if not self.manager.has_screen('ranking_techs'):
             screen = TechSelectionRanking(name='ranking_techs')
@@ -99,25 +80,6 @@ class TechSelectionRanking(Screen):
             child.name.size_hint_x, child.text_input.size_hint_x = 0.35, 0.65
 
         self.plot_ranking_image.reload()
-
-    def techs_description(self):
-        """Create popup window for showing description of each energy storage technology."""
-
-        # Text for the popup window
-        popup_txt = ('A detailed description of the energy storage technologies used in this tool can be found in the '
-                     '[color=ffa300]U.S. DOE Energy Storage Handbook[/color].\n\nNote about lithium-ion batteries: due to '
-                     'the abundance of data, [i]lithium-ion iron phostate[/i] and [i]lithium-ion nickel-manganese-cobalt[/i] '
-                     'batteries are classified as unique technologies in this tool. On the other hand, [i]lithium-ion[/i] '
-                     'refers to generic lithium-ion batteries, regardless of the chemistry.')
-
-        # Create, populate, and display the popup window
-        popup = WarningPopup(size_hint=(0.5, 0.43))
-        popup.dismiss_button.size_hint_y = 0.05/0.43
-        popup.title = 'Description of energy storage technologies'
-        popup.popup_text.text = popup_txt
-        popup.popup_text.markup = True
-        popup.popup_text.on_ref_press = webbrowser.open('https://www.sandia.gov/ess/publications/doe-oe-resources/eshb')
-        popup.open()
 
     def help_weights(self):
         """Create popup window for showing help about the weights for each factor in the feasibility computation."""
