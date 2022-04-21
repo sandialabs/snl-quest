@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 [{"name": "Grid location", "attr name": "location", "value": "Distribution"}, {"name": "Application", "attr name": "application", "value": "Voltage regulation"}, {"name": "System size", "attr name": "system_size", "value": "1 MW"}, {"name": "Discharge duration", "attr name": "discharge_duration", "value": "4 hrs"}, {"name": "Type of application", "attr name": "app_type", "value": "Power"}]
+=======
+[{"name": "Grid location", "attr name": "location", "value": "BTM: residential"}, {"name": "Application", "attr name": "application", "value": "Resilience (back-up power)"}, {"name": "System size", "attr name": "system_size", "value": "10 kW"}, {"name": "Discharge duration", "attr name": "discharge_duration", "value": "4 hrs"}, {"name": "Type of application", "attr name": "app_type", "value": "Energy"}]
+>>>>>>> 4007f6e727c731b3fb0d66276a7bb78a5b184917
