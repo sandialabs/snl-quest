@@ -1,8 +1,8 @@
 from __future__ import absolute_import
 
 import os
-import matplotlib.pyplot as plt
 import pandas as pd
+import webbrowser
 from es_gui.apps.tech_selection import fAux
 
 from kivy.app import App
@@ -10,36 +10,55 @@ from kivy.uix.screenmanager import Screen
 
 from es_gui.resources.widgets.common import BASE_TRANSITION_DUR, WarningPopup, stnd_font
 from es_gui.apps.tech_selection import fPlots
-#from es_gui.apps.tech_selection.analysis import perform_tech_selection
 
 
 class TechSelectionFeasible(Screen):
     """"""
+
     def __init__(self, **kwargs):
         super(TechSelectionFeasible, self).__init__(**kwargs)
 
     def on_pre_enter(self):
         """Clear any widgets already present in the screen and create a new widget displaying the user selections."""
+
+        # Clear all previous widgets
         if self.param_widget.children:
             self.param_widget.clear_widgets()
-        self.param_widget.build()
 
+        # Rebuild the widget displaying a summary of user selections
+        self.param_widget.build()
         for child in self.param_widget.children:
             child.name.font_size, child.text_input.font_size = stnd_font, stnd_font
             child.name.size_hint_x, child.text_input.size_hint_x = 0.35, 0.65
 
+        # Reload the heatmap of feasible technologies
         self.plot_feasibility_image.reload()
-        # # """Clear any widgets already present in the screen and create a new widget displaying the user selections."""
-        # # if self.plot_feasibility.children:
-            # # self.plot_feasibility.clear_widgets()
-        # #self.plot_feasibility.build()
+
+    def techs_description(self):
+        """Create popup window for showing description of each energy storage technology."""
+
+        # Text for the popup window
+        popup_txt = ('A detailed description of the energy storage technologies used in this tool can be found in the '
+                     '[color=ffa300]U.S. DOE Energy Storage Handbook[/color].\n\nNote about lithium-ion batteries: due to '
+                     'the abundance of data, [i]lithium-ion iron phostate[/i] and [i]lithium-ion nickel-manganese-cobalt[/i] '
+                     'batteries are classified as unique technologies in this tool. On the other hand, [i]lithium-ion[/i] '
+                     'refers to generic lithium-ion batteries, regardless of the chemistry.')
+
+        # Create, populate, and display the popup window
+        popup = WarningPopup(size_hint=(0.5, 0.43))
+        popup.dismiss_button.size_hint_y = 0.05/0.43
+        popup.title = 'Description of energy storage technologies'
+        popup.popup_text.text = popup_txt
+        popup.popup_text.markup = True
+        popup.popup_text.on_ref_press = webbrowser.open('https://www.sandia.gov/ess/publications/doe-oe-resources/eshb')
+        popup.open()
 
     def _next_screen(self):
         if not self.manager.has_screen('ranking_techs'):
             screen = TechSelectionRanking(name='ranking_techs')
             self.manager.add_widget(screen)
 
-        self.manager.transition.duration = BASE_TRANSITION_DUR
+        self.manager.transition.duration = BASE_TRANSITION_DUR/2
         self.manager.transition.direction = 'left'
         self.manager.current = 'ranking_techs'
 
@@ -71,8 +90,6 @@ class TechSelectionRanking(Screen):
         else:
             pass
 
-        self.dfRanking = pd.read_csv(os.path.join('results', 'tech_selection', 'table_ranking.csv'), index_col=0)
-
         if self.param_widget.children:
             self.param_widget.clear_widgets()
         self.param_widget.build()
@@ -83,32 +100,67 @@ class TechSelectionRanking(Screen):
 
         self.plot_ranking_image.reload()
 
-    def help_weights(self):
-        """"""
-        popup = WarningPopup(size_hint=(0.5, 0.5))
-        popup.title = 'Weights for each category'
-        popup.popup_text.text = (
-            'The total feasibility score for each energy storage technology is given as the weighted geometric mean of the '
-            'four individual scores (application, location, cost, and maturity).\n\nBy default, all categories have the '
-            'same weight. However, the user can modify the weights to prioritize a subset of these categories.\n\nSetting '
-            'a weight to 0.0 effectively removes the corresponding category from the final computation.'
-            )
+    def techs_description(self):
+        """Create popup window for showing description of each energy storage technology."""
+
+        # Text for the popup window
+        popup_txt = ('A detailed description of the energy storage technologies used in this tool can be found in the '
+                     '[color=ffa300]U.S. DOE Energy Storage Handbook[/color].\n\nNote about lithium-ion batteries: due to '
+                     'the abundance of data, [i]lithium-ion iron phostate[/i] and [i]lithium-ion nickel-manganese-cobalt[/i] '
+                     'batteries are classified as unique technologies in this tool. On the other hand, [i]lithium-ion[/i] '
+                     'refers to generic lithium-ion batteries, regardless of the chemistry.')
+
+        # Create, populate, and display the popup window
+        popup = WarningPopup(size_hint=(0.5, 0.43))
+        popup.dismiss_button.size_hint_y = 0.05/0.43
+        popup.title = 'Description of energy storage technologies'
+        popup.popup_text.text = popup_txt
+        popup.popup_text.markup = True
+        popup.popup_text.on_ref_press = webbrowser.open('https://www.sandia.gov/ess/publications/doe-oe-resources/eshb')
         popup.open()
 
+    def help_weights(self):
+        """Create popup window for showing help about the weights for each factor in the feasibility computation."""
+
+        # Text for the popup window
+        popup_txt = ('The total feasibility score for each energy storage technology is given as the weighted geometric '
+                     'mean of the [i]application[/i], [i]location[/i], and [i]cost[/i] scores, which is then multiplied by '
+                     'the [i]maturity[/i] score. This approach guarantees that only market-ready technologies receive a '
+                     'high total feasibility score.\n\nBy default, all factors have the same weight. However, the user can '
+                     'modify the weights to prioritize a subset of these factors.\n\nSetting a weight to 0.0 effectively '
+                     'removes the corresponding factor from the final computation.')
+
+        # Create, populate, and display the popup window
+        popup = WarningPopup(size_hint=(0.5, 0.52))
+        popup.dismiss_button.size_hint_y = 0.05/0.52
+        popup.title = 'HELP: weights for each factor in the total feasibility score computation'
+        popup.popup_text.text = popup_txt
+        popup.popup_text.markup = True
+        popup.open()
 
     def help_target_cost(self):
-        """"""
-        popup = WarningPopup(size_hint=(0.5, 0.45))
-        popup.title = 'Target cost'
-        popup.popup_text.text = (
-            'The cost score for each energy storage technology is inversely proportional to its total capital cost and '
-            'normalized with respect to a desirable target cost.\n\nAt a given target cost, the cost score is 0.5.\n\nThe '
-            'target cost is usually given in $/kW for power applications and in $/kWh for energy applications.'
-            )
+        """Create popup window for showing help about the target cost for the cost score computation."""
+
+        # Text for the popup window
+        popup_txt = ('The cost score for each energy storage technology is inversely proportional to its total capital cost '
+                     'and normalized with respect to a desired target cost; i.e.:\n\n[color=ffa300][i]Cost score = Target '
+                     'cost / (Capital cost + Target cost)[/i][/color]\n\nNote that the cost score at the desired target '
+                     'cost is 0.5.\n\nThe target cost is usually given in $/kW for power applications and in $/kWh for '
+                     'energy applications.')
+
+        # Create, populate, and display the popup window
+        popup = WarningPopup(size_hint=(0.5, 0.5))
+        popup.dismiss_button.size_hint_y = 0.05/0.5
+        popup.title = 'HELP: target cost for the cost score computation'
+        popup.popup_text.text = popup_txt
+        popup.popup_text.markup = True
         popup.open()
 
     def update_scores(self):
         """"""
+
+        # TODO: read this file only if it hasn't been read previously
+        self.dfRanking = pd.read_csv(os.path.join('results', 'tech_selection', 'table_ranking.csv'), index_col=0)
 
         test_aux = pd.DataFrame(self.dfRanking[['Application score', 'Location score', 'Cost score', 'Maturity score']])
 
@@ -120,9 +172,12 @@ class TechSelectionRanking(Screen):
         test_aux['Cost score'] = bb
         self.dfRanking['Cost score'] = bb
 
-        self.dfRanking['Total score'] = fAux.geom_mean(test_aux, weights=[self.app_slider.value, self.location_slider.value, self.cost_slider.value, self.maturity_slider.value])
+        self.dfRanking['Total score'] = test_aux['Maturity score'] *\
+            fAux.geom_mean(test_aux[['Application score', 'Location score', 'Cost score']],
+                           weights=[self.app_slider.value, self.location_slider.value, self.cost_slider.value])
         self.dfRanking.fillna(value=0, inplace=True)
-        self.dfRanking.sort_values(by=['Total score', 'Application score', 'Location score', 'Cost score', 'Maturity score'], inplace=True)
+        self.dfRanking.sort_values(by=['Total score', 'Application score', 'Location score', 'Cost score', 'Maturity score'],
+                                   inplace=True)
 
         # Plot: final feasibility scores
         fig = fPlots.plot_ranking_techs(self.dfRanking)
@@ -132,12 +187,13 @@ class TechSelectionRanking(Screen):
 
         type_of_cost = [tb.text for tb in [self.togglebutton_kW, self.togglebutton_kWh] if tb.state == 'down'][0]
 
-        popup = WarningPopup(size_hint=(0.4, 0.4))
+        popup = WarningPopup(size_hint=(0.4, 0.35))
+        popup.dismiss_button.size_hint_y = 0.05/0.35
         popup.title = 'Success!'
         popup.popup_text.text = (
             f'The total feasibility score has been recomputed with the following settings:\n\n'
-            f'- Weights: {self.app_slider.value:.2f} (application), {self.location_slider.value:.2f} (location), '
-            f'{self.cost_slider.value:.2f} (cost), and {self.maturity_slider.value:.2f} (maturity).\n'
+            f'- Weights: {self.app_slider.value:.1f} (application), {self.location_slider.value:.1f} (location), and '
+            f'{self.cost_slider.value:.1f} (cost).\n'
             f'- Target cost: {self.target_cost_value.text} {type_of_cost}.'
             )
         popup.open()
@@ -147,7 +203,7 @@ class TechSelectionRanking(Screen):
             screen = TechSelectionSaveResults(name='save_results_techs')
             self.manager.add_widget(screen)
 
-        self.manager.transition.duration = BASE_TRANSITION_DUR
+        self.manager.transition.duration = BASE_TRANSITION_DUR/2
         self.manager.transition.direction = 'left'
         self.manager.current = 'save_results_techs'
 
@@ -159,7 +215,7 @@ class TechSelectionSaveResults(Screen):
         # self.sm = sm
 
     def feasibility_export_png(self):
-        """Exports currently displayed figure to .png file in specified location."""
+        """Export currently displayed figure to .png file in specified location."""
         filename = self.name_plot_feasibility.text
         if filename == '':
             filename = 'out_plot_feasibility'
@@ -172,7 +228,7 @@ class TechSelectionSaveResults(Screen):
         popup.open()
 
     def ranking_export_png(self):
-        """Exports currently displayed figure to .png file in specified location."""
+        """Export currently displayed figure to .png file in specified location."""
         filename = self.name_plot_ranking.text
         if filename == '':
             filename = 'out_plot_ranking'
@@ -185,7 +241,7 @@ class TechSelectionSaveResults(Screen):
         popup.open()
 
     def ranking_export_csv(self):
-        """Exports ranking DataFrame to .csv file in specified location."""
+        """Export ranking DataFrame to .csv file in specified location."""
         filename = self.name_table_ranking.text
         if filename == '':
             filename = 'out_table_ranking'

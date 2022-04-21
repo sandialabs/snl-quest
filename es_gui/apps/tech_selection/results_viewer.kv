@@ -1,7 +1,7 @@
 <TechSelectionSliderWeights@Slider>
     min: 0
-    max: 2
-    step: 0.25
+    max: 1
+    step: 0.1
     value: 1
     value_track: True
     value_track_color: C(hex_secondary)
@@ -10,6 +10,7 @@
     background_horizontal: os.path.join('es_gui', 'resources', 'images', 'gray.png')
     border_horizontal: 0, 0, 0, 0
     cursor_size: 20, 20
+	padding: 10
     
 
 <TechSelectionFeasible>:
@@ -35,13 +36,25 @@
         BoxLayout:
             orientation: 'horizontal'
             size_hint_y: 0.775
-            
-            BoxLayout:
+
+			BoxLayout:
                 id: plot_feasibility
                 size_hint_x: 0.6
-                Image:
-                    id: plot_feasibility_image
-                    source: 'results/tech_selection/plot_feasibility.png'
+				
+				FloatLayout:
+					Image:
+						id: plot_feasibility_image
+						pos_hint: {'top': 1}
+						source: 'results/tech_selection/plot_feasibility.png'
+						#mipmap: True
+
+					WizardNextButton:
+						text: 'Technologies description'
+						size_hint: 0.8*next_button.size_hint_x, 0.05/0.775
+						pos_hint: {'top': 0.97, 'right': 0.25}
+						background_color: C(hex_secondary)
+						font_size: default_font
+						on_release: root.techs_description()
 
             BoxLayout:
                 orientation: 'vertical'
@@ -107,7 +120,7 @@
     app_slider: app_slider
     location_slider: location_slider
     cost_slider: cost_slider
-    maturity_slider: maturity_slider
+    #maturity_slider: maturity_slider
     target_cost_value: target_cost_value
     togglebutton_kW: togglebutton_kW
     togglebutton_kWh: togglebutton_kWh
@@ -120,7 +133,7 @@
         WizardHeaderDesc:
             size_hint_y: 0.1
             text: 'Ranking of feasible energy storage technologies'
-    
+			
         BoxLayout:
             size_hint_y: 0.075
             padding: WIZ_PADDING_X/4, 0
@@ -134,9 +147,21 @@
             BoxLayout:
                 id: plot_ranking
                 size_hint_x: 0.6
-                Image:
-                    id: plot_ranking_image
-                    source: 'results/tech_selection/plot_ranking.png'
+				
+				FloatLayout:
+					Image:
+						id: plot_ranking_image
+						pos_hint: {'top': 1}
+						source: 'results/tech_selection/plot_ranking.png'
+						#mipmap: True
+
+					WizardNextButton:
+						text: 'Technologies description'
+						size_hint: 0.8*next_button.size_hint_x, 0.05/0.775
+						pos_hint: {'top': 0.97, 'right': 0.25}
+						background_color: C(hex_secondary)
+						font_size: default_font
+						on_release: root.techs_description()
 
             BoxLayout:
                 id: right_box
@@ -199,9 +224,9 @@
                                     height: self.minimum_height
                                     
                                     TitleTextBase:
-                                        text: 'Weights for each category:'
+                                        text: 'Weights for each factor:'
                                         font_size: mid_font
-                                        size_hint: 0.485, None
+                                        size_hint: 0.435, None
                                         size: self.texture_size
 
                                     Button:
@@ -215,41 +240,45 @@
                                         on_release: root.help_weights()
 
                                 GridLayout:
-                                    cols: 2
+                                    cols: 3
                                     size_hint: 1, None
-                                    spacing: 0, 6
+									height: 1.5*next_button.height
+                                    #spacing: 0, 6
            
                                     BoxLayout:
                                         orientation: 'vertical'
                                         BodyTextBase:
-                                            text: '[b]Application:[/b] {:.2f}'.format(app_slider.value)
+                                            text: '[b]Application:[/b] {:.1f}'.format(app_slider.value)
                                             markup: True
+											padding: 10, 0
                                         TechSelectionSliderWeights:
                                             id: app_slider
 
                                     BoxLayout:
                                         orientation: 'vertical'
                                         BodyTextBase:
-                                            text: '[b]Location:[/b] {:.2f}'.format(location_slider.value)
+                                            text: '[b]Location:[/b] {:.1f}'.format(location_slider.value)
                                             markup: True
+											padding: 10, 0
                                         TechSelectionSliderWeights:
                                             id: location_slider
 
                                     BoxLayout:
                                         orientation: 'vertical'
                                         BodyTextBase:
-                                            text: '[b]Cost:[/b] {:.2f}'.format(cost_slider.value)
+                                            text: '[b]Cost:[/b] {:.1f}'.format(cost_slider.value)
                                             markup: True
+											padding: 10, 0
                                         TechSelectionSliderWeights:
                                             id: cost_slider
 
-                                    BoxLayout:
-                                        orientation: 'vertical'
-                                        BodyTextBase:
-                                            text: '[b]Maturity:[/b] {:.2f}'.format(maturity_slider.value)
-                                            markup: True
-                                        TechSelectionSliderWeights:
-                                            id: maturity_slider
+                                    #BoxLayout:
+                                    #    orientation: 'vertical'
+                                    #    BodyTextBase:
+                                    #        text: '[b]Maturity:[/b] {:.1f}'.format(maturity_slider.value)
+                                    #        markup: True
+                                    #    TechSelectionSliderWeights:
+                                    #        id: maturity_slider
 
                             BoxLayout:
                                 orientation: 'horizontal'
@@ -309,31 +338,6 @@
                                         background_color: C(hex_secondary)
                                         on_release: root.update_scores()
 
-                # AnchorLayout:
-                    # anchor_y: 'bottom'
-                    
-                    # StackLayout:
-                        # orientation: 'rl-bt'
-                        # size_hint: 1, None
-                        # height: self.minimum_height
-                        # spacing: 5
-                        
-                        # WizardNextButton:
-                            # text: 'Export figure'
-                            # size_hint: None, None
-                            # width: next_button.width
-                            # height: next_button.height
-                            # background_color: C(hex_secondary)
-                            # on_release: root.export_png()
-  
-                        # WizardNextButton:
-                            # text: 'Export results (.csv)'
-                            # size_hint: None, None
-                            # width: next_button.width
-                            # height: next_button.height
-                            # background_color: C(hex_secondary)
-                            # on_release: root.export_csv()
-
         BoxLayout:
             size_hint_y: 0.05
 
@@ -350,7 +354,7 @@
                 WizardNextButton:
                     id: next_button
                     on_release: root._next_screen()
-
+					
 
 <TechSelectionSaveResults>:
     name_plot_feasibility: name_plot_feasibility
