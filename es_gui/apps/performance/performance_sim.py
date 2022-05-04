@@ -167,7 +167,8 @@ class PerformanceSimRunScreen(Screen):
             from es_gui.apps.performance.performance_sim_handler import PerformanceSimHandler
             data_manager = App.get_running_app().data_manager
             self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root,'output'))
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as e:
+            logging.warning('Performance: {}'.format(e))
             popup = EnergyPlusPopup()
             popup.open()
         else:
@@ -201,18 +202,23 @@ class PerformanceSimDataScreen(Screen):
         except AttributeError:
             pass
         except KeyError:
-            data_root = os.path.join(data_manager.data_bank_root,'weather')
-            ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
-            bool_ls = [True if os.path.isfile(item) else False for item in ls]
-            
-            if any(bool_ls):
-                bad_dir_popup = WarningPopup()
-                bad_dir_popup.popup_text.text = "There was an error processing the HVAC files. Please place your HVAC files in their own folder in the IDF directory."
-                bad_dir_popup.open()
-            else:
+            if not os.path.exists(os.path.join(data_manager.data_bank_root,'idf')):
                 popup = WarningPopup()
                 popup.popup_text.text = "Looks like there are no EnergyPlus input files! Please visit the help tab to learn more."
                 popup.open()
+            else:
+                data_root = os.path.join(data_manager.data_bank_root,'idf')
+                ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
+                bool_ls = [True if os.path.isfile(item) else False for item in ls]
+                
+                if any(bool_ls):
+                    bad_dir_popup = WarningPopup()
+                    bad_dir_popup.popup_text.text = "There was an error processing the HVAC files. Please place your HVAC files in their own folder in the IDF directory."
+                    bad_dir_popup.open()
+                else:
+                    popup = WarningPopup()
+                    popup.popup_text.text = "Looks like there are no EnergyPlus input files! Please visit the help tab to learn more."
+                    popup.open()
         else:
             self.hvac_select.values = [hvac_option for hvac_option in hvac_options]
             
@@ -225,18 +231,23 @@ class PerformanceSimDataScreen(Screen):
         except AttributeError:
             pass
         except KeyError:
-            data_root = os.path.join(data_manager.data_bank_root,'weather')
-            ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
-            bool_ls = [True if os.path.isfile(item) else False for item in ls]
-            
-            if any(bool_ls):
-                bad_dir_popup = WarningPopup()
-                bad_dir_popup.popup_text.text = "There was an error processing the weather files. Please place your weather files in their own folder in the weather directory."
-                bad_dir_popup.open()
-            else:
+            if not os.path.exists(os.path.join(data_manager.data_bank_root,'idf')):
                 popup = WarningPopup()
                 popup.popup_text.text = "Looks like there are no weather files downloaded! Please visit the Data Manager to download data or the help tab to learn more."
                 popup.open()
+            else:
+                data_root = os.path.join(data_manager.data_bank_root,'weather')
+                ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
+                bool_ls = [True if os.path.isfile(item) else False for item in ls]
+                
+                if any(bool_ls):
+                    bad_dir_popup = WarningPopup()
+                    bad_dir_popup.popup_text.text = "There was an error processing the weather files. Please place your weather files in their own folder in the weather directory."
+                    bad_dir_popup.open()
+                else:
+                    popup = WarningPopup()
+                    popup.popup_text.text = "Looks like there are no weather files downloaded! Please visit the Data Manager to download data or the help tab to learn more."
+                    popup.open()
         else:
             self.location_select.values = [location_option for location_option in location_options]
             
@@ -251,28 +262,33 @@ class PerformanceSimDataScreen(Screen):
             popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
             popup.open()
         except KeyError:
-            data_root = os.path.join(data_manager.data_bank_root,'weather')
-            ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
-            bool_ls = [True if os.path.isfile(item) else False for item in ls]
-            
-            if any(bool_ls):
-                bad_dir_popup = WarningPopup()
-                bad_dir_popup.popup_text.text = "There was an error processing the weather files. Please place your weather files in their own folder in the weather directory."
-                bad_dir_popup.open()
+            if not os.path.exists(os.path.join(data_manager.data_bank_root,'idf')):
+                popup = WarningPopup()
+                popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+                popup.open()
             else:
-                try:
-                    profile_options = [col for col in self.valuation_ops.columns] + [col for col in self.btm_ops.columns]
-                except AttributeError:
-                    popup = WarningPopup()
-                    popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-                    popup.open()
+                data_root = os.path.join(data_manager.data_bank_root,'weather')
+                ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
+                bool_ls = [True if os.path.isfile(item) else False for item in ls]
+                
+                if any(bool_ls):
+                    bad_dir_popup = WarningPopup()
+                    bad_dir_popup.popup_text.text = "There was an error processing the weather files. Please place your weather files in their own folder in the weather directory."
+                    bad_dir_popup.open()
                 else:
-                    if profile_options:
-                        self.profile_select.values = profile_options
-                    else:
+                    try:
+                        profile_options = [col for col in self.valuation_ops.columns] + [col for col in self.btm_ops.columns]
+                    except AttributeError:
                         popup = WarningPopup()
                         popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
                         popup.open()
+                    else:
+                        if profile_options:
+                            self.profile_select.values = profile_options
+                        else:
+                            popup = WarningPopup()
+                            popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+                            popup.open()
         else:
             if profile_options:
                 self.profile_select.values = profile_options

@@ -56,7 +56,7 @@ class PerformanceHomeScreen(Screen):
         
         slide_05_text = "An EnergyPlus input file describing a battery energy storage device in an uninsulated shipping container is provided. If you have another input file you would like to use, place it in the quest -> data -> idf directory."
         
-        slide_06_text = "Weather files may be obtained in either of two ways. There is a large repository of weather files formatted for EnergyPlus found at www.energyplus.net/weather, which may be downloaded and placed under quest -> data -> weather. NSRDB data may also be downloaded with the Quest Data Manager for a specific location and year."
+        slide_06_text = "Weather files may be obtained in either of two ways. There is a large repository of weather files formatted for EnergyPlus found at www.energyplus.net/weather, which may be downloaded and placed under quest -> data -> weather -> location. NSRDB data may also be downloaded with the Quest Data Manager for a specific location and year."
 
         slide_07_text = "The battery charge/discharge profile may be used from a behind-the-meter or valuation run. If you would like to use your own data, place the file in the data directory under profile. Ensure the data file is formatted as shown."
         
