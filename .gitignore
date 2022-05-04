@@ -14,6 +14,7 @@ build/*
 dist/*
 
 data/*
+!data/idf
 
 energyplus/*
 
