@@ -231,7 +231,7 @@ class PerformanceSimDataScreen(Screen):
         except AttributeError:
             pass
         except KeyError:
-            if not os.path.exists(os.path.join(data_manager.data_bank_root,'idf')):
+            if not os.path.exists(os.path.join(data_manager.data_bank_root,'weather')):
                 popup = WarningPopup()
                 popup.popup_text.text = "Looks like there are no weather files downloaded! Please visit the Data Manager to download data or the help tab to learn more."
                 popup.open()
@@ -262,12 +262,12 @@ class PerformanceSimDataScreen(Screen):
             popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
             popup.open()
         except KeyError:
-            if not os.path.exists(os.path.join(data_manager.data_bank_root,'idf')):
+            if not os.path.exists(os.path.join(data_manager.data_bank_root,'profile')):
                 popup = WarningPopup()
                 popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
                 popup.open()
             else:
-                data_root = os.path.join(data_manager.data_bank_root,'weather')
+                data_root = os.path.join(data_manager.data_bank_root,'profile')
                 ls = [os.path.join(data_root,item) for item in os.listdir(data_root)]
                 bool_ls = [True if os.path.isfile(item) else False for item in ls]
                 
