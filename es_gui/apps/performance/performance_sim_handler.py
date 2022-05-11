@@ -12,6 +12,8 @@ import calendar
 import pandas as pd
 from eppy.modeleditor import IDF
 
+from kivy.clock import Clock
+
 from es_gui.tools.performance.Battery_v2 import Battery as bt
 from es_gui.tools.performance.Grid_simulator import Grid_simulator as gs
 from es_gui.resources.widgets.common import WarningPopup
@@ -45,6 +47,8 @@ class PerformanceSimHandler:
 
     def __init__(self, output_dir):
         self._output_dir = output_dir
+
+        self.bad_run_popup = BadRunPopup()
 
     @property
     def output_dir(self):
@@ -201,8 +205,7 @@ class PerformanceSimHandler:
 
         # Energyplus has crashed...restart QuESt
         if not return_code == 0:
-            popup = BadRunPopup()
-            popup.open()
+            self.bad_run_popup.bad_open()
 
         results = g_sim.get_results()
 
@@ -256,3 +259,7 @@ class BadRunPopup(WarningPopup):
         super(BadRunPopup, self).__init__(**kwargs)
 
         self.popup_text.text = 'EnergyPlus had a fatal error. Please read the log or restart the QuESt App to continue.'
+
+    def bad_open(self):
+        """Open popup from main thread."""
+        Clock.schedule_once(self.open)
