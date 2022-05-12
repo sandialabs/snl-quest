@@ -45,51 +45,6 @@ SizingPeriod:WeatherFileConditionType,
 
 RunPeriod,
     Run Period 0,             !- Name
-    6,                        !- Begin Month
-    1,                        !- Begin Day of Month
-    2020,                     !- Begin Year
-    6,                        !- End Month
-    30,                       !- End Day of Month
-    2020,                     !- End Year
-    Monday,                   !- Day of Week for Start Day
-    Yes,                      !- Use Weather File Holidays and Special Days
-    Yes,                      !- Use Weather File Daylight Saving Period
-    No,                       !- Apply Weekend Holiday Rule
-    Yes,                      !- Use Weather File Rain Indicators
-    Yes;                      !- Use Weather File Snow Indicators
-
-RunPeriod,
-    Run Period 1,             !- Name
-    4,                        !- Begin Month
-    30,                       !- Begin Day of Month
-    2020,                     !- Begin Year
-    5,                        !- End Month
-    31,                       !- End Day of Month
-    2020,                     !- End Year
-    Friday,                   !- Day of Week for Start Day
-    Yes,                      !- Use Weather File Holidays and Special Days
-    Yes,                      !- Use Weather File Daylight Saving Period
-    No,                       !- Apply Weekend Holiday Rule
-    Yes,                      !- Use Weather File Rain Indicators
-    Yes;                      !- Use Weather File Snow Indicators
-
-RunPeriod,
-    Run Period 2,             !- Name
-    4,                        !- Begin Month
-    1,                        !- Begin Day of Month
-    2020,                     !- Begin Year
-    4,                        !- End Month
-    30,                       !- End Day of Month
-    2020,                     !- End Year
-    Wednesday,                !- Day of Week for Start Day
-    Yes,                      !- Use Weather File Holidays and Special Days
-    Yes,                      !- Use Weather File Daylight Saving Period
-    No,                       !- Apply Weekend Holiday Rule
-    Yes,                      !- Use Weather File Rain Indicators
-    Yes;                      !- Use Weather File Snow Indicators
-
-RunPeriod,
-    Run Period 3,             !- Name
     3,                        !- Begin Month
     1,                        !- Begin Day of Month
     2020,                     !- Begin Year
@@ -104,7 +59,7 @@ RunPeriod,
     Yes;                      !- Use Weather File Snow Indicators
 
 RunPeriod,
-    Run Period 4,             !- Name
+    Run Period 1,             !- Name
     2,                        !- Begin Month
     1,                        !- Begin Day of Month
     2020,                     !- Begin Year
@@ -119,7 +74,7 @@ RunPeriod,
     Yes;                      !- Use Weather File Snow Indicators
 
 RunPeriod,
-    Run Period 5,             !- Name
+    Run Period 2,             !- Name
     1,                        !- Begin Month
     1,                        !- Begin Day of Month
     2020,                     !- Begin Year
@@ -276,6 +231,7 @@ BuildingSurface:Detailed,
     Wall,                     !- Surface Type
     Outer Shell,              !- Construction Name
     ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
     Outdoors,                 !- Outside Boundary Condition
     ,                         !- Outside Boundary Condition Object
     SunExposed,               !- Sun Exposure
@@ -300,6 +256,7 @@ BuildingSurface:Detailed,
     Wall,                     !- Surface Type
     Outer Shell,              !- Construction Name
     ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
     Outdoors,                 !- Outside Boundary Condition
     ,                         !- Outside Boundary Condition Object
     SunExposed,               !- Sun Exposure
@@ -324,6 +281,7 @@ BuildingSurface:Detailed,
     Wall,                     !- Surface Type
     Outer Shell,              !- Construction Name
     ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
     Outdoors,                 !- Outside Boundary Condition
     ,                         !- Outside Boundary Condition Object
     SunExposed,               !- Sun Exposure
@@ -348,6 +306,7 @@ BuildingSurface:Detailed,
     Wall,                     !- Surface Type
     Outer Shell,              !- Construction Name
     ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
     Outdoors,                 !- Outside Boundary Condition
     ,                         !- Outside Boundary Condition Object
     SunExposed,               !- Sun Exposure
@@ -372,6 +331,7 @@ BuildingSurface:Detailed,
     Floor,                    !- Surface Type
     Base,                     !- Construction Name
     ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
     Foundation,               !- Outside Boundary Condition
     Floor Details,            !- Outside Boundary Condition Object
     NoSun,                    !- Sun Exposure
@@ -396,6 +356,7 @@ BuildingSurface:Detailed,
     Roof,                     !- Surface Type
     Outer Shell,              !- Construction Name
     ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
     Outdoors,                 !- Outside Boundary Condition
     ,                         !- Outside Boundary Condition Object
     SunExposed,               !- Sun Exposure
@@ -441,7 +402,7 @@ SurfaceProperty:ExposedFoundationPerimeter,
 
 ElectricEquipment,
     BATTERY,                  !- Name
-    ZONE ONE,                 !- Zone or ZoneList Name
+    ZONE ONE,                 !- Zone or ZoneList or Space or SpaceList Name
     Battery Heat Loss Schedule,    !- Schedule Name
     EquipmentLevel,           !- Design Level Calculation Method
     1000000,                  !- Design Level
