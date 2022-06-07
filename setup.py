@@ -30,6 +30,9 @@ setuptools_kwargs = {
         "requests",
         "urllib3",
         "holidays",
+        "seaborn",
+        "eppy",
+        "openpyxl",
     ],
 }
 
