@@ -95,11 +95,24 @@ You will want to obtain the codebase for QuESt. You can do that by downloading a
 * Solver compatible with Pyomo
 
 #### Windows
-1. Install Python, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
-2. Install Kivy. Check [here](https://kivy.org/docs/installation/installation-windows.html) for the latest instructions. 
-3. Navigate to the root directory of the codebase. Then run the setup
+
+#### Method 1 (With Anaconda)(Recommended)
+
+1. Install Python via [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
+2. Add the following three locations to your `path` variable: `/path/to/Anaconda3`, `/path/to/Anaconda3/Scripts`, `/path/to/Anaconda3/Library/bin`
+3. Open Anaconda Prompt. Create a new conda environment: `conda create --name quest python=3.9`. Activate this environment: `conda activate quest`. 
+4. Install Kivy: `pip install kivy` or `conda install kivy`. More information on Kivy can be found [here](https://kivy.org/docs/installation/installation-windows.html).
+5. Navigate to the root directory of the codebase (where the `main.py` file is)": `cd /path/to/snl-quest`. Then run the setup file using
  ``python setup.py develop`` This will check dependencies for QuESt and install them as needed.
 4. Install a solver for Pyomo to use. See other sections for instructions on this.
+
+#### Method 2 (Without Anaconda)
+
+1. Install Python from [here](https://www.python.org/downloads/).
+2. Add the path to the Python executable to your `path` variable.
+3. Open Windows command prompt.
+4. Install Kivy: `pip install kivy`. Remember that `conda install kivy` will not work here since we are not using Anaconda Prompt in this method. 
+5. Follow steps 5 and 6 from Method 1. 
   
 #### OSX
 1. Install Python, preferably via scientific distribution such as [Anaconda](https://www.anaconda.com/download/). Use the 64 or 32-Bit Graphical installer as appropriate.
