@@ -33,6 +33,7 @@ setuptools_kwargs = {
         "seaborn",
         "eppy",
         "openpyxl",
+        "pyutilib",
     ],
 }
 
