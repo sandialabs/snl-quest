@@ -974,6 +974,7 @@ def read_spp_data(fpath, year, month, node, typedat="both"):
                 break
 
             daLMP_node_x = df_daLMP.loc[df_daLMP['Pnode'] == node, ['LMP']]
+            daLMP_node_x.drop_duplicates(inplace=True)
             daLMP = np.append(daLMP, daLMP_node_x.values)
             if daLMP_node_x.empty:
                 return np.empty([0]), np.empty([0]), np.empty([0])
@@ -989,8 +990,8 @@ def read_spp_data(fpath, year, month, node, typedat="both"):
                 break
 
             # print('Warning -reserve zone not figured out!!!')
-            daMCPRU_node_x = df_daMCP.loc[df_daMCP['Reserve Zone'] == ResZone, ['RegUP']]
-            daMCPRD_node_x = df_daMCP.loc[df_daMCP['Reserve Zone'] == ResZone, ['RegDN']]
+            daMCPRU_node_x = df_daMCP.loc[df_daMCP['Reserve Zone'] == str(ResZone), ['RegUP']]
+            daMCPRD_node_x = df_daMCP.loc[df_daMCP['Reserve Zone'] == str(ResZone), ['RegDN']]
 
             daMCPRU = np.append(daMCPRU, daMCPRU_node_x.values)
             daMCPRD = np.append(daMCPRD, daMCPRD_node_x.values)
