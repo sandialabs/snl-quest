@@ -455,6 +455,7 @@ class PerformanceSimSelectionsScreen(Screen):
         'tau': 'Time Step (hr)',
         'h_setpoint': 'Heating Setpoint (C)',
         'c_setpoint': 'Cooling Setpoint (C)',
+        'insulation': 'Insulation (m\u00b2 K/W)'
     }
 
     def __init__(self, **kwargs):
@@ -579,6 +580,7 @@ class ProfileEntry(RecycleViewRow):
         super(ProfileEntry, self).apply_selection(rv, index, is_selected)
 
         if is_selected:
-            self.host_screen.profile_to_sim += [rv.data[self.index]]
+            if not rv.data[self.index] in self.host_screen.profile_to_sim:
+                self.host_screen.profile_to_sim += [rv.data[self.index]]
         # else:
         #     self.host_screen.node = ''

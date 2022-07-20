@@ -201,14 +201,19 @@ Material,
     7824,                     !- Density
     500;                      !- Specific Heat
 
-Construction,
-    Outer Shell,              !- Name
-    Corten Steel;             !- Outside Layer
+Material:NoMass,
+    Insulation,               !- Name
+    Rough,                    !- Roughness
+    0.1;                      !- Thermal Resistance
 
 Construction,
     Base,                     !- Name
     Steel Base,               !- Outside Layer
     Marine Plywood 28mm;      !- Layer 2
+
+CONSTRUCTION,
+    Outer Shell,              !- Name
+    Corten Steel;             !- Outside Layer
 
 GlobalGeometryRules,
     UpperLeftCorner,          !- Starting Vertex Position

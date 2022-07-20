@@ -122,6 +122,10 @@ class PerformanceResultsViewer(ResultsViewer):
             ax.set_yticks(ticks)
             ax.set_title('Monthly Efficiency')
 
+            for container in ax.containers:
+                labels = [str(round(num, 1)) + '%' for num in container.datavalues]
+                ax.bar_label(container, labels=labels)
+
         self.plotbox.children[0].draw()
 
     def _update_selection(self):

@@ -188,6 +188,19 @@ class PerformanceSimHandler:
             else:
                 print("Successful battery update")
 
+        index = None
+        for i, obj in enumerate(idf_obj.idfobjects['Construction']):
+            if obj['Name'] == 'Outer Shell':
+                index = i
+
+        idf_obj.popidfobject('Construction', index)
+        if params['insulation'] == 0:
+            idf_obj.newidfobject('Construction', Name='Outer Shell', Outside_Layer='Corten Steel')
+        else:
+            ins_mat = idf_obj.idfobjects['Material:NoMass'][-1]
+            ins_mat.Thermal_Resistance = params['insulation']
+            idf_obj.newidfobject('Construction', Name='Outer Shell', Outside_Layer='Corten Steel', Layer_2='Insulation')
+
         idf_obj.idfobjects['RunPeriod'] = runperiods
         idf_obj.save()
 

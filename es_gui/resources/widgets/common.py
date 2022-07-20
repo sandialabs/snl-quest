@@ -850,6 +850,7 @@ class PerformanceParameterWidget(GridLayout):
                 'tau': ['Time Step (hr)', 0.25],
                 'h_setpoint': ['Heating Setpoint (C)', 15],
                 'c_setpoint': ['Cooling Setpoint (C)', 40],
+                'insulation': ['Insulation (m\u00b2 K/W)', 0]
                 }
 
         for param in MODEL_PARAMS:
