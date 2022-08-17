@@ -37,4 +37,6 @@ ytick.minor.size: 0.625
 font.family: serif
 font.serif: Times New Roman
 font.size: 2.25
+xtick.labelsize: 2.25
+ytick.labelsize: 2.25
 mathtext.fontset: cm

@@ -18,6 +18,8 @@ def plot_table_feasibility(df_data, figsize=(7, 5),
                            xlabel=None, ylabel=None, xticklabels=[], yticklabels=[],
                            update_individual_xticklabel=None):
     """"Display feasibility tables as heatmap plots."""
+    
+    plt.style.use(os.path.join('es_gui', 'apps', 'tech_selection', 'mpl_style_presentations.mplstyle'))
 
     # Default labels for the x and y ticklabels, if none are given
     if len(xticklabels) == 0: xticklabels = df_data.columns
@@ -47,7 +49,8 @@ def plot_table_feasibility(df_data, figsize=(7, 5),
             
     # Return figure handle
     return fig
-    
+
+
 def plot_ranking_techs(df_data):
     fig, axs = plt.subplots(ncols=5, sharey=True, figsize=(1.9, 1))
     for column, color, ax in zip(['Application score', 'Location score', 'Cost score', 'Maturity score', 'Total score'],
