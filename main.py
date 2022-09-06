@@ -66,6 +66,7 @@ from es_gui.apps.data_manager.widgets import DataManagerRTOMOdataScreen
 from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
 from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
 from es_gui.apps.data_manager.pv import PVwattsSearchScreen
+from es_gui.apps.data_manager.power import PowerPlantSearchScreen
 from es_gui.apps.data_manager.nsrdb import NSRDBDataScreen
 
 # Valuation
@@ -87,6 +88,11 @@ from es_gui.apps.performance.results_viewer import PerformanceResultsViewer
 from es_gui.apps.tech_selection.home import TechSelectionHomeScreen
 from es_gui.apps.tech_selection.tech_selection_wizard import TechSelectionWizard
 from es_gui.apps.tech_selection.results_viewer import TechSelectionFeasible
+
+# Equity
+from es_gui.apps.equity.home import EquityHomeScreen
+from es_gui.apps.equity.peaker_rep import PeakerRepWizard
+from es_gui.apps.equity.results_viewer import PowerPlantResultsViewer
 
 # Font registration.
 LabelBase.register(name='Exo 2',
@@ -240,6 +246,7 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
         self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
         self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
+        self.add_widget(PowerPlantSearchScreen(name='data_manager_power_plant'))
 
         # Energy storage valuation.
         self.add_widget(ValuationHomeScreen(name='valuation_home'))
@@ -261,6 +268,11 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(TechSelectionHomeScreen(name='tech_selection_home'))
         self.add_widget(TechSelectionWizard(name='tech_selection_wizard'))
         self.add_widget(TechSelectionFeasible(name='feasible_techs'))
+    
+        # Equity applications.
+        self.add_widget(EquityHomeScreen(name='equity_home'))
+        self.add_widget(PeakerRepWizard(name='peaker_rep_wizard'))
+        self.add_widget(PowerPlantResultsViewer(name='equity_results_viewer'))
     
     def launch_valuation(self):
         """"""
@@ -303,6 +315,20 @@ class QuEStScreenManager(ScreenManager):
             no_data_popup.open()
         else: 
             self.current = 'performance_home'
+    
+    def launch_equity(self):
+        """"""
+        data_manager = App.get_running_app().data_manager
+
+        try:
+            data_manager.scan_equity_data_bank()
+        except FileNotFoundError:
+            # 'data' directory does not exist.
+            no_data_popup = WarningPopup()
+            no_data_popup.popup_text.text = "Looks like you haven't downloaded any data yet. Try using QuESt Data Manager to get some data before returning here!"
+            no_data_popup.open()
+        else: 
+            self.current = 'equity_home'
             
     def launch_tech_selection(self):
         """"""    
