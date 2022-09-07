@@ -1,0 +1,376 @@
+<PeakerRepWizard>:
+    content: content
+    sm: sm
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+
+        PeakerRepWizardScreenManager:
+            id: sm
+
+<PeakerRepWizardStart>:
+    content: content
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Welcome to the es+pv power plant repalcement wizard!'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                size_hint_y: 0.1
+                text: 'This wizard will guide you through the process of determining the size and power of energy storage and PV needed to replace the operation of a given peaker plant. The program then calculates how the reduction in pollution would concretely benefit the health of disadvantaged communities and people with low incomes.'
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.3
+                spacing: 10
+                padding: 10
+
+                Image:
+                    source: 'es_gui/resources/images/equity_process_flow.png'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.3
+                spacing: 10
+                padding: 10
+
+                Image:
+                    source: 'es_gui/resources/images/Disadvantaged_Communities.png'
+
+                Image:
+                    source: 'es_gui/resources/images/Low_Income.png'
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    text: 'Get started'
+                    size_hint_x: 0.15
+
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+
+<PeakerRepWizardPlantSelect>:
+    content: content
+    power_plant_rv: power_plant_rv
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Select a power plant.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.8
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 10)
+            spacing: 10
+
+            WizardBodyText:
+                size_hint_y: 0.05
+                text: "Select a power plant to replace with energy storage + PV"
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.9
+                spacing: 20
+                padding: (0, 10)
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.8
+                
+                    TitleTextBase:
+                        size_hint_y: 0.05
+                        color: C(hex_secondary)
+                        text: 'Data bank'
+                        font_size: large_font
+
+                    TextInput:
+                        size_hint_y: 0.1
+                        on_text: power_plant_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: power_plant_rv
+                        viewclass: 'PeakerRepPowerPlantRecycleViewRow'  
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<PeakerRepWizardSystemParameters>:
+    content: content
+    param_widget: param_widget
+    rf_10_button: rf_10_button
+    rf_20_button: rf_20_button
+    rf_30_button: rf_30_button
+    rf_40_button: rf_40_button
+    rf_50_button: rf_50_button
+    rf_60_button: rf_60_button
+    rf_70_button: rf_70_button
+    rf_80_button: rf_80_button
+    rf_90_button: rf_90_button
+    rf_100_button: rf_100_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 10
+        
+        WizardHeaderDesc:
+            text: 'Specify the energy storage system parameters.'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: 10
+            spacing: 10
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 1
+                id: content
+                opacity: 0
+                padding: (5, 5)
+                spacing: 10
+                
+                PeakerRepParameterWidget:
+                    id: param_widget
+                    # size_hint_y: 0.60
+                    padding: (5, 5)
+                
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 1
+                size_hint_x: 0.3
+                padding: (5, 5)
+                spacing: 10
+                
+                WizardBodyText:
+                    size_hint_y: 0.1
+                    text: 'Replacement Fractions'
+
+                ToggleTileButton:
+                    id: rf_10_button
+                    text: '10%'
+
+                ToggleTileButton:
+                    id: rf_20_button
+                    text: '20%'
+
+                ToggleTileButton:
+                    id: rf_30_button
+                    text: '30%'
+
+                ToggleTileButton:
+                    id: rf_40_button
+                    text: '40%'
+
+                ToggleTileButton:
+                    id: rf_50_button
+                    text: '50%'
+                    state: 'down'
+
+                ToggleTileButton:
+                    id: rf_60_button
+                    text: '60%'
+
+                ToggleTileButton:
+                    id: rf_70_button
+                    text: '70%'
+
+                ToggleTileButton:
+                    id: rf_80_button
+                    text: '80%'
+
+                ToggleTileButton:
+                    id: rf_90_button
+                    text: '90%'
+
+                ToggleTileButton:
+                    id: rf_100_button
+                    text: '100%'
+                    state: 'down'
+
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+
+<PeakerRepParameterWidget>:
+    cols: 1
+    row_force_default: True
+    row_default_height: 40
+    spacing: (125, 50)
+
+<PeakerRepWizardSummary>:
+    content: content
+    plant_data_label: plant_data_label
+    system_parameters_label: system_parameters_label
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Summary of selections.'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.8
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+                
+                WizardBodyText:
+                    id: plant_data_label
+                    size_hint_y: 0.8
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                WizardBodyText:
+                    id: system_parameters_label
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<PeakerRepWizardExecute>:
+    top_desc: top_desc
+    content: content
+    progress_label: progress_label
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Building and solving models... '
+            
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            id: content
+            padding: (self.width/16, self.height/12)
+            spacing: 10
+            #opacity: 0
+
+            ScrollView:
+                #size_hint_y: 0.8
+                minimum_height: self.height
+
+#                canvas.before:
+#                    Color:
+#                        rgb: C('#f3f2f1')
+#                        #rgba: [1, 1, 1, 0.8]
+#                    Rectangle:
+#                        pos: self.pos
+#                        size: self.size
+
+                WizardBodyText:
+                    id: progress_label
+                    text: 'This may take a while. Please wait patiently!  \n \n Note on interpreting results: replacement factors are calculated over a whole year of power plant operation. Power plants can sometimes operate for several days or weeks at a time to support a seasonal peak load. This means that it can be much more expensive to replace the hardest 10% of plant operation than the easiest 10%. \n Example 1: If a powerplant operates continuously at 10 MW, to replace 100% of its operation would need roughly 40 MW of PV (given 6 hours of peek daylight per day) and a 180 MWh battery to store all the excess energy produced during each day for use overnight. However, replacing 50% of its operation would only require 20 MW of PV, and a 60 MWh battery to support 12 total hours of output.   \n Example 2: A powerplant normally operates for 3 hours per day at 10 MW after the sun sets. Once in the given year the powerplant operates continuously for 10 days at 10 MW. To replace 100% of its operation would still need roughly 40 MW of PV and a 180 MWh battery to provide power during that one 10-day period of continuous operation. However, now replacing 50% of its operation would only require 5 MW of PV, and a 30 MWh battery to support all operation except that one period. '
+                    size_hint: 1, None
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
