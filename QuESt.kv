@@ -12,6 +12,7 @@
 #:include es_gui/apps/data_manager/rate_structure.kv
 #:include es_gui/apps/data_manager/load.kv
 #:include es_gui/apps/data_manager/widgets.kv
+#:include es_gui/apps/data_manager/power.kv
 #:include es_gui/apps/data_manager/pv.kv
 #:include es_gui/apps/data_manager/nsrdb.kv
 
@@ -31,6 +32,10 @@
 #:include es_gui/apps/tech_selection/home.kv
 #:include es_gui/apps/tech_selection/tech_selection_wizard.kv
 #:include es_gui/apps/tech_selection/results_viewer.kv
+
+#:include es_gui/apps/equity/home.kv
+#:include es_gui/apps/equity/peaker_rep.kv
+#:include es_gui/apps/equity/reporting.kv
 
 #:include es_gui/proving_grounds/data_importer.kv
 #:include es_gui/proving_grounds/help_carousel.kv
@@ -93,12 +98,12 @@
             size_hint: (1, 0.75)
 
             GridLayout:
-                size_hint_x: 0.4
+                size_hint_x: 0.3
                 cols: 1
                 spacing: 5
                 row_force_default: True
-                row_default_height: self.height/6
-                padding: (100, 50)
+                row_default_height: self.height/4
+                padding: (5, 50)
 
                 AppSelectionIndexButton:
                     text: ('[font=Modern Pictograms][size=54]_[/font][/size]\nQuESt Data Manager')
@@ -112,6 +117,15 @@
                     text: ('[font=Modern Pictograms][size=54]p[/font][/size]\nQuESt BTM')
                     on_state: root.app_select_sm.current = 'btm'
                     
+
+            GridLayout:
+                size_hint_x: 0.3
+                cols: 1
+                spacing: 5
+                row_force_default: True
+                row_default_height: self.height/4
+                padding: (5, 50)
+
                 AppSelectionIndexButton:
                     text: ('[font=Modern Pictograms][size=54]6[/font][/size]\nQuESt Performance')
                     on_state: root.app_select_sm.current = 'performance'
@@ -119,6 +133,11 @@
 				AppSelectionIndexButton:
                     text: ('[font=Modern Pictograms][size=54]E[/font][/size]\nTechnology Selection')
                     on_state: root.app_select_sm.current = 'technology selection'
+
+                AppSelectionIndexButton:
+                    #state: 'down'
+                    text: ('[font=Modern Pictograms][size=54]g[/font][/size]\nQuESt Equity')
+                    on_state: root.app_select_sm.current = 'equity'
 
             BoxLayout:
                 size_hint_x: 0.6
@@ -140,7 +159,7 @@
                                 text: 'QuESt Data Manager'
 
                             AppSelectionDescBody:
-                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles \n *Weather data'
+                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles \n *Weather data \n *Powerplant dispatch and pollution data'
 
                             AnchorLayout:
                                 anchor_x: 'center'
@@ -221,7 +240,26 @@
                                 AppIndexGoButton:
                                     text: 'Get started'
                                     on_release: root.manager.launch_tech_selection()
+                    
+                    Screen:
+                        name: 'equity'
 
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt Equity' 
+
+                            AppSelectionDescBody:
+                                text: 'A collection of tools for energy equity and environmental justice (EEEJ) applications of energy storage systems:\n*replace a selected power plant with ES+PV'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_equity()
+
+                    
                     Screen:
                         name: 'handbook'
 

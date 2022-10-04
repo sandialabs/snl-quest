@@ -68,6 +68,13 @@ An application for identifying the energy storage technologies most suitable for
 
 <img src="patch_note_resources/gifs/tech_selection.gif" alt="Technology selection wizard charts" width=600px margin="auto" />
 
+#### QuESt Equity
+
+An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.
+
+<img src="patch_note_resources/gifs/09_powerplant_rep.gif" alt="Powerplant replacement wizard charts" width=600px margin="auto" />
+
+
 ### Who should use it?
 The software is designed to be used by anyone with an interest in performing analysis of energy storage or its applications without having to create their own models or write their own code. It’s designed to be easy to use out of the box but also modifiable by the savvy user if they so choose. The software is intended to be used as a platform for running simulations, obtaining results, and using the information to inform planning decisions. 
 
@@ -271,6 +278,10 @@ It is approximately Albuquerque, NM.
 
 Leaving the text input field blank sets the tilt angle to the latitude of the site.
 
+> I try to download data for a powerplant and get "An error has occurred with the COBRA API."
+
+This can occur if you are requesting data for a powerplant outside of the continental U.S. or if there is some issue with the FIPS code for the county (e.g., it applies to a city instead of a county). We are working on correcting this kind of error but there is no fix at this time. 
+
 ### QuESt Valuation
 <a id="faq-valuation"></a>
 
@@ -321,6 +332,21 @@ This is a known issue. You can try to generate the report again in order to fix 
 
 Since version 1.2.f, you can import your own time series data (PV and load profiles) through the user interface. You can also import your own data by adding to the QuESt data bank manually. See below for details.
 
+### QuESt Equity
+<a id="faq-equity"></a>
+
+> Can I adjust the powerplant parameters in the wizard?
+
+No, any adjustments must be made in QuESt Data Manager before saving the entire powerplant data file.
+
+> Can I use a PV profile sepororat from what the QuESt Data Manager downloads automatically for the powerplant?
+
+Yes. You would need to normalize it to the range [0,1] and then open the powerplant data file and replace the parameter "pv" with the new normalized profile. The wizard would then use the new profile when that powerplant data file was selected.
+
+> When I select more than three replacement fractions the figures don't display correctly and I can't read the lables.
+
+This is a known issue. The output file (labled outputfile.json) can be found in `/results/equity/YYYY_MM_DD_HHMMSS/` and has all of the results stored so that they can be plotted corectly thorugh another program. 
+
 #### Rate structure
 The rate structure files are stored as .json files in `/data/rate_structures/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. The general structure of the .json object is as follows:
 
@@ -355,6 +381,13 @@ The PV profile files are stored as .json files in `/data/pv/` after being downlo
 The load profile files are stored as .csv files in `/data/load/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. You can create a new directory under `commercial` for example like `/data/load/commercial/custom` and add a new .csv file.
 
 The format is basically two columns; the "Date/Time" column gives the month, day, and hour and the second column is the hourly kW load. The "Date/Time" columna is used for parsing the correct data for a selected month, for example. A year is not provided because the building data is simulated based on TMY3 (typical meteorological year).
+
+Once new files are added to the `data` bank appropriately, they should be picked up in the relevant applications when you are prompted to make a selection.
+
+#### powerplant data and dispatch profile
+The powerplant data files are stored as .json files in `/data/power_plant/` after being downloaded through QuESt Data Manager. You can add a new file following the format of one downloaded using QuESt Data Manager. 
+
+The format has the plant medidata stored by parameter name. For example {"Name": "Calpine Hidalgo Energy Center",}. The parameter "plant_dispatch" has a hourly dispatch for 1 year in MW stored as a list of floating points [1,2,3,4,5,6 ...], while the parameter "pv" has a similar list of available PV resource but it is normalized to the range [0,1] on a per MW basis. The "COBRA_results" parameter stores the county level "Impacts" and a "Summary" of the total impacts across the country. The "health_impact_equity" parameter has data calculated by cross-referencing the "COBRA_results" with census data for each county. Classification as a disadvantaged communities is done by census tract so the population fraction of a county living in a disadvantaged community is calculated by the total population of census tracts within a county that are considered disadvantaged divided by the total population of the county. 
 
 Once new files are added to the `data` bank appropriately, they should be picked up in the relevant applications when you are prompted to make a selection.
 
