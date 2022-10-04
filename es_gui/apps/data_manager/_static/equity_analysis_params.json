@@ -1,0 +1,74 @@
+[
+    {
+        "name": "discount rate",
+        "attr name": "discount_rate",
+        "notes": "The discount rate for future costs and revenues (fuel costs, estimated health costs, etc).",
+        "max": 100,
+        "default": 3,
+        "step": 0.1,
+        "units": "%"
+    },
+    {
+        "name": "cost per ton of CO2",
+        "attr name": "cost_per_ton_of_CO2",
+        "notes": "The assumed cost per ton of CO2 procuded by the power plant. ",
+        "max": 10000,
+        "default": 93,
+        "step": 1,
+        "units": "$/ton"
+    },
+    {
+        "name": "cost per MW PV system",
+        "attr name": "cost_per_MW_PV_system",
+        "notes": "The per MW cost of the PV system",
+        "max": 10000000,
+        "default": 1200000,
+        "step": 1,
+        "units": "$/MW"
+    },
+    {
+        "name": "fixed (offset) cost of PV system",
+        "attr name": "fixed_cost_of_PV_system",
+        "notes": "The fixed cost of the PV system (can be negative).",
+        "max": 10000000,
+        "default": 0,
+        "step": 1,
+        "units": "$"
+    },
+    {
+        "name": "cost per MW BESS",
+        "attr name": "cost_per_MW_BESS",
+        "notes": "The per MW cost of the BESS.",
+        "max": 10000000,
+        "default": 3178,
+        "step": 1,
+        "units": "$/MW"
+    },
+    {
+        "name": "cost per MWh BESS",
+        "attr name": "cost_per_MWh_BESS",
+        "notes": "The per MWh cost of the BESS.",
+        "max": 10000000,
+        "default": 340478,
+        "step": 1,
+        "units": "$/MWh"
+    },
+    {
+        "name": "fixed cost (offset) of the BESS",
+        "attr name": "fixed_cost_of_the_BESS",
+        "notes": "The fixed (offset) cost of the BESS (can be negative).",
+        "max": 10000000,
+        "default": -31447,
+        "step": 1,
+        "units": "$"
+    },
+    {
+        "name": "BESS Round Trip Efficiency",
+        "attr name": "bess_round_trip_efficiency",
+        "notes": "The round trip efficiency of the battery energy storage system",
+        "max": 100,
+        "default": 90,
+        "step": 1,
+        "units": "%"
+    }
+]
