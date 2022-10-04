@@ -127,6 +127,39 @@ class DataManager(EventDispatcher):
         
         thread = threading.Thread(target=_scan_btm_data_bank)
         thread.start()       
+
+    def scan_equity_data_bank(self):
+        """Scans the equity data bank to determine what data has been downloaded."""
+        # Check if data bank exists.
+        # Check if data bank exists.
+        try:
+            os.listdir(self.data_bank_root)
+        except FileNotFoundError:
+            return
+
+        # Open loading screen.
+        self.loading_screen = LoadingModalView()
+        self.loading_screen.loading_text.text = 'Scanning data files...'
+        self.loading_screen.open()
+
+        self.n_threads_scanning = 1
+
+        def _scan_equity_data_bank():
+            # Quit?
+            if App.get_running_app().root.stop.is_set():
+                # Stop running this thread so the main Python process can exit.
+                return
+
+            self._scan_power_plant_data_bank()
+            self._scan_btm_pv_profile_data_bank()
+            
+
+            self.n_threads_scanning -= 1
+        
+        thread = threading.Thread(target=_scan_equity_data_bank)
+        thread.start()
+           
+    
     
     def _scan_rate_structure_data_bank(self):
         """Scans the saved rate structure data bank."""
@@ -224,6 +257,24 @@ class DataManager(EventDispatcher):
             
         self.data_bank['PV profiles'] = pv_profile_data_bank
     
+    def _scan_power_plant_data_bank(self):
+        """Scans the saved power plant data bank."""
+        power_plant_root = os.path.join(self.data_bank_root, 'power_plant')
+        power_plant_data_bank = {}
+
+        try:
+            os.listdir(power_plant_root)
+        except FileNotFoundError:
+            return
+
+        for power_plant in os.scandir(power_plant_root):
+            if not power_plant.name.startswith('.'):
+                plant_key = power_plant.name.split('.')[0]
+                plant_val = power_plant.path
+                power_plant_data_bank[plant_key] = plant_val
+            
+        self.data_bank['power plants'] = power_plant_data_bank
+
     def get_rate_structures(self):
         """Returns a dictionary of all of the rate structures saved to the data bank."""
         # Sort by name alphabetically before returning.
@@ -251,6 +302,16 @@ class DataManager(EventDispatcher):
             return_dict = collections.OrderedDict(sorted(self.data_bank['PV profiles'].items(), key=lambda t: t[0]))
         except KeyError:
             raise(KeyError('It looks like no PV profiles have been saved.'))
+
+        return return_dict
+    
+    def get_plants(self):
+        """Returns a dictionary of all of the power plants saved to the data bank."""
+        # Sort by name alphabetically before returning.
+        try:
+            return_dict = collections.OrderedDict(sorted(self.data_bank['power plants'].items(), key=lambda t: t[0]))
+        except KeyError:
+            raise(KeyError('It looks like no power plants have been saved.'))
 
         return return_dict
     
@@ -1230,6 +1291,20 @@ class DataManager(EventDispatcher):
     def get_btm_cost_savings_model_params(self):
         """Returns the list of dictionaries of parameters for the energy storage system model in the BTM cost savings application."""
         with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'btm_cost_savings_model_params.json'), 'r') as fp:
+            model_params_all = json.load(fp)
+
+        return model_params_all
+
+    def get_power_plant_model_params(self):
+        """Returns the list of dictionaries of parameters for the power plant system model from the EPA databse."""
+        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'power_plant_model_params.json'), 'r') as fp:
+            model_params_all = json.load(fp)
+
+        return model_params_all
+    
+    def get_equity_analysis_params(self):
+        """Returns the list of dictionaries of parameters for the power plant system model from the EPA databse."""
+        with open(os.path.join('es_gui', 'apps', 'data_manager', '_static', 'equity_analysis_params.json'), 'r') as fp:
             model_params_all = json.load(fp)
 
         return model_params_all
