@@ -310,12 +310,35 @@ class PowerPlantSearchScreen(Screen):
             self.reset_screen()
             self.save_button.disabled = True
 
-            try:
-                request_content = self._query_api(power_plant_params)
-            except requests.ConnectionError:
-                popup = ConnectionErrorPopup()
-                popup.popup_text.text = 'There was an issue connecting to the API. Check your connection settings and try again.'
+            #check to make sure the user has downloaded the facilities and PPNC files
+            facilities_file = os.path.join(STATIC_HOME, 'facilities.json')
+            facilities_file_exists = os.path.exists(facilities_file)
+            ppc_data_file = os.path.join(
+                STATIC_HOME, 'power_plants_and_communities.xlsx')
+            PPNC_file_exists = os.path.exists(ppc_data_file)
+
+            if facilities_file_exists and PPNC_file_exists:
+                try:
+                    request_content = self._query_api(power_plant_params)
+                except requests.ConnectionError:
+                    popup = ConnectionErrorPopup()
+                    popup.popup_text.text = 'There was an issue connecting to the API. Check your connection settings and try again.'
+                    popup.open()
+            else:
+                warning_string = 'Need to Download Updated : '
+                if not facilities_file_exists:
+                    warning_string += 'Facilities List, '
+                if not facilities_file_exists and not PPNC_file_exists:
+                    warning_string += 'and '
+                if not PPNC_file_exists:
+                    warning_string += 'PPNC Spreadsheet, '
+                warning_string += 'before downloading powerplant data. '
+                popup = WarningPopup()
+                popup.title = 'Error : '
+                popup.popup_text.text = warning_string
                 popup.open()
+                self.save_button.disabled = False
+
 
     def _query_api(self, power_plant_params):
         """Uses FACT API to query for a normalized PV profile and powerplant data."""
