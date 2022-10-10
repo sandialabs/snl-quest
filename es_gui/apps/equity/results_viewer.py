@@ -180,7 +180,7 @@ class PowerPlantResultsViewer(EquityResultsViewer):
                 color = PALETTE[divmod(iii, len(PALETTE))[1]]
                 text_size = 5*total_cost/max_total_cost
                 line_width = 7*total_cost/max_total_cost
-                ax.plot([total_cost/SCALE,total_cost/SCALE],[total_pollution_low/SCALE,total_pollution_high/SCALE],label='Low to High Est. R.F. ' +str(100*eo.replacement_fraction) + '%',linewidth=line_width,color=rgba_to_fraction(color))
+                ax.plot([total_cost/SCALE,total_cost/SCALE],[total_pollution_low/SCALE,total_pollution_high/SCALE],label='Low to High Est. R.F. ' +str(100*replacement_fraction) + '%',linewidth=line_width,color=rgba_to_fraction(color))
                 ax.text(total_cost/(SCALE),(total_pollution_low/SCALE - max_total_pollution_high*0.05/SCALE),'100%',horizontalalignment='center', verticalalignment='center', size=text_size,color=rgba_to_fraction(color))
                 for qq in range(1,10):
                     dev = 0.1*qq
