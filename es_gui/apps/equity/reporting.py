@@ -597,7 +597,7 @@ class PeakerRepGenerateReportMenu(ModalView):
 
         executive_summary_strings = []
 
-        header_text = 'The following summarizes the results of the analysis to replace {replacement_fraction:,.0f}% of the energy of the {name} powerplant with a combenation of energy storage and PV. '.format(replacement_fraction=eo.replacement_fraction*100,name=name)
+        header_text = 'The following summarizes the results of the analysis to replace {replacement_fraction:,.0f}% of the energy of the {name} powerplant with a combination of energy storage and PV. '.format(replacement_fraction=eo.replacement_fraction*100,name=name)
         
         executive_summary_strings.append(header_text)
 
@@ -623,7 +623,7 @@ class PeakerRepGenerateReportMenu(ModalView):
         NPV_multiplier = float(-npf.pv(eo.discount_rate,20,1,0))
         Helth_Ave = eo.replacement_fraction*(eo.Pollution_Low_Value+eo.Pollution_High_Value)/2
         SCC = eo.CO2_emissions*eo.replacement_fraction*eo.cost_per_ton_of_CO2
-        scc_text = ('The system would prevent {0:,.0f} tons of carbon emmisions each year. Assuming a Sotial Cost of Carbon (SCC) of {1}, this would provide roughly {2} in climate benifits per year.'.format(
+        scc_text = ('The system would prevent {0:,.0f} tons of carbon emissions each year. Assuming a Social Cost of Carbon (SCC) of {1} per ton, this would provide roughly {2} in climate benefits per year.'.format(
             (eo.CO2_emissions*eo.replacement_fraction),
             format_long_dollar_string(eo.cost_per_ton_of_CO2),
             format_long_dollar_string(SCC),
@@ -633,7 +633,7 @@ class PeakerRepGenerateReportMenu(ModalView):
         
         total_sNPV = (Helth_Ave+SCC)*NPV_multiplier
         
-        sNPV_text = ('Assuming a 20 year time horizon, with a {0}% discount rate, this system would provide a sotial Net Present Value (sNPV) of {1} for the health benifits and {2} for the climate benifits adding up to a toal sNPV of {3}.'.format(
+        sNPV_text = ('Assuming a 20 year time horizon, with a {0}% discount rate, this system would provide a social Net Present Value (sNPV) of {1} for the health benefits and {2} for the climate benefits adding up to a total sNPV of {3}.'.format(
         eo.discount_rate*100,
         format_long_dollar_string(Helth_Ave*NPV_multiplier), 
         format_long_dollar_string(SCC*NPV_multiplier), 
@@ -644,7 +644,7 @@ class PeakerRepGenerateReportMenu(ModalView):
 
         low_sNPV = eo.replacement_fraction*eo.Pollution_Low_Value*eo.impact_on_disadvantaged_population_fraction*NPV_multiplier
         high_sNPV = eo.replacement_fraction*eo.Pollution_High_Value*eo.impact_on_disadvantaged_population_fraction*NPV_multiplier
-        disad_text = ('Where {0:.1f}% of the U.S. population live in disadvantaged communities, {1:.1f}% of the health benifits would be accrued to people living in disadvantaged communities. This means an estemated sNPV between {2} and {3} would go to disadvantaged communities.'.format(
+        disad_text = ('Where {0:.1f}% of the U.S. population live in disadvantaged communities, {1:.1f}% of the health benefits would be accrued to people living in disadvantaged communities. This means an estimated sNPV between {2} and {3} would go to disadvantaged communities.'.format(
                     eo.disadvantaged_population_fraction*100,
                     eo.impact_on_disadvantaged_population_fraction*100,
                     format_long_dollar_string(low_sNPV),
@@ -655,7 +655,7 @@ class PeakerRepGenerateReportMenu(ModalView):
 
         low_sNPV = eo.replacement_fraction*eo.Pollution_Low_Value*eo.impact_on_low_income_population_fraction*NPV_multiplier
         high_sNPV = eo.replacement_fraction*eo.Pollution_High_Value*eo.impact_on_low_income_population_fraction*NPV_multiplier
-        low_income_text = ('Where {0:.1f}% of the U.S. population have incomes below 200% of the poverty line, {1:.1f}% of the health benifits would be accrued to people with incomes below 200% of the poverty line. This means an estemated sNPV between {2} and {3} would go to people with low incomes.'.format(
+        low_income_text = ('Where {0:.1f}% of the U.S. population have incomes below 200% of the poverty line, {1:.1f}% of the health benefits would be accrued to people with incomes below 200% of the poverty line. This means an estimated sNPV between {2} and {3} would go to people with low incomes.'.format(
                     eo.low_income_population_fraction*100,
                     eo.impact_on_low_income_population_fraction*100,
                     format_long_dollar_string(low_sNPV),
@@ -701,7 +701,7 @@ class PeakerRepGenerateReportMenu(ModalView):
         os.makedirs(output_dir, exist_ok=True)
 
         executive_summaries = []
-        plt.figure(figsize=(3, 2), dpi=80)
+        plt.figure()#figsize=(3, 2), dpi=80)
         for ix, op in enumerate(self.host_report.chart_data, start=0):
             eo = op[1]
             if ix == 0:
@@ -733,7 +733,7 @@ class PeakerRepGenerateReportMenu(ModalView):
         results_data['plant_data'] = op_handler_requests['plant_data']
         results_data['analysis_params'] = op_handler_requests['param desc']
 
-        plt.figure(figsize=(3, 2), dpi=80)
+        plt.figure()#figsize=(3, 2), dpi=80)
         ax = plt.subplot(111)
         max_total_cost = 0
         max_total_pollution_high = 0
@@ -782,8 +782,10 @@ class PeakerRepGenerateReportMenu(ModalView):
             total_pollution_high = (eo.Pollution_High_Value + eo.cost_per_ton_of_CO2*eo.CO2_emissions)*eo.replacement_fraction
 
             color = PALETTE[divmod(iii, len(PALETTE))[1]]
+            
             text_size = 4*total_cost/max_total_cost
             line_width = 4*total_cost/max_total_cost
+            print(text_size)
             ax.plot([total_cost/SCALE,total_cost/SCALE],[total_pollution_low/SCALE,total_pollution_high/SCALE],label='Low to High Est. R.F. ' +str(100*eo.replacement_fraction) + '%',linewidth=line_width,color=rgba_to_fraction(color))
             ax.text(total_cost/(SCALE),(total_pollution_low/SCALE - max_total_pollution_high*0.05/SCALE),'100%',horizontalalignment='center', verticalalignment='center', size=text_size,color=rgba_to_fraction(color))
             for qq in range(1,10):
