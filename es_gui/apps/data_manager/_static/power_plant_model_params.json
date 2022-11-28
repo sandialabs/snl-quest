@@ -1,0 +1,29 @@
+[
+    {
+        "name": "plant oris id",
+        "attr name": "Plant_id",
+        "notes": "The power plant's ORIS identification number",
+        "max": 10000000,
+        "default": 7762,
+        "step": 1,
+        "units": "#"
+    },
+    {
+        "name": "plant location id",
+        "attr name": "location_id",
+        "notes": "The location id for a given location at a power plant (use 0 for all locations at the power plant)",
+        "max": 100,
+        "default": 0,
+        "step": 1,
+        "units": "#"
+    },
+    {
+        "name": "year",
+        "attr name": "year",
+        "notes": "The year to retrive dispatch and polution data for",
+        "max": 10000000,
+        "default": 2021,
+        "step": 1,
+        "units": "format: yyyy"
+    }
+]

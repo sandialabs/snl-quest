@@ -13,37 +13,53 @@
             text: '[font=Modern Pictograms][size=48]w[/size][/font] Internet connectivity is required to download data.'
             size_hint_y: 0.1
 
-        GridLayout:
-            cols: 1
-            spacing: 5
-            row_force_default: True
-            row_default_height: self.height/5
-            padding: (0, 50)
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1, 0.75)
 
-            DataManagerMenuTileButton:
-                background_color: C(hex_primary)
-                text: 'ISO/RTO Market and Operations'
-                on_release: root.manager.current = 'data_manager_rto_mo_data'
-            
-            DataManagerMenuTileButton:
-                background_color: C(hex_primary)
-                text: 'Utility Rate Structures'
-                on_release: root.manager.current = 'data_manager_rate_structure_data'
-            
-            DataManagerMenuTileButton:
-                background_color: C(hex_primary)
-                text: 'Commercial/Residential Building Load Profiles'
-                on_release: root.manager.current = 'data_manager_load_home'
-            
-            DataManagerMenuTileButton:
-                background_color: C(hex_primary)
-                text: 'Photovoltaic Power Profiles'
-                on_release: root.manager.current = 'data_manager_pvwatts'
+            GridLayout:
+                cols: 1
+                spacing: 5
+                row_force_default: True
+                row_default_height: self.height/3
+                padding: (5, 50)
+
+                DataManagerMenuTileButton:
+                    background_color: C(hex_primary)
+                    text: 'ISO/RTO Market and Operations'
+                    on_release: root.manager.current = 'data_manager_rto_mo_data'
                 
-            DataManagerMenuTileButton:
-                background_color: C(hex_primary)
-                text: 'NSRDB Weather Data'
-                on_release: root.manager.current = 'data_manager_nsrdb'
+                DataManagerMenuTileButton:
+                    background_color: C(hex_primary)
+                    text: 'Utility Rate Structures'
+                    on_release: root.manager.current = 'data_manager_rate_structure_data'
+                
+                DataManagerMenuTileButton:
+                    background_color: C(hex_primary)
+                    text: 'Commercial/Residential Building Load Profiles'
+                    on_release: root.manager.current = 'data_manager_load_home'
+                
+            GridLayout:
+                cols: 1
+                spacing: 5
+                row_force_default: True
+                row_default_height: self.height/3
+                padding: (5, 50)
+                
+                DataManagerMenuTileButton:
+                    background_color: C(hex_primary)
+                    text: 'Photovoltaic Power Profiles'
+                    on_release: root.manager.current = 'data_manager_pvwatts'
+                    
+                DataManagerMenuTileButton:
+                    background_color: C(hex_primary)
+                    text: 'NSRDB Weather Data'
+                    on_release: root.manager.current = 'data_manager_nsrdb'
+                
+                DataManagerMenuTileButton:
+                    background_color: C(hex_primary)
+                    text: 'Powerplant Dispatch and Pollution Data'
+                    on_release: root.manager.current = 'data_manager_power_plant'
 
 <DataManagerMenuTileButton@MenuTileButton>:
     font: huge_font

@@ -714,6 +714,311 @@ class TimeTextInput(TextInput):
         return super(TimeTextInput, self).insert_text(substring, from_undo=from_undo)
 
 
+class EquityResultsViewer(Screen):
+    """The screen for displaying plots inside the application or exporting results."""
+    current_fig = ObjectProperty()
+    current_ax = ObjectProperty()
+
+    def __init__(self, **kwargs):
+        super(EquityResultsViewer, self).__init__(**kwargs)
+
+        self.dfs = {}
+        self.run_medidata = {}
+
+        self.time_selector.start_time.bind(on_text_validate=self.draw_figure)
+        self.time_selector.end_time.bind(on_text_validate=self.draw_figure)
+    
+    def on_enter(self):
+        ab = self.manager.nav_bar
+        ab.set_title('Equity Analysis Results Viewer')
+
+        help_button = NavigationButton(
+            text='help (results viewer)',
+            on_release=self.open_help_carousel,
+        )
+
+        ab.action_view.add_widget(help_button)
+    
+    def open_help_carousel(self, *args):
+        """
+        """
+        help_carousel_view = HelpCarouselModalView()
+        help_carousel_view.title.text = "Results Viewer"
+
+        slide_01_text = "The Results Viewer is a built-in tool to help you look at QuESt optimization results. The recycle view at the bottom contains each optimization run (model) performed during your current session. Typically each item will correspond to a single powerplant and replacement fraction.\n\nYou can select which results you want to view simultaneously. We recommend selecting no more than six at a time."
+
+        slide_02_text = "The 'Select data' spinner is for selecting which quantity to plot. The variety of choices here will differ among QuESt applications. While most selections correspond to line plots of time series, some other plots such as box-and-whisker plots may be available."
+
+        slide_03_text = "Click on the 'Plot/Redraw' to render the plot according to your current selections.\n\nNote that the figure is not interactive."
+
+        slide_04_text = "For time series plots, you can adjust the range of time shown using the 'Hours shown' field. This can be used to look at specific points in time in more detail.\n\nYou can hit the 'Enter' key after changing these values to quickly render the plot."
+
+        slide_05_text = "You can export the currently rendered plot to a PNG image file using the 'Export PNG' button.\n\nYou can also export the detailed table of results for each selected model to a CSV file using the 'Export CSV' button. An individual file will be made for each selected model. These files contain details such as decision variable values at each timestep and other relevant quantities."
+
+        slides = [
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "01.png"), slide_01_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "02.png"), slide_02_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "03.png"), slide_03_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "04.png"), slide_04_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "05.png"), slide_05_text),
+        ]
+
+        help_carousel_view.add_slides(slides)
+        help_carousel_view.open()
+
+    def on_pre_enter(self):
+        pass
+
+    def on_leave(self):
+        """Resets all selections and the graph."""
+        self._reset_screen()
+
+    # def _on_keyboard_down(self, instance, keyboard, keycode, text, modifiers):
+    #     if keycode == 40:  # 40 - Enter key pressed
+    #         self.draw_figure()
+
+    def _select_all_runs(self):
+        for selectable_node in self.rv.layout_manager.get_selectable_nodes():
+            self.rv.layout_manager.select_node(selectable_node)
+
+    def _deselect_all_runs(self):
+        while len(self.rv.layout_manager.selected_nodes) > 0:
+            for selected_node in self.rv.layout_manager.selected_nodes:
+                self.rv.layout_manager.deselect_node(selected_node)
+
+    def _reset_screen(self):
+        #rv = self.run_selector.rv
+        rv = self.rv
+
+        self._deselect_all_runs()
+
+        # Clears graph.
+        while len(self.plotbox.children) > 0:
+            for widget in self.plotbox.children:
+                if isinstance(widget, FigureCanvasKivyAgg):
+                    self.plotbox.remove_widget(widget)
+
+        # Reset spinners.
+        self.vars_button.text = 'Select data'
+
+        # Reset text input fields.
+        self.time_selector.start_time.text = '0'
+        self.time_selector.end_time.text = '8760'
+
+    def _reinit_graph(self, has_legend=True):
+        # Clears graph.
+        while len(self.plotbox.children) > 0:
+            for widget in self.plotbox.children:
+                if isinstance(widget, FigureCanvasKivyAgg):
+                    self.plotbox.remove_widget(widget)
+        
+        fig, ax = plt.subplots()
+        self.current_fig = fig
+        self.current_ax = ax
+
+        ax.xaxis.label.set_size(16)
+        ax.yaxis.label.set_size(16)
+        plt.rcParams.update({'font.size': 18, 'xtick.labelsize': 12, 'ytick.labelsize': 12,
+                             'lines.linewidth': 2})
+        plt.rc('legend', **{'fontsize': 10})
+
+        if has_legend:
+            box = ax.get_position()
+            ax.set_position([box.x0, box.y0, box.width * 0.75, box.height])
+
+        plotbox = self.plotbox
+        canvas = FigureCanvasKivyAgg(self.current_fig)
+        plotbox.add_widget(canvas, index=0)
+
+    def _update_toolbar(self, *args):
+        """Updates the data viewing toolbar based on selections."""
+        # if not self.dfs:
+        #     # if no selections made, disable all toolbar buttons and return
+        #     self.vars_button.disabled = True
+        #     self.time_button.disabled = True
+        #     self.draw_button.disabled = True
+        #     self.csv_export_button.disabled = True
+        #     self.png_export_button.disabled = True
+        #
+        #     return
+
+        self.vars_button.disabled = False
+        #self.time_button.disabled = False
+        self.draw_button.disabled = False
+        self.csv_export_button.disabled = False
+        self.png_export_button.disabled = False
+
+    def _update_selection(self):
+        """Updates the dict. of DataFrames whenever new selections of data are made."""
+
+        # Identify the selected run(s) from RunSelector.
+        #rv = self.run_selector.rv
+        rv = self.rv
+        runs_selected = [rv.data[selected_ix] for selected_ix in rv.layout_manager.selected_nodes]
+
+        results = {}
+        run_metadata_list = {}
+
+        for run in runs_selected:
+            label = run['name']
+            df = run['optimizer'].results
+            results[label] = df
+            run_metadata_list[label] = run['run_medidata']
+
+        self.dfs = results
+        self.run_medidata = run_metadata_list
+
+    def _validate_inputs(self):
+        if not self.dfs:
+            # No selections made.
+            popup = WarningPopup()
+            popup.popup_text.text = "We need data to plot! Let's pick some solved models to view first."
+            popup.open()
+
+            return False
+
+        plot_type = self.vars_button.text
+
+        if plot_type == 'Select data':
+            # No data to plot has been selected.
+            popup = WarningPopup()
+            popup.popup_text.text = "We need something to plot! Let's select some data to view first."
+            popup.open()
+
+            return False
+
+        if not self.time_selector.validate():
+            return False
+
+        return True
+
+    def draw_figure(self, *args):
+        pass
+
+    def export_png(self, outdir_root):
+        """Exports currently displayed figure to .png file in specified location."""
+        os.makedirs(outdir_root, exist_ok=True)
+
+        self._update_selection()
+
+        if not self.plotbox.children:
+            popup = WarningPopup()
+            popup.popup_text.text = "There is currently no plot drawn to export."
+            popup.open()
+        elif self.dfs:
+            outname = os.path.join(outdir_root, self.vars_button.text+'.png')
+            self.plotbox.children[0].export_to_png(outname)
+
+            popup = WarningPopup(size_hint=(0.4, 0.4))
+            popup.title = 'Success!'
+            popup.popup_text.text = 'Figure successfully exported to:\n\n' + os.path.abspath(outname)
+            popup.open()
+        else:
+            popup = WarningPopup()
+            popup.popup_text.text = "We need a plot to export! Let's pick some solved models to view first."
+            popup.open()
+
+    def export_csv(self, outdir_root):
+        """Exports selected DataFrames to .csv files in specified location."""
+        os.makedirs(outdir_root, exist_ok=True)
+        
+        self._update_selection()
+
+        if self.dfs:
+            for run in self.dfs:
+                # Split and regenerate run label to make it filename-friendly.
+                run_label_split = run.split(' | ')
+                run_name = ' '.join(run_label_split[:4])
+
+                # Strip non-alphanumeric chars.
+                delchars = ''.join(c for c in map(chr, range(256)) if not c.isalnum())
+                run_name = run_name.translate({ord(i): None for i in delchars})
+
+                outname = os.path.join(outdir_root, run_name + '.csv')
+                df = self.dfs[run]
+                os.makedirs(outdir_root, exist_ok=True)
+                df.to_csv(outname, index=False)
+
+            popup = WarningPopup(size_hint=(0.4, 0.4))
+            popup.title = 'Success!'
+            popup.popup_text.text = 'File(s) successfully exported to:\n\n' + os.path.abspath(outdir_root)
+            popup.open()
+        else:
+            popup = WarningPopup()
+            popup.popup_text.text = "We need some results to export! Let's pick some solved models to view first."
+            popup.open()
+
+
+class EquityTimeSelector(MyPopup):
+    """
+    A Popup with TextInput fields for determining the range of time to display in the figure.
+    """
+
+    def __init__(self, **kwargs):
+        super(EquityTimeSelector, self).__init__(**kwargs)
+
+    def _validate(self):
+        """
+        Validates the field entries before closing the TimeSelector.
+        """
+        try:
+            start_time = int(self.start_time.text)
+            end_time = int(self.end_time.text)
+            assert(start_time < end_time)
+        except ValueError:
+            # empty text input
+            popup = WarningPopup()
+            popup.popup_text.text = 'All input fields must be populated to continue.'
+            popup.open()
+        except AssertionError:
+            # start_time > end_time
+            popup = WarningPopup()
+            popup.popup_text.text = 'The start time cannot be greater than the end time.'
+            popup.open()
+        else:
+            self.dismiss()
+
+        # Note: We do not necessarily need to check for index errors because Series slicing does not throw exceptions
+
+
+class EquityTimeSelectorRow(GridLayout):
+    def get_inputs(self):
+        return int(self.start_time.text), int(self.end_time.text)
+
+    def validate(self):
+        """Validates the field entries before closing the TimeSelector."""
+        try:
+            start_time = int(self.start_time.text)
+            end_time = int(self.end_time.text)
+            assert(start_time < end_time)
+        except ValueError:
+            # empty text input
+            popup = WarningPopup()
+            popup.popup_text.text = 'All input fields must be populated to continue.'
+            popup.open()
+
+            return False
+        except AssertionError:
+            # start_time > end_time
+            popup = WarningPopup()
+            popup.popup_text.text = 'The start time cannot be greater than the end time.'
+            popup.open()
+
+            return False
+        else:
+            return True
+
+
+class EquityTimeTextInput(TextInput):
+    """
+    A TextInput field for entering time indices. Limited to three int characters only.
+    """
+    def insert_text(self, substring, from_undo=False):
+        # limit to 4 chars
+        substring = substring[:4 - len(self.text)]
+        return super(EquityTimeTextInput, self).insert_text(substring, from_undo=from_undo)
+
+
 class ValuationParameterRow(GridLayout):
     """Grid layout containing parameter descriptor label and text input field. For QuESt Valuation interfaces."""
     def __init__(self, desc, **kwargs):

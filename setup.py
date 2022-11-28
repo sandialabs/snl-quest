@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from distutils.core import Extension
 
 DISTNAME = "QuESt"
-VERSION = "1.6"
+VERSION = "1.7-beta"
 EXTENSIONS = []
 PYTHON_REQUIRES = ">=36"
 DESCRIPTION = "Sandia National Laboratories application suite for energy storage analysis and evaluation tools."
@@ -34,6 +34,7 @@ setuptools_kwargs = {
         "eppy",
         "openpyxl",
         "pyutilib",
+        "numpy_financial",
     ],
 }
 

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+
+
+{% include "equity_head.html" ignore missing %}
+
+<h3>Pre-Processing</h3>
+The analysis was performed based on an assumption of fixed dispatch meaning that the es+pv must produce more power than the powerplant at a given time to reduce its output.
+For fractional replacement, the dispatch profile is sorted, then the power for the associated energy fraction is identified. 
+All dispatch above this power level is then set to zero in a new filtered dispatch signal. 
+Figure P1 shows the original dispatch and the filtered dispatch for each replacement  scenario.
+
+<div align="center">
+  <img src="{{distribution_chart}}", class="center" width="80%">
+  <h3>Fig. P1: Sorted Power Distrobution </h3>
+  </div>
+
+<h2>Optimization formulation</h2>
+
+We solve the following mathematical optimization problem to minimize the capital cost of energy storage and photovoltaic (PV) systems, and the notation is described in Table 2 below. 
+
+<!-- Powerplant Replacement -->
+
+\begin{align}
+\min_{\mathbf{x} \in \mathbb{R}^{3n+4}} & C_{\text{BESS}}^{\text{MWh}} E_{\text{BESS}} + C_{\text{BESS}}^{\text{MW}} P_{\text{BESS}} + C_{\text{PV}}^{\text{MW}}P_{\text{PV}} 
+\end{align} 
+
+<br />
+subject to the following constraints
+<br />
+\begin{align}
+P_{PV} \mathbf{p}_{pv} + \mathbf{p}^- + \mathbf{p}^+  \geq \mathbf{p}_{\text{plant}} \\
+\mathbf{D} \mathbf{\varsigma} = \mathbf{p}^- + \eta \mathbf{p}^+ \\
+ [\mathbf{0}] \leq \mathbf{\varsigma} \leq  E_{\text{BESS}}[\mathbf{1}]  \\
+\mathbf{p}^+ - \mathbf{p}^- \leq P_{\text{BESS}}[\mathbf{1}]  \\
+\mathbf{\varsigma}_{[0]} = \mathbf{\varsigma}_{[n]} = E_{\text{BESS}} 
+\end{align}
+<br />
+where 
+\begin{align}
+\mathbf{D} =& \frac{1}{\Delta t}\left[\begin{array}{cccccc}
+-1 & 1 & 0 & . & . & 0\\
+0 & -1 & 1 & 0 & . & .\\
+ &  & . & .\\
+ &  &  & . & .\\
+0 &  &  & 0 & -1 & 1
+\end{array}\right]_{n\times (n+1)}
+\end{align}
+
+<div align="center"> <!-- center content -->
+<table width="70%", class="center">
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th> 
+    <th>Units</th>
+  </tr>
+  <tr>
+    <td>\( \mathbf{p}_{\text{plant}} \) </td>
+    <td> Vector of powerplant dispatch, filtered per fractional replacement, at each time step. </td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( \mathbf{p}_{pv} \) </td>
+    <td> Vector of PV power at each time step normalized to 1 per unit. </td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( \mathbf{p}^+ \) </td>
+    <td> Vector of ES charge power at each time step</td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( \mathbf{p}^- \) </td>
+    <td> Vector of ES discharge power at each time step </td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( \mathbf{\varsigma} \) </td>
+    <td>Vector of energy storage state of energy at each time step </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\(   P_{PV} \) </td>
+    <td>PV power rating</td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( P_{\text{BESS}} \) </td>
+    <td>ES power rating</td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( E_{\text{BESS}} \) </td>
+    <td> ES energy capacity</td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( \eta \) </td>
+    <td> Round-trip efficiency</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( C_{\text{PV}}^{\text{MW}} \) </td>
+    <td> Cost per MW of the PV system</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( C_{\text{BESS}}^{\text{MW}} \) </td>
+    <td> Cost per MW of the ES system</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( C_{\text{BESS}}^{\text{MWh}} \) </td>
+    <td> Cost per MWh of the ES system </td> 
+    <td> % </td>
+  </tr>
+</table>
+<h4>Table 2: Notation</h4>
+</div>
+
+This optimization is formulated in Python using <a href="http://www.pyomo.org">Pyomo</a> and solved using the numerical solver selected in QuESt Valuation. 
+
+<h3>Assumptions</h3>
+The following assumptions were used:
+<ul>
+  <li> The time periods are hourly. </li>
+  <li> The ES system can only charge from PV, not from the grid. </li>
+  <li> The the ES+PV cannot partially reduce the output of the powerplant. To get credit for polution reduction the ES+PV must fully replace the output of the power plant at a given time step. </li>
+</ul>
+
+
+<h2>Summary of results</h2>
+{% for executive_summary in executive_summaries %}
+  <p>
+  {% for element in executive_summary %}
+    {{ element }}
+    <br />
+  {% endfor %}
+  <br />
+  </p>
+{% endfor %}
+
+Below is a map of the locations where the aggregate pollution reduction benefits are accrued. 
+Benefits are calculated based on changes in pollutant concentrations and on county populations. 
+Hence, the counties that benefit most are not necessarily those where the powerplant is located but are often the closest large population centers instead. 
+
+<div align="center"><!-- center content -->
+  <img src="{{benefit_map_file}}", class="center" width="80%">
+  <h3>Fig. R1: County Level Benifits Map </h3>
+</div>
+
+The following chart shows the capital cost (x-axis) and social benefits per year. 
+The social benefits are the sum of the climate benefits, calculated as the social cost of carbon times tons of carbon emissions avoided, and the health benefits which are the low to high range plotted as a vertical line. 
+The sloped lines represent, from most to least steep, a 5-year, 10-year, 15-year, and 20-year social return on investment (sROI). 
+These lines could also be seen as the points where the social net present value (sNPV) equals the capital cost after the specified period.
+The thinner lines reflected to the left marked 10% through 90% represent potential public-cost-share fractions. 
+This plot illustrates how much public investment in a powerplant replacement project would have a positive sROI. 
+If a local, state, or federal government is considering providing cost-share on a project that would offset the production of a powerplant, they would identify the relevant replacement scenario, and then move left to the cost-share fraction where the social benefits are above the sROI line for a desired time horizon. 
+
+<div align="center"><!-- center content -->
+  <img src="{{cost_benefit_chart_file}}", class="center" width="80%">
+  <h3>Fig. R2: Capital-Cost / Social Benefit Chart </h3>
+</div>
+
+<div align="center"><!-- center content -->
+<!-- Figures from wizard reporting screen -->
+  {% for chart in charts %}
+    <img src="{{ chart.path }}", class="center" width="80%">
+    <h3>Fig. {{ chart.ix }}: {{ chart.caption }}</h3>  
+  
+  {% endfor %}
+  </div>
+
+<h2> References </h2>  
+
+DOE OE Energy Storage Program: <a href="http://www.sandia.gov/ess/">www.sandia.gov/ess/</a>
+<br />
+
+EPA Power Plants and Neighboring Communities:<a href="https://www.epa.gov/airmarkets/power-plants-and-neighboring-communities">www.epa.gov/airmarkets/power-plants-and-neighboring-communities</a>
+<br />
+
+EPA CO-Benefits Risk Assessment Health Impacts Screening and Mapping Tool (COBRA): <a href="https://www.epa.gov/cobra">www.epa.gov/cobra</a>
+<br />
+
+EPA Field Audit Checklist Tool (FACT): <a href="https://www.epa.gov/airmarkets/field-audit-checklist-tool-fact">www.epa.gov/airmarkets/field-audit-checklist-tool-fact</a>
+<br />
+
+NREL PVWatts Calculator: <a href="https://pvwatts.nrel.gov/">pvwatts.nrel.gov/</a>
+<br />
+
+Climate and Economic Justice Screening Tool (From Justice40): <a href="https://screeningtool.geoplatform.gov/en/#3/33.47/-97.5">screeningtool.geoplatform.gov</a>
+
+<h2> Acknowledgements </h2>  
+
+{{ acknowledgement }}
+
+<br />
+<br />
+<img src="{{SNL_image}}" width="40%" align="middle"> &emsp; &emsp; &emsp; &emsp; <img src="{{DOE_image}}" width="15%" align="middle">
+
+</div>
+</body>
+</html>
