@@ -13,6 +13,7 @@
 #:include es_gui/apps/data_manager/load.kv
 #:include es_gui/apps/data_manager/widgets.kv
 #:include es_gui/apps/data_manager/pv.kv
+#:include es_gui/apps/data_manager/nsrdb.kv
 
 #:include es_gui/apps/valuation/home.kv
 #:include es_gui/apps/valuation/batchrunscreen.kv
@@ -23,6 +24,13 @@
 #:include es_gui/apps/btm/home.kv
 #:include es_gui/apps/btm/cost_savings.kv
 #:include es_gui/apps/btm/reporting.kv
+
+#:include es_gui/apps/performance/home.kv
+#:include es_gui/apps/performance/performance_sim.kv
+
+#:include es_gui/apps/tech_selection/home.kv
+#:include es_gui/apps/tech_selection/tech_selection_wizard.kv
+#:include es_gui/apps/tech_selection/results_viewer.kv
 
 #:include es_gui/proving_grounds/data_importer.kv
 #:include es_gui/proving_grounds/help_carousel.kv
@@ -93,27 +101,24 @@
                 padding: (100, 50)
 
                 AppSelectionIndexButton:
-                    #state: 'down'
                     text: ('[font=Modern Pictograms][size=54]_[/font][/size]\nQuESt Data Manager')
                     on_state: root.app_select_sm.current = 'quest manager'
 
-                # AppSelectionIndexButton:
-                #     text: ('[font=Modern Pictograms][size=54]E[/font][/size]\nTechnology Selection')
-                #     on_state: root.app_select_sm.current = 'technology selection'
-
-                # AppSelectionIndexButton:
-                #     text: ('[font=Modern Pictograms][size=54]B[/font][/size]\nElectricity Storage Handbook')
-                #     on_state: root.app_select_sm.current = 'handbook'
-
                 AppSelectionIndexButton:
-                    #state: 'down'
                     text: ('[font=Modern Pictograms][size=54]$[/font][/size]\nQuESt Valuation')
                     on_state: root.app_select_sm.current = 'valuation'
                 
                 AppSelectionIndexButton:
-                    #state: 'down'
                     text: ('[font=Modern Pictograms][size=54]p[/font][/size]\nQuESt BTM')
                     on_state: root.app_select_sm.current = 'btm'
+                    
+                AppSelectionIndexButton:
+                    text: ('[font=Modern Pictograms][size=54]6[/font][/size]\nQuESt Performance')
+                    on_state: root.app_select_sm.current = 'performance'
+					
+				AppSelectionIndexButton:
+                    text: ('[font=Modern Pictograms][size=54]E[/font][/size]\nTechnology Selection')
+                    on_state: root.app_select_sm.current = 'technology selection'
 
             BoxLayout:
                 size_hint_x: 0.6
@@ -135,7 +140,7 @@
                                 text: 'QuESt Data Manager'
 
                             AppSelectionDescBody:
-                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles'
+                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles \n *Weather data'
 
                             AnchorLayout:
                                 anchor_x: 'center'
@@ -180,6 +185,24 @@
                                 AppIndexGoButton:
                                     text: 'Get started'
                                     on_release: root.manager.launch_btm()
+                                    
+                    Screen:
+                        name: 'performance'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt Performance'
+
+                            AppSelectionDescBody:
+                                text: 'Estimates the effect heating and cooling loads have on battery energy storage performance.'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_performance()
 
                     Screen:
                         name: 'technology selection'
@@ -196,8 +219,8 @@
                                 anchor_y: 'top'
 
                                 AppIndexGoButton:
-                                    text: 'Coming soon!'
-                                    disabled: True
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_tech_selection()
 
                     Screen:
                         name: 'handbook'

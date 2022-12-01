@@ -14,6 +14,9 @@ build/*
 dist/*
 
 data/*
+!data/idf
+
+energyplus/*
 
 results/valuation/report/**
 results/valuation/report/images/*.png

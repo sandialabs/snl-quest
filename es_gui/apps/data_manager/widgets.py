@@ -1616,8 +1616,8 @@ class DataManagerPanelSPP(BoxLayout):
         # Compute the range of months to iterate over.
         monthrange = pd.date_range(datetime_start, datetime_end, freq='1MS')
 
-        url_spp_daLMP = "https://marketplace.spp.org/file-api/download/da-lmp-by-"
-        url_spp_daMCP = "https://marketplace.spp.org/file-api/download/da-mcp"
+        url_spp_daLMP = "https://marketplace.spp.org/file-browser-api/download/da-lmp-by-"
+        url_spp_daMCP = "https://marketplace.spp.org/file-browser-api/download/da-mcp"
 
         foldercompl_da = ['By_Day%2F', '']
 
@@ -1687,7 +1687,7 @@ class DataManagerPanelSPP(BoxLayout):
 
                     if not os.path.exists(destination_file):
 
-                        # print(datadownload_url)
+                        #print(datadownload_url)
 
                         trydownloaddate = True
                         wx = 0

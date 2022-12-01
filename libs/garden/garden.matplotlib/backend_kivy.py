@@ -253,7 +253,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.mathtext import MathTextParser
 from matplotlib import rcParams
 from hashlib import md5
-from matplotlib import _png
+#from matplotlib import _png
 from matplotlib import _path
 
 try:

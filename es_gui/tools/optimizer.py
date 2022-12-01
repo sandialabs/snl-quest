@@ -4,12 +4,13 @@ import pyutilib
 
 from six import with_metaclass
 from pyomo.environ import *
+from pyomo.opt import TerminationCondition
 
 
 class Optimizer(with_metaclass(ABCMeta)):
     """Abstract base class for Pyomo ConcreteModel optimization framework."""
 
-    def __init__(self, solver='glpk'):
+    def __init__(self, solver="glpk"):
         self._model = ConcreteModel()
         self._solver = solver
 
@@ -52,15 +53,15 @@ class Optimizer(with_metaclass(ABCMeta)):
 
     def solve_model(self):
         """Solves the model using the specified solver."""
-        if self.solver == 'neos':
-            opt = SolverFactory('cbc')
-            solver_manager = SolverManagerFactory('neos')
+        if self.solver == "neos":
+            opt = SolverFactory("cbc")
+            solver_manager = SolverManagerFactory("neos")
             results = solver_manager.solve(self.model, opt=opt)
         else:
             solver = SolverFactory(self.solver)
             results = solver.solve(self.model, tee=False, keepfiles=False)
 
-        assert (results.solver.termination_condition.key == 'optimal')
+        assert results.solver.termination_condition == TerminationCondition.optimal
 
         self._process_results()
 
@@ -79,9 +80,9 @@ class Optimizer(with_metaclass(ABCMeta)):
         self.instantiate_model()
         self.populate_model()
 
-        if self.solver == 'neos':
-            opt = SolverFactory('cbc')
-            solver_manager = SolverManagerFactory('neos')
+        if self.solver == "neos":
+            opt = SolverFactory("cbc")
+            solver_manager = SolverManagerFactory("neos")
             results = solver_manager.solve(self.model, opt=opt)
         else:
             solver = SolverFactory(self.solver)
@@ -89,15 +90,25 @@ class Optimizer(with_metaclass(ABCMeta)):
             try:
                 solver.available()
             except pyutilib.common._exceptions.ApplicationError as e:
-                logging.error('Optimizer: {error}'.format(error=e))
+                logging.error("Optimizer: {error}".format(error=e))
             else:
                 results = solver.solve(self.model, tee=True, keepfiles=False)
 
         try:
-            assert (results.solver.termination_condition.key == 'optimal')
+            assert results.solver.termination_condition == TerminationCondition.optimal
         except AssertionError:
-            logging.error('Optimizer: An optimal solution could not be obtained. (solver termination condition: {0})'.format(results.solver.termination_condition.key))
-            raise(AssertionError('An optimal solution could not be obtained. (solver termination condition: {0})'.format(results.solver.termination_condition.key)))
+            logging.error(
+                "Optimizer: An optimal solution could not be obtained. (solver termination condition: {0})".format(
+                    results.solver.termination_condition
+                )
+            )
+            raise (
+                AssertionError(
+                    "An optimal solution could not be obtained. (solver termination condition: {0})".format(
+                        results.solver.termination_condition
+                    )
+                )
+            )
         else:
             self._process_results()
 
@@ -106,5 +117,9 @@ class Optimizer(with_metaclass(ABCMeta)):
     def set_model_parameters(self, **kwargs):
         """Sets model parameters in kwargs to their respective values."""
         for kw_key, kw_value in kwargs.items():
-            logging.info('Optimizer: Setting {param} to {value}'.format(param=kw_key, value=kw_value))
+            logging.info(
+                "Optimizer: Setting {param} to {value}".format(
+                    param=kw_key, value=kw_value
+                )
+            )
             setattr(self.model, kw_key, kw_value)

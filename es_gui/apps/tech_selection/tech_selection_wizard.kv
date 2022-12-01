@@ -1,0 +1,193 @@
+<BoxLayoutUserSelection@BoxLayout>:
+    orientation: 'vertical'
+    size_hint_x: 0.15
+    spacing: 0
+
+<TechSelectionSubtitle@TitleTextBase>:
+    color: C(hex_secondary)
+    font_size: large_font
+    size_hint_y: 0.1
+    
+<TechSelectionParameterWidget>:
+    cols: 1
+    row_force_default: True
+    row_default_height: 40
+    spacing: 60
+    size_hint_y: None
+    height: root.minimum_height
+    
+    
+<TechSelectionWizard>:
+    sm: sm
+
+    BoxLayout:
+        TechSelectionWizardScreenManager:
+            id: sm
+
+
+<TechSelectionWizardStart>:
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+        
+        WizardHeaderDesc:
+            size_hint_y: 0.1
+            text: 'Welcome to the energy storage technology selection wizard!'
+
+        BoxLayout:
+            size_hint_y: 0.3
+            padding: WIZ_PADDING_X, 0
+            WizardBodyText:
+                text: 'This wizard will guide you through the process of identifying feasible energy storage technologies for a given project. Based on user inputs and pre-loaded databases that contain parameters to characterize multiple energy storage technologies and their grid applications, this tool identifies which storage technologies do not satisfy the minimum application requirements (such as discharge duration and response time). Then, the remaining feasible technologies are ranked to indicate their compatibility to the desired project.\n\nThe flowchart below depicts an overview of the steps performed during the energy storage technology selection analysis.'
+
+        BoxLayout:
+            size_hint_y: 0.55
+            Image:
+                source: 'es_gui/resources/images/tech_selection_flowchart.png'
+                allow_stretch: False
+
+        BoxLayout:
+            size_hint_y: 0.05
+            AnchorLayout:
+                anchor_x: 'right'
+                WizardNextButton:
+                    size_hint_x: 0.15
+                    text: 'Get started'
+                    on_release: root._next_screen()
+
+   
+<TechSelectionUserInputs>:
+    grid_location_rv: grid_location_rv
+    grid_location_rv_selectable: grid_location_rv_selectable
+    app_names_rv: app_names_rv
+    app_names_rv_selectable: app_names_rv_selectable
+    system_size_rv: system_size_rv
+    system_size_rv_selectable: system_size_rv_selectable
+    discharge_duration_rv: discharge_duration_rv
+    discharge_duration_rv_selectable: discharge_duration_rv_selectable
+    next_button: next_button
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+        
+        WizardHeaderDesc:
+            size_hint_y: 0.1
+            text: 'Specify user inputs'
+        
+        BoxLayout:
+            size_hint_y: 0.075
+            padding: (WIZ_PADDING_X/2, 0)
+            WizardBodyText:
+                text: 'The user can specify four inputs to describe the desired energy storage project. [i]Grid location[/i] is the only required input; the other types of inputs have default values based on the initial user selection, which can be overwritten by the user.'
+        
+        BoxLayout:
+            size_hint_y: 0.775
+            padding: (100, 10)
+
+            GridLayout:
+                rows: 1
+                spacing: 10
+				
+                BoxLayoutUserSelection: 
+                    TechSelectionSubtitle:
+                        text: 'Grid location'
+                    MyRecycleView:
+                        id: grid_location_rv
+                        size_hint_y: 0.8
+                        viewclass: 'GridLocationRVEntry'
+                        SelectableRecycleBoxLayout:
+                            id: grid_location_rv_selectable
+
+                BoxLayoutUserSelection:
+                    TechSelectionSubtitle:
+                        text: 'Application'
+                    MyRecycleView:
+                        id: app_names_rv
+                        size_hint_y: 0.8
+                        viewclass: 'ApplicationRVEntry'
+                        SelectableRecycleBoxLayout:
+                            id: app_names_rv_selectable
+ 
+                BoxLayoutUserSelection: 
+                    TechSelectionSubtitle:
+                        text: 'System size'
+                    MyRecycleView:
+                        id: system_size_rv
+                        size_hint_y: 0.8
+                        viewclass: 'SystemSizeRVEntry'
+                        SelectableRecycleBoxLayout:
+                            id: system_size_rv_selectable
+
+                BoxLayoutUserSelection:
+                    TechSelectionSubtitle:
+                        text: 'Discharge duration'
+                    MyRecycleView:
+                        id: discharge_duration_rv
+                        size_hint_y: 0.8
+                        viewclass: 'DischargeDurationRVEntry'
+                        SelectableRecycleBoxLayout:
+                            id: discharge_duration_rv_selectable
+
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                WizardNextButton:
+                    id: next_button
+                    disabled: True
+                    on_release: root._next_screen()
+
+
+<TechSelectionConfirmInputs>:
+    param_widget: param_widget
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            size_hint_y: 0.1
+            text: 'Currently selected input values'
+   
+        BoxLayout:
+            size_hint_y: 0.075
+            padding: (WIZ_PADDING_X/2, 0)  
+            WizardBodyText:
+                text: 'These are the currently selected input values. Click [i]Previous[/i] to return to the previous screen and modify your selections, or click [i]Run[/i] to run the energy storage technology selection application. Note: performing all computations might take a few seconds; please wait for it to complete.'
+
+        BoxLayout:
+            size_hint_y: 0.775           
+            AnchorLayout:
+                TechSelectionParameterWidget:
+                    id: param_widget
+  
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'    
+                WizardNextButton:
+                    text: 'Run'
+                    on_release: root.execute_run()

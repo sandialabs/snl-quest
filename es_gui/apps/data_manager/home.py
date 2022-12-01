@@ -37,13 +37,19 @@ class DataManagerHomeScreen(Screen):
         slide_04_text = "Rate structure tables can be modified before saving. You can change the rate for each period. Click on the [font=Modern Pictograms]D[/font] button to copy the value to the next row."
 
         slide_05_text = "The tables on the right describe the rate schedule for weekdays and weekends. Each row corresponds to a month and each column an hour. The value in each cell matches to a rate in the rates table; you can change each of these as needed. Try using the 'Tab' and arrow keys to navigate each table more quickly.\n\nNote that you cannot change the number of periods."
+        
+        slide_06_text = "National Solar Radiation Database (NSRDB) weather data is available to download for performance applications. With the longitude and latitude of your desired location, a year of data may be obtained."
+        
+        slide_07_text = "Once a file name has been entered and the save button is clicked, the EnergyPlus weather converter will run (must have EnergyPlus installed and in the QuESt directory; see Performance Tool for more information). Simply select the location data csv file, ensure the selected output format is EnergyPlus weather format (EPW), and enter the file name to save."
 
         slides = [
-            (os.path.join("es_gui", "resources", "help_views", "data_manager", "01.png"), slide_01_text),
+            (os.path.join("es_gui", "resources", "help_views", "data_manager", "updated_home.png"), slide_01_text),
             (os.path.join("es_gui", "resources", "help_views", "data_manager", "02.png"), slide_02_text),
             (os.path.join("es_gui", "resources", "help_views", "data_manager", "03.png"), slide_03_text),
             (os.path.join("es_gui", "resources", "help_views", "data_manager", "04.png"), slide_04_text),
             (os.path.join("es_gui", "resources", "help_views", "data_manager", "05.png"), slide_05_text),
+            (os.path.join("es_gui", "resources", "help_views", "data_manager", "weather.png"), slide_06_text),
+            (os.path.join("es_gui", "resources", "help_views", "data_manager", "eplus_converter.png"), slide_07_text)
         ]
 
         help_carousel_view.add_slides(slides)
