@@ -1,35 +1,30 @@
-**/*.DS_Store
-**/*.pyc
-**/.idea/*
-**/.vscode/*
-**/*.ini
-**/*.p
-**/*.log
-**/*.pyomo.*
-**/*.glpk.*
-
-**/__pycache__/*
-
-build/*
-dist/*
-
-data/*
-!data/idf
-
-energyplus/*
-
-results/valuation/report/**
-results/valuation/report/images/*.png
-results/valuation/csv/*.csv
-results/valuation/plots/*.png
-results/btm_cost_savings/report/*html
-results/btm_cost_savings/report/images/*.png
-results/btm_cost_savings/csv/*.csv
-results/btm_cost_savings/plots/*.png
-results/btm_cost_savings/report/**
-results/btm/*
-
-es_gui/resources/docs/sphinx/build/*
-es_gui/tools/valuation/docs/*
-
-QuESt.egg-info/*
+README.md
+#<Build and Release Folders>
+#<bin-debug>
+#<bin-release>
+#<[obj>
+#<[bin>
+<2
+#<Other files and folders>
+#<settings>
+<2
+#<Executables>
+#<Project files i.e. project .actionScriptProperties and .flexProperties>
+#<should NOT be excluded as they contain compiler settings and other important>
+#<information for EclipseFlash>
+<2
+# Build and Release Folders
+bin-debug/
+bin-release/
+[¹1¹]obj/bin-debug
+[²2²]bn/bin-release
+<2
+# Other files and folders
+#<.settings/
+<2
+# Executables
+[¹1¹]
+[¹1¹]obj/bin-debug
+[²2²]
+[²2²]bn/bin-release
+main
