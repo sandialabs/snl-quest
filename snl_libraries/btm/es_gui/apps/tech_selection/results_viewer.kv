@@ -1,0 +1,450 @@
+<TechSelectionSliderWeights@Slider>
+    min: 0
+    max: 1
+    step: 0.1
+    value: 1
+    value_track: True
+    value_track_color: C(hex_secondary)
+    value_track_width: 3
+    background_width: 3
+    background_horizontal: os.path.join('es_gui', 'resources', 'images', 'gray.png')
+    border_horizontal: 0, 0, 0, 0
+    cursor_size: 20, 20
+	padding: 10
+    
+
+<TechSelectionFeasible>:
+    plot_feasibility: plot_feasibility
+    plot_feasibility_image: plot_feasibility_image
+    param_widget: param_widget
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            size_hint_y: 0.1
+            text: 'Energy storage technologies feasibility'
+
+        BoxLayout:
+            size_hint_y: 0.075
+            padding: WIZ_PADDING_X/2, 0
+            WizardBodyText:
+                text: 'The plot below indicates whether each energy storage technology is a feasible option for your project. A detailed description of the energy storage technologies used in this tool can be found in the [ref=link][color=3391ba]U.S. DOE Energy Storage Handbook[/color][/ref].'
+				on_ref_press: webbrowser.open('https://www.sandia.gov/ess/publications/doe-oe-resources/eshb')
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.775
+
+			BoxLayout:
+                id: plot_feasibility
+                size_hint_x: 0.6
+				Image:
+					id: plot_feasibility_image
+					pos_hint: {'top': 1}
+					source: 'results/tech_selection/plot_feasibility.png'
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.4
+                
+                AnchorLayout:
+                    anchor_y: 'top'
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: 1, None
+                        height: self.minimum_height
+
+                        TitleTextBase:
+                            text: 'Summary of user selections:'
+                            font_size: mid_font
+                            size_hint: 1, None
+                            size: self.texture_size
+
+                        TechSelectionParameterWidget:
+                            id: param_widget
+                            row_default_height: 35
+                            spacing: 0
+							
+				WizardBodyText:
+					size_hint_x: 0.85
+					text: 'Note about lithium-ion batteries: due to the abundance of data, [i]lithium-ion iron phostate[/i] and [i]lithium-ion nickel-manganese-cobalt[/i] batteries are classified as unique technologies in this tool. On the other hand, [i]lithium-ion[/i] refers to generic lithium-ion batteries, regardless of the chemistry.'
+
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+
+  
+<TechSelectionRanking>:
+    plot_ranking: plot_ranking
+    plot_ranking_image: plot_ranking_image
+    param_widget: param_widget
+    app_slider: app_slider
+    location_slider: location_slider
+    cost_slider: cost_slider
+    #maturity_slider: maturity_slider
+    target_cost_value: target_cost_value
+    togglebutton_kW: togglebutton_kW
+    togglebutton_kWh: togglebutton_kWh
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            size_hint_y: 0.1
+            text: 'Ranking of feasible energy storage technologies'
+			
+        BoxLayout:
+            size_hint_y: 0.075
+            padding: WIZ_PADDING_X/4, 0
+            WizardBodyText:
+                text: 'The plot below depicts the feasibility score of each energy storage technology for your project; higher scores indicate a better match between a technology and the requirements of your project. The [i]Adjustments[/i] box allows users to modify some settings used for computing the total feasibility scores.'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.775
+            
+            BoxLayout:
+                id: plot_ranking
+                size_hint_x: 0.6
+				Image:
+					id: plot_ranking_image
+					pos_hint: {'top': 1}
+					source: 'results/tech_selection/plot_ranking.png'
+
+            BoxLayout:
+                id: right_box
+                orientation: 'vertical'
+                size_hint_x: 0.4
+                
+                AnchorLayout:
+                    anchor_y: 'top'
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint: 1, None
+                        height: self.minimum_height
+
+                        TitleTextBase:
+                            id: param_widget_title
+                            text: 'Summary of user selections:'
+                            font_size: mid_font
+                            size_hint: 1, None
+                            size: self.texture_size
+
+                        TechSelectionParameterWidget:
+                            id: param_widget
+                            row_default_height: 35
+                            spacing: 0
+                        
+                        BoxLayout:
+                            size_hint: 1, None
+                            height: 0.4*(right_box.height - param_widget_title.height - param_widget.height - adjustments_box.height - next_button.height)
+                        
+                        BoxLayout:
+                            id: adjustments_box
+                            orientation: 'vertical'
+                            size_hint: 1, None
+                            height: self.minimum_height
+                            spacing: 20
+                            padding: 10
+                            canvas:
+                                Color: 
+                                    rgb: 0.9, 0.9, 0.9
+                                Rectangle:
+                                    pos: self.pos
+                                    size: self.size
+                            
+                            TitleTextBase:
+                                text: 'Adjustments'
+                                font_size: large_font
+                                halign: 'center'
+                                size_hint: 1, None
+                                size: self.texture_size
+ 
+                            BoxLayout:
+                                orientation: 'vertical'
+                                size_hint: 1, None
+                                height: self.minimum_height
+
+                                StackLayout:
+                                    orientation: 'lr-tb'
+                                    size_hint: 1, None
+                                    height: self.minimum_height
+                                    
+                                    TitleTextBase:
+                                        text: 'Weights for each factor:'
+                                        font_size: mid_font
+                                        size_hint: 0.435, None
+                                        size: self.texture_size
+
+                                    Button:
+                                        text: '[font=Modern Pictograms][size={}]?[/size][/font]'.format(int(large_font))
+                                        markup: True
+                                        color: C(hex_pms137)
+                                        background_normal: ''
+                                        background_color: 0, 0, 0, 0
+                                        size_hint: None, None
+                                        size: large_font, large_font
+                                        on_release: root.help_weights()
+
+                                GridLayout:
+                                    cols: 3
+                                    size_hint: 1, None
+									height: 1.5*next_button.height
+                                    #spacing: 0, 6
+           
+                                    BoxLayout:
+                                        orientation: 'vertical'
+                                        BodyTextBase:
+                                            text: '[b]Application:[/b] {:.1f}'.format(app_slider.value)
+                                            markup: True
+											padding: 10, 0
+                                        TechSelectionSliderWeights:
+                                            id: app_slider
+
+                                    BoxLayout:
+                                        orientation: 'vertical'
+                                        BodyTextBase:
+                                            text: '[b]Location:[/b] {:.1f}'.format(location_slider.value)
+                                            markup: True
+											padding: 10, 0
+                                        TechSelectionSliderWeights:
+                                            id: location_slider
+
+                                    BoxLayout:
+                                        orientation: 'vertical'
+                                        BodyTextBase:
+                                            text: '[b]Cost:[/b] {:.1f}'.format(cost_slider.value)
+                                            markup: True
+											padding: 10, 0
+                                        TechSelectionSliderWeights:
+                                            id: cost_slider
+
+                                    #BoxLayout:
+                                    #    orientation: 'vertical'
+                                    #    BodyTextBase:
+                                    #        text: '[b]Maturity:[/b] {:.1f}'.format(maturity_slider.value)
+                                    #        markup: True
+                                    #    TechSelectionSliderWeights:
+                                    #        id: maturity_slider
+
+                            BoxLayout:
+                                orientation: 'horizontal'
+                                size_hint: 1, None
+                                height: next_button.height
+                                spacing: 10
+                                
+                                StackLayout:
+                                    orientation: 'lr-tb'
+                                    size_hint: 0.28, 1
+
+                                    TitleTextBase:
+                                        text: 'Target cost:'
+                                        font_size: mid_font
+                                        size_hint: 0.82, 1
+
+                                    Button:
+                                        text: '[font=Modern Pictograms][size={}]?[/size][/font]'.format(int(large_font))
+                                        markup: True
+                                        color: C(hex_pms137)
+                                        background_normal: ''
+                                        background_color: 0, 0, 0, 0
+                                        size_hint: None, None
+                                        size: large_font, large_font
+                                        on_release: root.help_target_cost()
+
+                                ParamTextInput:
+                                    id: target_cost_value
+                                    #text: '1500'
+                                    halign: 'center'
+                                    padding: 0, 3
+                                    size_hint: 0.22, 0.8
+ 
+                                ToggleTileButton:
+                                    id: togglebutton_kWh
+                                    text: '$/kWh'
+                                    group: 'type_of_cost'
+									allow_no_selection: False
+                                    size_hint: 0.25, 0.8
+									
+                                ToggleTileButton:
+                                    id: togglebutton_kW
+                                    text: '$/kW'
+                                    group: 'type_of_cost'
+									allow_no_selection: False
+                                    size_hint: 0.25, 0.8
+
+                            BoxLayout:
+                                size_hint: 1, None
+                                height: next_button.height
+                                
+                                AnchorLayout:
+                                    WizardNextButton:
+                                        text: 'Update scores'
+                                        size_hint: None, 1
+                                        width: next_button.width
+                                        background_color: C(hex_secondary)
+                                        on_release: root.update_scores()
+
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+					
+
+<TechSelectionSaveResults>:
+    name_plot_feasibility: name_plot_feasibility
+    name_plot_ranking: name_plot_ranking
+    name_table_ranking: name_table_ranking
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            size_hint_y: 0.1
+            text: 'Save/export results'
+    
+        BoxLayout:
+            size_hint_y: 0.075
+            padding: WIZ_PADDING_X/2, 0
+            WizardBodyText:
+                text: 'This wizard allows users to save the results presented in the previous screens. These results can be saved as images (.png file) or tables (.csv file). Note: when entering the filenames below, it is not necessary to include the file extensions [i].png[/i] or [i].csv[/i].'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.775
+            padding: WIZ_PADDING_X, 0
+            
+            StackLayout:
+                orientation: 'tb-lr'
+                size_hint_y: 1
+
+                TitleTextBase:
+                    size_hint_y: 0.5
+                    font_size: large_font
+                    text: 'Feasibility plot (.png file):'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.1
+                    spacing: 10
+
+                    TextInput:
+                        id: name_plot_feasibility
+                        size_hint: 0.8, None
+                        height: next_button.height
+                        hint_text: 'Enter a name for this plot; if no name is entered by the user, the default is "out_plot_feasibility".'
+
+                    WizardNextButton:
+                        text: 'Save'
+                        size_hint: None, None
+                        width: next_button.width
+                        height: next_button.height
+                        background_color: C(hex_secondary)
+                        on_release: root.feasibility_export_png()
+
+            StackLayout:
+                orientation: 'tb-lr'
+                size_hint_y: 1
+                
+                TitleTextBase:
+                    size_hint_y: 0.5
+                    font_size: large_font
+                    text: 'Ranking plot (.png file):'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.1
+                    spacing: 10
+                
+                    TextInput:
+                        id: name_plot_ranking
+                        size_hint: 0.8, None
+                        height: next_button.height
+                        hint_text: 'Enter a name for this plot; if no name is entered by the user, the default is "out_plot_ranking".'
+
+                    WizardNextButton:
+                        text: 'Save'
+                        size_hint: None, None
+                        width: next_button.width
+                        height: next_button.height
+                        background_color: C(hex_secondary)
+                        on_release: root.ranking_export_png()
+                        
+            StackLayout:
+                orientation: 'tb-lr'
+                size_hint_y: 1
+                
+                TitleTextBase:
+                    size_hint_y: 0.5
+                    font_size: large_font
+                    text: 'Ranking table (.csv file):'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.1
+                    spacing: 10
+                
+                    TextInput:
+                        id: name_table_ranking
+                        size_hint: 0.8, None
+                        height: next_button.height
+                        hint_text: 'Enter a name for this table; if no name is entered by the user, the default is "out_table_ranking".'
+
+                    WizardNextButton:
+                        text: 'Save'
+                        size_hint: None, None
+                        width: next_button.width
+                        height: next_button.height
+                        background_color: C(hex_secondary)
+                        on_release: root.ranking_export_csv()
+            
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                WizardNextButton:
+                    id: next_button
+                    text: 'End!'

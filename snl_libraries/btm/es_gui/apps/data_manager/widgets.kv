@@ -1,0 +1,1459 @@
+#: import calendar calendar
+#: import webbrowser webbrowser
+#: import datetime datetime
+#: import app kivy.app
+#:set ercot_data_start_year 2010
+#:set isone_data_start_year 2016
+#:set pjm_data_start_year 2009
+#:set miso_data_start_year 2015
+#:set nyiso_data_start_year 2013
+#:set spp_data_start_year 2014
+#:set caiso_data_start_year 2015
+#:set its_current_year datetime.datetime.now().year
+
+<TabbedPanelHeader>:
+    background_color: C(hex_cloud_dancer) if self.state == 'down' else C(hex_white)
+    color: C(hex_secondary) if self.state == 'down' else C(hex_black)
+    #underline: True if self.state == 'down' else False
+    font_size: stnd_font
+    background_image: os.path.join('es_gui', 'resources', 'images', 'white.png')
+    background_normal: os.path.join('es_gui', 'resources', 'images', 'white.png')
+    background_down: os.path.join('es_gui', 'resources', 'images', 'white.png')
+
+<DataManagerPanelERCOT>:
+    year_start: year_start
+    year_end: year_end
+    output_log: output_log
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+    progress_bar: progress_bar
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        
+        DataManagerContentTitle:
+            text: 'ERCOT'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (525, 0)
+            size_hint_y: 0.6
+
+            DataManagerContentSubtitle:
+                text: 'Range of years'
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 10
+
+                DataManagerBodyText:
+                    text: 'Start:'
+                    size_hint_x: 0.4
+
+                PlotSpinner:
+                    id: year_start
+                    size_hint_x: 0.6
+                    text: 'Year'
+                    values: [str(year) for year in range(ercot_data_start_year, its_current_year+1)]
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 10
+
+                DataManagerBodyText:
+                    text: 'End:'
+                    size_hint_x: 0.4
+
+                PlotSpinner:
+                    id: year_end
+                    size_hint_x: 0.6
+                    text: 'Year'
+                    values: [str(year) for year in range(ercot_data_start_year, its_current_year+1)]
+            
+            BoxLayout:
+                size_hint_y: 0.7
+        
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+                    
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerPanelISONE>:
+    credential_help: credential_help
+    acc_user: acc_user
+    acc_pw: acc_pw
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    node_id: node_id
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_zones: chkbx_zones
+    chkbx_hub: chkbx_hub
+    output_log: output_log
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+    progress_bar: progress_bar
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        
+        DataManagerContentTitle:
+            text: 'ISO-NE'
+
+        GridLayout:
+            cols: 3
+            size_hint_y: 0.6
+            spacing: 50
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    id: credential_help
+                    text: 'Enter ISO-NE ISO Express credentials. [font=Modern Pictograms][color=00ADD0][ref=pjmSubKeyHelp]?[/ref][/color][/font]'
+                    markup: True
+                    on_ref_press: root.open_isone_acc_help()
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 5
+
+                    DataManagerBodyText:
+                        text: 'Username'
+                        size_hint_x: 0.3     
+
+                    TextInput:
+                        id: acc_user
+                        size_hint_x: 0.7
+                        multiline: False
+                        #password: True
+                        write_tab: False
+                        hint_text: 'Email Address'
+                        text: app.App.get_running_app().config.get('datamanager-isone', 'iso-ne_api_username')
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 5
+
+                    DataManagerBodyText:
+                        text: 'Password'
+                        size_hint_x: 0.3     
+
+                    TextInput:
+                        id: acc_pw
+                        size_hint_x: 0.7
+                        multiline: False
+                        password: True
+                        write_tab: False
+                        #hint_text: 'Password'
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.60
+            
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Specify the range of months.'
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+                    
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(isone_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+                    
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(isone_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+                
+                BoxLayout:
+                    size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Pricing node ID and/or types of nodes'
+                
+                TextInput:
+                    id: node_id
+                    size_hint_y: 0.15
+                    size_hint_x: 0.5
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'Node ID'
+                    input_filter: 'int'
+                
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_hub
+                            attr_name: '1'
+
+                        DataManagerBodyText:
+                            text: 'Internal Hub'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_zones
+                            attr_name: 'hubs'
+
+                        DataManagerBodyText:
+                            text: 'Zones'
+                            size_hint_x: 0.95
+        
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+                    
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerPanelMISO>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        
+        DataManagerContentTitle:
+            text: 'MISO'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (450, 0)
+            size_hint_y: 0.6
+
+            DataManagerContentSubtitle:
+                text: 'Range of months'
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 10
+
+                DataManagerBodyText:
+                    text: 'Start:'
+                    size_hint_x: 0.3
+                
+                PlotSpinner:
+                    id: month_start
+                    size_hint_x: 0.35
+                    text: 'Month'
+                    values: [month for month in calendar.month_name]
+
+                PlotSpinner:
+                    id: year_start
+                    size_hint_x: 0.35
+                    text: 'Year'
+                    values: [str(year) for year in range(miso_data_start_year, its_current_year+1)]
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.15
+                spacing: 10
+
+                DataManagerBodyText:
+                    text: 'End:'
+                    size_hint_x: 0.3
+                
+                PlotSpinner:
+                    id: month_end
+                    size_hint_x: 0.35
+                    text: 'Month'
+                    values: [month for month in calendar.month_name]
+
+                PlotSpinner:
+                    id: year_end
+                    size_hint_x: 0.35
+                    text: 'Year'
+                    values: [str(year) for year in range(miso_data_start_year, its_current_year+1)]
+            
+            BoxLayout:
+                size_hint_y: 0.7
+        
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+                    
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerPanelNYISO>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_zonal: chkbx_zonal
+    chkbx_gens: chkbx_gens
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        DataManagerContentTitle:
+            text: 'NYISO'
+        
+        GridLayout:
+            cols: 2
+            spacing: 150
+            padding: (150, 0)
+            size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Range of months'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)] # TODO nyiso data start
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(nyiso_data_start_year, its_current_year+1)]
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.6
+            
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Types of nodes'
+            
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_zonal
+                            attr_name: 'zone'
+
+                        DataManagerBodyText:
+                            text: 'Zonal'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_gens
+                            attr_name: 'gens'
+
+                        DataManagerBodyText:
+                            text: 'Generators'
+                            size_hint_x: 0.95
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerPanelSPP>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_location: chkbx_location
+    chkbx_bus: chkbx_bus
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        DataManagerContentTitle:
+            text: 'SPP'
+
+        GridLayout:
+            cols: 2
+            spacing: 150
+            padding: (150, 0)
+            size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Range of months'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(spp_data_start_year, its_current_year+1)]
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(spp_data_start_year, its_current_year+1)]
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Types of nodes'
+
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_location
+                            attr_name: 'location'
+
+                        DataManagerBodyText:
+                            text: 'Location'
+                            size_hint_x: 0.95
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_bus
+                            attr_name: 'bus'
+
+                        DataManagerBodyText:
+                            text: 'Bus'
+                            size_hint_x: 0.95
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerPanelCAISO>:
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    node_id_txtinput: node_id_txtinput
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_th: chkbx_th
+    chkbx_asp: chkbx_asp
+
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        DataManagerContentTitle:
+            text: 'CAISO'
+
+        GridLayout:
+            cols: 2
+            size_hint_y: 0.45
+            spacing: 150
+            padding: (150, 0)
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Range of months'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.2
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(caiso_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.2
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(caiso_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+
+                BoxLayout:
+                    size_hint_y: 0.5
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Pricing node ID and/or types of nodes'
+
+                TextInput:
+                    id: node_id_txtinput
+                    size_hint_y: 0.2
+                    size_hint_x: 0.5
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'Node ID'
+                    # input_filter: 'int'
+
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.8
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_th
+                            attr_name: 'TH'
+
+                        DataManagerBodyText:
+                            text: 'Total Hubs'
+                            size_hint_x: 0.95
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_asp
+                            attr_name: 'ASP'
+
+                        DataManagerBodyText:
+                            text: 'ASP'
+                            size_hint_x: 0.95
+        
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.15
+            spacing: 10
+            padding: (150, 0)
+
+            DataManagerContentSubtitle:
+                text: 'Caution'
+
+            DataManagerBodyText:
+                text: 'The CAISO API limits requests to approximately every five seconds. It may take a very long time to complete all of your download requests.'
+        
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.6
+                        readonly: True
+                        allow_copy: False
+
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerPanelPJM>:
+    subscription_key: subscription_key
+    month_start: month_start
+    year_start: year_start
+    month_end: month_end
+    year_end: year_end
+    node_id_txtinput: node_id_txtinput
+    labeled_chkbx_grid: labeled_chkbx_grid
+    chkbx_pjm_avg: chkbx_pjm_avg
+    chkbx_aggregate: chkbx_aggregate
+    chkbx_zone: chkbx_zone
+    chkbx_hub: chkbx_hub
+
+    output_log: output_log
+    progress_bar: progress_bar
+    execute_download_button: execute_download_button
+    cancel_download_button: cancel_download_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_cloud_dancer)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        
+        DataManagerContentTitle:
+            text: 'PJM'
+
+        GridLayout:
+            cols: 3
+            size_hint_y: 0.6
+            spacing: 50
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Data Miner 2 API subscription key [font=Modern Pictograms][color=00ADD0][ref=pjmSubKeyHelp]?[/ref][/color][/font]'
+                    markup: True
+                    on_ref_press: root.open_pjm_subkey_help()
+
+                TextInput:
+                    id: subscription_key
+                    size_hint_y: 0.15
+                    #multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'Subscription key'
+                    text: app.App.get_running_app().config.get('datamanager-pjm', 'pjm_subscription_key')
+                    
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.75
+            
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Range of months'
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'Start:'
+                        size_hint_x: 0.3
+                    
+                    PlotSpinner:
+                        id: month_start
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_start
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(pjm_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 10
+
+                    DataManagerBodyText:
+                        text: 'End:'
+                        size_hint_x: 0.3
+                    
+                    PlotSpinner:
+                        id: month_end
+                        size_hint_x: 0.35
+                        text: 'Month'
+                        values: [month for month in calendar.month_name]
+                        #on_text: root._iso_selected()
+
+                    PlotSpinner:
+                        id: year_end
+                        size_hint_x: 0.35
+                        text: 'Year'
+                        values: [str(year) for year in range(pjm_data_start_year, its_current_year+1)]
+                        #on_text: root._iso_selected()
+                
+                BoxLayout:
+                    size_hint_y: 0.7
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                DataManagerContentSubtitle:
+                    text: 'Pricing node ID and/or types of nodes'
+                
+                TextInput:
+                    id: node_id_txtinput
+                    size_hint_y: 0.15
+                    size_hint_x: 0.5
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'Node ID'
+                    input_filter: 'int'
+                
+                GridLayout:
+                    id: labeled_chkbx_grid
+                    size_hint_y: 0.75
+                    cols: 2
+                    spacing: 5
+                    row_force_default: True
+                    row_default_height: self.height/8
+                    padding: (10, 0)
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_pjm_avg
+                            attr_name: '1'
+
+                        DataManagerBodyText:
+                            text: 'PJM (average)'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_aggregate
+                            attr_name: 'AGGREGATE'
+
+                        DataManagerBodyText:
+                            text: 'Aggregate'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_zone
+                            attr_name: 'ZONE'
+
+                        DataManagerBodyText:
+                            text: 'Zone'
+                            size_hint_x: 0.95
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 10
+
+                        DataManagerCheckbox:
+                            id: chkbx_hub
+                            attr_name: 'HUB'
+
+                        DataManagerBodyText:
+                            text: 'Hub'
+                            size_hint_x: 0.95
+        
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            size_hint_y: 0.3
+            #padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.8
+                spacing: 10
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.85
+
+                    TextInput:
+                        id: output_log
+                        size_hint_y: 0.9
+                        readonly: True
+                        allow_copy: False
+                    
+                    ProgressBar:
+                        id: progress_bar
+                        size_hint_y: 0.1
+                        value: 0
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    size_hint_x: 0.15
+
+                    TileButton:
+                        id: execute_download_button
+                        background_color: C(hex_primary)
+                        text: 'Download'
+                        on_release: root.execute_download()
+                    
+                    TileButton:
+                        id: cancel_download_button
+                        background_color: C(hex_pms137)
+                        text: 'Cancel'
+                        on_release: root.cancel_download()
+                        disabled: True
+
+<DataManagerMarketTabbedPanel>:
+    do_default_tab: False
+    tab_pos: 'top_left'
+    tab_width: 200
+    tab_height: 50
+
+    TabbedPanelItem:
+        text: 'SPP'
+
+        DataManagerPanelSPP:
+    
+    TabbedPanelItem:
+        text: 'PJM'
+        
+        DataManagerPanelPJM:
+    
+    TabbedPanelItem:
+        text: 'NYISO'
+
+        DataManagerPanelNYISO:
+    
+    TabbedPanelItem:
+        text: 'MISO'
+        
+        DataManagerPanelMISO:
+    
+    TabbedPanelItem:
+        text: 'ISO-NE'
+
+        DataManagerPanelISONE:
+
+    TabbedPanelItem:
+        text: 'ERCOT'
+
+        DataManagerPanelERCOT:    
+
+    TabbedPanelItem:
+        text: 'CAISO'
+
+        DataManagerPanelCAISO:
+
+<DataManagerRTOMOdataScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+
+        DataManagerTitle:
+            size_hint_y: 0.1
+            text: 'Download ISO/RTO market and operations data.'
+        
+        BoxLayout:
+            padding: (100, 0)
+            size_hint_y: 0.8
+
+            DataManagerMarketTabbedPanel:
+
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'right'
+            size_hint_y: 0.1
+            padding: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.15
+
+                TileButton:
+                    background_color: C(hex_primary)
+                    text: 'Settings'
+                    on_release: root.manager.settings_screen.open()
+
+<DataManagerPJMSubKeyHelp>:
+    auto_dismiss: False
+    size_hint: (0.52, 0.90)
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: (25, 10)
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.23
+
+            TitleTextBase:
+                size_hint_y: 0.1
+                text: 'Obtaining a subscription key'
+            
+            BodyTextBase:
+                size_hint_y: 0.9
+                justify: True
+                markup: True
+                text: "You need a subscription key to access PJM's data through the Data Miner 2 API. This requires a number of manual steps. The guide here is only meant to serve as a quick reference; please refer to the API Guide [ref=pjm_dataminer_2_api_page][color=003359][u]here[/u][/color][/ref] for the most recent information."
+                on_ref_press: webbrowser.open('http://www.pjm.com/markets-and-operations/etools/data-miner-2.aspx')
+            
+        ScrollView:
+            size_hint_y: 0.7
+            size_hint_x: 1
+            scroll_type: ['bars', 'content']
+            effect_cls: 'OpacityScrollEffect'
+
+            BodyTextBase:
+                #readonly: True
+                markup: True
+                size_hint: (1, None)
+                text: "1) Register for a new account in API Portal: \n [ref=pjm_api_portal][color=003359]https://apiportal.pjm.com/[/color][/ref] \n\n 2) After completing registration, you should receive an email prompting you to set up a password for your account via a link. Complete that task within the allotted time. \n\n 3) Forward that same email containing the link to create a password to Data Miner 2 Support ([color=003359][u]DataMiner2Support@pjm.com[/u][/color]). After some processing time (at least one day), you should receive a confirmation email indicating that you have been granted API access to Data Miner 2. \n\n 4) Sign in to your account at [ref=pjm_api_portal][color=003359]https://apiportal.pjm.com[/color][/ref]. \n\n 5) After successfully logging in, click on 'Tool' under the 'Data Miner 2' header. \n\n 6) Click on the dropdown menu with your name on the right side of the screen and select 'profile'. \n\n Under 'Your subscriptions,' there should be a 'Data Miner 2 subscription' section. There should be 'Primary' and 'Secondary' key entries that are masked with 'X' characters. Click 'Show' next to the 'Primary key' to reveal it. This will be your subscription key. \n\n 7) Enter this key where requested in the QuESt Data Manager PJM panel and/or enter it into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 8) You're all set!"
+                on_ref_press: webbrowser.open('https://apiportal.pjm.com/')
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            padding: 5
+            size_hint_y: 0.07
+
+            TileButton:
+                text: 'Got it, thanks!'
+                #font_size: stnd_font
+                size_hint_y: 1
+                size_hint_x: 0.25
+                on_release: root.dismiss()
+
+<DataManagerISONEAccHelp>:
+    auto_dismiss: False
+    size_hint: (0.52, 0.90)
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: (25, 10)
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.23
+
+            TitleTextBase:
+                size_hint_y: 0.1
+                text: 'Obtaining ISO Express access'
+            
+            BodyTextBase:
+                size_hint_y: 0.9
+                justify: True
+                markup: True
+                text: "You need an account to access ISO-NE's data through the ISO-NE Web Services API. This requires a quick registration. The guide here is only meant to serve as a quick reference; please refer to the API Guide [ref=isone_api_page][color=003359][u]here[/u][/color][/ref] for the most recent information."
+                on_ref_press: webbrowser.open('https://webservices.iso-ne.com/docs/v1.1/')
+            
+        ScrollView:
+            size_hint_y: 0.7
+            size_hint_x: 1
+            scroll_type: ['bars', 'content']
+            effect_cls: 'OpacityScrollEffect'
+
+            BodyTextBase:
+                #readonly: True
+                markup: True
+                size_hint: (1, None)
+                text: "1) From anywhere on ISO-NE's [ref=isone_web][color=003359][u]website[/u][/color][/ref] click the 'sign up' link located at the top right. Fill out the required information and make sure to check the option to sign up for access to ISO Data Feeds. \n\n 2) After completing registration, you should receive two emails, one of which is for verifying the email address associated with the account you are creating. Complete the verification process. \n\n 3) Upon successful verification, your credentials should be ready to go. These credentials are what you will supply to the API for authentication. You can test them by signing in on [ref=isone_web][color=003359][u]https://www.iso-ne.com/[/u][/color][/ref] \n\n 4) Enter these account details where requested in the QuESt Data Manager ISO-NE panel and/or enter them into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
+                on_ref_press: webbrowser.open('https://www.iso-ne.com/')
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            padding: 5
+            size_hint_y: 0.07
+
+            TileButton:
+                text: 'Got it, thanks!'
+                #font_size: stnd_font
+                size_hint_y: 1
+                size_hint_x: 0.25
+                on_release: root.dismiss()
