@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>snl.es_gui.apps.btm.op_handler &mdash; Quest Documentation 1.6.0 documentation</title>
+      <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            Quest Documentation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">Quest Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">snl.es_gui.apps.btm.op_handler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for snl.es_gui.apps.btm.op_handler</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">calendar</span>
+<span class="kn">import</span> <span class="nn">pyutilib</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">kivy.clock</span> <span class="kn">import</span> <span class="n">mainthread</span>
+
+<span class="kn">from</span> <span class="nn">es_gui.tools.btm.btm_optimizer</span> <span class="kn">import</span> <span class="n">BtmOptimizer</span><span class="p">,</span> <span class="n">BadParameterException</span><span class="p">,</span> <span class="n">IncompatibleDataException</span>
+<span class="kn">import</span> <span class="nn">es_gui.tools.btm.readutdata</span> <span class="k">as</span> <span class="nn">readutdata</span>
+
+
+<div class="viewcode-block" id="BtmOptimizerHandler"><a class="viewcode-back" href="../../../../../snl.es_gui.apps.btm.html#snl.es_gui.apps.btm.op_handler.BtmOptimizerHandler">[docs]</a><span class="k">class</span> <span class="nc">BtmOptimizerHandler</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A handler for creating and solving BtmOptimizer instances as requested.&quot;&quot;&quot;</span>
+    <span class="n">dms</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">solved_ops</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_name</span> <span class="o">=</span> <span class="n">solver_name</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">solver_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The name of the solver for Pyomo to call.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_name</span>
+
+    <span class="nd">@solver_name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">solver_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_name</span> <span class="o">=</span> <span class="n">value</span>
+
+<div class="viewcode-block" id="BtmOptimizerHandler.process_requests"><a class="viewcode-back" href="../../../../../snl.es_gui.apps.btm.html#snl.es_gui.apps.btm.op_handler.BtmOptimizerHandler.process_requests">[docs]</a>    <span class="k">def</span> <span class="nf">process_requests</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op_handler_requests</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generates and solves BtmOptimizer models based on the given requests.&quot;&quot;&quot;</span>
+        <span class="n">dms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dms</span>
+
+        <span class="n">rate_structure</span> <span class="o">=</span> <span class="n">op_handler_requests</span><span class="p">[</span><span class="s1">&#39;rate_structure&#39;</span><span class="p">]</span>
+        <span class="n">load_profile_path</span> <span class="o">=</span> <span class="n">op_handler_requests</span><span class="p">[</span><span class="s1">&#39;load_profile&#39;</span><span class="p">]</span>
+        <span class="n">pv_profile_path</span> <span class="o">=</span> <span class="n">op_handler_requests</span><span class="p">[</span><span class="s1">&#39;pv_profile&#39;</span><span class="p">]</span>
+        <span class="n">param_set</span> <span class="o">=</span> <span class="n">op_handler_requests</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span>
+
+        <span class="n">solved_requests</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">handler_status</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="n">year</span> <span class="o">=</span> <span class="mi">2019</span>
+
+        <span class="n">weekday_energy_schedule</span> <span class="o">=</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;energy rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;weekday schedule&#39;</span><span class="p">]</span>
+        <span class="n">weekend_energy_schedule</span> <span class="o">=</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;energy rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;weekend schedule&#39;</span><span class="p">]</span>
+        <span class="n">weekday_demand_schedule</span> <span class="o">=</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;demand rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;weekday schedule&#39;</span><span class="p">]</span>
+        <span class="n">weekend_demand_schedule</span> <span class="o">=</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;demand rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;weekend schedule&#39;</span><span class="p">]</span>
+
+        <span class="n">nem_type</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;net metering&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">nem_rate</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;net metering&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;net metering&#39;</span><span class="p">][</span><span class="s1">&#39;energy sell price&#39;</span><span class="p">]</span>
+
+        <span class="n">rate_df</span> <span class="o">=</span> <span class="n">readutdata</span><span class="o">.</span><span class="n">input_df</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">weekday_energy_schedule</span><span class="p">,</span> <span class="n">weekend_energy_schedule</span><span class="p">,</span> <span class="n">weekday_demand_schedule</span><span class="p">,</span> <span class="n">weekend_demand_schedule</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ix</span><span class="p">,</span> <span class="n">month</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">calendar</span><span class="o">.</span><span class="n">month_abbr</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">start</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">param_set_iterator</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">param_set</span><span class="p">)</span>
+            <span class="n">continue_param_loop</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">while</span> <span class="n">continue_param_loop</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">params</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">param_set_iterator</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="n">op</span> <span class="o">=</span> <span class="n">BtmOptimizer</span><span class="p">()</span>
+
+                <span class="c1"># Get data.</span>
+                <span class="c1"># TODO: Move to a DMS. Should the omission of PV profile data be handled by the BtmOptimizer?</span>
+                <span class="n">load_profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dms</span><span class="o">.</span><span class="n">get_load_profile_data</span><span class="p">(</span><span class="n">load_profile_path</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">ix</span><span class="p">)</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">pv_profile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dms</span><span class="o">.</span><span class="n">get_pv_profile_data</span><span class="p">(</span><span class="n">pv_profile_path</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">ix</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">pv_profile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">load_profile</span><span class="p">))</span>
+
+                <span class="c1"># Build op inputs.</span>
+                <span class="n">rate_df_month</span> <span class="o">=</span> <span class="n">rate_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">rate_df</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">ix</span><span class="p">]</span>
+
+                <span class="c1"># Populate op.</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">tou_energy_schedule</span> <span class="o">=</span> <span class="n">rate_df_month</span><span class="p">[</span><span class="s1">&#39;tou_energy_schedule&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">tou_demand_schedule</span> <span class="o">=</span> <span class="n">rate_df_month</span><span class="p">[</span><span class="s1">&#39;tou_demand_schedule&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+                <span class="n">op</span><span class="o">.</span><span class="n">tou_energy_rate</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;energy rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;energy rates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">tou_demand_rate</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;demand rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;time of use rates&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">flat_demand_rate</span> <span class="o">=</span> <span class="n">rate_structure</span><span class="p">[</span><span class="s1">&#39;demand rate structure&#39;</span><span class="p">][</span><span class="s1">&#39;flat rates&#39;</span><span class="p">][</span><span class="n">month</span><span class="p">]</span>
+
+                <span class="n">op</span><span class="o">.</span><span class="n">nem_type</span> <span class="o">=</span> <span class="n">nem_type</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">nem_rate</span> <span class="o">=</span> <span class="n">nem_rate</span>
+
+                <span class="n">op</span><span class="o">.</span><span class="n">load_profile</span> <span class="o">=</span> <span class="n">load_profile</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">pv_profile</span> <span class="o">=</span> <span class="n">pv_profile</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">rate_structure_metadata</span> <span class="o">=</span> <span class="n">rate_structure</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">load_profile_metadata</span> <span class="o">=</span> <span class="n">load_profile_path</span>
+                <span class="n">op</span><span class="o">.</span><span class="n">pv_profile_metadata</span> <span class="o">=</span> <span class="n">pv_profile_path</span>
+
+                <span class="k">if</span> <span class="n">params</span><span class="p">:</span>
+                    <span class="n">op</span><span class="o">.</span><span class="n">set_model_parameters</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">continue_param_loop</span> <span class="o">=</span> <span class="kc">False</span>
+                
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">solved_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve_model</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">pyutilib</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">_exceptions</span><span class="o">.</span><span class="n">ApplicationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Op Handler: </span><span class="si">{error}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="n">e</span><span class="p">))</span>
+
+                    <span class="k">if</span> <span class="s1">&#39;No executable found&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="c1"># Could not locate solver executable</span>
+                        <span class="n">handler_status</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;* The executable for the selected solver could not be found; please check your installation.&#39;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">handler_status</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;* (</span><span class="si">{0}</span><span class="s1"> </span><span class="si">{1}</span><span class="s1">) </span><span class="si">{2}</span><span class="s1">. The problem may be infeasible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+                <span class="k">except</span> <span class="n">IncompatibleDataException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="c1"># Data exception raised by BtmOptimizer</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="n">handler_status</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;* (</span><span class="si">{0}</span><span class="s1"> </span><span class="si">{1}</span><span class="s1">) The time series data has mismatched sizes.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="n">year</span><span class="p">))</span>
+                <span class="k">except</span> <span class="ne">AssertionError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="c1"># An optimal solution could not be found as reported by the solver</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;Op Handler: </span><span class="si">{error}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">error</span><span class="o">=</span><span class="n">e</span><span class="p">))</span>
+                    <span class="n">handler_status</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;* (</span><span class="si">{0}</span><span class="s1"> </span><span class="si">{1}</span><span class="s1">) An optimal solution could not be found; the problem may be infeasible.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="n">year</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">solved_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_solved_ops</span><span class="p">(</span><span class="n">solved_op</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                    <span class="n">solved_requests</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">solved_op</span><span class="p">)</span>
+
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Op Handler: Finished processing requested jobs.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">solved_requests</span><span class="p">,</span> <span class="n">handler_status</span></div>
+
+    <span class="k">def</span> <span class="nf">_solve_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">op</span><span class="p">):</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">solver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span>
+        <span class="n">op</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">op</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_save_to_solved_ops</span><span class="p">(</span><span class="n">op</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">param_set</span><span class="p">):</span>
+        <span class="c1"># time_finished = datetime.now().strftime(&#39;%A, %B %d, %Y %H:%M:%S&#39;)</span>
+        <span class="n">time_finished</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%b </span><span class="si">%d</span><span class="s1">, %Y %H:%M:%S&#39;</span><span class="p">)</span>
+
+        <span class="n">name_components</span> <span class="o">=</span> <span class="p">[</span><span class="n">time_finished</span><span class="p">,</span> <span class="n">month</span><span class="p">,]</span>
+
+        <span class="c1"># Check for rate structure name.</span>
+        <span class="n">rate_structure_name</span> <span class="o">=</span> <span class="s1">&#39;Rate: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">rate_structure_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+        <span class="n">name_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rate_structure_name</span><span class="p">)</span>
+
+        <span class="c1"># Check for PV profile.</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">pv_profile</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">op</span><span class="o">.</span><span class="n">pv_profile_metadata</span><span class="p">:</span>
+                <span class="n">pv_profile_name</span> <span class="o">=</span> <span class="s1">&#39;PV: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">pv_profile_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;Not specified&#39;</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pv_profile_name</span> <span class="o">=</span> <span class="s1">&#39;PV: Not specified&#39;</span>
+            
+            <span class="n">name_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pv_profile_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">name_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;PV: None&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Load profile name.</span>
+        <span class="n">load_profile_name</span> <span class="o">=</span> <span class="s1">&#39;Load: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">op</span><span class="o">.</span><span class="n">load_profile_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+        <span class="n">name_components</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">load_profile_name</span><span class="p">)</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39; | &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">name_components</span><span class="p">)</span>
+
+        <span class="n">results_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">op</span>
+        <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;month&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">month</span>
+        <span class="k">if</span> <span class="n">param_set</span><span class="p">:</span>
+            <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">param_set</span>
+        <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_finished</span>
+        <span class="n">results_dict</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">month</span><span class="p">,</span> <span class="nb">repr</span><span class="p">(</span><span class="n">param_set</span><span class="p">)])</span>
+
+        <span class="n">BtmOptimizerHandler</span><span class="o">.</span><span class="n">solved_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">op</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="BtmOptimizerHandler.get_solved_ops"><a class="viewcode-back" href="../../../../../snl.es_gui.apps.btm.html#snl.es_gui.apps.btm.op_handler.BtmOptimizerHandler.get_solved_ops">[docs]</a>    <span class="k">def</span> <span class="nf">get_solved_ops</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the list of solved Optimizer objects in reverse chronological order.&quot;&quot;&quot;</span>
+        <span class="n">return_list</span> <span class="o">=</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solved_ops</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">return_list</span></div></div>
+    
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Quest Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
