@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>snl.es_gui.tools.valuation.valuation_dms &mdash; Quest Documentation 1.6.0 documentation</title>
+      <link rel="stylesheet" href="../../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js"></script>
+        <script src="../../../../../_static/jquery.js"></script>
+        <script src="../../../../../_static/underscore.js"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../../_static/doctools.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            Quest Documentation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">Quest Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">snl.es_gui.tools.valuation.valuation_dms</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for snl.es_gui.tools.valuation.valuation_dms</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">es_gui.tools.dms</span> <span class="kn">import</span> <span class="n">DataManagementSystem</span>
+<span class="kn">from</span> <span class="nn">es_gui.tools.valuation.utilities</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="ValuationDMS"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS">[docs]</a><span class="k">class</span> <span class="nc">ValuationDMS</span><span class="p">(</span><span class="n">DataManagementSystem</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for managing data for the energy storage valuation optimization functions. Class methods for each type of file to be loaded are included, extending from the get_data() method of the superclass. Each of these methods uses get_data() to retrieve the relevant data and loads the file and adds it to the DMS if the data is not loaded. An optional class method for calling each of the individual data methods can be included to, e.g., form the necessary arguments and return the desired variables.</span>
+
+<span class="sd">    :param home_path: A string indicating the relative path to where data is saved.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">home_path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">DataManagementSystem</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">home_path</span> <span class="o">=</span> <span class="n">home_path</span>
+
+        <span class="c1"># with open(os.path.abspath(os.path.join(self.home_path, &#39;..&#39;, &#39;es_gui&#39;, &#39;apps&#39;, &#39;valuation&#39;, &#39;definitions&#39;, &#39;nodes.json&#39;)), &#39;r&#39;) as fp:</span>
+        <span class="c1">#     self.NODES = json.load(fp)</span>
+
+        <span class="c1">#self.node_names = pd.read_excel(self.home_path+&#39;nodeid.xlsx&#39;, sheetname=None)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">=</span> <span class="s1">&#39; @ &#39;</span>  <span class="c1"># delimiter used to split information in id_key</span>
+
+<div class="viewcode-block" id="ValuationDMS.get_node_name"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_node_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_node_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_id</span><span class="p">,</span> <span class="n">ISO</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves the node name corresponding to the given node_id using the lookup table loaded during initialization.</span>
+<span class="sd">        :param node_id: A string or int of a node ID.</span>
+<span class="sd">        :return: The corresponding node name as a string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: map node_id to node name</span>
+
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">node_id</span><span class="p">)</span></div>
+
+        <span class="c1"># try:</span>
+        <span class="c1">#     node_name = self.NODES[ISO][node_id][&#39;name&#39;]</span>
+        <span class="c1"># except KeyError as e:</span>
+        <span class="c1">#     raise e</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     return node_name</span>
+
+<div class="viewcode-block" id="ValuationDMS.get_ercot_spp_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_ercot_spp_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_ercot_spp_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves DAM-SPP data for ERCOT.&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading ERCOT DA-SPP&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">spp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">id_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+
+            <span class="c1"># deconstruct id_key to obtain args for read function</span>
+            <span class="n">spp_da</span> <span class="o">=</span> <span class="n">read_ercot_da_spp</span><span class="p">(</span><span class="o">*</span><span class="n">id_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">spp_da</span><span class="p">,</span> <span class="n">id_key</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">spp_da</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_ercot_ccp_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_ercot_ccp_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_ercot_ccp_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves DAM-CCP data for ERCOT.&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading ERCOT DA-CCP&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">REGUP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">id_key</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">+</span> <span class="s1">&#39;REGUP&#39;</span><span class="p">)</span>
+            <span class="n">REGDN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">id_key</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">+</span> <span class="s1">&#39;REGDN&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+
+            <span class="c1"># deconstruct id_key to obtain args for read function</span>
+            <span class="n">REGDN</span><span class="p">,</span> <span class="n">REGUP</span> <span class="o">=</span> <span class="n">read_ercot_da_ccp</span><span class="p">(</span><span class="o">*</span><span class="n">id_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="p">)[:</span><span class="mi">2</span><span class="p">])</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">REGUP</span><span class="p">,</span> <span class="n">id_key</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">+</span> <span class="s1">&#39;REGUP&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">REGDN</span><span class="p">,</span> <span class="n">id_key</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="o">+</span> <span class="s1">&#39;REGDN&#39;</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">REGDN</span><span class="p">,</span> <span class="n">REGUP</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_ercot_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_ercot_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_ercot_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">settlement_point</span><span class="p">):</span>
+        <span class="c1"># construct file name paths</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;ERCOT&#39;</span><span class="p">)</span>  <span class="c1"># path to data_bank root</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">spp_fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;SPP&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">))</span>
+        
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">spp_fpath</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.xlsx&#39;</span><span class="p">):</span>
+                    <span class="n">fname</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="n">spp_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">spp_fpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+        <span class="n">ccp_fpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;CCP&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">))</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">ccp_fpath</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.csv&#39;</span><span class="p">):</span>
+                    <span class="n">fname</span> <span class="o">=</span> <span class="n">filename</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="n">ccp_fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ccp_fpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+        <span class="c1"># construct identifier keys</span>
+        <span class="n">spp_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">spp_fname</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">settlement_point</span><span class="p">])</span>
+        <span class="n">ccp_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ccp_fname</span><span class="p">,</span> <span class="n">month</span><span class="p">])</span>
+
+        <span class="c1"># retrieve data</span>
+        <span class="n">spp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ercot_spp_data</span><span class="p">(</span><span class="n">spp_id</span><span class="p">)</span>
+        <span class="n">rd</span><span class="p">,</span> <span class="n">ru</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_ercot_ccp_data</span><span class="p">(</span><span class="n">ccp_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">spp_da</span><span class="p">,</span> <span class="n">rd</span><span class="p">,</span> <span class="n">ru</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_pjm_lmp_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_pjm_lmp_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pjm_lmp_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated since 1.0&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading PJM DA-LMP&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="n">read_pjm_da_lmp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lmp_da</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_pjm_reg_price_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_pjm_reg_price_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pjm_reg_price_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated since 1.0&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading PJM regulation prices&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">RegCCP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;RegCCP&#39;</span><span class="p">,))</span>
+            <span class="n">RegPCP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;RegPCP&#39;</span><span class="p">,))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">RegCCP</span><span class="p">,</span> <span class="n">RegPCP</span> <span class="o">=</span> <span class="n">read_pjm_reg_price</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">({</span><span class="s1">&#39;RegCCP&#39;</span><span class="p">:</span> <span class="n">RegCCP</span><span class="p">,</span> <span class="s1">&#39;RegPCP&#39;</span><span class="p">:</span> <span class="n">RegPCP</span><span class="p">},</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">RegCCP</span><span class="p">,</span> <span class="n">RegPCP</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_pjm_mileage_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_pjm_mileage_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pjm_mileage_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated since 1.0&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading PJM mileage data&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">MR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;MR&#39;</span><span class="p">,))</span>
+            <span class="n">RA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;RA&#39;</span><span class="p">,))</span>
+            <span class="n">RD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;RD&#39;</span><span class="p">,))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">MR</span><span class="p">,</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RD</span> <span class="o">=</span> <span class="n">read_pjm_mileage</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">({</span><span class="s1">&#39;MR&#39;</span><span class="p">:</span> <span class="n">MR</span><span class="p">,</span> <span class="s1">&#39;RA&#39;</span><span class="p">:</span> <span class="n">RA</span><span class="p">,</span> <span class="s1">&#39;RD&#39;</span><span class="p">:</span> <span class="n">RD</span><span class="p">},</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">MR</span><span class="p">,</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RD</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_pjm_reg_signal_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_pjm_reg_signal_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pjm_reg_signal_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated since 1.0&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading PJM regulation signal&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">RUP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;RegUp&#39;</span><span class="p">,))</span>
+            <span class="n">RDW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="o">+</span><span class="p">(</span><span class="s1">&#39;RegDown&#39;</span><span class="p">,))</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">RUP</span><span class="p">,</span> <span class="n">RDW</span> <span class="o">=</span> <span class="n">read_pjm_reg_signal</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">({</span><span class="s1">&#39;RegUp&#39;</span><span class="p">:</span> <span class="n">RUP</span><span class="p">,</span> <span class="s1">&#39;RegDown&#39;</span><span class="p">:</span> <span class="n">RDW</span><span class="p">},</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">RUP</span><span class="p">,</span> <span class="n">RDW</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_pjm_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_pjm_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_pjm_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;PJM&#39;</span><span class="p">)</span>
+        
+        <span class="n">nodeid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">nodeid</span><span class="p">)</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">lmp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="s1">&#39;SPP&#39;</span><span class="p">])</span>
+        <span class="n">mr_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;MR&#39;</span><span class="p">])</span>
+        <span class="n">ra_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RA&#39;</span><span class="p">])</span>
+        <span class="n">rd_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RD&#39;</span><span class="p">])</span>
+        <span class="n">rccp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RegCCP&#39;</span><span class="p">])</span>
+        <span class="n">rpcp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RegPCP&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">lmp_key</span><span class="p">)</span>
+            <span class="n">MR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">mr_key</span><span class="p">)</span>
+            <span class="n">RA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">ra_key</span><span class="p">)</span>
+            <span class="n">RD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rd_key</span><span class="p">)</span>
+            <span class="n">RegCCP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rccp_key</span><span class="p">)</span>
+            <span class="n">RegPCP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rpcp_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">lmp_da</span><span class="p">,</span> <span class="n">MR</span><span class="p">,</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RD</span><span class="p">,</span> <span class="n">RegCCP</span><span class="p">,</span> <span class="n">RegPCP</span> <span class="o">=</span> <span class="n">read_pjm_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="n">lmp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">MR</span><span class="p">,</span> <span class="n">mr_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">RA</span><span class="p">,</span> <span class="n">ra_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">RD</span><span class="p">,</span> <span class="n">rd_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">RegCCP</span><span class="p">,</span> <span class="n">rccp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">RegPCP</span><span class="p">,</span> <span class="n">rpcp_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lmp_da</span><span class="p">,</span> <span class="n">MR</span><span class="p">,</span> <span class="n">RA</span><span class="p">,</span> <span class="n">RD</span><span class="p">,</span> <span class="n">RegCCP</span><span class="p">,</span> <span class="n">RegPCP</span></div>
+    
+<div class="viewcode-block" id="ValuationDMS.get_miso_lmp_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_miso_lmp_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_miso_lmp_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated since 1.0&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading MISO DA-LMP&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="n">read_miso_da_lmp</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">lmp_da</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_miso_reg_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_miso_reg_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_miso_reg_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deprecated since 1.0&quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Loading MISO RegMCP&#39;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if is already loaded</span>
+            <span class="n">RegMCP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">RegMCP</span> <span class="o">=</span> <span class="n">read_miso_reg_price</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">RegMCP</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">RegMCP</span></div>
+
+<div class="viewcode-block" id="ValuationDMS.get_miso_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_miso_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_miso_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;MISO&#39;</span><span class="p">)</span>
+
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">lmp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="s1">&#39;LMP&#39;</span><span class="p">])</span>
+        <span class="n">regmcp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;MCP&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">lmp_key</span><span class="p">)</span>
+            <span class="n">RegMCP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">regmcp_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">lmp_da</span><span class="p">,</span> <span class="n">RegMCP</span> <span class="o">=</span> <span class="n">read_miso_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="n">lmp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">RegMCP</span><span class="p">,</span> <span class="n">regmcp_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lmp_da</span><span class="p">,</span> <span class="n">RegMCP</span></div>
+
+    <span class="c1">####################################################################################################################</span>
+
+<div class="viewcode-block" id="ValuationDMS.get_isone_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_isone_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_isone_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;ISONE&#39;</span><span class="p">)</span>
+
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">lmp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="s1">&#39;LMP&#39;</span><span class="p">])</span>
+        <span class="n">rccp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RegCCP&#39;</span><span class="p">])</span>
+        <span class="n">rpcp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RegPCP&#39;</span><span class="p">])</span>
+        <span class="n">mimult_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;MiMult&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">lmp_key</span><span class="p">)</span>
+            <span class="n">rccp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rccp_key</span><span class="p">)</span>
+            <span class="n">rpcp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rpcp_key</span><span class="p">)</span>
+            <span class="n">mi_mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">mimult_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">lmp_da</span><span class="p">,</span> <span class="n">rccp</span><span class="p">,</span> <span class="n">rpcp</span><span class="p">,</span> <span class="n">mi_mult</span> <span class="o">=</span> <span class="n">read_isone_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="n">lmp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rccp</span><span class="p">,</span> <span class="n">rccp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rpcp</span><span class="p">,</span> <span class="n">rpcp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">mi_mult</span><span class="p">,</span> <span class="n">mimult_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lmp_da</span><span class="p">,</span> <span class="n">rccp</span><span class="p">,</span> <span class="n">rpcp</span><span class="p">,</span> <span class="n">mi_mult</span></div>
+
+    <span class="c1">####################################################################################################################</span>
+
+<div class="viewcode-block" id="ValuationDMS.get_nyiso_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_nyiso_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_nyiso_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;NYISO&#39;</span><span class="p">)</span>
+
+        <span class="n">nodeid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">nodeid</span><span class="p">)</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">lbmp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="s1">&#39;LBMP&#39;</span><span class="p">])</span>
+        <span class="n">rcap_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RegCAP&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lbmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">lbmp_key</span><span class="p">)</span>
+            <span class="n">rcap_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rcap_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="n">lbmp_da</span><span class="p">,</span> <span class="n">lbmp_rt</span><span class="p">,</span> <span class="n">rcap_da</span><span class="p">,</span> <span class="n">rcap_rt</span><span class="p">,</span> <span class="n">rmov_da</span> <span class="o">=</span> <span class="n">read_nyiso_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="n">typedat</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">RT_DAM</span><span class="o">=</span><span class="s2">&quot;DAM&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lbmp_da</span><span class="p">,</span> <span class="n">lbmp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rcap_da</span><span class="p">,</span> <span class="n">rcap_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lbmp_da</span><span class="p">,</span> <span class="n">rcap_da</span></div>
+
+
+<div class="viewcode-block" id="ValuationDMS.get_spp_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_spp_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_spp_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;SPP&#39;</span><span class="p">)</span>
+
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">lmp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="s1">&#39;LMP&#39;</span><span class="p">])</span>
+        <span class="n">mcpru_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;MCPRU&#39;</span><span class="p">])</span>
+        <span class="n">mcprd_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;MCPRD&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">lmp_key</span><span class="p">)</span>
+            <span class="n">mcpru_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">mcpru_key</span><span class="p">)</span>
+            <span class="n">mcprd_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">mcprd_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="c1"># lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)</span>
+            <span class="n">lmp_da</span><span class="p">,</span> <span class="n">mcpru_da</span><span class="p">,</span> <span class="n">mcprd_da</span> <span class="o">=</span> <span class="n">read_spp_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="n">typedat</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="n">lmp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">mcpru_da</span><span class="p">,</span> <span class="n">mcpru_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">mcprd_da</span><span class="p">,</span> <span class="n">mcprd_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lmp_da</span><span class="p">,</span> <span class="n">mcpru_da</span><span class="p">,</span> <span class="n">mcprd_da</span></div>
+
+
+<div class="viewcode-block" id="ValuationDMS.get_caiso_data"><a class="viewcode-back" href="../../../../../snl.es_gui.tools.valuation.html#snl.es_gui.tools.valuation.valuation_dms.ValuationDMS.get_caiso_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_caiso_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">):</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">home_path</span><span class="p">,</span> <span class="s1">&#39;CAISO&#39;</span><span class="p">)</span>
+
+        <span class="n">year</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+        <span class="n">lmp_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">,</span> <span class="s1">&#39;LMP&#39;</span><span class="p">])</span>
+        <span class="n">aspru_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;ASPRU&#39;</span><span class="p">])</span>
+        <span class="n">asprd_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;ASPRD&#39;</span><span class="p">])</span>
+        <span class="n">asprmu_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;ASPRMU&#39;</span><span class="p">])</span>
+        <span class="n">asprmd_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;ASPRMD&#39;</span><span class="p">])</span>
+        <span class="n">rmu_mm_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RMU_MM&#39;</span><span class="p">])</span>
+        <span class="n">rmd_mm_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RMD_MM&#39;</span><span class="p">])</span>
+        <span class="n">rmu_pacc_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RMU_PACC&#39;</span><span class="p">])</span>
+        <span class="n">rmd_pacc_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="s1">&#39;RMD_PACC&#39;</span><span class="p">])</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># attempt to access data if it is already loaded</span>
+            <span class="n">lmp_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">lmp_key</span><span class="p">)</span>
+            <span class="n">aspru_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">aspru_key</span><span class="p">)</span>
+            <span class="n">asprd_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">asprd_key</span><span class="p">)</span>
+            <span class="n">asprmu_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">asprmu_key</span><span class="p">)</span>
+            <span class="n">asprmd_da</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">asprmd_key</span><span class="p">)</span>
+            <span class="n">rmu_mm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rmu_mm_key</span><span class="p">)</span>
+            <span class="n">rmd_mm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rmd_mm_key</span><span class="p">)</span>
+            <span class="n">rmu_pacc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rmu_pacc_key</span><span class="p">)</span>
+            <span class="n">rmd_pacc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="n">rmd_pacc_key</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="c1"># load the data and add it to the DMS</span>
+            <span class="c1"># lmp_da, MR, RA, RD, RegCCP, RegPCP = read_pjm_data(path, year, month, nodeid)</span>
+            <span class="n">lmp_da</span><span class="p">,</span> <span class="n">aspru_da</span><span class="p">,</span> <span class="n">asprd_da</span><span class="p">,</span> <span class="n">asprmu_da</span><span class="p">,</span> <span class="n">asprmd_da</span><span class="p">,</span> <span class="n">rmu_mm</span><span class="p">,</span> <span class="n">rmd_mm</span><span class="p">,</span> <span class="n">rmu_pacc</span><span class="p">,</span> <span class="n">rmd_pacc</span> <span class="o">=</span> <span class="n">read_caiso_data</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">lmp_da</span><span class="p">,</span> <span class="n">lmp_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">aspru_da</span><span class="p">,</span> <span class="n">aspru_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">asprd_da</span><span class="p">,</span> <span class="n">asprd_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">asprmu_da</span><span class="p">,</span> <span class="n">asprmu_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">asprmd_da</span><span class="p">,</span> <span class="n">asprmd_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rmu_mm</span><span class="p">,</span> <span class="n">rmu_mm_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rmd_mm</span><span class="p">,</span> <span class="n">rmd_mm_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rmu_pacc</span><span class="p">,</span> <span class="n">rmu_pacc_key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_data</span><span class="p">(</span><span class="n">rmd_pacc</span><span class="p">,</span> <span class="n">rmd_pacc_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">lmp_da</span><span class="p">,</span> <span class="n">aspru_da</span><span class="p">,</span> <span class="n">asprd_da</span><span class="p">,</span> <span class="n">asprmu_da</span><span class="p">,</span> <span class="n">asprmd_da</span><span class="p">,</span> <span class="n">rmu_mm</span><span class="p">,</span> <span class="n">rmd_mm</span><span class="p">,</span> <span class="n">rmu_pacc</span><span class="p">,</span> <span class="n">rmd_pacc</span></div></div>
+
+    <span class="c1">####################################################################################################################</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">dms</span> <span class="o">=</span> <span class="n">ValuationDMS</span><span class="p">(</span><span class="n">save_name</span><span class="o">=</span><span class="s1">&#39;valuation_dms.p&#39;</span><span class="p">,</span> <span class="n">home_path</span><span class="o">=</span><span class="s1">&#39;data&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># # ERCOT - data doesn&#39;t exist</span>
+    <span class="c1"># year = 2010</span>
+    <span class="c1"># month = 1</span>
+    <span class="c1"># settlement_point = &#39;HB_HOUSTON&#39;</span>
+
+    <span class="c1"># spp_da, rd, ru = dms.get_ercot_data(year, month, settlement_point)</span>
+
+    <span class="c1"># # ERCOT</span>
+    <span class="c1"># year = 2010</span>
+    <span class="c1"># month = 12</span>
+    <span class="c1"># settlement_point = &#39;HB_HOUSTON&#39;</span>
+
+    <span class="c1"># spp_da, rd, ru = dms.get_ercot_data(year, month, settlement_point)</span>
+
+    <span class="c1"># PJM</span>
+    <span class="c1"># year = 2016</span>
+    <span class="c1"># month = 5</span>
+    <span class="c1"># nodeid = 1</span>
+
+    <span class="c1"># lmp_da, MR, RA, RD, RegCCP, RegPCP = dms.get_pjm_data(year, month, nodeid)</span>
+
+    <span class="c1"># MISO</span>
+    <span class="n">year</span> <span class="o">=</span> <span class="mi">2015</span>
+    <span class="n">month</span> <span class="o">=</span> <span class="mi">3</span>
+    <span class="n">nodeid</span> <span class="o">=</span> <span class="s1">&#39;AEC&#39;</span>
+
+    <span class="n">lmp_da</span><span class="p">,</span> <span class="n">RegMCP</span> <span class="o">=</span> <span class="n">dms</span><span class="o">.</span><span class="n">get_miso_data</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">nodeid</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Quest Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
