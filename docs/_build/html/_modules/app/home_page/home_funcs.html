@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.home_page.home_funcs &mdash; Quest Documentation 1.6.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Quest Documentation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Quest Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.home_page.home_funcs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.home_page.home_funcs</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtCore</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QObject</span><span class="p">,</span>
+    <span class="n">QRunnable</span><span class="p">,</span>
+    <span class="n">Signal</span><span class="p">,</span>
+    <span class="n">Slot</span><span class="p">,</span>
+    <span class="n">QPropertyAnimation</span><span class="p">,</span>
+    <span class="n">QEasingCurve</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">progress_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;Total complete: (\d+)%&quot;</span><span class="p">)</span>
+
+<span class="c1">#           progress parser to create a signal for the progress bars</span>
+
+
+<div class="viewcode-block" id="simple_percent_parser"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.simple_percent_parser">[docs]</a><span class="k">def</span> <span class="nf">simple_percent_parser</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Match lines using the progress_re regex, returning a single integer for the % progress.&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">progress_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="n">pc_complete</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">pc_complete</span><span class="p">)</span></div>
+
+<span class="c1">#           creating signals and threads to run multiple functions simultaneously</span>
+
+
+<div class="viewcode-block" id="WorkerSignals"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.WorkerSignals">[docs]</a><span class="k">class</span> <span class="nc">WorkerSignals</span><span class="p">(</span><span class="n">QObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines the signals available from a running worker thread.</span>
+
+<span class="sd">    Supported signals are:</span>
+
+<span class="sd">    finished: No data</span>
+<span class="sd">    result: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="nb">str</span>
+    <span class="p">)</span>  <span class="c1"># Send back the output from the process as a string.</span>
+    <span class="n">progress</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="nb">int</span>
+    <span class="p">)</span>  <span class="c1"># Return an integer 0-100 showing the current progress.</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="nb">int</span>
+    <span class="p">)</span></div>
+<span class="c1">#           Returns an int to signify the progress is complete</span>
+
+
+<div class="viewcode-block" id="SubProcessWorker"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.SubProcessWorker">[docs]</a><span class="k">class</span> <span class="nc">SubProcessWorker</span><span class="p">(</span><span class="n">QRunnable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ProcessWorker worker thread.</span>
+
+<span class="sd">    Inherits from QRunnable to handle worker thread setup, signals and wrap-up.</span>
+
+<span class="sd">    :param command: command to execute with `subprocess`.</span>
+
+<span class="sd">    Create the runners for installation.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiliaze the subprocessworker.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Store constructor arguments (re-used for processing).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span> <span class="o">=</span> <span class="n">WorkerSignals</span><span class="p">()</span>
+
+        <span class="c1"># The command to be executed.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
+
+        <span class="c1"># The parser function to extract the progress information.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span>
+
+    <span class="c1"># tag::workerRun[]</span>
+<div class="viewcode-block" id="SubProcessWorker.run"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.SubProcessWorker.run">[docs]</a>    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the runner function with passed args, kwargs.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="s1">&#39;app/tools&#39;</span><span class="p">,</span>
+            <span class="n">bufsize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+            <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+
+
+        <span class="p">)</span> <span class="k">as</span> <span class="n">proc</span><span class="p">:</span>
+
+            <span class="k">while</span> <span class="n">proc</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+<span class="c1">#        output = &quot;&quot;.join(result)</span>
+
+<span class="c1">#        self.signals.result.emit(output)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+<span class="c1">#     end::workerRun[]</span>
+
+
+<div class="viewcode-block" id="SubProcessWorkerLaunch"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.SubProcessWorkerLaunch">[docs]</a><span class="k">class</span> <span class="nc">SubProcessWorkerLaunch</span><span class="p">(</span><span class="n">QRunnable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ProcessWorker worker thread.</span>
+
+<span class="sd">    Inherits from QRunnable to handle worker thread setup, signals and wrap-up.</span>
+
+<span class="sd">    :param command: command to execute with `subprocess`.</span>
+
+<span class="sd">    Create the runners for launching apps.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiliaze the subprocessworker.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Store constructor arguments (re-used for processing).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span> <span class="o">=</span> <span class="n">WorkerSignals</span><span class="p">()</span>
+
+        <span class="c1"># The command to be executed.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
+
+        <span class="c1"># The parser function to extract the progress information.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span>
+
+    <span class="c1"># tag::workerRun[]</span>
+<div class="viewcode-block" id="SubProcessWorkerLaunch.run"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.SubProcessWorkerLaunch.run">[docs]</a>    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the runner function with passed args, kwargs.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span>
+            <span class="n">bufsize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+            <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+
+
+        <span class="p">)</span> <span class="k">as</span> <span class="n">proc</span><span class="p">:</span>
+            <span class="k">while</span> <span class="n">proc</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="c1"># output = &quot;&quot;.join(result)</span>
+
+        <span class="c1"># self.signals.result.emit(output)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div></div>
+<span class="c1">#     end::workerRun[]</span>
+
+
+<div class="viewcode-block" id="about_hide_window_btn"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_hide_window_btn">[docs]</a><span class="k">def</span> <span class="nf">about_hide_window_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Button to minimize the about drop down page on the homescreen.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_data_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_data_page">[docs]</a><span class="k">def</span> <span class="nf">about_data_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the data manager app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_data</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_tech_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_tech_page">[docs]</a><span class="k">def</span> <span class="nf">about_tech_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the tech selection app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_tech</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_eval_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_eval_page">[docs]</a><span class="k">def</span> <span class="nf">about_eval_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the evaluation app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_eval</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_btm_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_btm_page">[docs]</a><span class="k">def</span> <span class="nf">about_btm_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the behind the meter app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_btm</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_perf_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_perf_page">[docs]</a><span class="k">def</span> <span class="nf">about_perf_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the performance app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_perf</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_energy_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_energy_page">[docs]</a><span class="k">def</span> <span class="nf">about_energy_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the energy equity app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_energy</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_micro_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_micro_page">[docs]</a><span class="k">def</span> <span class="nf">about_micro_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the microgrid app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_micro</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="about_plan_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.about_plan_page">[docs]</a><span class="k">def</span> <span class="nf">about_plan_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Navigate to the information about the planning app in the about drop down.&quot;&quot;&quot;</span>
+    <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span><span class="o">.</span><span class="n">setCurrentWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_plan</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<span class="c1">#           methods for context menus</span>
+
+
+<div class="viewcode-block" id="data_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.data_settings">[docs]</a><span class="k">def</span> <span class="nf">data_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the data manager app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_data_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="data_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.data_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">data_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the data manager action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tech_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.tech_settings">[docs]</a><span class="k">def</span> <span class="nf">tech_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the tech selection app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_tech_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tech_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.tech_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">tech_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the tech selection action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="eval_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.eval_settings">[docs]</a><span class="k">def</span> <span class="nf">eval_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the evaluation app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_eval_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="eval_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.eval_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">eval_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the evaluation action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="btm_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.btm_settings">[docs]</a><span class="k">def</span> <span class="nf">btm_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the behind the meter app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_behind_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">btm_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="btm_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.btm_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">btm_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the behind the meter action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="perf_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.perf_settings">[docs]</a><span class="k">def</span> <span class="nf">perf_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the performance app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_perf_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="perf_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.perf_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">perf_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the performance action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="energy_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.energy_settings">[docs]</a><span class="k">def</span> <span class="nf">energy_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the energy equity app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_energy_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="energy_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.energy_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">energy_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the energy equity action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">energy_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="micro_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.micro_settings">[docs]</a><span class="k">def</span> <span class="nf">micro_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the microgrid app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_micro_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micro_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micro_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="micro_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.micro_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">micro_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the microgrid action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">micro_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plan_settings"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.plan_settings">[docs]</a><span class="k">def</span> <span class="nf">plan_settings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to remove the environment that launches the planning app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_plan_del.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan_uninstall_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plan_uninstall_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.plan_uninstall_fin">[docs]</a><span class="k">def</span> <span class="nf">plan_uninstall_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the planning action button to be reinstallable.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">plan_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<span class="c1">#           install methods</span>
+
+
+<div class="viewcode-block" id="data_man_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.data_man_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">data_man_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to install the environment that launches the data manager app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_data_env.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_install_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="data_install_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.data_install_fin">[docs]</a><span class="k">def</span> <span class="nf">data_install_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the state of the data manager action button to launch.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tech_select_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.tech_select_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">tech_select_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    State dependent actions.</span>
+
+<span class="sd">    If the environment exists a runner is activated to launch the tech selection app in it&#39;s installed environment.</span>
+<span class="sd">    If the environment doesn&#39;t exist,</span>
+<span class="sd">    a runner is activated to install the environment that launches the tech selection app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_tech/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorkerLaunch</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;./app_envs/env_tech/Scripts/python.exe&quot;</span><span class="p">,</span> <span class="s2">&quot;./snl/tech.py&quot;</span><span class="p">],</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Running...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_fin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_tech_env.py&quot;</span><span class="p">,</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="tech_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.tech_fin">[docs]</a><span class="k">def</span> <span class="nf">tech_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the tech selection action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_tech/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> </div>
+
+
+<div class="viewcode-block" id="evaluation_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.evaluation_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">evaluation_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    State dependent actions.</span>
+
+<span class="sd">    If the environment exists a runner is activated to launch the evaluation app in it&#39;s installed environment.</span>
+<span class="sd">    If the environment doesn&#39;t exist,</span>
+<span class="sd">    a runner is activated to install the environment that launches the evaluation app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_eval/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorkerLaunch</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;./app_envs/env_eval/Scripts/python.exe&quot;</span><span class="p">,</span> <span class="s2">&quot;./snl/valuation.py&quot;</span><span class="p">],</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Running...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_fin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_eval_env.py&quot;</span><span class="p">,</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="eval_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.eval_fin">[docs]</a><span class="k">def</span> <span class="nf">eval_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the evaluation action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_eval/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="behind_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.behind_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">behind_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    State dependent actions.</span>
+
+<span class="sd">    If the environment exists a runner is activated to launch the behind the meter app in it&#39;s installed environment.</span>
+<span class="sd">    If the environment doesn&#39;t exist,</span>
+<span class="sd">    a runner is activated to install the environment that launches the behind the meter app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_btm/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorkerLaunch</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;./app_envs/env_btm/Scripts/python.exe&quot;</span><span class="p">,</span> <span class="s2">&quot;./snl/btm.py&quot;</span><span class="p">],</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Running...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">btm_fin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_behind_env.py&quot;</span><span class="p">,</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">btm_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="btm_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.btm_fin">[docs]</a><span class="k">def</span> <span class="nf">btm_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the behind the meter action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_btm/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="performance_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.performance_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">performance_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    State dependent actions.</span>
+
+<span class="sd">    If the environment exists a runner is activated to launch the performance app in it&#39;s installed environment.</span>
+<span class="sd">    If the environment doesn&#39;t exist,</span>
+<span class="sd">    a runner is activated to install the environment that launches the performance app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_perf/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorkerLaunch</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;./app_envs/env_perf/Scripts/python.exe&quot;</span><span class="p">,</span> <span class="s2">&quot;./snl/perf.py&quot;</span><span class="p">],</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Running...&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_fin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_perf_env.py&quot;</span><span class="p">,</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="perf_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.perf_fin">[docs]</a><span class="k">def</span> <span class="nf">perf_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the behind the meter action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_perf/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setCheckable</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Install&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  </div>
+
+
+<div class="viewcode-block" id="energy_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.energy_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">energy_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to install the environment that launches the energy equity app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_energy_env.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_install_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="energy_install_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.energy_install_fin">[docs]</a><span class="k">def</span> <span class="nf">energy_install_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the energy equity action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">energy_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="microgrid_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.microgrid_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">microgrid_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to install the environment that launches the microgrid app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_micro_env.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micro_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micro_install_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="micro_install_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.micro_install_fin">[docs]</a><span class="k">def</span> <span class="nf">micro_install_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the energy equity action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">micro_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="planning_button_pushed"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.planning_button_pushed">[docs]</a><span class="k">def</span> <span class="nf">planning_button_pushed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Activate a runner to install the environment that launches the planning app.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+        <span class="n">command</span><span class="o">=</span><span class="s2">&quot;python a_plan_env.py&quot;</span><span class="p">,</span>
+        <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Installing&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan_install_fin</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plan_install_fin"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_funcs.plan_install_fin">[docs]</a><span class="k">def</span> <span class="nf">plan_install_fin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Update the energy equity action button to launch after the runner is complete.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Launch&#39;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">plan_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Quest Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

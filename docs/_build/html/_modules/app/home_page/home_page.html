@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.home_page.home_page &mdash; Quest Documentation 1.6.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Quest Documentation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Quest Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.home_page.home_page</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.home_page.home_page</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtCore</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QThreadPool</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QMenu</span><span class="p">,</span>
+    <span class="n">QWidget</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">app.home_page.ui.ui_home_page</span> <span class="kn">import</span> <span class="n">Ui_home_page</span>
+
+
+<div class="viewcode-block" id="home_page"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_page.home_page">[docs]</a><span class="k">class</span> <span class="nc">home_page</span><span class="p">(</span><span class="n">QWidget</span><span class="p">,</span> <span class="n">Ui_home_page</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The landing screen.</span>
+
+<span class="sd">    Utility for buttons are imported.</span>
+<span class="sd">    Update state based on files at launch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="kn">from</span> <span class="nn">app.home_page.home_funcs</span> <span class="kn">import</span> <span class="p">(</span>
+        <span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="n">WorkerSignals</span><span class="p">,</span>
+        <span class="n">SubProcessWorker</span><span class="p">,</span>
+        <span class="n">SubProcessWorkerLaunch</span><span class="p">,</span>
+        <span class="n">about_hide_window_btn</span><span class="p">,</span>
+        <span class="n">about_data_page</span><span class="p">,</span>
+        <span class="n">about_tech_page</span><span class="p">,</span>
+        <span class="n">about_eval_page</span><span class="p">,</span>
+        <span class="n">about_btm_page</span><span class="p">,</span>
+        <span class="n">about_perf_page</span><span class="p">,</span>
+        <span class="n">about_energy_page</span><span class="p">,</span>
+        <span class="n">about_micro_page</span><span class="p">,</span>
+        <span class="n">about_plan_page</span><span class="p">,</span>
+        <span class="n">data_settings</span><span class="p">,</span>
+        <span class="n">data_uninstall_fin</span><span class="p">,</span>
+        <span class="n">tech_settings</span><span class="p">,</span>
+        <span class="n">tech_uninstall_fin</span><span class="p">,</span>
+        <span class="n">eval_settings</span><span class="p">,</span>
+        <span class="n">eval_uninstall_fin</span><span class="p">,</span>
+        <span class="n">btm_settings</span><span class="p">,</span>
+        <span class="n">btm_uninstall_fin</span><span class="p">,</span>
+        <span class="n">perf_settings</span><span class="p">,</span>
+        <span class="n">perf_uninstall_fin</span><span class="p">,</span>
+        <span class="n">energy_settings</span><span class="p">,</span>
+        <span class="n">energy_uninstall_fin</span><span class="p">,</span>
+        <span class="n">micro_settings</span><span class="p">,</span>
+        <span class="n">micro_uninstall_fin</span><span class="p">,</span>
+        <span class="n">plan_settings</span><span class="p">,</span>
+        <span class="n">plan_uninstall_fin</span><span class="p">,</span>
+        <span class="n">data_man_button_pushed</span><span class="p">,</span>
+        <span class="n">data_install_fin</span><span class="p">,</span>
+        <span class="n">tech_select_button_pushed</span><span class="p">,</span>
+        <span class="n">tech_fin</span><span class="p">,</span>
+        <span class="n">evaluation_button_pushed</span><span class="p">,</span>
+        <span class="n">eval_fin</span><span class="p">,</span>
+        <span class="n">behind_button_pushed</span><span class="p">,</span>
+        <span class="n">btm_fin</span><span class="p">,</span>
+        <span class="n">performance_button_pushed</span><span class="p">,</span>
+        <span class="n">perf_fin</span><span class="p">,</span>
+        <span class="n">energy_button_pushed</span><span class="p">,</span>
+        <span class="n">energy_install_fin</span><span class="p">,</span>
+        <span class="n">microgrid_button_pushed</span><span class="p">,</span>
+        <span class="n">micro_install_fin</span><span class="p">,</span>
+        <span class="n">planning_button_pushed</span><span class="p">,</span>
+        <span class="n">plan_install_fin</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the home page.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="c1">#           Set up the ui</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+<span class="c1">#           Thread runner</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span> <span class="o">=</span> <span class="n">QThreadPool</span><span class="p">()</span>
+
+<span class="c1">#           Setting ranges of progress bars</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">micro_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">micro_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1">#           disabling upcoming apps buttons</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Upcoming&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Upcoming&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Upcoming&quot;</span><span class="p">)</span>
+
+
+<span class="c1">#           connecting install buttons to methods</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_manager_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_man_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_selection_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_select_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaluation_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evaluation_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">behind_the_meter_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">behind_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">performance_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">performance_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equity_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">microgrid_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">microgrid_button_pushed</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">planning_install_button</span><span class="o">.</span><span class="n">released</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">planning_button_pushed</span><span class="p">)</span>
+
+
+<span class="c1">#          creating global names for the search bar</span>
+
+<span class="c1">#        global data_manager</span>
+        <span class="k">global</span> <span class="n">tech_selection</span>
+        <span class="k">global</span> <span class="n">evaluation</span>
+        <span class="k">global</span> <span class="n">behind_the_meter</span>
+        <span class="k">global</span> <span class="n">performance</span>
+        <span class="k">global</span> <span class="n">energy_equity</span>
+        <span class="k">global</span> <span class="n">microgrid</span>
+        <span class="k">global</span> <span class="n">planning</span>
+
+<span class="c1">#        data_manager = self.data_app</span>
+        <span class="n">tech_selection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tech_app</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_app</span>
+        <span class="n">behind_the_meter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">btm_app</span>
+        <span class="n">performance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_app</span>
+        <span class="n">energy_equity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eq_app</span>
+        <span class="n">microgrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">micr_app</span>
+        <span class="n">planning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan_app</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_app</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1">#           list of apps to search</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">widget_names</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;tech_selection&quot;</span><span class="p">,</span> <span class="s2">&quot;evaluation&quot;</span><span class="p">,</span> <span class="s2">&quot;behind_the_meter&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;performance&quot;</span><span class="p">,</span> <span class="s2">&quot;energy_equity&quot;</span><span class="p">,</span> <span class="s2">&quot;microgrid&quot;</span><span class="p">,</span> <span class="s2">&quot;planning&quot;</span>
+            <span class="p">]</span>
+
+<span class="c1">#           making the search bar funtion</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Search apps&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">textChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_display</span><span class="p">)</span>
+
+<span class="c1">#           checking to see if the environment has been installed previously</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_data&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_install_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_tech/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tech_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_eval/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">eval_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_btm/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">btm_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_perf/Lib/site-packages/glpk&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">perf_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_energy&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">energy_install_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_micro&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">micro_install_fin</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="s1">&#39;app_envs/env_plan&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">plan_install_fin</span><span class="p">()</span>
+
+<span class="c1">#           Context menu for data</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context menu for tech</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tech_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_7</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tech_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context menu for eval</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_2</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eval_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context menu for btm</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">btm_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btm_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">btm_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_3</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">btm_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context for perf</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_8</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">perf_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context menu for energy</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_9</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context menu for micro</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">micro_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">micro_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">micro_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_10</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micro_menu</span><span class="p">)</span>
+
+<span class="c1">#           Context menu for plan</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan_settings</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_setting_button_11</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan_menu</span><span class="p">)</span>
+
+<span class="c1">#           Connecting about buttons</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_data_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">about_hide</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_hide_window_btn</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_7</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_tech_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_2</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_eval_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_3</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_btm_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_8</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_perf_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_9</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_energy_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_10</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_micro_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_about_button_11</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_plan_page</span><span class="p">)</span>
+
+<div class="viewcode-block" id="home_page.update_display"><a class="viewcode-back" href="../../../app.home_page.html#app.home_page.home_page.home_page.update_display">[docs]</a>    <span class="k">def</span> <span class="nf">update_display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dynamic update of visible apps.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">widget_names</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">widget</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+
+                <span class="nb">eval</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="nb">eval</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Quest Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
