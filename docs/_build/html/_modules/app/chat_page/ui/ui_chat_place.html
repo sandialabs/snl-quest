@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>app.chat_page.ui.ui_chat_place &mdash; Quest Documentation 1.6.0 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Quest Documentation
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Quest Documentation</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">app.chat_page.ui.ui_chat_place</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for app.chat_page.ui.ui_chat_place</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1">################################################################################</span>
+<span class="c1">## Form generated from reading UI file &#39;chat_placeszsqNe.ui&#39;</span>
+<span class="c1">##</span>
+<span class="c1">## Created by: Qt User Interface Compiler version 6.5.0</span>
+<span class="c1">##</span>
+<span class="c1">## WARNING! All changes made in this file will be lost when recompiling UI file!</span>
+<span class="c1">################################################################################</span>
+
+<span class="kn">from</span> <span class="nn">PySide6.QtCore</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QCoreApplication</span><span class="p">,</span> <span class="n">QDate</span><span class="p">,</span> <span class="n">QDateTime</span><span class="p">,</span> <span class="n">QLocale</span><span class="p">,</span>
+    <span class="n">QMetaObject</span><span class="p">,</span> <span class="n">QObject</span><span class="p">,</span> <span class="n">QPoint</span><span class="p">,</span> <span class="n">QRect</span><span class="p">,</span>
+    <span class="n">QSize</span><span class="p">,</span> <span class="n">QTime</span><span class="p">,</span> <span class="n">QUrl</span><span class="p">,</span> <span class="n">Qt</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtGui</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QBrush</span><span class="p">,</span> <span class="n">QColor</span><span class="p">,</span> <span class="n">QConicalGradient</span><span class="p">,</span> <span class="n">QCursor</span><span class="p">,</span>
+    <span class="n">QFont</span><span class="p">,</span> <span class="n">QFontDatabase</span><span class="p">,</span> <span class="n">QGradient</span><span class="p">,</span> <span class="n">QIcon</span><span class="p">,</span>
+    <span class="n">QImage</span><span class="p">,</span> <span class="n">QKeySequence</span><span class="p">,</span> <span class="n">QLinearGradient</span><span class="p">,</span> <span class="n">QPainter</span><span class="p">,</span>
+    <span class="n">QPalette</span><span class="p">,</span> <span class="n">QPixmap</span><span class="p">,</span> <span class="n">QRadialGradient</span><span class="p">,</span> <span class="n">QTransform</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span><span class="n">QApplication</span><span class="p">,</span> <span class="n">QFrame</span><span class="p">,</span> <span class="n">QHBoxLayout</span><span class="p">,</span> <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span> <span class="n">QSizePolicy</span><span class="p">,</span> <span class="n">QTextBrowser</span><span class="p">,</span> <span class="n">QTextEdit</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span> <span class="n">QWidget</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">resources_rc</span>
+
+<div class="viewcode-block" id="Ui_chat_bot"><a class="viewcode-back" href="../../../../app.chat_page.ui.html#app.chat_page.ui.ui_chat_place.Ui_chat_bot">[docs]</a><span class="k">class</span> <span class="nc">Ui_chat_bot</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Ui_chat_bot.setupUi"><a class="viewcode-back" href="../../../../app.chat_page.ui.html#app.chat_page.ui.ui_chat_place.Ui_chat_bot.setupUi">[docs]</a>    <span class="k">def</span> <span class="nf">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chat_bot</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">chat_bot</span><span class="o">.</span><span class="n">objectName</span><span class="p">():</span>
+            <span class="n">chat_bot</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;chat_bot&quot;</span><span class="p">)</span>
+        <span class="n">chat_bot</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="mi">519</span><span class="p">,</span> <span class="mi">436</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="n">chat_bot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;verticalLayout&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">(</span><span class="n">chat_bot</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;frame&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">setFrameShape</span><span class="p">(</span><span class="n">QFrame</span><span class="o">.</span><span class="n">StyledPanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">setFrameShadow</span><span class="p">(</span><span class="n">QFrame</span><span class="o">.</span><span class="n">Raised</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;verticalLayout_2&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;label&quot;</span><span class="p">)</span>
+        <span class="n">font</span> <span class="o">=</span> <span class="n">QFont</span><span class="p">()</span>
+        <span class="n">font</span><span class="o">.</span><span class="n">setFamilies</span><span class="p">([</span><span class="sa">u</span><span class="s2">&quot;Segoe UI&quot;</span><span class="p">])</span>
+        <span class="n">font</span><span class="o">.</span><span class="n">setPointSize</span><span class="p">(</span><span class="mi">36</span><span class="p">)</span>
+        <span class="n">font</span><span class="o">.</span><span class="n">setBold</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">font</span><span class="o">.</span><span class="n">setItalic</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">setFont</span><span class="p">(</span><span class="n">font</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;font: 700 36pt </span><span class="se">\&quot;</span><span class="s2">Segoe UI</span><span class="se">\&quot;</span><span class="s2">;&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Qt</span><span class="o">.</span><span class="n">AlignHCenter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_box</span> <span class="o">=</span> <span class="n">QTextBrowser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">history_box</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;history_box&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">history_box</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span> <span class="o">=</span> <span class="n">QFrame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;frame_2&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="o">.</span><span class="n">setFrameShape</span><span class="p">(</span><span class="n">QFrame</span><span class="o">.</span><span class="n">StyledPanel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="o">.</span><span class="n">setFrameShadow</span><span class="p">(</span><span class="n">QFrame</span><span class="o">.</span><span class="n">Raised</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">setSpacing</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;horizontalLayout&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_input</span> <span class="o">=</span> <span class="n">QTextEdit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_input</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;user_input&quot;</span><span class="p">)</span>
+        <span class="n">sizePolicy</span> <span class="o">=</span> <span class="n">QSizePolicy</span><span class="p">(</span><span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Expanding</span><span class="p">,</span> <span class="n">QSizePolicy</span><span class="o">.</span><span class="n">Preferred</span><span class="p">)</span>
+        <span class="n">sizePolicy</span><span class="o">.</span><span class="n">setHorizontalStretch</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sizePolicy</span><span class="o">.</span><span class="n">setVerticalStretch</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">sizePolicy</span><span class="o">.</span><span class="n">setHeightForWidth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_input</span><span class="o">.</span><span class="n">sizePolicy</span><span class="p">()</span><span class="o">.</span><span class="n">hasHeightForWidth</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_input</span><span class="o">.</span><span class="n">setSizePolicy</span><span class="p">(</span><span class="n">sizePolicy</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user_input</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="o">.</span><span class="n">setObjectName</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;send_button&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;QPushButton {	</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	border: none;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	background-color: transparent;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	padding-left: 0px;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;QPushButton:hover {</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	border: 2px solid rgb(129, 194, 65);</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	border-radius: 4px;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;QPushButton:pressed {	</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	background-color: rgb(129, 194, 65);</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	border-radius: 4px;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;}</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;QPushButton:checked {	</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	background-color: rgb(129, 194, 65);</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;	border-radius: 4px;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">QIcon</span><span class="p">()</span>
+        <span class="n">icon</span><span class="o">.</span><span class="n">addFile</span><span class="p">(</span><span class="sa">u</span><span class="s2">&quot;:/icon/images/icons/send_FILL0_wght200_GRAD0_opsz48.svg&quot;</span><span class="p">,</span> <span class="n">QSize</span><span class="p">(),</span> <span class="n">QIcon</span><span class="o">.</span><span class="n">Normal</span><span class="p">,</span> <span class="n">QIcon</span><span class="o">.</span><span class="n">Off</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="o">.</span><span class="n">setIcon</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="o">.</span><span class="n">setIconSize</span><span class="p">(</span><span class="n">QSize</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="o">.</span><span class="n">setFlat</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">horizontalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout_2</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame_2</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">verticalLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">retranslateUi</span><span class="p">(</span><span class="n">chat_bot</span><span class="p">)</span>
+
+        <span class="n">QMetaObject</span><span class="o">.</span><span class="n">connectSlotsByName</span><span class="p">(</span><span class="n">chat_bot</span><span class="p">)</span></div>
+    <span class="c1"># setupUi</span>
+
+<div class="viewcode-block" id="Ui_chat_bot.retranslateUi"><a class="viewcode-back" href="../../../../app.chat_page.ui.html#app.chat_page.ui.ui_chat_place.Ui_chat_bot.retranslateUi">[docs]</a>    <span class="k">def</span> <span class="nf">retranslateUi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chat_bot</span><span class="p">):</span>
+        <span class="n">chat_bot</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s2">&quot;chat_bot&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;Form&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s2">&quot;chat_bot&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;QUEST CHAT&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user_input</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="n">QCoreApplication</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="s2">&quot;chat_bot&quot;</span><span class="p">,</span> <span class="sa">u</span><span class="s2">&quot;Type a message...&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">send_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div></div>
+    <span class="c1"># retranslateUi</span>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Quest Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
