@@ -1,0 +1,879 @@
+<WizardHeaderDesc@TitleTextBase>:
+    size_hint_y: 0.1
+
+<WizardBodyText@BodyTextBase>:
+    markup: True
+    text_size: self.size
+    valign: 'top'
+    halign: 'justify'
+
+<ValuationWizardPrevButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Previous'
+    size_hint_x: 0.15
+
+<ValuationWizardNextButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Continue'
+    size_hint_x: 0.15
+
+<ValuationWizard>:
+    content: content
+    sm: sm
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: content
+
+        ValuationWizardScreenManager:
+            id: sm
+
+<ValuationWizardStart>:
+    content: content
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Welcome to the energy storage valuation wizard!'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.85
+            id: content
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                size_hint_y: 0.4
+                text: 'This wizard will guide you through the process of evaluating the maximum amount of revenue that a single energy storage device can generate in a given market area. Using historical market data, we will set up an optimization problem where the device tries to maximize its revenue using selected revenue streams with perfect foresight. These assumptions create an upper bound on the revenue generated, providing useful insight into how energy storage can generate revenue under different conditions.'
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.6
+                spacing: 10
+                padding: 10
+
+                Image:
+                    source: 'es_gui/resources/images/molten_salt_test_loop.jpg'
+
+                Image:
+                    source: 'es_gui/resources/images/report_multisetbar.png'
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    size_hint_x: 0.15
+                    text: 'Get started'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root._next_screen()
+
+<ValuationWizardISOSelect>:
+    content: content
+    iso_select: iso_select
+    next_button: next_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            text: 'Select a market area to place the energy storage device in.'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            id: content
+            opacity: 0
+            padding: (60, 0)
+            spacing: 25
+
+            AsyncImage:
+                size_hint_x: 0.45
+                source: 'es_gui/resources/images/markets_map.png'
+
+            BoxLayout:
+                size_hint_x: 0.55
+                orientation: 'vertical'
+                spacing: 10
+
+                WizardBodyText:
+                    text: 'Different market areas can have different market structures, resulting in various opportunities for generating revenue.'
+                    size_hint_y: 0.25
+
+                GridLayout:
+                    id: iso_select
+                    cols: 3
+                    row_force_default: True
+                    row_default_height: self.height/4
+                    size_hint_y: 0.75
+                    spacing: 5
+                    padding: 50
+    
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'center'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'center'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
+
+<WizardISOTileButton>:
+    font_size: large_font
+    size_hint: (0.30, 0.30)
+    opacity: 0
+    allow_no_selection: False
+
+<WizardRevToggleButton>:
+    size_hint: (0.30, 0.30)
+    font_size: large_font
+    group: 'market_formulation'
+    allow_no_selection: False
+    opacity: 0
+
+<ValuationWizardRevenueSelect>:
+    content: content
+    item_desc: item_desc
+    rev_select: rev_select
+    next_button: next_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Select the revenue streams that the device will participate in.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.85
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+
+            WizardBodyText:
+                text: 'In each market area, there is a variety of opportunities for generating revenue based on the particular market design.'
+                size_hint_y: 0.20
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+
+                GridLayout:
+                    size_hint_x: 0.30
+                    id: rev_select
+                    cols: 1
+                    row_force_default: True
+                    row_default_height: self.height/4
+                    spacing: 5
+                    padding: 30
+
+                BoxLayout:
+                    size_hint_x: 0.70
+
+#                    canvas.before:
+#                        Color:
+#                            rgb: C(hex_pale_blue)
+#                        RoundedRectangle:
+#                            pos: self.pos
+#                            size: self.size
+
+                    BodyTextBase:
+                        id: item_desc
+                        text_size: self.size
+                        text: ''
+                        markup: True
+                        valign: 'top'
+                        halign: 'justify'
+                        font_size: stnd_font
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
+
+<WizardDeviceTileButton>:
+    font_size: stnd_font if self.height < 150 else large_font
+    group: 'storage_device'
+    allow_no_selection: False
+
+<WizardDeviceParameterWidget>:
+    rows: 6
+    spacing: 10
+
+<WizardDeviceParameterRow>:
+    cols: 3
+    spacing: 5
+
+    name: name
+    param_slider: param_slider
+    text_input: text_input
+
+    WizardBodyText:
+        id: name
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    Slider:
+        id: param_slider
+        size_hint_x: 0.35
+        min: 0
+        max: 100
+        value_track: True
+        value_track_color: C(hex_secondary)
+        disabled: True
+
+    ParamTextInput:
+        id: text_input
+        size_hint_x: 0.10
+        text: '{0:.1f}'.format(root.param_slider.value)
+        on_focus: root._validate_input()
+        disabled: True
+
+<ParamTextInput>:
+    multiline: False
+    color: C(hex_black)
+    font_size: stnd_font
+    input_filter: 'float'
+    write_tab: False
+    on_focus: self.select_all() if self.focus else self.cancel_selection() 
+
+<ValuationWizardDeviceSelect>:
+    prev_button: prev_button
+    next_button: next_button
+    top_desc: top_desc
+    content: content
+    device_select: device_select
+    param_widget: param_widget
+    device_desc: device_desc
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Describe the type of energy storage device to be used.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.85
+            id: content
+            #padding: (self.width/16, 0)
+            spacing: 10
+            opacity: 0
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: (WIZ_PADDING_X, 0)
+                size_hint_y: 0.20
+
+                WizardBodyText:
+                    text: 'Energy storage devices come in many forms and technologies. In this application, they are mainly modeled according to their power and energy ratings. Select an energy storage device template and/or customize your own.'
+
+            GridLayout:
+                id: device_select
+                cols: 4
+                size_hint_y: 0.30
+                spacing: 5
+                padding: (WIZ_PADDING_X, 10)
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.50
+                spacing: 5
+                padding: (50, 0)
+
+                WizardDeviceParameterWidget:
+                    id: param_widget
+                    size_hint_x: 0.55
+                    padding: 10
+
+                BoxLayout:
+                    size_hint_x: 0.45
+                    padding: 10
+
+                    WizardBodyText:
+                        id: device_desc
+                        text: ''
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_y: 0.1
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
+
+                WizardPrevButton:
+                    id: prev_button
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
+
+<WizardDataTileButton>:
+    font_size: stnd_font if self.height < 150 else large_font
+    group: 'hist_data'
+    allow_no_selection: False
+
+<ValuationWizardDataSelect>:
+    prev_button: prev_button
+    top_desc: top_desc
+    content: content
+    data_select: data_select
+    data_desc: data_desc
+    next_button: next_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Select the historical data set to evaluate the device against.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.85
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                text: 'We will use historical market data provided by the market area operator. Each month is considered independently for optimization.'
+                size_hint_y: 0.20
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.80
+                spacing: 5
+
+                GridLayout:
+                    id: data_select
+                    cols: 3
+                    size_hint_x: 0.75
+                    spacing: 5
+                    padding: (50, 0)
+                    row_force_default: True
+                    row_default_height: self.height/5
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.25
+                    padding: 10
+                    spacing: 5
+
+                    WizardHeaderDesc:
+                        size_hint_y: 0.05
+                        text: 'Selected months'
+                        bold: True
+                        font_size: stnd_font
+                        color: C(hex_primary)
+
+                    BoxLayout:
+                        padding: 10
+                        size_hint_y: 0.95
+
+                        WizardBodyText:
+                            id: data_desc
+                            text: ''
+                            font_size: default_font
+                            text_size: self.size
+                            markup: True
+                            valign: 'top'
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
+
+                WizardPrevButton:
+                    id: prev_button
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
+
+<ValuationWizardNodeSelect>:
+    prev_button: prev_button
+    top_desc: top_desc
+    content: content
+    node_rv: node_rv
+    #node_desc: node_desc
+    next_button: next_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Select the pricing node where the energy storage device resides.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.85
+            id: content
+            opacity: 0
+            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+
+            WizardBodyText:
+                text: 'The prices for buying and selling energy vary by location. They are typically referred to as locational marginal prices (LMP) or settlement point prices (SPP).'
+                size_hint_y: 0.15
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.85
+                spacing: 10
+                padding: (WIZ_PADDING_X, 50)
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    spacing: 5
+                    padding: (WIZ_PADDING_X, 0)
+
+                    TextInput:
+                        size_hint_y: 0.1
+                        on_text: node_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: node_rv
+                        viewclass: 'NodeRecycleViewRow'
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+
+                # BoxLayout:
+                #     orientation: 'vertical'
+                #     size_hint_x: 0.50
+                #     spacing: 10
+
+                #     BoxLayout:
+                #         orientation: 'vertical'
+                #         size_hint_y: 0.25
+                #         padding: 10
+
+                #         WizardBodyText:
+                #             id: node_desc
+                #             text: ''
+                #             font_size: stnd_font
+                #             text_size: self.size
+                #             valign: 'top'
+                #             markup: True
+                #             color: C(hex_black)
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
+
+                WizardPrevButton:
+                    id: prev_button
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+                    disabled: True
+
+#<NodeOption>:
+#    canvas.before:
+#        Color:
+#            rgba: C(hex_primary) if self.selected else C(hex_cloud_dancer)
+#            a: 0.2 if self.selected else 1.0
+#        Rectangle:
+#            size: self.size
+#            pos: self.pos
+#    name: ''
+#    Label:
+#        text: root.name
+#        color: C(hex_secondary) if root.selected else C(hex_black)
+#        font_size: stnd_font
+#        text_size: self.size
+#        valign: 'middle'
+#        halign: 'left'
+#        padding: (10, 10)
+
+<WizardSummaryBubble>:
+    cat_title: cat_title
+    body: body
+
+    orientation: 'vertical'
+    padding: 10
+    spacing: 5
+    size_hint_y: None
+    size_hint_x: None
+
+    #    canvas.before:
+    #        Color:
+    #            rgb: C('#f3f2f1')
+    #            a: 1.0
+    #        RoundedRectangle:
+    #            pos: self.pos
+    #            size: self.size
+
+    Label:
+        id: cat_title
+        size_hint: (None, None)
+        font_size: large_font
+        size: self.texture_size
+        #text_size: self.size
+        #height: self.texture_size[1]
+        markup: True
+        bold: True
+        color: C(hex_black)
+
+    Label:
+        id: body
+        size_hint: (None, None)
+        font_size: stnd_font
+        size: self.texture_size
+        #text_size: self.size
+        #height: self.texture_size[1]
+        halign: 'left'
+        markup: True
+        color: C(hex_black)
+
+<AboutSelectionSummary>:
+    lab_abt_selsum: lab_abt_selsum
+    #img_abt_selsum: img_abt_selsum
+    title_abt_selsum: title_abt_selsum
+    auto_dismiss: False
+    size_hint: (0.8, 0.8)
+    BoxLayout:
+#        size_hint: 0.9, 0.9
+        spacing: 10
+        padding: (10, 5)
+        orientation: 'vertical'
+
+        canvas.before:
+            Color:
+                rgb: C(hex_cloud_dancer)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        WizardHeaderDesc:
+            id: title_abt_selsum
+            size_hint_y: 0.23
+            on_ref_press: root.openwebbrowser()
+            markup: True
+
+        # ImageButton:
+        #     size_hint: 0.8,0.23
+        #     pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+        #     id: img_abt_selsum
+        #     on_press: root.openwebbrowser()
+
+        Label:
+            id: lab_abt_selsum
+#            pos_hint:{"top":1}
+            size_hint: (0.9, 0.68)
+#            text_size: self.width, None
+            text_size: self.size
+            height: self.texture_size[1]
+            font_size: stnd_font
+            size: self.texture_size
+            halign: 'left'
+            valign: 'top'
+#                markup: True
+            color: C(hex_black)
+
+        StackLayout:
+            orientation: 'rl-tb'
+            spacing: 10
+            size_hint_y: 0.09
+
+            Button:
+                #background_color: C(hex_warm_gray)
+                text: 'Got it'
+                font_size: stnd_font
+                size_hint_x: 0.25
+                on_release: root.dismiss()
+
+
+<ValuationWizardSelectionSummary>:
+    top_desc: top_desc
+    content: content
+    isolabel: isolabel
+    pcnodelabel: pcnodelabel
+    histdatlabel: histdatlabel
+    esdevlabel: esdevlabel
+    revstreamlabel: revstreamlabel
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Summary of selections'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            id: content
+            spacing: 10
+
+            BoxLayout:
+                size_hint_y: 1
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                Label:
+                    id: isolabel
+                    size_hint_y: 0.2
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+                Label:
+                    size_hint_y: 0.2
+                    id: pcnodelabel
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+                Label:
+                    size_hint_y: 0.8
+                    id: histdatlabel
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+
+            BoxLayout:
+                size_hint_y: 1
+                orientation: 'vertical'
+                spacing: 10
+                padding: 30
+
+                Label:
+                    id: revstreamlabel
+                    size_hint_y: 0.3
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+                Label:
+                    id: esdevlabel
+                    size_hint_y: 0.9
+#                    size_hint: (None, None)
+                    font_size: stnd_font
+                    size: self.texture_size
+                    halign: 'left'
+                    valign: 'top'
+                    text_size: self.size
+    #                markup: True
+                    color: C(hex_black)
+
+        BoxLayout:
+            size_hint_y: 0.05
+
+            AnchorLayout:
+                anchor_x: 'left'
+                anchor_y: 'bottom'
+
+                WizardPrevButton:
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                WizardNextButton:
+                    id: next_button
+                    on_release: root._next_screen()
+
+<ValuationWizardExecute>:
+    top_desc: top_desc
+    content: content
+    progress_label: progress_label
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: 'Building and solving models...'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.85
+            id: content
+            padding: (self.width/16, self.height/12)
+            spacing: 10
+            #opacity: 0
+
+            ScrollView:
+                #size_hint_y: 0.8
+                minimum_height: self.height
+
+#                canvas.before:
+#                    Color:
+#                        rgb: C('#f3f2f1')
+#                        #rgba: [1, 1, 1, 0.8]
+#                    Rectangle:
+#                        pos: self.pos
+#                        size: self.size
+
+                WizardBodyText:
+                    id: progress_label
+                    text: 'This may take a while. Please wait patiently!'
+                    size_hint: 1, None
+        
+        BoxLayout:
+            size_hint_y: 0.05
+
+###########################################################################################
+
+<ValuationWizardTemplate>:
+    prev_button: prev_button
+    top_desc: top_desc
+    content: content
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        WizardHeaderDesc:
+            id: top_desc
+            text: ''
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.8
+            id: content
+            padding: (self.width/16, 0)
+            spacing: 10
+
+        StackLayout:
+            orientation: 'lr-tb'
+            size_hint_y: 0.1
+
+            ValuationWizardPrevButton:
+                id: prev_button
+                on_release:
+                    root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = root.manager.previous()
+
+            BoxLayout:
+                size_hint_x: 0.7
+
+            ValuationWizardNextButton:
+                id: next_button
+                on_release: root._next_screen()
+                disabled: True

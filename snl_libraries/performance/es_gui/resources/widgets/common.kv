@@ -1,0 +1,869 @@
+# This is where global constants and common UI design elements are defined to be used across all loaded .kv files.
+# To add a widget from here to a new .py file, create a class with its name and what it is subclassing.
+#
+# example:
+# class TileButton(Button):
+#     pass
+
+#: import C kivy.utils.get_color_from_hex
+#: import os os
+#: import clock kivy.clock
+
+#: import PlotSpinnerOptionCls es_gui.resources.widgets.common.PlotSpinnerOptionCls
+
+# Application name and tagline strings.
+#:set APP_NAME 'QuESt'
+#:set TAGLINE 'Optimizing Energy Storage'
+
+# Widths, in pixels, for proper measure in labels.
+#:set TWO_ABC_WIDTH 800
+#:set THREE_ABC_WIDTH 1200
+
+#:set WIZ_PADDING_X 170
+
+# Animation durations.
+#:set BASE_TRANSITION_DUR 0.600
+
+# Color sets.
+#:set hex_pantone1625c '#FFA38B'
+#:set hex_pantone294c '#002F6C'
+#:set hex_pantone427c '#D0D3D4'
+#
+#:set hex_cloud_dancer '#F0EEE9'
+#:set hex_scuba_blue '#00ABC0'
+#:set hex_ultra_violet '#5F4B8B'
+#
+#:set hex_snl_medium_blue '005376'
+#:set hex_snl_green '84BD00'
+#:set hex_snl_gray '3D3D3D'
+
+# Application palette.
+# QuESt foundation colors
+#:set hex_primary hex_snl_medium_blue
+#:set hex_secondary hex_snl_green
+
+# QuESt support colors
+#:set hex_pms312 '00ADD0'
+#:set hex_pms137 'FFA300'
+#:set hex_pms178 'FF585D'
+#:set hex_pms674 'AE2573'
+
+#:set hex_black hex_snl_gray
+#:set hex_white '#FFFFFF'
+
+# Font sizes.
+#:set default_font sp(20)
+#:set stnd_font sp(22)
+#:set mid_font sp(25)
+#:set large_font sp(30)
+#:set huge_font sp(40)
+
+# Sets default font (if not specified by class rule).
+<Widget>:
+    font_size: default_font
+    font_name: 'Exo 2'
+
+<TextInput>:
+    on_focused: self.focused and clock.Clock.schedule_once(lambda dt: self.select_all())
+
+# This is a label template for left-aligned text. It includes options to prevent text from overflowing.
+<LeftAlignedText>:
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'left'
+
+# Text style for title labels.
+<TitleTextBase>:
+    font_name: 'Exo 2'
+    font_size: huge_font
+    color: C(hex_primary)
+    bold: True
+
+# Text style for body text labels.
+<BodyTextBase>:
+    font_name: 'Open Sans'
+    font_size: stnd_font
+    color: C(hex_black)
+
+# This is the generic flat, square Tile Button used throughout the application.
+# Subclass: Button
+<TileButton>:
+    background_normal: os.path.join('es_gui', 'resources', 'images', 'button_normal.png')
+    background_down: os.path.join('es_gui', 'resources', 'images', 'button_down.png')
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    font_name: 'Exo 2'
+    font_size: stnd_font
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+    markup: True
+
+# These are the previous and continue tile buttons for wizards.
+<WizardPrevButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Previous'
+    size_hint_x: 0.30
+
+<WizardNextButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Next'
+    size_hint_x: 0.30
+
+# This is a TileButton with toggle button behavior.
+<ToggleTileButton>:
+    background_down: os.path.join('es_gui', 'resources', 'images', 'button_normal.png')
+    background_color: C(hex_primary) if self.state == 'down' else C(hex_cloud_dancer)
+    color: C(hex_secondary) if self.state == 'down' else C(hex_black)
+
+# This is the menu version of the TileButton used for large menu items.
+# Subclass: TileButton
+<MenuTileButton>:
+    font_name: 'Exo 2'
+    font_size: large_font
+
+# This is the RecycleView class.
+<MyRecycleView>:
+    scroll_type: ['bars', 'content']
+    bar_width: dp(5)
+    bar_color: C(hex_secondary)
+    bar_inactive_color: C(hex_secondary)
+
+    canvas.before:
+        Color:
+            rgba: C(hex_cloud_dancer)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+# This is the layout class for RecycleView with selectable labels.
+<SelectableRecycleBoxLayout>:
+    default_size: None, dp(30)
+    default_size_hint: 1, None
+    size_hint_y: None
+    height: self.minimum_height
+    orientation: 'vertical'
+
+# This is the view class for RecycleView with selectable labels.
+<RecycleViewRow>:
+    canvas.before:
+        Color:
+            rgba: C(hex_primary) if self.selected else C(hex_cloud_dancer)
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    name: ''
+    Label:
+        text: root.name
+        text_size: self.size
+        font_size: default_font
+        color: C(hex_white) if root.selected else C(hex_black)
+        valign: 'middle'
+        halign: 'left'
+        padding: (10, 10)
+
+# This is the class for describing the appearance of options in the Plot Spinner.
+# Subclass: SpinnerOption
+<PlotSpinnerOptionCls>:
+    background_normal: os.path.join('es_gui', 'resources', 'images', 'button_normal.png')
+    background_down: os.path.join('es_gui', 'resources', 'images', 'button_down.png')
+    background_color: C(hex_cloud_dancer)
+    color: C(hex_black)
+    font_size: stnd_font
+    text_size: self.width, None
+    halign: 'center'
+
+# This is a Spinner used in the Plot Screen for option selection.
+# Subclass: Spinner
+<PlotSpinner>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    font_size: stnd_font
+    text_size: self.width, None
+    halign: 'center'
+    #option_cls: PlotSpinnerOptionCls
+
+# This is a generic popup with a modified appearance. Subclass from this to make more specific popups.
+# Subclass: Popup
+<MyPopup>:
+    separator_color: C(hex_secondary)
+    separator_height: dp(2)
+
+    title_align: 'left'
+    title_font: 'Exo 2'
+    title_size: stnd_font
+
+    size_hint: (0.40, 0.37)
+    auto_dismiss: False
+
+# This is a warning popup window to inform users of execution warnings. Contains text and a single dismiss button.
+# Subclass: MyPopup
+<WarningPopup>:
+    popup_text: popup_text
+    dismiss_button: dismiss_button
+    title: 'Oops!'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+
+        Button:
+            id: dismiss_button
+            halign: 'center'
+            size_hint: (1.00, 0.20)
+            text: 'Got it'
+            font_size: stnd_font
+            on_release: root.dismiss()
+
+# This is a warning popup window to inform users of execution warnings. Contains text and a single dismiss button.
+# Subclass: MyPopup
+<ConnectionErrorPopup>:
+    popup_text: popup_text
+    open_connection_settings_button: open_connection_settings_button
+    dismiss_button: dismiss_button
+    title: 'Oops!'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            size_hint: (1.00, 0.20)
+        
+            Button:
+                id: open_connection_settings_button
+                halign: 'center'
+                text: 'Open settings'
+                font_size: stnd_font
+                on_release: root.open_connection_settings()
+
+            Button:
+                id: dismiss_button
+                halign: 'center'
+                text: 'Dismiss'
+                font_size: stnd_font
+                on_release: root.dismiss()
+
+# This is a label template for Popup content. It includes options to prevent text from overflowing its container.
+# Subclass: Label
+<PopupLabel@Label>:
+    size_hint_y: 0.80
+    text_size: self.width, None
+    height: self.texture_size[1]
+    font_size: stnd_font
+    halign: 'justify'
+    font_name: 'Open Sans'
+
+# This is a popup template for valuation complete messages.
+# Subclass: MyPopup
+<ValuationRunCompletePopup>:
+    size_hint: (0.40, 0.50)
+    title: 'Success!'
+
+    view_results_button: view_results_button
+	dismiss_button: dismiss_button
+    popup_text: popup_text
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+            size_hint_y: 0.8
+            markup: True
+            halign: 'left'
+            valign: 'top'
+            text: 'Your specified batch runs have been completed.'
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            padding: 0
+            size_hint_y: 0.2
+
+            Button:
+                id: view_results_button
+                text: 'Go to results viewer'
+                font_size: stnd_font
+
+            Button:
+				id: dismiss_button
+                text: 'Got it'
+                font_size: stnd_font
+                on_release: root.dismiss()
+
+# This is a loading screen.
+# Subclass: ModalView
+<LoadingModalView>:
+    logo: logo
+    loading_text: loading_text
+
+    auto_dismiss: False
+    size_hint_y: 0.30
+    size_hint_x: 0.25
+    background_color: [0, 0, 0, 0.8]
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 25
+
+        Image:
+            id: logo
+            source: os.path.join('es_gui', 'resources', 'logo', 'Quest_Q_Reversed_RGB.png')
+            size_hint_y: 0.9
+        
+        Label:
+            id: loading_text
+            size_hint_y: 0.1
+            text: 'Loading...'
+            font_size: large_font
+            color: C(hex_white)
+            background_color: (1, 1, 1, 0)
+
+# This is a template for wizard report (chart) screens.
+# Subclass: Screen
+<ReportScreen>:
+    title: title
+    desc: desc
+    desc_bx: desc_bx
+    chart_bx: chart_bx
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        ReportHeaderDesc:
+            id: title
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.95
+            spacing: 25
+            id: chart_bx
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: None
+                size_hint_y: 1
+                width: THREE_ABC_WIDTH
+                id: desc_bx
+
+                ReportBodyText:
+                    id: desc
+
+# This is a completion popup for wizards.
+# Subclass: MyPopup
+<WizardCompletePopup>:
+    size_hint: (0.40, 0.50)
+    popup_text: popup_text
+    results_button: results_button
+    title: 'Success!'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+            text: "All calculations finished. Let's check out the results!"
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.2
+
+            Button:
+                id: results_button
+                text: 'OK'
+                font_size: stnd_font
+                on_release: root.dismiss()
+
+# This is the base screen for wizard report interfaces.
+# Subclass: Screen
+<WizardReportInterface>:
+    report_sm: report_sm
+    chart_type_toggle: chart_type_toggle
+    generate_report_button: generate_report_button
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 10
+        spacing: 25
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.8
+            size_hint_y: 1.0
+
+            ReportScreenManager:
+                id: report_sm
+
+                Screen:
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.2
+
+            ReportHeaderDesc:
+                size_hint_y: 0.05
+                text: 'Reports'
+                font_size: stnd_font
+
+            GridLayout:
+                cols: 1
+                size_hint_y: 0.90
+                spacing: 5
+                id: chart_type_toggle
+
+                row_force_default: True
+                row_default_height: 40
+
+            TileButton:
+                id: generate_report_button
+                size_hint_y: 0.05
+                text: 'Generate report'
+                on_release: root.open_generate_report_menu()
+
+<ReportHeaderDesc@TitleTextBase>:
+    size_hint_y: 0.05
+    font_size: large_font
+
+<ReportBodyText@BodyTextBase>:
+    text_size: self.size
+    height: self.texture_size[1]
+    halign: 'justify'
+    valign: 'top'
+    markup: True
+
+<ReportChartToggle>:
+    group: 'chart_type'
+    allow_no_selection: False
+
+    background_down: self.background_normal
+    background_color: (1, 1, 1, 0)
+    color: C(hex_secondary) if self.state == 'down' else C(hex_black)
+    size_hint_x: 1.0
+    size_hint_y: None
+
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'justify'
+    valign: 'top'
+    bold: True if self.state == 'down' else False
+    font_size: default_font
+
+<ParameterRow>:
+    rows: 1
+    spacing: 20
+
+    name: name
+    notes: notes
+    text_input: text_input
+    units: units
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.20
+        text: ''
+        color: C(hex_secondary)
+        font_size: stnd_font
+        bold: True
+    
+    BodyTextBase:
+        id: notes
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ParamTextInput:
+        id: text_input
+        size_hint_x: 0.15
+        color: C(hex_black)
+        font_size: stnd_font
+    
+    BodyTextBase:
+        id: units
+        size_hint_x: 0.1
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ParameterRow2cols>:
+    rows: 1
+    spacing: 40
+
+    name: name
+    text_input: text_input
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.5
+        halign: 'right'
+        text: ''
+        color: C(hex_secondary)
+        font_size: mid_font
+        bold: True
+
+    BodyTextBase:
+        id: text_input
+        size_hint_x: 0.5
+		text: ''
+        color: C(hex_black)
+        font_size: mid_font
+
+<ParamTextInput>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+    
+<ParameterRowText>:
+    rows: 1
+    spacing: 20
+
+    name: name
+    notes: notes
+    text_input: text_input
+    units: units
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.20
+        text: ''
+        color: C(hex_secondary)
+        font_size: stnd_font
+        bold: True
+    
+    BodyTextBase:
+        id: notes
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ParamTextInputText:
+        id: text_input
+        size_hint_x: 0.15
+        color: C(hex_black)
+        font_size: stnd_font
+    
+    BodyTextBase:
+        id: units
+        size_hint_x: 0.1
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ParamTextInputText>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+
+<DataGovAPIhelp>:
+    auto_dismiss: False
+    size_hint: (0.52, 0.90)
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: (25, 10)
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.23
+            spacing: 10
+
+            TitleTextBase:
+                size_hint_y: 0.1
+                text: 'Obtaining a Data.gov network API key'
+            
+            BodyTextBase:
+                size_hint_y: 0.9
+                justify: True
+                markup: True
+                text: "You need an API key to access data through the Data.gov developer network APIs, including the OpenEI for utility rates and PVWatts for photovoltaic power profiles. This requires a quick registration. The guide here is only meant to serve as a quick reference; please refer [ref=utility_rate_database_page][color=003359][u]here[/u][/color][/ref] for the most recent information."
+                on_ref_press: webbrowser.open('https://developer.nrel.gov/signup/')
+            
+        ScrollView:
+            size_hint_y: 0.7
+            size_hint_x: 1
+            scroll_type: ['bars', 'content']
+            effect_cls: 'OpacityScrollEffect'
+
+            BodyTextBase:
+                #readonly: True
+                markup: True
+                size_hint: (1, None)
+                text: "1) Open the API Key Signup [ref=utility_rate_database][color=003359][u]page[/u][/color][/ref] on the NREL Developer Network site. \n\n 2) Fill out the form. Upon successful completion of the form, you should be given an alphanumeric API key on the page immediately. A copy of it should also be sent to the email address you provided. \n\n 3) Enter this key where requested in the QuESt Data Manager tools and/or enter it into the appropriate section in the QuESt Data Manager settings panel to save for future use. Note that you will need to restart QuESt for the value entered in the settings panel to autopopulate the appropriate fields. \n\n 4) You're all set!"
+                on_ref_press: webbrowser.open('https://developer.nrel.gov/signup/')
+                # text: "1) On the OpenEI Utility Rate Database [ref=utility_rate_database][color=003359][u]page[/u][/color][/ref], find the block titled 'Utility Rate Database API' and click on the 'utility rate API' link. \n\n 2) Under a block titled 'API Key,' click on the 'Get an API Key' button. \n\n 3) Fill out the form. Upon successful completion of the form, you should be given an alphanumeric API key on the page immediately. A copy of it should also be sent to the email address you provided. \n\n 4) Enter this key where requested in the QuESt Data Manager Utility Rate Structure Data menu and/or enter it into the appropriate section in the QuESt Data Manager settings panel to save for future use. \n\n 5) You're all set!"
+                # on_ref_press: webbrowser.open('https://openei.org/wiki/Utility_Rate_Database')
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            padding: 5
+            size_hint_y: 0.07
+
+            TileButton:
+                text: 'Got it, thanks!'
+                #font_size: stnd_font
+                size_hint_y: 1
+                size_hint_x: 0.25
+                on_release: root.dismiss()
+
+<ResultsViewer>:
+    name: 'valuation_results_viewer'
+
+    rv: rv
+    plotbox: plotbox
+    plot_toolbar: plot_toolbar
+    vars_button: vars_button
+    draw_button: draw_button
+    csv_export_button: csv_export_button
+    png_export_button: png_export_button
+    time_selector: time_selector
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+        padding: 10
+
+        BoxLayout:
+            id: plotbox
+            size_hint_y: 0.7
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 5
+            size_hint_y: 0.3
+
+            BoxLayout:
+                orientation: 'vertical'
+                padding: 10
+                spacing: 5
+                size_hint_x: 0.8
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.15
+                    spacing: 5
+
+                    TitleTextBase:
+                        font_size: stnd_font
+                        text: 'Select solved models to plot.'
+                        size_hint_x: 0.85
+
+#                    TileButton:
+#                        text: 'Select all'
+#                        size_hint_x: 0.15
+#                        on_release: root._select_all_runs()
+
+                    TileButton:
+                        text: 'Deselect all'
+                        size_hint_x: 0.15
+                        on_release: root._deselect_all_runs()
+
+                MyRecycleView:
+                    id: rv
+                    size_hint_y: 0.85
+                    viewclass: 'RecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        default_size: None, dp(80)
+                        spacing: 5
+                        multiselect: True
+                        touch_multiselect: True
+
+            PlotToolbar:
+                id: plot_toolbar
+                size_hint_x: 0.2
+
+                TileButton:
+                    id: draw_button
+                    text: 'Plot/Redraw'
+                    background_color: C(hex_secondary)
+                    on_release: root.draw_figure()
+
+                PlotSpinner:
+                    id: vars_button
+                    text: 'Select data'
+
+                TimeSelectorRow:
+                    id: time_selector
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 5
+
+                    TileButton:
+                        id: csv_export_button
+                        text: 'Export CSV'
+                        on_release: root.export_csv()
+
+                    TileButton:
+                        id: png_export_button
+                        text: 'Export PNG'
+                        on_release: root.export_png()
+
+<PlotToolbar@GridLayout>:
+    cols: 1
+    spacing: 5
+
+<TimeSelectorRow>:
+    rows: 1
+    spacing: (10, 0)
+    start_time: start_time
+    end_time: end_time
+
+    BodyTextBase:
+        text: 'Hours shown'
+        size_hint_x: 0.5
+
+    TimeTextInput:
+        id: start_time
+        text: '0'
+        hint_text: 'start'
+        size_hint_x: 0.25
+    TimeTextInput:
+        id: end_time
+        text: '744'
+        hint_text: 'end'
+        size_hint_x: 0.25
+
+<TimeSelector>:
+    title: 'Enter time range to display.'
+    size_hint: (0.25, 0.35)
+    start_time: start_time
+    end_time: end_time
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        GridLayout:
+            cols: 2
+            size_hint: (1.00, 0.80)
+            padding: (30, 15)
+            spacing: (10, 0)
+
+            Label:
+                text: 'Start'
+                font_size: stnd_font
+
+            Label:
+                text: 'End'
+                font_size: stnd_font
+
+            TimeTextInput:
+                id: start_time
+                text: '0'
+            TimeTextInput:
+                id: end_time
+                text: '744'
+
+        Button:
+            text: 'Go!'
+            font_size: stnd_font
+            size_hint_y: 0.20
+            on_release: root._validate()
+
+<TimeTextInput>:
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'int'
+
+<ValuationParameterWidget>:
+    cols: 3
+    row_force_default: True
+    row_default_height: self.height/6
+    spacing: (125, 50)
+
+<ValuationParameterRow>:
+    cols: 2
+    spacing: 5
+
+    name: name
+    text_input: text_input
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.80
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ValuationParamTextInput:
+        id: text_input
+        size_hint_x: 0.20
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ValuationParamTextInput>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+    
+<PerformanceParameterWidget>:
+    cols: 3
+    row_force_default: True
+    row_default_height: self.height/6
+    spacing: (125, 50)
+
+<PerformanceParameterRow>:
+    cols: 2
+    spacing: 5
+
+    name: name
+    text_input: text_input
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.80
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ValuationParamTextInput:
+        id: text_input
+        size_hint_x: 0.20
+        color: C(hex_black)
+        font_size: stnd_font
+
+<PerformanceParamTextInput>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)

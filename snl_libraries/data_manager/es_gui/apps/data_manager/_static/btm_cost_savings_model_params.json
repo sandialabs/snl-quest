@@ -1,0 +1,74 @@
+[
+    {
+    "name": "energy capacity",
+    "attr name": "Energy_capacity",
+    "notes": "The maximum amount of energy that the ESS can store.",
+    "max": 1000,
+    "default": 100,
+    "step": 1,
+    "units": "kWh"
+    },
+    {
+    "name": "power rating",
+    "attr name": "Power_rating",
+    "notes": "The maximum rate that at which the ESS can charge or discharge energy.",
+    "max": 1000,
+    "default": 100,
+    "step": 1,
+    "units": "kW"
+    },
+    {
+    "name": "transformer rating",
+    "attr name": "Transformer_rating",
+    "notes": "The maximum amount of power that can be exchanged.",
+    "max": 1000000000,
+    "default": 1000000,
+    "step": 1,
+    "units": "kW"
+    },
+    {
+    "name": "self-discharge efficiency",
+    "attr name": "Self_discharge_efficiency",
+    "notes": "The percentage of stored energy that the ESS retains on an hourly basis.",
+    "max": 100,
+    "default": 100,
+    "step": 1,
+    "units": "%/h"
+    },
+    {
+    "name": "round trip efficiency",
+    "attr name": "Round_trip_efficiency",
+    "notes": "The percentage of energy charged that the ESS actually retains.",
+    "max": 100,
+    "default": 85,
+    "step": 1,
+    "units": "%"
+    },
+    {
+    "name": "minimum state of charge",
+    "attr name": "State_of_charge_min",
+    "notes": "The minimum ESS state of charge as a percentage of energy capacity.",
+    "max": 100,
+    "default": 0,
+    "step": 1,
+    "units": "%"
+    },
+    {
+    "name": "maximum state of charge",
+    "attr name": "State_of_charge_max",
+    "notes": "The maximum ESS state of charge as a percentage of energy capacity.",
+    "max": 100,
+    "default": 100,
+    "step": 1,
+    "units": "%"
+    },
+    {
+    "name": "initial state of charge",
+    "attr name": "State_of_charge_init",
+    "notes": "The percentage of energy capacity that the ESS begins with.",
+    "max": 100,
+    "default": 50,
+    "step": 1,
+    "units": "%"
+    }    
+]

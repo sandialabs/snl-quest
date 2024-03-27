@@ -1,0 +1,727 @@
+#: import calendar calendar
+#: import webbrowser webbrowser
+#: import datetime datetime
+#: import app kivy.app
+
+<RateStructureDataScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+        
+        BoxLayout:
+            orientation:
+
+            RateStructureScreenManager:
+
+<RateStructureUtilitySearchScreen>:
+    api_key_input: api_key_input
+    search_text_input: search_text_input
+    search_button: search_button
+    by_name_toggle: by_name_toggle
+    by_zip_toggle: by_zip_toggle
+    by_state_toggle: by_state_toggle
+    utility_select_bx: utility_select_bx
+    utility_rv: utility_rv
+    rate_structure_select_bx: rate_structure_select_bx
+    rate_structure_rv: rate_structure_rv
+    utility_rv_text_filter: utility_rv_text_filter
+    rate_structure_rv_text_filter: rate_structure_rv_text_filter
+    rate_structure_desc: rate_structure_desc
+    
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Search for a utility rate structure.'
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (425, 0)
+            size_hint_y: 0.2
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.33
+
+                DataManagerBodyText:
+                    text: 'Data.gov API key [font=Modern Pictograms][color=00ADD0][ref=keyHelp]?[/ref][/color][/font]'
+                    markup: True
+                    on_ref_press: root.open_api_key_help()
+                    size_hint_x: 0.3
+
+                TextInput:
+                    id: api_key_input
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'API key'
+                    text: app.App.get_running_app().config.get('datamanager-openei', 'openei_key')
+                    size_hint_x: 0.7
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.33
+
+                RateStructureUtilitySearchTextInput:
+                    id: search_text_input
+                    multiline: False
+                    size_hint_x: 0.8
+                    write_tab: False
+                    hint_text: 'Search by name, zip code, or state'
+                
+                TileButton:
+                    id: search_button
+                    background_color: C(hex_primary)
+                    size_hint_x: 0.2
+                    text: 'Search'
+                    on_release: root.execute_search()
+            
+            GridLayout:
+                size_hint_y: 0.33
+                cols: 3
+                spacing: 10
+                padding: (75, 0)
+                # row_force_default: True
+                # row_default_height: self.height/8
+
+                ToggleTileButton:
+                    id: by_name_toggle
+                    group: 'search_type'
+                    text: 'by name'
+                    state: 'down'
+                
+                ToggleTileButton:
+                    id: by_zip_toggle
+                    group: 'search_type'
+                    text: 'by zip'
+                
+                ToggleTileButton:
+                    id: by_state_toggle
+                    group: 'search_type'
+                    text: 'by state'
+                
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.7
+            spacing: 20
+            padding: (50, 0)
+
+            BoxLayout:
+                id: utility_select_bx
+                orientation: 'vertical'
+                size_hint_x: 0.3
+                spacing: 10
+                opacity: 0.05
+
+                DataManagerContentTitle:
+                    text: 'Select a utility.'
+                    color: C(hex_pms178)
+                    size_hint_y: 0.1
+                    font_size: large_font
+
+                TextInput:
+                    id: utility_rv_text_filter
+                    size_hint_y: 0.1
+                    on_text: utility_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: utility_rv
+                    viewclass: 'UtilitySearchRVEntry'
+                    size_hint_y: 0.8
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+            
+            BoxLayout:
+                id: rate_structure_select_bx
+                orientation: 'vertical'
+                spacing: 10
+                opacity: 0.05
+                size_hint_x: 0.7
+
+                DataManagerContentTitle:
+                    text: 'Select a rate structure.'
+                    color: C(hex_pms178)
+                    size_hint_y: 0.1
+                    font_size: large_font
+
+                TextInput:
+                    id: rate_structure_rv_text_filter
+                    size_hint_y: 0.1
+                    on_text: rate_structure_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: rate_structure_rv
+                    viewclass: 'RateStructureRVEntry'
+                    size_hint_y: 0.4
+
+                    SelectableRecycleBoxLayout:
+                        default_size: None, dp(50)
+                        multiselect: False
+                        touch_multiselect: False
+            
+                ScrollView:
+                    size_hint_x: 1
+                    size_hint_y: 0.4
+                    scroll_type: ['bars', 'content']
+                    effect_cls: 'OpacityScrollEffect'
+                    bar_width: dp(5)
+                    bar_color: C(hex_secondary)
+                    bar_inactive_color: C(hex_secondary)
+
+                    DataManagerBodyText:
+                        id: rate_structure_desc
+                        # text_size: self.size
+                        text: ''
+                        size_hint_y: None
+                        size_hint_x: 1
+                        markup: True
+                        valign: 'top'
+                        halign: 'justify'
+                        font_size: stnd_font
+                        font_name: 'Open Sans'
+                
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.35
+                spacing: 10
+
+                BoxLayout:
+                    size_hint_x: 0.5
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Continue'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.next_screen()
+
+<RateStructureEnergyRateStructureScreen>:
+    rate_structure_period_table: rate_structure_period_table
+    weekday_chart: weekday_chart
+    weekend_chart: weekend_chart
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Verify the energy rate structure.'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            padding: (50, 0)
+            size_hint_y: 0.90
+
+            RateStructurePeriodTable:
+                id: rate_structure_period_table
+                cols: 1
+                spacing: 2
+                size_hint_x: 0.3
+                padding: (25, 5)
+                row_force_default: True
+                row_default_height: 28
+                
+                GridLayout:
+                    cols: 2
+                    spacing: 5
+
+                    DataManagerContentSubtitle:
+                        size_hint_x: 0.3
+                        # font_size: stnd_font
+                        text: 'Period'
+                    
+                    DataManagerContentSubtitle:
+                        size_hint_x: 0.7
+                        # font_size: stnd_font
+                        text: 'Rate [$/kWh]'
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.1
+
+                DataManagerContentTitle:
+                    text: 'Weekday'
+                    font_size: stnd_font
+                
+                DataManagerContentTitle:
+                    text: 'Weekend'
+                    font_size: stnd_font
+
+            BoxLayout:
+                orientation: 'vertical'
+                # spacing: 5
+                size_hint_x: 0.6
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    RateStructureScheduleGrid:
+                        id: weekday_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekday_chart
+                        
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    RateStructureScheduleGrid:
+                        id: weekend_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekend_chart
+                        
+        
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.35
+                spacing: 10
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Previous'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Continue'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.next_screen()
+
+<RateStructureTableRow>:
+    cols: 3
+    spacing: 5
+
+    name: name
+    text_input: text_input
+    copy_down_button: copy_down_button
+
+    DataManagerBodyText:
+        id: name
+        size_hint_x: 0.3
+        text: ''
+        color: C(hex_black)
+        font_size: sp(16)
+
+    RateStructureRateTextInput:
+        id: text_input
+        size_hint_x: 0.6
+        on_focus: root._validate_input()
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing: 5
+        size_hint_x: 0.1
+
+        TileButton:
+            id: copy_down_button
+            background_color: C(hex_cloud_dancer)
+            color: C(hex_black)
+            text: 'D'
+            font_name: 'Modern Pictograms'
+            # size_hint_x: 0.25
+            font_size: large_font
+            on_release: root.copy_text_down()
+        
+        # DataManagerBodyText:
+        #     text: 'Copy'
+        #     font_size: sp(16)
+        
+
+<RateStructureRateTextInput>:
+    multiline: False
+    color: C(hex_black)
+    font_size: sp(16)
+    input_filter: 'float'
+    write_tab: False
+
+<RateScheduleRow>:
+    cols: 25
+    spacing: 1
+    row_force_default: True
+    row_default_height: 28
+
+    name: name
+
+    DataManagerBodyText:
+        id: name
+        size_hint_x: 0.05
+        color: C(hex_black)
+        font_size: default_font
+
+<RateScheduleColumnHeader>:
+    font_name: 'Exo 2'
+    color: C(hex_black)
+    size_hint_x: 1/24
+    font_size: sp(16)
+
+<RateScheduleTextInput>:
+    size_hint_x: 1/24
+    multiline: False
+    background_color: self.get_background_color(self.text)
+    foreground_color: self.get_foreground_color(self.text)
+    font_size: sp(16)
+    input_filter: 'int'
+    write_tab: False
+
+<RateStructureScheduleGrid>:
+    rows: 13
+    row_force_default: True
+    row_default_height: 28
+    spacing: 1
+
+<RateStructureDemandRateStructureScreen>:
+    tou_period_table: tou_period_table
+    flat_period_table: flat_period_table
+    weekday_chart: weekday_chart
+    weekend_chart: weekend_chart
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Verify the demand rate structure.'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            padding: (50, 0)
+            size_hint_y: 0.90
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.3
+
+                RateStructurePeriodTable:
+                    id: tou_period_table
+                    cols: 1
+                    spacing: 2
+                    size_hint_y: 0.5
+                    padding: (25, 5)
+                    row_force_default: True
+                    row_default_height: 28
+                    
+                    GridLayout:
+                        cols: 2
+                        spacing: 5
+
+                        DataManagerContentSubtitle:
+                            size_hint_x: 0.3
+                            # font_size: stnd_font
+                            text: 'Period'
+                        
+                        DataManagerContentSubtitle:
+                            size_hint_x: 0.7
+                            # font_size: stnd_font
+                            text: 'Time-of-Use Rate [$/kW]'
+                
+                RateStructurePeriodTable:
+                    id: flat_period_table
+                    cols: 1
+                    spacing: 2
+                    size_hint_y: 0.5
+                    padding: (25, 5)
+                    row_force_default: True
+                    row_default_height: 28
+                    
+                    GridLayout:
+                        cols: 2
+                        spacing: 5
+
+                        DataManagerContentSubtitle:
+                            size_hint_x: 0.3
+                            # font_size: stnd_font
+                            text: 'Month'
+                        
+                        DataManagerContentSubtitle:
+                            size_hint_x: 0.7
+                            # font_size: stnd_font
+                            text: 'Flat Rate [$/kW]'
+            
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.1
+
+                DataManagerContentTitle:
+                    text: 'Weekday'
+                    font_size: stnd_font
+                
+                DataManagerContentTitle:
+                    text: 'Weekend'
+                    font_size: stnd_font
+
+            BoxLayout:
+                orientation: 'vertical'
+                # spacing: 5
+                size_hint_x: 0.6
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    RateStructureScheduleGrid:
+                        id: weekday_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekday_chart
+                        
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    # spacing: 5
+                    
+                    RateStructureScheduleGrid:
+                        id: weekend_chart
+            
+                    # RateScheduleChart:
+                    #     size_hint_y: 0.9
+                    #     id: weekend_chart        
+        
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.35
+                spacing: 10
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Previous'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+                TileButton:
+                    size_hint_x: 0.5
+                    background_color: C(hex_primary)
+                    text: 'Continue'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.next_screen()
+
+<RateStructureFinishScreen>:
+    net_metering_1_toggle: net_metering_1_toggle
+    net_metering_2_toggle: net_metering_2_toggle
+    net_metering_sell_price_field: net_metering_sell_price_field
+    peak_kw_min_field: peak_kw_min_field
+    peak_kw_max_field: peak_kw_max_field
+    save_name_field: save_name_field
+    save_button: save_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Finishing up.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (450, 75)
+            size_hint_y: 0.3
+
+            DataManagerContentTitle:
+                text: 'Peak demand'
+                size_hint_y: 0.1
+            
+            GridLayout:
+                cols: 2
+                spacing: 50
+                size_hint_y: 0.1
+                    
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 5
+
+                    DataManagerBodyText:
+                        text: 'minimum [kW]'
+                        size_hint_x: 0.6
+                    
+                    RateStructureRateTextInput:
+                        id: peak_kw_min_field
+                        size_hint_x: 0.4
+                        input_filter: 'int'
+                        font_size: default_font
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 5
+
+                    DataManagerBodyText:
+                        text: 'maximum [kW]'
+                        size_hint_x: 0.6
+                    
+                    RateStructureRateTextInput:
+                        id: peak_kw_max_field
+                        size_hint_x: 0.4
+                        input_filter: 'int'
+                        font_size: default_font          
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (450, 0)
+            size_hint_y: 0.3
+
+            DataManagerContentTitle:
+                text: 'Net (energy) metering'
+                size_hint_y: 0.1
+            
+            GridLayout:
+                cols: 2
+                spacing: 10
+                size_hint_y: 0.9
+                padding: (0, 25)
+
+                GridLayout:
+                    rows: 3
+                    spacing: 10
+
+                    ToggleTileButton:
+                        id: net_metering_1_toggle
+                        text: 'Net metering 1.0'
+                        group: 'net_metering'
+                    
+                    DataManagerBodyText:
+                        text: 'Energy is sold at a fixed energy price.'
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        spacing: 5
+                        opacity: 1.0 if net_metering_1_toggle.state == 'down' else 0.05
+
+                        DataManagerBodyText:
+                            text: 'sell price [$/kWh]'
+                            size_hint_x: 0.6
+                        
+                        RateStructureRateTextInput:
+                            id: net_metering_sell_price_field
+                            size_hint_x: 0.4
+                            disabled: False if net_metering_1_toggle.state == 'down' else True
+                            input_filter: 'float'
+                            font_size: default_font
+                
+                GridLayout:
+                    rows: 3
+                    spacing: 10
+
+                    ToggleTileButton:
+                        id: net_metering_2_toggle
+                        text: 'Net metering 2.0'
+                        group: 'net_metering'
+                        state: 'down'
+                    
+                    DataManagerBodyText:
+                        text: 'Energy is sold at the time-of-use energy price.'
+                    
+                    BoxLayout:
+                        orientation: 'vertical'
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (450, 75)
+            size_hint_y: 0.3
+
+            DataManagerContentTitle:
+                text: 'Save rate structure'
+                size_hint_y: 0.1
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.1
+
+                RateStructureSaveNameTextInput:
+                    id: save_name_field
+                    multiline: False
+                    size_hint_x: 0.8
+                    write_tab: False
+                    hint_text: 'Enter a name for this rate structure'
+                
+                TileButton:
+                    id: save_button
+                    background_color: C(hex_primary)
+                    size_hint_x: 0.2
+                    text: 'Save'
+                    on_release: root.save_rate_structure()
+        
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.5
+                spacing: 10
+                padding: 0
+
+                TileButton:
+                    background_color: C(hex_primary)
+                    text: 'Previous'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR/2
+                        root.manager.transition.direction = 'right'
+                        root.manager.current = root.manager.previous()
+
+                TileButton:
+                    background_color: C(hex_pms178)
+                    text: 'Start Over'
+                    on_release:
+                        root.manager.transition.duration = BASE_TRANSITION_DUR
+                        root.manager.transition.direction = 'left'
+                        root.next_screen()
+                
+                TileButton:
+                    background_color: C(hex_primary)
+                    text: 'Data Manager Home'
+                    on_release: root.manager.go_to_data_manager_home()

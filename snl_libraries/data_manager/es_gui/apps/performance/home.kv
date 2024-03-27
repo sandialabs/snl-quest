@@ -1,0 +1,63 @@
+<PerformanceHomeScreen>:
+    GridLayout:
+        rows: 1
+        padding: 15, 100
+        spacing: 100
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            ValuationHomeTitle:
+                text: 'Simulation'
+                size_hint_y: 0.1
+
+            GridLayout:
+                cols: 1
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    MenuTileButton:
+                        background_color: C(hex_primary)
+                        text: '[font=Modern Pictograms][size=80]}[/size][/font]\nPerformance Simulation'
+                        on_release: root.manager.current = 'performance_sim'
+
+                #     MenuTileButton:
+                #         background_color: C(hex_pms312)
+                #         text: '[font=Modern Pictograms][size=80])[/size][/font]\nMaybe'
+                #         # on_release: root.manager.current = 'load_data'
+
+                # BoxLayout:
+                #     orientation: 'horizontal'
+                #     spacing: 10
+
+                #     MenuTileButton:
+                #         background_color: C(hex_pms674)
+                #         text: '[font=Modern Pictograms][size=80]#[/size][/font]\nSomething'
+                #         # on_release: root.manager.current = 'load_data'
+
+                #     MenuTileButton:
+                #         id: advanced_button
+                #         background_color: C(hex_pms137)
+                #         text: '[font=Modern Pictograms][size=80],[/size][/font]\nElse'
+                #         # on_release: root.manager.current = 'batch_run'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            ValuationHomeTitle:
+                text: 'Analysis'
+                size_hint_y: 0.1
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+
+                MenuTileButton:
+                    background_color: C(hex_secondary)
+                    text: '[font=Modern Pictograms][size=80]8[/size][/font]\nResults Viewer'
+                    on_release: root.manager.current = 'performance_results_viewer'

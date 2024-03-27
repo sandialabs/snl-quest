@@ -1,0 +1,340 @@
+#: import SlideTransition kivy.uix.screenmanager.SlideTransition
+#: import Thread threading.Thread
+
+<PerformanceSimRunScreen>:
+    sm: sm
+    select_data_button: select_data_button
+    set_parameters_button: set_parameters_button
+    go_button: go_button
+    ready_button: ready_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        TitleTextBase:
+            size_hint_y: 0.05
+            text: 'Run performance simulations.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.80
+
+            PerformanceSimScreenManager:
+                id: sm
+                transition: SlideTransition(duration=BASE_TRANSITION_DUR)
+
+    AnchorLayout:
+        anchor_y: 'center'
+        anchor_x: 'right'
+        size_hint_y: 0.1
+        padding: 10
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.15
+
+            TileButton:
+                id: ready_button
+                background_color: C(hex_secondary)
+                text: 'Ready'
+                on_release: 
+                    sm.transition.direction = 'left'
+                    sm.current = 'selections'
+                    set_parameters_button.disabled = False
+                    select_data_button.disabled = False
+#                    go_button.opacity = 100
+                    go_button.disabled = False
+                    self.disabled = True
+#                    self.opacity = 0
+                    
+            TileButton:
+                id: go_button
+                background_color: C(hex_secondary)
+#                opacity: 0
+                disabled: True
+                text: 'Go!'
+                on_release: 
+                    Thread(target=root.run_batch).start()
+
+#    AnchorLayout:
+#        anchor_y: 'center'
+#        anchor_x: 'center'
+#        size_hint_y: 0.1
+#        padding: 10
+
+#        BoxLayout:
+#            orientation: 'horizontal'
+#            size_hint_x: 0.3
+
+            
+
+    AnchorLayout:
+        anchor_y: 'center'
+        anchor_x: 'center'
+        size_hint_y: 0.1
+        padding: 10
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.30
+            spacing: 5
+
+            TileButton:
+                id: select_data_button
+                disabled: True
+                text: 'Data'
+                on_release:
+                    sm.transition.direction = 'right'
+                    sm.current = 'data'
+                    self.disabled = True
+                    set_parameters_button.disabled = False
+                    go_button.disabled = True
+                    ready_button.disabled = False
+
+            TileButton:
+                id: set_parameters_button
+                text: 'Parameters'
+                on_release:
+                    sm.transition.direction = 'left'
+                    sm.current = 'params'
+                    self.disabled = True
+                    select_data_button.disabled = False
+                    go_button.disabled = True
+                    ready_button.disabled = False
+
+
+
+<PerformanceSimDataScreen>:
+    hvac_select: hvac_select
+    location_select: location_select
+    profile_select: profile_select
+#    rate_select: rate_select
+    hvac_select_bx: hvac_select_bx
+    location_select_bx: location_select_bx
+    profile_select_bx: profile_select_bx
+#    rate_select_bx: rate_select_bx
+    hvac_rv: hvac_rv
+    location_rv: location_rv
+    profile_rv: profile_rv
+#    rate_rv: rate_rv
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: (25, 75)
+        spacing: 5
+#        pos_hint: {'top':1}
+#        size_hint: (1,0.3)
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            GridLayout:
+                rows: 2
+                size_hint_y: 0.9
+                spacing: 25
+                padding: 0
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 25
+                    padding: (50, 0)
+                    size_hint_y: 0.1
+                    
+                    PlotSpinner:
+                        id: hvac_select
+                        text: 'Select HVAC'
+                        on_text: root._hvac_selected()
+                        on_release: root._get_hvac_options()
+            
+                    PlotSpinner:
+                        id: location_select
+                        text: 'Select Location'
+                        on_text: root._location_selected()
+                        on_release: root._get_location_options()
+                                
+                    PlotSpinner:
+                        id: profile_select
+                        text: 'Select Charge/Discharge Profile'
+                        on_text: root._profile_selected()
+                        on_release: root._get_profile_options()
+                        
+#                    PlotSpinner:
+#                        id: rate_select
+#                        text: 'Select Rate Structure'
+#                        on_text: root._rate_selected()
+#                        on_release: root._get_rate_options()
+                        
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 25
+                    padding: (50, 0)
+
+                    BoxLayout:
+                        id: hvac_select_bx
+                        orientation: 'vertical'
+                        size_hint_x: 0.3
+                        spacing: 5
+                        opacity: 0.05
+
+                        TitleTextBase:
+                            text: 'Select an input file'
+                            color: C(hex_pms178)
+                            size_hint_y: 0.1
+                            font_size: large_font
+
+                        MyRecycleView:
+                            id: hvac_rv
+                            viewclass: 'HVACEntry'
+
+                            SelectableRecycleBoxLayout:
+                                multiselect: False
+                                touch_multiselect: False
+
+                    BoxLayout:
+                        id: location_select_bx
+                        orientation: 'vertical'
+                        size_hint_x: 0.3
+                        spacing: 5
+                        opacity: 0.05
+
+                        TitleTextBase:
+                            text: 'Select weather file'
+                            color: C(hex_pms178)
+                            size_hint_y: 0.1
+                            font_size: large_font
+
+                        MyRecycleView:
+                            id: location_rv
+                            viewclass: 'LocationEntry'
+
+                            SelectableRecycleBoxLayout:
+                                multiselect: False
+                                touch_multiselect: False
+                                
+                    BoxLayout:
+                        id: profile_select_bx
+                        orientation: 'vertical'
+                        size_hint_x: 0.3
+                        spacing: 5
+                        opacity: 0.05
+
+                        TitleTextBase:
+                            text: 'Select battery profile'
+                            color: C(hex_pms178)
+                            size_hint_y: 0.1
+                            font_size: large_font
+
+                        MyRecycleView:
+                            id: profile_rv
+                            viewclass: 'ProfileEntry'
+
+                            SelectableRecycleBoxLayout:
+                                multiselect: True
+                                touch_multiselect: True
+
+<PerformanceSimParamScreen>:
+    param_widget: param_widget
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: (50, 50)
+        spacing: 50
+
+        PerformanceParameterWidget:
+            id: param_widget
+            size_hint_y: 0.60
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.40
+            
+<PerformanceSimSelectionsScreen>:
+    content: content
+    hvac_label: hvac_label
+    location_label: location_label
+    profile_label: profile_label
+    params_label: params_label
+                
+    AnchorLayout:
+        anchor_y: 'top'
+        anchor_x: 'center'
+#        size_hint_y: 0.1
+#        padding: 10
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.8
+            id: content
+            opacity: 0
+#            padding: (WIZ_PADDING_X, 0)
+            spacing: 10
+            
+            TitleTextBase:
+                text: 'Selections'
+                color: C(hex_pms178)
+                size_hint_x: 0.3
+                font_size: large_font
+                
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.4
+                spacing: 10
+                padding: 30
+
+                BodyTextBase:
+                    id: hvac_label
+                    markup: True
+                    size_hint_y: 0.1
+                
+                BodyTextBase:
+                    id: location_label
+                    markup: True
+                    size_hint_y: 0.1
+                
+                BodyTextBase:
+                    id: profile_label
+                    markup: True
+                    size_hint_y: 0.6
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.3
+                spacing: 10
+                padding: 30
+
+                BodyTextBase:
+                    id: params_label
+                    markup: True
+
+<BatchParamSpinnerOptionCls>:
+    font_size: stnd_font
+    halign: 'center'
+    markup: True
+    background_color: C(hex_cloud_dancer)
+
+<BatchParamSpinner>:
+    font_size: stnd_font
+    background_color: C(hex_primary)
+    color: C(hex_white)
+
+<PerformanceRunPopup>:
+    size_hint: (0.40, 0.50)
+    title: 'Simulating...'
+
+    popup_text: popup_text
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+            size_hint_y: 0.8
+            markup: True
+            halign: 'left'
+            valign: 'top'
+            text: 'Your specified batch runs have been completed.'

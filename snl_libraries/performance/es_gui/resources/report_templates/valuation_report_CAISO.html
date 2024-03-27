@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+
+{% include "head.html" ignore missing %}
+
+
+
+{% include "optimization.html" ignore missing %}
+
+
+
+<!-- CAISO -->
+\begin{align}
+\max_{q^\text{d},q^\text{r},q^\text{ru},q^\text{rd}} \sum_{i \in \mathcal{T}} \big( \lambda_i q_i^\text{d} - \lambda_i q_i^\text{r} + \lambda_i^\text{c,ru} q_i^\text{ru} + \lambda_i^\text{c,rd} q_i^\text{rd} + \lambda_i \delta_i^\text{ru} q_i^\text{ru} - \lambda_i \delta_i^\text{rd} q_i^\text{rd} + \gamma_i^\text{ru}\beta_i^\text{ru}\lambda_i^\text{p,ru} + \gamma_i^\text{rd}\beta_i^\text{rd}\lambda_i^\text{p,rd} \big) e^{-Ri}
+\end{align}
+<br />
+subject to the following constraints
+<br />
+\begin{align}
+s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} & - q_i^\text{d} + \eta_\text{c} \delta_i^\text{rd} q_i^\text{rd} - \delta_i^\text{ru} q_i^\text{ru} \\
+0 \leq s_i & \leq \bar{S} \\
+q_i^\text{r} + q_i^\text{d} + q_i^\text{ru} + q_i^\text{rd} & \leq \bar Q
+\end{align}
+<br />
+for all time periods \(i \in \mathcal{T} \). The total revenue can be calculated as           
+<br />
+\begin{align}
+r_\text{arb} & = \sum_{i \in \mathcal{T}} \lambda_i \big( q_i^\text{d} - q_i^\text{r} \big) \\
+r_\text{reg} & = \sum_{i \in \mathcal{T}} \lambda_i^\text{c,ru} q_i^\text{ru} + \lambda_i^\text{c,rd} q_i^\text{rd} + \lambda_i(\delta_i^\text{ru} q_i^\text{ru} - \delta_i^\text{rd} q_i^\text{rd}) + \gamma_i^\text{ru}\beta_i^\text{ru}\lambda_i^\text{p,ru} + \gamma_i^\text{rd}\beta_i^\text{rd}\lambda_i^\text{p,rd}\\
+r & = r_\text{arb} + r_\text{reg}
+\end{align}
+<br />
+The data required to run this analysis in CAISO are the day ahead LMP, mileage multiplier, reg up price, reg down price, reg mileage up price and reg mileage down price.
+<br />
+<br />
+NOTE: If the energy storage device is not participating in frequency regulation, \( q_i^\text{ru} \) and \( q_i^\text{rd} \) are equal to zero for all \( i \in \mathcal{T} \).
+<br />
+<br />
+
+<div align="center"> <!-- center content -->
+<table width="70%", class="center">
+  <tr>
+    <th>Parameter</th>
+    <th>Description</th> 
+    <th>Units</th>
+  </tr>
+  <tr>
+    <td>\( q_i^\text{r} \) </td>
+    <td> Energy charged from time period \(i\) to \(i+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( q_i^\text{d} \) </td>
+    <td> Energy discharged from time period \(i\) to \(i+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( q_i^\text{ru} \) </td>
+    <td> Energy allocated for frequency regulation up from time period \(i\) to \(i+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( q_i^\text{rd} \) </td>
+    <td> Energy allocated for frequency regulation down from time period \(i\) to \(i+1\) </td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( s_i \) </td>
+    <td>Energy storage state of charge at time period \(i\)</td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td>\( \bar{Q} \) </td>
+    <td>Power rating</td> 
+    <td> MW </td>
+  </tr>
+  <tr>
+    <td>\( \bar{S} \) </td>
+    <td>Energy capacity</td> 
+    <td> MWh </td>
+  </tr>
+  <tr>
+    <td> \( \eta_\text{s} \) </td>
+    <td> Self-discharge efficiency</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \eta_\text{c} \) </td>
+    <td> Round-trip efficiency</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \delta_i^\text{ru} \) </td>
+    <td> Fraction of regulation up provided from time period \(i\) to \(i+1\) </td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \delta_i^\text{rd} \) </td>
+    <td> Fraction of regulation down provided from time period \(i\) to \(i+1\)</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( R \) </td>
+    <td> Discount/interest rate</td> 
+    <td> % </td>
+  </tr>
+  <tr>
+    <td>\( \gamma_i^\text{ru} \) </td>
+    <td> Performance score for reg up from time period \(i\) to \(i+1\)</td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \gamma_i^\text{rd} \) </td>
+    <td> Performance score for reg down from time period \(i\) to \(i+1\)</td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \beta_i^\text{ru} \) </td>
+    <td> Mileage multiplier for reg up from time period \(i\) to \(i+1\) </td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \beta_i^\text{rd} \) </td>
+    <td> Mileage multiplier for reg down from time period \(i\) to \(i+1\) </td>
+    <td> -- </td>
+  </tr>
+  <tr>
+    <td>\( \lambda_i \) </td>
+    <td> Electricity price from time period \(i\) to \(i+1\)  </td> 
+    <td> $/MWh </td>
+  </tr>
+  <tr>
+    <td>\( \lambda_i^\text{c,ru} \) </td>
+    <td> Freq. regulation up price from time period \(i\) to \(i+1\) </td>
+    <td> $/MWh </td>
+  </tr>
+  <tr>
+    <td>\( \lambda_i^\text{c,rd} \) </td>
+    <td> Freq. regulation down price from time period \(i\) to \(i+1\) </td>
+    <td> $/MWh </td>
+  </tr>
+    <tr>
+    <td>\( \lambda_i^\text{p,ru} \) </td>
+    <td> Freq. regulation mileage (performance) up price from time period \(i\) to \(i+1\) </td>
+    <td> $/MWh </td>
+  </tr>
+  <tr>
+    <td>\( \lambda_i^\text{p,rd} \) </td>
+    <td> Freq. regulation mileage (performance) down price from time period \(i\) to \(i+1\) </td>
+    <td> $/MWh </td>
+  </tr>
+</table>
+<h4>Table 2: Notation</h4>
+</div>
+
+
+{% include "optimization2.html" ignore missing %}
+
+
+<h3>Assumptions</h3>
+The following assumptions were used:
+<ul>
+  <li> The time periods are hourly. </li>
+  <li> The discount/interest rate is fixed and equal to 0. </li>
+  <li> The amount of energy provided for regulation up is equal to 25% of the quantity offered. </li>
+  <li> The amount of energy provided for regulation down is equal to 25% of the quantity offered. </li>
+</ul>
+
+
+{% include "results_foot.html" ignore missing %}
+
+</div>
+</body>
+</html>

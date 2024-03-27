@@ -1,0 +1,127 @@
+#: import C kivy.utils.get_color_from_hex
+# Color sets.
+#:set hex_pantone1625c '#FFA38B'
+#:set hex_pantone294c '#002F6C'
+#:set hex_pantone427c '#D0D3D4'
+#
+#:set hex_cloud_dancer '#F0EEE9'
+#:set hex_scuba_blue '#00ABC0'
+#:set hex_ultra_violet '#5F4B8B'
+#
+#:set hex_snl_medium_blue '005376'
+#:set hex_snl_green '84BD00'
+#:set hex_snl_gray '3D3D3D'
+
+# Application palette.
+# QuESt foundation colors
+#:set hex_primary hex_snl_medium_blue
+#:set hex_secondary hex_snl_green
+
+# QuESt support colors
+#:set hex_pms312 '00ADD0'
+#:set hex_pms137 'FFA300'
+#:set hex_pms178 'FF585D'
+#:set hex_pms674 'AE2573'
+
+#:set hex_black hex_snl_gray
+#:set hex_white '#FFFFFF'
+
+
+<ChartScreen>:
+    chart_top: chart_top
+    # chart_bottom: chart_bottom
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 25
+
+        # RateScheduleGridLayout:
+
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            MultisetBarChart:
+                id: chart_top
+
+            Button:
+                size_hint_y: 0.1
+                text: 'draw bar chart'
+                on_release: root.draw_multiset_chart(chart_top)
+        
+        # BoxLayout:
+        #     orientation: 'vertical'
+
+        #     RateScheduleChart:
+        #         id: chart_bottom
+
+        #     Button:
+        #         size_hint_y: 0.1
+        #         text: 'draw bar chart'
+        #         on_release: root.draw_rate_schedule_chart(chart_bottom)
+
+<RateScheduleGridLayout>:
+    cols: 24
+    row_force_default: True
+    row_default_height: 30
+
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+    RateScheduleTextInput:
+        
+
+<RateScheduleTextInput@TextInput>:
+    multiline: False
+    background_color: C(hex_primary) if self.text == '0' else C(hex_cloud_dancer)
+    foreground_color: C(hex_white) if self.text == '0' else C(hex_black)
+    # font_size: stnd_font
+    input_filter: 'float'
+    write_tab: False
+    on_focus: self.select_all() if self.focus else self.cancel_selection() 

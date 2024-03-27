@@ -1,0 +1,148 @@
+<NSRDBDataScreen>:
+    api_key_input: api_key_input
+    param_widget: param_widget
+    save_name_field: save_name_field
+    save_button: save_button
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 20
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Search for a weather file.'
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (425, 0)
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+
+                DataManagerBodyText:
+                    text: 'Data.gov API key [font=Modern Pictograms][color=00ADD0][ref=keyHelp]?[/ref][/color][/font]'
+                    markup: True
+                    on_ref_press: root.open_api_key_help()
+                    size_hint_x: 0.3
+
+                TextInput:
+                    id: api_key_input
+                    multiline: False
+                    #password: True
+                    write_tab: False
+                    hint_text: 'API key'
+                    text: app.App.get_running_app().config.get('datamanager-openei', 'openei_key')
+                    size_hint_x: 0.7
+                
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.95
+            padding: (0, 20)
+            spacing: 10
+            
+            NSRDBParameterWidget:
+                id: param_widget
+                size_hint_y: 0.85
+                padding: (0, 0)
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                size_hint_y: 0.075
+
+                NSRDBSaveNameTextInput:
+                    id: save_name_field
+                    multiline: False
+                    size_hint_x: 0.8
+                    write_tab: False
+                    hint_text: 'Enter a name for this profile'
+                
+                TileButton:
+                    id: save_button
+                    background_color: C(hex_primary)
+                    size_hint_x: 0.2
+                    text: 'Save'
+                    on_release: root.execute_query()
+
+<NSRDBParameterWidget>:
+    cols: 2
+#    row_force_default: True
+#    row_default_height: 40
+    spacing: (75, 50)
+    
+<ParameterRowNSRDB>:
+    rows: 1
+    spacing: 20
+
+    name: name
+    notes: notes
+    text_input: text_input
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.20
+        text: ''
+        color: C(hex_secondary)
+        font_size: stnd_font
+        bold: True
+    
+    BodyTextBase:
+        id: notes
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ParamTextInput:
+        id: text_input
+        size_hint_x: 0.15
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ParamTextInputNSRDB>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    input_filter: 'float'
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+    
+<ParameterRowTextNSRDB>:
+    rows: 1
+    spacing: 20
+
+    name: name
+    notes: notes
+    text_input: text_input
+
+    BodyTextBase:
+        id: name
+        size_hint_x: 0.20
+        text: ''
+        color: C(hex_secondary)
+        font_size: stnd_font
+        bold: True
+    
+    BodyTextBase:
+        id: notes
+        size_hint_x: 0.55
+        text: ''
+        color: C(hex_black)
+        font_size: stnd_font
+
+    ParamTextInputText:
+        id: text_input
+        size_hint_x: 0.15
+        color: C(hex_black)
+        font_size: stnd_font
+
+<ParamTextInputTextNSRDB>:
+    size_hint_x: 0.25
+    multiline: False
+    write_tab: False
+    font_size: stnd_font
+    background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)

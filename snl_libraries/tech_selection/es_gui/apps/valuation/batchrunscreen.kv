@@ -1,0 +1,294 @@
+#: import SlideTransition kivy.uix.screenmanager.SlideTransition
+
+<BatchRunScreen>:
+    batch_sm: batch_sm
+    select_data_button: select_data_button
+    set_parameters_button: set_parameters_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        TitleTextBase:
+            size_hint_y: 0.05
+            text: 'Run multiple valuations with one click.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.80
+
+            ValuationBatchRunScreenManager:
+                id: batch_sm
+                transition: SlideTransition(duration=BASE_TRANSITION_DUR)
+
+    AnchorLayout:
+        anchor_y: 'center'
+        anchor_x: 'right'
+        size_hint_y: 0.1
+        padding: 10
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.15
+
+            TileButton:
+                background_color: C(hex_secondary)
+                text: 'Go!'
+                on_release: root.run_batch()
+
+    AnchorLayout:
+        anchor_y: 'center'
+        anchor_x: 'center'
+        size_hint_y: 0.1
+        padding: 10
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.30
+            spacing: 5
+
+            TileButton:
+                id: select_data_button
+                disabled: True
+                text: 'Data'
+                on_release:
+                    batch_sm.transition.direction = 'right'
+                    batch_sm.current = 'data'
+                    self.disabled = True
+                    set_parameters_button.disabled = False
+
+            TileButton:
+                id: set_parameters_button
+                text: 'Parameters'
+                on_release:
+                    batch_sm.transition.direction = 'left'
+                    batch_sm.current = 'params'
+                    self.disabled = True
+                    select_data_button.disabled = False
+
+
+
+<BatchRunDataScreen>:
+    iso_select: iso_select
+    revstreams_select: revstreams_select
+    month_rv: month_rv
+    node_rv: node_rv
+    months_select_bx: months_select_bx
+    node_select_bx: node_select_bx
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: (50, 75)
+        spacing: 5
+
+        BoxLayout:
+            orientation: 'vertical'
+
+            GridLayout:
+                rows: 2
+                size_hint_y: 0.9
+                spacing: 25
+                padding: 0
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 50
+                    padding: (50, 0)
+                    size_hint_y: 0.1
+
+                    PlotSpinner:
+                        id: iso_select
+                        text: 'Select market area'
+                        on_text: root._iso_selected()
+                        on_release: root._get_iso_options()
+
+                    PlotSpinner:
+                        id: revstreams_select
+                        text: 'Select revenue streams'
+                        on_text: root._revstreams_selected()
+                        disabled: True
+                        opacity: 0.05
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    size_hint_y: 0.8
+                    spacing: 50
+                    padding: (50, 0)
+
+                    BoxLayout:
+                        id: node_select_bx
+                        orientation: 'vertical'
+                        size_hint_x: 0.5
+                        spacing: 5
+                        opacity: 0.05
+
+                        TitleTextBase:
+                            text: 'Select a pricing node.'
+                            color: C(hex_pms178)
+                            size_hint_y: 0.1
+                            font_size: large_font
+
+                        TextInput:
+                            size_hint_y: 0.1
+                            on_text: node_rv.filter_rv_data(self.text)
+                            hint_text: 'Filter by name'
+                            multiline: False
+
+                        MyRecycleView:
+                            id: node_rv
+                            viewclass: 'BatchRVNodeEntry'
+
+                            SelectableRecycleBoxLayout:
+                                multiselect: False
+                                touch_multiselect: False
+
+                    BoxLayout:
+                        id: months_select_bx
+                        orientation: 'vertical'
+                        size_hint_x: 0.5
+                        spacing: 5
+                        opacity: 0.05
+
+                        TitleTextBase:
+                            text: 'Select months to evaluate.'
+                            color: C(hex_pms178)
+                            size_hint_y: 0.1
+                            font_size: large_font
+
+                        MyRecycleView:
+                            id: month_rv
+                            viewclass: 'RecycleViewRow'
+
+                            SelectableRecycleBoxLayout:
+                                multiselect: True
+                                touch_multiselect: True
+
+<BatchRunParamScreen>:
+    param_widget: param_widget
+    param_sweep_spinner: param_sweep_spinner
+    param_min_input: param_min_input
+    param_max_input: param_max_input
+    param_step_input: param_step_input
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: (50, 50)
+        spacing: 50
+
+        ValuationParameterWidget:
+            id: param_widget
+            size_hint_y: 0.60
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.40
+
+            AnchorLayout:
+                anchor_x: 'right'
+                anchor_y: 'bottom'
+
+                GridLayout:
+                    cols: 1
+                    #size_hint_y: 0.40
+                    spacing: 10
+                    #padding: 45, 0
+                    row_force_default: True
+                    row_default_height: 50
+                    size_hint_x: 0.4
+
+                    TitleTextBase:
+                        text: 'Optional: parameter sweep'
+                        color: C(hex_pms178)
+                        font_size: large_font
+
+        #            BodyTextBase:
+        #                text: 'Note: This will take precedence over single values entered on the left.'
+
+                    PlotSpinner:
+                        id: param_sweep_spinner
+                        text: 'Select a parameter to sweep'
+                        on_text: root._disable_text_input(self.text)
+
+                    GridLayout:
+                        cols: 3
+                        spacing: 30
+                        row_force_default: True
+                        row_default_height: 45
+
+                        ValuationParamTextInput:
+                            id: param_min_input
+                            hint_text: 'min'
+
+                        ValuationParamTextInput:
+                            id: param_max_input
+                            hint_text: 'max'
+
+                        ValuationParamTextInput:
+                            id: param_step_input
+                            hint_text: '# of steps'
+                            input_filter: 'int'
+
+# <BatchRunParameterWidget>:
+#     cols: 3
+#     row_force_default: True
+#     row_default_height: self.height/6
+#     spacing: (125, 50)
+
+# <BatchRunParameterRow>:
+#     cols: 2
+#     spacing: 5
+
+#     name: name
+#     text_input: text_input
+
+#     BodyTextBase:
+#         id: name
+#         size_hint_x: 0.80
+#         text: ''
+#         color: C(hex_black)
+#         font_size: stnd_font
+
+#     BatchParamTextInput:
+#         id: text_input
+#         size_hint_x: 0.20
+#         color: C(hex_black)
+#         font_size: stnd_font
+
+# <BatchParamTextInput>:
+#     size_hint_x: 0.25
+#     multiline: False
+#     write_tab: False
+#     font_size: stnd_font
+#     input_filter: 'float'
+#     background_color: C(hex_cloud_dancer) if self.disabled else C(hex_white)
+#     on_focus: self.select_all() if self.focus else self.cancel_selection()
+
+<BatchParamSpinnerOptionCls>:
+    font_size: stnd_font
+    halign: 'center'
+    markup: True
+    background_color: C(hex_cloud_dancer)
+
+<BatchParamSpinner>:
+    font_size: stnd_font
+    background_color: C(hex_primary)
+    color: C(hex_white)
+
+<BatchRVEntry>:
+    canvas.before:
+        Color:
+            rgba: C(hex_primary) if self.selected else C(hex_cloud_dancer)
+            a: 0.2 if self.selected else 1.0
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    name: ''
+    Label:
+        text: root.name
+        color: C(hex_secondary) if root.selected else C(hex_black)
+        font_size: stnd_font
+        text_size: self.size
+        valign: 'middle'
+        halign: 'left'
+        padding: (10, 10)

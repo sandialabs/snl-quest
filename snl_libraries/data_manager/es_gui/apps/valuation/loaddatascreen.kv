@@ -1,0 +1,258 @@
+#: kivy 1.10.0
+# import ListAdapter kivy.adapters.listadapter.ListAdapter 
+# import ListItemButton kivy.uix.listview.ListItemButton 
+
+
+<LoadToolbar@BoxLayout>:
+    spacing: 10
+    
+#    canvas.before:
+#        Color:
+#            rgb: C(hex_black)
+#        Rectangle:
+#            pos: self.pos
+#            size: self.size
+        
+        
+# <ListItemButton>:
+#     font_size: stnd_font
+#     selected_color: 1, 1, 1, 1
+#     deselected_color: 0, 0, 0, 1
+
+<MySpinner@Spinner>:
+    background_normal: 'es_gui/resources/images/button_normal.png'
+    background_down: 'es_gui/resources/images/button_down.png'
+    font_size: default_font
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+    markup: True
+
+<MySpinner_arrow@Spinner>:
+    background_normal: 'es_gui/resources/images/arrow_button_normal_transparent.png'
+    background_down: 'es_gui/resources/images/arrow_button_normal_transparent_down.png'
+    background_color: C(hex_primary)
+    border: 0, 0, 0, 0
+    font_size: default_font
+    text_size: 0.75*self.width, None
+    height: self.texture_size[1]
+    halign: 'center'
+    markup: True
+
+
+<LoadDataScreen>:
+    #mes_pop: mes_pop
+    iso_select: iso_select
+    type_select: type_select
+    node_select: node_select
+    #node_id: node_id
+    year_select: year_select
+    month_select: month_select
+    #load_button: load_button
+    iso_img: iso_img
+    
+    GridLayout:
+        cols: 1
+        padding: 10
+        spacing: 5
+
+        TitleTextBase:
+            size_hint_y: 0.05
+            text: 'Specify the time, location, and market parameters for the simulation.'
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: (1, 0.85)
+
+            Image:
+                id: iso_img
+                source: 'es_gui/resources/images/markets_map.png'
+       
+        LoadToolbar:
+            size_hint: (1, 0.10)
+            
+            MySpinner_arrow:
+                id: iso_select
+                # background_normal: 'es_gui/resources/images/arrow_head_button_normal.png'
+                # background_down: 'es_gui/resources/images/arrow_head_button_down.png'
+                size_hint: (0.165,1)
+                text: 'Select market area'
+                font_size: default_font
+                on_text: root.reset_toolbar()
+            
+            MySpinner_arrow:
+                id: node_select
+                size_hint: (0.165,1)
+                text: 'Select node'
+                font_size: default_font
+                on_release: root.load_nodeid(iso_select.text)
+                
+            # GridLayout:
+            #     cols: 3
+            #     rows: 1
+            #     padding: 0
+            #     spacing: 0
+            #     size_hint: (0.165, 1)
+                
+            #     BoxLayout:
+            #         orientation: 'vertical'
+            #         size_hint: (0.125, 1)
+
+            #         Button:
+            #             background_normal: 'es_gui/resources/images/arrow_tail_transparent.png'
+            #             background_disabled_normal: 'es_gui/resources/images/arrow_tail_transparent.png'
+            #             background_color: C(hex_primary)
+            #             allow_stretch: True
+            #             border: 0, 0, 0, 0
+            #             keep_ratio: False
+            #             disabled: True
+
+            #     StackLayout:
+            #         size_hint: (0.75,1)
+            #         orientation: 'tb-lr'
+            #         spacing: 0
+            #         padding: 0
+
+            #         canvas.before:
+            #             Color:
+            #                 rgba: C(hex_primary)
+            #             Rectangle:
+            #                 pos: self.pos
+            #                 size: self.size
+
+            #         MySpinner:
+            #             id: node_select
+            #             background_color: C(hex_primary)
+            #             text: 'Select node'
+            #             font_size: default_font
+            #             size_hint: (1,0.5)
+            #             on_release: root.load_nodeid(iso_select.text)
+            #             #on_text: root.set_nodeid(node_select.text)
+                    
+            #         TextInput:
+            #             id: node_id
+            #             hint_text: "or input ID"
+            #             size_hint: (1,0.5)
+            #             valign: 'middle'
+            #             halign: 'center'
+            #             multiline: False
+
+            #     BoxLayout:
+            #         orientation: 'vertical'
+            #         size_hint: (0.125,1)
+
+            #         Button:
+            #             background_normal: 'es_gui/resources/images/arrow_head_transparent.png'
+            #             background_disabled_normal: 'es_gui/resources/images/arrow_head_transparent.png'
+            #             background_color: C(hex_primary)
+            #             allow_stretch: True
+            #             border: 0, 0, 0, 0
+            #             keep_ratio: False
+            #             disabled: True
+            
+            MySpinner_arrow:
+                id: type_select
+                text: 'Select revenue streams'
+                size_hint: (0.165,1)
+                text_size: 0.8*self.width, None
+                on_release: root.load_dtype(iso_select.text)
+            
+            MySpinner_arrow:
+                id: year_select
+                size_hint: (0.165,1)
+                text: 'Select year'
+                on_release: root.load_year(iso_select.text)
+                    
+            MySpinner_arrow:
+                id: month_select
+                size_hint: (0.165,1)
+                text: 'Select month'
+                on_release: root.load_month(iso_select.text,year_select.text)
+                #on_text: root.enable_load()
+
+            TileButton:
+                #id: load_button
+                size_hint: (0.165,1)
+                text: 'Set parameters'
+                background_normal: 'es_gui/resources/images/arrow_button_normal_transparent.png'
+                background_down: 'es_gui/resources/images/arrow_button_normal_transparent_down.png'
+                background_color: C(hex_secondary)
+                border: 0, 0, 0, 0
+                font_size: default_font
+                text_size: self.width, None
+                height: self.texture_size[1]
+                halign: 'center'
+                on_release: root.manager.current = 'set_parameters'
+
+#            TileButton:
+#                id: load_button
+#                border: 0, 0, 0, 0
+#                background_normal: 'es_gui/resources/images/arrow_button_tail_normal.png'
+#                background_down: 'es_gui/resources/images/arrow_button_tail_down.png'
+#                background_disabled_normal: 'es_gui/resources/images/arrow_button_tail_disable_normal.png'
+#                background_disabled_down: 'es_gui/resources/images/arrow_button_tail_disable_normal.png'
+#                disabled: True
+#                text: 'Load data'
+#                size_hint: (0.165, 1)
+#                on_release: root.load_data(iso_select.text,type_select.text,year_select.text,month_select.text,node_id.text)
+    # MessagePopup:
+    #     id: mes_pop
+<MessagePopup>:
+    pop_label: pop_label
+    title: 'Messages!'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        PopupLabel:
+            id: pop_label
+            text: 'No Messages'
+
+        Button:
+            size_hint: (1, 0.20)
+            text: 'Dismiss'
+            on_release: root.dismiss()
+
+<NodeSelectMenu>:
+    size_hint: (0.30, 0.80)
+    auto_dismiss: False
+    node_select_bx: node_select_bx
+    node_rv: node_rv
+
+    BoxLayout:
+        id: node_select_bx
+        orientation: 'vertical'
+        spacing: 10
+        padding: (25, 10)
+
+        canvas.before:
+            Color:
+                rgba: C(hex_white)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        TitleTextBase:
+            text: 'Select a pricing node.'
+            size_hint_y: 0.1
+            font_size: large_font
+
+        TextInput:
+            size_hint_y: 0.1
+            on_text: node_rv.filter_rv_data(self.text)
+            hint_text: 'Filter by name'
+            multiline: False
+
+        MyRecycleView:
+            id: node_rv
+            viewclass: 'SingleRunNodeRecycleViewRow'
+
+            SelectableRecycleBoxLayout:
+                multiselect: False
+                touch_multiselect: False
+
+        TileButton:
+            size_hint_y: 0.1
+            text: 'Continue'
+            on_release: root.dismiss()

@@ -1,0 +1,45 @@
+[
+    {
+        "type": "options",
+        "title": "Optimization solver",
+        "desc": "The solver that Pyomo will use to solve its models.",
+        "section": "optimization",
+        "key": "solver",
+        "options": ["cbc",
+                    "gurobi",
+                    "glpk",
+                    "ipopt",
+                    "cplex",
+                    "neos"]
+    },
+    {
+        "type": "title",
+        "title": "Connection"
+    },
+    {
+        "type": "bool",
+        "title": "Use proxy",
+        "desc": "Additionally specify a proxy for connecting to the internet (e.g., for QuESt Data Manager). Usually unnecessary if your device proxy settings are already configured.",
+        "section": "connectivity",
+        "key": "use_proxy"
+    },
+    {
+        "type": "string",
+        "title": "HTTP Proxy",
+        "section": "connectivity",
+        "key": "http_proxy"
+    },
+    {
+        "type": "string",
+        "title": "HTTPS Proxy",
+        "section": "connectivity",
+        "key": "https_proxy"
+    },
+    {
+        "type": "bool",
+        "title": "Use SSL verification",
+        "desc": "Verify SSL certificates for HTTPS requests. Certain network configurations have issues with SSL verification and won't allow requests to go through with this enabled. Disable this to ignore the verification process - but at your own risk.",
+        "section": "connectivity",
+        "key": "use_ssl_verify"
+    }
+]

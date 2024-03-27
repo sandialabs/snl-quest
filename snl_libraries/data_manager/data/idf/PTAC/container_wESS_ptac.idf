@@ -1,0 +1,1011 @@
+!- Windows Line endings 
+
+SimulationControl,
+    No,                       !- Do Zone Sizing Calculation
+    Yes,                      !- Do System Sizing Calculation
+    No,                       !- Do Plant Sizing Calculation
+    Yes,                      !- Run Simulation for Sizing Periods
+    Yes;                      !- Run Simulation for Weather File Run Periods
+
+Building,
+    Simple One Zone,          !- Name
+    0,                        !- North Axis
+    Suburbs,                  !- Terrain
+    0.04,                     !- Loads Convergence Tolerance Value
+    0.004,                    !- Temperature Convergence Tolerance Value
+    MinimalShadowing,         !- Solar Distribution
+    30,                       !- Maximum Number of Warmup Days
+    6;                        !- Minimum Number of Warmup Days
+
+SurfaceConvectionAlgorithm:Inside,
+    TARP;                     !- Algorithm
+
+SurfaceConvectionAlgorithm:Outside,
+    DOE-2;                    !- Algorithm
+
+HeatBalanceAlgorithm,
+    ConductionTransferFunction;    !- Algorithm
+
+Timestep,
+    4;                        !- Number of Timesteps per Hour
+
+SizingPeriod:WeatherFileConditionType,
+    Extreme Winter for Design,    !- Name
+    WinterExtreme,            !- Period Selection
+    WinterDesignDay,          !- Day of Week for Start Day
+    No,                       !- Use Weather File Daylight Saving Period
+    No;                       !- Use Weather File Rain and Snow Indicators
+
+SizingPeriod:WeatherFileConditionType,
+    Extreme Summer for Design,    !- Name
+    SummerExtreme,            !- Period Selection
+    SummerDesignDay,          !- Day of Week for Start Day
+    No,                       !- Use Weather File Daylight Saving Period
+    No;                       !- Use Weather File Rain and Snow Indicators
+
+RunPeriod,
+    Run Period 0,             !- Name
+    3,                        !- Begin Month
+    1,                        !- Begin Day of Month
+    2020,                     !- Begin Year
+    3,                        !- End Month
+    31,                       !- End Day of Month
+    2020,                     !- End Year
+    Sunday,                   !- Day of Week for Start Day
+    Yes,                      !- Use Weather File Holidays and Special Days
+    Yes,                      !- Use Weather File Daylight Saving Period
+    No,                       !- Apply Weekend Holiday Rule
+    Yes,                      !- Use Weather File Rain Indicators
+    Yes;                      !- Use Weather File Snow Indicators
+
+RunPeriod,
+    Run Period 1,             !- Name
+    2,                        !- Begin Month
+    1,                        !- Begin Day of Month
+    2020,                     !- Begin Year
+    2,                        !- End Month
+    29,                       !- End Day of Month
+    2020,                     !- End Year
+    Saturday,                 !- Day of Week for Start Day
+    Yes,                      !- Use Weather File Holidays and Special Days
+    Yes,                      !- Use Weather File Daylight Saving Period
+    No,                       !- Apply Weekend Holiday Rule
+    Yes,                      !- Use Weather File Rain Indicators
+    Yes;                      !- Use Weather File Snow Indicators
+
+RunPeriod,
+    Run Period 2,             !- Name
+    1,                        !- Begin Month
+    1,                        !- Begin Day of Month
+    2020,                     !- Begin Year
+    1,                        !- End Month
+    31,                       !- End Day of Month
+    2020,                     !- End Year
+    Wednesday,                !- Day of Week for Start Day
+    Yes,                      !- Use Weather File Holidays and Special Days
+    Yes,                      !- Use Weather File Daylight Saving Period
+    No,                       !- Apply Weekend Holiday Rule
+    Yes,                      !- Use Weather File Rain Indicators
+    Yes;                      !- Use Weather File Snow Indicators
+
+RunPeriodControl:DaylightSavingTime,
+    2nd Sunday in March,      !- Start Date
+    2nd Sunday in November;    !- End Date
+
+ScheduleTypeLimits,
+    Fraction,                 !- Name
+    0,                        !- Lower Limit Value
+    1,                        !- Upper Limit Value
+    CONTINUOUS;               !- Numeric Type
+
+ScheduleTypeLimits,
+    Any Number;               !- Name
+
+ScheduleTypeLimits,
+    On/Off,                   !- Name
+    0,                        !- Lower Limit Value
+    1,                        !- Upper Limit Value
+    DISCRETE;                 !- Numeric Type
+
+ScheduleTypeLimits,
+    HVACTemplate Any Number;    !- Name
+
+Schedule:Compact,
+    ALWAYS 4,                 !- Name
+    Any Number,               !- Schedule Type Limits Name
+    Through: 12/31,           !- Field 1
+    For: AllDays,             !- Field 2
+    Until: 24:00,             !- Field 3
+    4;                        !- Field 4
+
+Schedule:Compact,
+    ALWAYS 20,                !- Name
+    Any Number,               !- Schedule Type Limits Name
+    Through: 12/31,           !- Field 1
+    For: AllDays,             !- Field 2
+    Until: 24:00,             !- Field 3
+    20;                       !- Field 4
+
+Schedule:Compact,
+    ALWAYS 24,                !- Name
+    Any Number,               !- Schedule Type Limits Name
+    Through: 12/31,           !- Field 1
+    For: AllDays,             !- Field 2
+    Until: 24:00,             !- Field 3
+    24;                       !- Field 4
+
+Schedule:Compact,
+    HVACTemplate-Always 0,    !- Name
+    HVACTemplate Any Number,    !- Schedule Type Limits Name
+    Through: 12/31,           !- Field 1
+    For: AllDays,             !- Field 2
+    Until: 24:00,             !- Field 3
+    0;                        !- Field 4
+
+Schedule:Compact,
+    HVACTemplate-Always 1,    !- Name
+    HVACTemplate Any Number,    !- Schedule Type Limits Name
+    Through: 12/31,           !- Field 1
+    For: AllDays,             !- Field 2
+    Until: 24:00,             !- Field 3
+    1;                        !- Field 4
+
+Schedule:Constant,
+    Infiltration Schedule,    !- Name
+    Fraction,                 !- Schedule Type Limits Name
+    1;                        !- Hourly Value
+
+Schedule:Constant,
+    AlwaysOn,                 !- Name
+    On/Off,                   !- Schedule Type Limits Name
+    1;                        !- Hourly Value
+
+Schedule:Constant,
+    Battery Heat Loss Schedule,    !- Name
+    Fraction,                 !- Schedule Type Limits Name
+    0;                        !- Hourly Value
+
+Schedule:Constant,
+    Ventilation Schedule,     !- Name
+    Fraction,                 !- Schedule Type Limits Name
+    0;                        !- Hourly Value
+
+Schedule:Constant,
+    HVAC Availability,        !- Name
+    On/Off,                   !- Schedule Type Limits Name
+    1;                        !- Hourly Value
+
+Material,
+    Corten Steel,             !- Name
+    MediumRough,              !- Roughness
+    0.002,                    !- Thickness
+    16,                       !- Conductivity
+    8000,                     !- Density
+    500,                      !- Specific Heat
+    0.89,                     !- Thermal Absorptance
+    0.913;                    !- Solar Absorptance
+
+Material,
+    Marine Plywood 28mm,      !- Name
+    Smooth,                   !- Roughness
+    0.028,                    !- Thickness
+    0.12,                     !- Conductivity
+    540,                      !- Density
+    1210;                     !- Specific Heat
+
+Material,
+    Steel Base,               !- Name
+    Smooth,                   !- Roughness
+    0.127,                    !- Thickness
+    45.28,                    !- Conductivity
+    7824,                     !- Density
+    500;                      !- Specific Heat
+
+Material:NoMass,
+    Insulation,               !- Name
+    Rough,                    !- Roughness
+    0.1;                      !- Thermal Resistance
+
+Construction,
+    Base,                     !- Name
+    Steel Base,               !- Outside Layer
+    Marine Plywood 28mm;      !- Layer 2
+
+CONSTRUCTION,
+    Outer Shell,              !- Name
+    Corten Steel;             !- Outside Layer
+
+GlobalGeometryRules,
+    UpperLeftCorner,          !- Starting Vertex Position
+    CounterClockWise,         !- Vertex Entry Direction
+    World;                    !- Coordinate System
+
+Zone,
+    ZONE ONE,                 !- Name
+    0,                        !- Direction of Relative North
+    0,                        !- X Origin
+    0,                        !- Y Origin
+    0,                        !- Z Origin
+    1,                        !- Type
+    1,                        !- Multiplier
+    2.89,                     !- Ceiling Height
+    84.62;                    !- Volume
+
+BuildingSurface:Detailed,
+    Zn001:Wall001,            !- Name
+    Wall,                     !- Surface Type
+    Outer Shell,              !- Construction Name
+    ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
+    Outdoors,                 !- Outside Boundary Condition
+    ,                         !- Outside Boundary Condition Object
+    SunExposed,               !- Sun Exposure
+    WindExposed,              !- Wind Exposure
+    0.5,                      !- View Factor to Ground
+    4,                        !- Number of Vertices
+    0,                        !- Vertex 1 Xcoordinate
+    0,                        !- Vertex 1 Ycoordinate
+    2.89,                     !- Vertex 1 Zcoordinate
+    0,                        !- Vertex 2 Xcoordinate
+    0,                        !- Vertex 2 Ycoordinate
+    0,                        !- Vertex 2 Zcoordinate
+    12.2,                     !- Vertex 3 Xcoordinate
+    0,                        !- Vertex 3 Ycoordinate
+    0,                        !- Vertex 3 Zcoordinate
+    12.2,                     !- Vertex 4 Xcoordinate
+    0,                        !- Vertex 4 Ycoordinate
+    2.89;                     !- Vertex 4 Zcoordinate
+
+BuildingSurface:Detailed,
+    Zn001:Wall002,            !- Name
+    Wall,                     !- Surface Type
+    Outer Shell,              !- Construction Name
+    ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
+    Outdoors,                 !- Outside Boundary Condition
+    ,                         !- Outside Boundary Condition Object
+    SunExposed,               !- Sun Exposure
+    WindExposed,              !- Wind Exposure
+    0.5,                      !- View Factor to Ground
+    4,                        !- Number of Vertices
+    12.2,                     !- Vertex 1 Xcoordinate
+    0,                        !- Vertex 1 Ycoordinate
+    2.89,                     !- Vertex 1 Zcoordinate
+    12.2,                     !- Vertex 2 Xcoordinate
+    0,                        !- Vertex 2 Ycoordinate
+    0,                        !- Vertex 2 Zcoordinate
+    12.2,                     !- Vertex 3 Xcoordinate
+    2.4,                      !- Vertex 3 Ycoordinate
+    0,                        !- Vertex 3 Zcoordinate
+    12.2,                     !- Vertex 4 Xcoordinate
+    2.4,                      !- Vertex 4 Ycoordinate
+    2.89;                     !- Vertex 4 Zcoordinate
+
+BuildingSurface:Detailed,
+    Zn001:Wall003,            !- Name
+    Wall,                     !- Surface Type
+    Outer Shell,              !- Construction Name
+    ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
+    Outdoors,                 !- Outside Boundary Condition
+    ,                         !- Outside Boundary Condition Object
+    SunExposed,               !- Sun Exposure
+    WindExposed,              !- Wind Exposure
+    0.5,                      !- View Factor to Ground
+    4,                        !- Number of Vertices
+    12.2,                     !- Vertex 1 Xcoordinate
+    2.4,                      !- Vertex 1 Ycoordinate
+    2.89,                     !- Vertex 1 Zcoordinate
+    12.2,                     !- Vertex 2 Xcoordinate
+    2.4,                      !- Vertex 2 Ycoordinate
+    0,                        !- Vertex 2 Zcoordinate
+    0,                        !- Vertex 3 Xcoordinate
+    2.4,                      !- Vertex 3 Ycoordinate
+    0,                        !- Vertex 3 Zcoordinate
+    0,                        !- Vertex 4 Xcoordinate
+    2.4,                      !- Vertex 4 Ycoordinate
+    2.89;                     !- Vertex 4 Zcoordinate
+
+BuildingSurface:Detailed,
+    Zn001:Wall004,            !- Name
+    Wall,                     !- Surface Type
+    Outer Shell,              !- Construction Name
+    ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
+    Outdoors,                 !- Outside Boundary Condition
+    ,                         !- Outside Boundary Condition Object
+    SunExposed,               !- Sun Exposure
+    WindExposed,              !- Wind Exposure
+    0.5,                      !- View Factor to Ground
+    4,                        !- Number of Vertices
+    0,                        !- Vertex 1 Xcoordinate
+    2.4,                      !- Vertex 1 Ycoordinate
+    2.89,                     !- Vertex 1 Zcoordinate
+    0,                        !- Vertex 2 Xcoordinate
+    2.4,                      !- Vertex 2 Ycoordinate
+    0,                        !- Vertex 2 Zcoordinate
+    0,                        !- Vertex 3 Xcoordinate
+    0,                        !- Vertex 3 Ycoordinate
+    0,                        !- Vertex 3 Zcoordinate
+    0,                        !- Vertex 4 Xcoordinate
+    0,                        !- Vertex 4 Ycoordinate
+    2.89;                     !- Vertex 4 Zcoordinate
+
+BuildingSurface:Detailed,
+    Zn001:Flr001,             !- Name
+    Floor,                    !- Surface Type
+    Base,                     !- Construction Name
+    ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
+    Foundation,               !- Outside Boundary Condition
+    Floor Details,            !- Outside Boundary Condition Object
+    NoSun,                    !- Sun Exposure
+    NoWind,                   !- Wind Exposure
+    1,                        !- View Factor to Ground
+    4,                        !- Number of Vertices
+    12.2,                     !- Vertex 1 Xcoordinate
+    0,                        !- Vertex 1 Ycoordinate
+    0,                        !- Vertex 1 Zcoordinate
+    0,                        !- Vertex 2 Xcoordinate
+    0,                        !- Vertex 2 Ycoordinate
+    0,                        !- Vertex 2 Zcoordinate
+    0,                        !- Vertex 3 Xcoordinate
+    2.4,                      !- Vertex 3 Ycoordinate
+    0,                        !- Vertex 3 Zcoordinate
+    12.2,                     !- Vertex 4 Xcoordinate
+    2.4,                      !- Vertex 4 Ycoordinate
+    0;                        !- Vertex 4 Zcoordinate
+
+BuildingSurface:Detailed,
+    Zn001:Roof001,            !- Name
+    Roof,                     !- Surface Type
+    Outer Shell,              !- Construction Name
+    ZONE ONE,                 !- Zone Name
+    ,                         !- Space Name
+    Outdoors,                 !- Outside Boundary Condition
+    ,                         !- Outside Boundary Condition Object
+    SunExposed,               !- Sun Exposure
+    WindExposed,              !- Wind Exposure
+    0,                        !- View Factor to Ground
+    4,                        !- Number of Vertices
+    0,                        !- Vertex 1 Xcoordinate
+    2.4,                      !- Vertex 1 Ycoordinate
+    2.89,                     !- Vertex 1 Zcoordinate
+    0,                        !- Vertex 2 Xcoordinate
+    0,                        !- Vertex 2 Ycoordinate
+    2.89,                     !- Vertex 2 Zcoordinate
+    12.2,                     !- Vertex 3 Xcoordinate
+    0,                        !- Vertex 3 Ycoordinate
+    2.89,                     !- Vertex 3 Zcoordinate
+    12.2,                     !- Vertex 4 Xcoordinate
+    2.4,                      !- Vertex 4 Ycoordinate
+    2.89;                     !- Vertex 4 Zcoordinate
+
+Foundation:Kiva,
+    Floor Details,            !- Name
+    ,                         !- Initial Indoor Air Temperature
+    ,                         !- Interior Horizontal Insulation Material Name
+    ,                         !- Interior Horizontal Insulation Depth
+    ,                         !- Interior Horizontal Insulation Width
+    ,                         !- Interior Vertical Insulation Material Name
+    ,                         !- Interior Vertical Insulation Depth
+    ,                         !- Exterior Horizontal Insulation Material Name
+    ,                         !- Exterior Horizontal Insulation Depth
+    ,                         !- Exterior Horizontal Insulation Width
+    ,                         !- Exterior Vertical Insulation Material Name
+    ,                         !- Exterior Vertical Insulation Depth
+    0,                        !- Wall Height Above Grade
+    0,                        !- Wall Depth Below Slab
+    ;                         !- Footing Wall Construction Name
+
+SurfaceProperty:ExposedFoundationPerimeter,
+    Zn001:Flr001,             !- Surface Name
+    ExposedPerimeterFraction,    !- Exposed Perimeter Calculation Method
+    ,                         !- Total Exposed Perimeter
+    1,                        !- Exposed Perimeter Fraction
+    ;                         !- Surface Segment 1 Exposed
+
+ElectricEquipment,
+    BATTERY,                  !- Name
+    ZONE ONE,                 !- Zone or ZoneList or Space or SpaceList Name
+    Battery Heat Loss Schedule,    !- Schedule Name
+    EquipmentLevel,           !- Design Level Calculation Method
+    1000000,                  !- Design Level
+    ,                         !- Watts per Zone Floor Area
+    ,                         !- Watts per Person
+    0,                        !- Fraction Latent
+    0,                        !- Fraction Radiant
+    0;                        !- Fraction Lost
+
+ZoneInfiltration:DesignFlowRate,
+    Infiltration,             !- Name
+    ZONE ONE,                 !- Zone or ZoneList Name
+    Infiltration Schedule,    !- Schedule Name
+    Flow/Zone,                !- Design Flow Rate Calculation Method
+    0,                        !- Design Flow Rate
+    ,                         !- Flow per Zone Floor Area
+    ,                         !- Flow per Exterior Surface Area
+    0,                        !- Air Changes per Hour
+    0,                        !- Constant Term Coefficient
+    0,                        !- Temperature Term Coefficient
+    0.224,                    !- Velocity Term Coefficient
+    0;                        !- Velocity Squared Term Coefficient
+
+ZoneVentilation:WindandStackOpenArea,
+    Zone Ventilation,         !- Name
+    ZONE ONE,                 !- Zone Name
+    6.936,                    !- Opening Area
+    Ventilation Schedule,     !- Opening Area Fraction Schedule Name
+    ,                         !- Opening Effectiveness
+    270,                      !- Effective Angle
+    1.445;                    !- Height Difference
+
+DesignSpecification:OutdoorAir,
+    SZ DSOA ZONE ONE,         !- Name
+    flow/person,              !- Outdoor Air Method
+    0,                        !- Outdoor Air Flow per Person
+    0,                        !- Outdoor Air Flow per Zone Floor Area
+    0;                        !- Outdoor Air Flow per Zone
+
+DesignSpecification:ZoneAirDistribution,
+    SZ DSZAD ZONE ONE,        !- Name
+    1,                        !- Zone Air Distribution Effectiveness in Cooling Mode
+    1;                        !- Zone Air Distribution Effectiveness in Heating Mode
+
+Sizing:Zone,
+    ZONE ONE,                 !- Zone or ZoneList Name
+    SupplyAirTemperature,     !- Zone Cooling Design Supply Air Temperature Input Method
+    13,                       !- Zone Cooling Design Supply Air Temperature
+    11.11,                    !- Zone Cooling Design Supply Air Temperature Difference
+    SupplyAirTemperature,     !- Zone Heating Design Supply Air Temperature Input Method
+    50,                       !- Zone Heating Design Supply Air Temperature
+    ,                         !- Zone Heating Design Supply Air Temperature Difference
+    0.008,                    !- Zone Cooling Design Supply Air Humidity Ratio
+    0.008,                    !- Zone Heating Design Supply Air Humidity Ratio
+    SZ DSOA ZONE ONE,         !- Design Specification Outdoor Air Object Name
+    ,                         !- Zone Heating Sizing Factor
+    ,                         !- Zone Cooling Sizing Factor
+    DesignDay,                !- Cooling Design Air Flow Method
+    0,                        !- Cooling Design Air Flow Rate
+    ,                         !- Cooling Minimum Air Flow per Zone Floor Area
+    ,                         !- Cooling Minimum Air Flow
+    0,                        !- Cooling Minimum Air Flow Fraction
+    DesignDay,                !- Heating Design Air Flow Method
+    0,                        !- Heating Design Air Flow Rate
+    ,                         !- Heating Maximum Air Flow per Zone Floor Area
+    ,                         !- Heating Maximum Air Flow
+    0,                        !- Heating Maximum Air Flow Fraction
+    SZ DSZAD ZONE ONE;        !- Design Specification Zone Air Distribution Object Name
+
+ZoneControl:Thermostat,
+    ZONE ONE Thermostat,      !- Name
+    ZONE ONE,                 !- Zone or ZoneList Name
+    ALWAYS 4,                 !- Control Type Schedule Name
+    ThermostatSetpoint:DualSetpoint,    !- Control 1 Object Type
+    Office Thermostat Dual SP Control;    !- Control 1 Name
+
+ThermostatSetpoint:DualSetpoint,
+    Office Thermostat Dual SP Control,    !- Name
+    ALWAYS 20,                !- Heating Setpoint Temperature Schedule Name
+    ALWAYS 24;                !- Cooling Setpoint Temperature Schedule Name
+
+ZoneHVAC:PackagedTerminalAirConditioner,
+    ZONE ONE PTAC,            !- Name
+    HVAC Availability,        !- Availability Schedule Name
+    ZONE ONE PTAC Return,     !- Air Inlet Node Name
+    ZONE ONE PTAC Supply Inlet,    !- Air Outlet Node Name
+    OutdoorAir:Mixer,         !- Outdoor Air Mixer Object Type
+    ZONE ONE PTAC OA Mixing Box,    !- Outdoor Air Mixer Name
+    autosize,                 !- Cooling Supply Air Flow Rate
+    autosize,                 !- Heating Supply Air Flow Rate
+    ,                         !- No Load Supply Air Flow Rate
+    autosize,                 !- Cooling Outdoor Air Flow Rate
+    autosize,                 !- Heating Outdoor Air Flow Rate
+    autosize,                 !- No Load Outdoor Air Flow Rate
+    Fan:OnOff,                !- Supply Air Fan Object Type
+    ZONE ONE PTAC Supply Fan,    !- Supply Air Fan Name
+    Coil:Heating:Electric,    !- Heating Coil Object Type
+    ZONE ONE PTAC Heating Coil,    !- Heating Coil Name
+    Coil:Cooling:DX:SingleSpeed,    !- Cooling Coil Object Type
+    ZONE ONE PTAC Cooling Coil,    !- Cooling Coil Name
+    DrawThrough,              !- Fan Placement
+    HVACTemplate-Always 0;    !- Supply Air Fan Operating Mode Schedule Name
+
+ZoneHVAC:EquipmentList,
+    ZONE ONE Equipment,       !- Name
+    SequentialLoad,           !- Load Distribution Scheme
+    ZoneHVAC:PackagedTerminalAirConditioner,    !- Zone Equipment 1 Object Type
+    ZONE ONE PTAC,            !- Zone Equipment 1 Name
+    1,                        !- Zone Equipment 1 Cooling Sequence
+    1,                        !- Zone Equipment 1 Heating or NoLoad Sequence
+    ,                         !- Zone Equipment 1 Sequential Cooling Fraction Schedule Name
+    ;                         !- Zone Equipment 1 Sequential Heating Fraction Schedule Name
+
+ZoneHVAC:EquipmentConnections,
+    ZONE ONE,                 !- Zone Name
+    ZONE ONE Equipment,       !- Zone Conditioning Equipment List Name
+    ZONE ONE PTAC Supply Inlet,    !- Zone Air Inlet Node or NodeList Name
+    ZONE ONE PTAC Return,     !- Zone Air Exhaust Node or NodeList Name
+    ZONE ONE Zone Air Node,    !- Zone Air Node Name
+    ZONE ONE Return Outlet;    !- Zone Return Air Node or NodeList Name
+
+Fan:OnOff,
+    ZONE ONE PTAC Supply Fan,    !- Name
+    HVACTemplate-Always 1,    !- Availability Schedule Name
+    0.7,                      !- Fan Total Efficiency
+    75,                       !- Pressure Rise
+    autosize,                 !- Maximum Flow Rate
+    0.9,                      !- Motor Efficiency
+    1,                        !- Motor In Airstream Fraction
+    ZONE ONE PTAC Heating Coil Outlet,    !- Air Inlet Node Name
+    ZONE ONE PTAC Supply Inlet;    !- Air Outlet Node Name
+
+Coil:Cooling:DX:SingleSpeed,
+    ZONE ONE PTAC Cooling Coil,    !- Name
+    ,                         !- Availability Schedule Name
+    15000,                    !- Gross Rated Total Cooling Capacity
+    autosize,                 !- Gross Rated Sensible Heat Ratio
+    3,                        !- Gross Rated Cooling COP
+    3,                        !- Rated Air Flow Rate
+    ,                         !- Rated Evaporator Fan Power Per Volume Flow Rate
+    ZONE ONE PTAC Mixed Air Outlet,    !- Air Inlet Node Name
+    ZONE ONE PTAC Cooling Coil Outlet,    !- Air Outlet Node Name
+    ZONE ONE PTAC Cooling Coil Cap-FT,    !- Total Cooling Capacity Function of Temperature Curve Name
+    ZONE ONE PTAC Cooling Coil Cap-FF,    !- Total Cooling Capacity Function of Flow Fraction Curve Name
+    ZONE ONE PTAC Cooling Coil EIR-FT,    !- Energy Input Ratio Function of Temperature Curve Name
+    ZONE ONE PTAC Cooling Coil EIR-FF,    !- Energy Input Ratio Function of Flow Fraction Curve Name
+    ZONE ONE PTAC Cooling Coil Coil PLF,    !- Part Load Fraction Correlation Curve Name
+    -100,                     !- Minimum Outdoor DryBulb Temperature for Compressor Operation
+    0,                        !- Nominal Time for Condensate Removal to Begin
+    0,                        !- Ratio of Initial Moisture Evaporation Rate and Steady State Latent Capacity
+    0,                        !- Maximum Cycling Rate
+    0,                        !- Latent Capacity Time Constant
+    ZONE ONE PTAC Cooling Coil Condenser Inlet,    !- Condenser Air Inlet Node Name
+    AirCooled,                !- Condenser Type
+    0,                        !- Evaporative Condenser Effectiveness
+    ,                         !- Evaporative Condenser Air Flow Rate
+    0,                        !- Evaporative Condenser Pump Rated Power Consumption
+    0,                        !- Crankcase Heater Capacity
+    10;                       !- Maximum Outdoor DryBulb Temperature for Crankcase Heater Operation
+
+Coil:Heating:Electric,
+    ZONE ONE PTAC Heating Coil,    !- Name
+    ,                         !- Availability Schedule Name
+    1,                        !- Efficiency
+    25000,                    !- Nominal Capacity
+    ZONE ONE PTAC Cooling Coil Outlet,    !- Air Inlet Node Name
+    ZONE ONE PTAC Heating Coil Outlet,    !- Air Outlet Node Name
+    ;                         !- Temperature Setpoint Node Name
+
+OutdoorAir:Mixer,
+    ZONE ONE PTAC OA Mixing Box,    !- Name
+    ZONE ONE PTAC Mixed Air Outlet,    !- Mixed Air Node Name
+    ZONE ONE PTAC Outside Air Inlet,    !- Outdoor Air Stream Node Name
+    ZONE ONE PTAC Relief Air Outlet,    !- Relief Air Stream Node Name
+    ZONE ONE PTAC Return;     !- Return Air Stream Node Name
+
+OutdoorAir:Node,
+    ZONE ONE PTAC Outside Air Inlet,    !- Name
+    -1;                       !- Height Above Ground
+
+OutdoorAir:Node,
+    ZONE ONE PTAC Cooling Coil Condenser Inlet,    !- Name
+    -1;                       !- Height Above Ground
+
+Curve:Quadratic,
+    ZONE ONE PTAC Cooling Coil Cap-FF,    !- Name
+    0.8,                      !- Coefficient1 Constant
+    0.2,                      !- Coefficient2 x
+    0,                        !- Coefficient3 x2
+    0.5,                      !- Minimum Value of x
+    1.5;                      !- Maximum Value of x
+
+Curve:Quadratic,
+    ZONE ONE PTAC Cooling Coil EIR-FF,    !- Name
+    1.1552,                   !- Coefficient1 Constant
+    -0.1808,                  !- Coefficient2 x
+    0.0256,                   !- Coefficient3 x2
+    0.5,                      !- Minimum Value of x
+    1.5;                      !- Maximum Value of x
+
+Curve:Quadratic,
+    ZONE ONE PTAC Cooling Coil Coil PLF,    !- Name
+    0.85,                     !- Coefficient1 Constant
+    0.15,                     !- Coefficient2 x
+    0,                        !- Coefficient3 x2
+    0,                        !- Minimum Value of x
+    1;                        !- Maximum Value of x
+
+Curve:Biquadratic,
+    ZONE ONE PTAC Cooling Coil Cap-FT,    !- Name
+    0.942587793,              !- Coefficient1 Constant
+    0.009543347,              !- Coefficient2 x
+    0.00068377,               !- Coefficient3 x2
+    -0.011042676,             !- Coefficient4 y
+    5.249e-06,                !- Coefficient5 y2
+    -9.72e-06,                !- Coefficient6 xy
+    12.77778,                 !- Minimum Value of x
+    23.88889,                 !- Maximum Value of x
+    18,                       !- Minimum Value of y
+    46.11111;                 !- Maximum Value of y
+
+Curve:Biquadratic,
+    ZONE ONE PTAC Cooling Coil EIR-FT,    !- Name
+    0.342414409,              !- Coefficient1 Constant
+    0.034885008,              !- Coefficient2 x
+    -0.0006237,               !- Coefficient3 x2
+    0.004977216,              !- Coefficient4 y
+    0.000437951,              !- Coefficient5 y2
+    -0.000728028,             !- Coefficient6 xy
+    12.77778,                 !- Minimum Value of x
+    23.88889,                 !- Maximum Value of x
+    18,                       !- Minimum Value of y
+    46.11111;                 !- Maximum Value of y
+
+Output:VariableDictionary,
+    IDF;                      !- Key Field
+
+Output:Surfaces:Drawing,
+    dxf:wireframe;            !- Report Type
+
+Output:Constructions,
+    Constructions;            !- Details Type 1
+
+Output:EnergyManagementSystem,
+    Verbose,                  !- Actuator Availability Dictionary Reporting
+    Verbose,                  !- Internal Variable Availability Dictionary Reporting
+    Verbose;                  !- EMS Runtime Language Debug Output Level
+
+Output:Table:SummaryReports,
+    AllSummary;               !- Report 1 Name
+
+OutputControl:Table:Style,
+    ALL;                      !- Column Separator
+
+Output:Variable,
+    *,                        !- Key Value
+    Site Outdoor Air Drybulb Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Site Daylight Saving Time Status,    !- Variable Name
+    daily;                    !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Site Day Type Index,      !- Variable Name
+    daily;                    !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Mean Air Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Total Internal Latent Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Mean Radiant Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Surface Convection Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Air Energy Storage Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Temperature,    !- Variable Name
+    daily;                    !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Outside Face Temperature,    !- Variable Name
+    daily;                    !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Convection Heat Transfer Coefficient,    !- Variable Name
+    daily;                    !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Outside Face Convection Heat Transfer Coefficient,    !- Variable Name
+    daily;                    !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Other Equipment Total Heating Energy,    !- Variable Name
+    monthly;                  !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Other Equipment Total Heating Energy,    !- Variable Name
+    monthly;                  !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Site Total Zone Exfiltration Heat Loss,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Site Total Zone Exhaust Air Heat Loss,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Exfiltration Heat Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Exfiltration Sensible Heat Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Exfiltration Latent Heat Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Exhaust Air Heat Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Exhaust Air Sensible Heat Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Exhaust Air Latent Heat Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Internal Convective Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Surface Convection Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Interzone Air Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Outdoor Air Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance System Air Transfer Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance System Convective Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Air Heat Balance Air Energy Storage Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Purchased Electric Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Purchased Electric Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Surplus Electric Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Surplus Electric Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Net Purchased Electric Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Net Purchased Electric Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Building Electric Demand Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total HVAC Electric Demand Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Electric Demand Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Produced Electric Power,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Facility Total Produced Electric Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Outside Face Convection Heat Transfer Coefficient,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Convection Heat Transfer Coefficient,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Interior Movable Insulation Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Outside Face Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Adjacent Air Temperature,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Convection Heat Transfer Coefficient,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Convection Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Convection Heat Gain Rate per Area,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Convection Heat Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Net Surface Thermal Radiation Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Net Surface Thermal Radiation Heat Gain Rate per Area,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Net Surface Thermal Radiation Heat Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Solar Radiation Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Solar Radiation Heat Gain Rate per Area,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Solar Radiation Heat Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Lights Radiation Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Lights Radiation Heat Gain Rate per Area,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Lights Radiation Heat Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Internal Gains Radiation Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Internal Gains Radiation Heat Gain Rate per Area,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face Internal Gains Radiation Heat Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face System Radiation Heat Gain Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face System Radiation Heat Gain Rate per Area,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Surface Inside Face System Radiation Heat Gain Energy,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Packaged Terminal Air Conditioner Total Heating Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Packaged Terminal Air Conditioner Total Cooling Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Variable,
+    *,                        !- Key Value
+    Zone Packaged Terminal Air Conditioner Electricity Rate,    !- Variable Name
+    hourly;                   !- Reporting Frequency
+
+Output:Meter:MeterFileOnly,
+    EnergyTransfer:Building,    !- Key Name
+    hourly;                   !- Reporting Frequency
+
+Output:Meter:MeterFileOnly,
+    EnergyTransfer:Facility,    !- Key Name
+    hourly;                   !- Reporting Frequency
