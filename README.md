@@ -1,6 +1,6 @@
 <img src="snl_libraries/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
-# QuESt 2.0: Open-source platform for energy storage 
+# QuESt 2.0: Open-source Platform for Energy Storage Analytics
 
 Current release version: 2.0
 
