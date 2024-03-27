@@ -168,15 +168,6 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 
 
-### Contact
-<a id="contact"></a>
-Tu Nguyen
-tunguy@sandia.gov
-
-### Feedback
-<a id="feedback"></a>
-For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
-
 ### References
 <a id="references"></a>
 Nguyen, Tu A., David A. Copp, and Raymond H. Byrne. "Stacking Revenue of Energy Storage System from Resilience, T&D Deferral and Arbitrage." 2019 IEEE Power & Energy Society General Meeting (PESGM). IEEE, 2019.
