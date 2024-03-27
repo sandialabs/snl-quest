@@ -1,6 +1,6 @@
 <img src="snl_libraries/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
-# QuESt 2.0: Open-source platform for energy storage 
+# QuESt 2.0: Open-source Platform for Energy Storage Analytics
 
 Current release version: 2.0
 
@@ -167,15 +167,6 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
    This will return you to your system's default Python environment.
 
 
-
-### Contact
-<a id="contact"></a>
-Tu Nguyen
-tunguy@sandia.gov
-
-### Feedback
-<a id="feedback"></a>
-For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
 
 ### References
 <a id="references"></a>
