@@ -1,7 +1,7 @@
 import sys
 import os
 import ctypes
-import psutil
+# import psutil
 from PySide6.QtGui import (
     QIcon,
 )
