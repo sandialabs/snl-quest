@@ -105,22 +105,22 @@ class IndexScreen(Screen):
         help_carousel_view = HelpCarouselModalView()
         help_carousel_view.title.text = "Welcome to QuESt"
 
-        slide_01_text = "QuESt is an application suite for energy storage valuation.\n\nThe list on the left contains the currently available applications. Click on an application to learn a little more about it. Once you have selected an application, click on the 'Get started' button underneath its description to open it."
+        slide_01_text = "QuESt BTM is an application with tools for analyzing behind-the-meter energy storage use cases."
 
-        slide_02_text = "At the top of the QuESt window is the action bar. The QuESt logo on the left end of the action bar serves as a back button; click on it to return to the previous screen. On the right end of the action bar is the navigation toolbar. The buttons here change depending on the context but several, like those pictured, persist.\n\nYou can use the 'home' button to return to this index screen at any time."
+        slide_02_text = "The Time-of-Use Cost Savings wizard estimates the cost savings with behind-the-meter energy storage.\n\nYou will need the following data to use this tool:\n* Utility rate structure\n* Load profile (or import your own)\n\nYou may also add a co-located photovoltaic power profile or import your own."
 
-        slide_03_text = "In QuESt, input data management is separate from the analysis tools. Use the QuESt Data Manager to acquire data before proceeding to other QuESt applications and using their analysis tools."
+        slide_03_text = "Upon completion of the wizard, you will be taken to the summary report screen. There a number of reports you can browse through that summarize different aspects of the simulation results. A brief synopsis of each component of the results including some key numbers.\n\nThe 'Generate report' button can be used to produce a document that summarizes the wizard run."
 
-        slide_04_text = "In some QuESt applications, it is possible to import and use your own data. Look out for prompts such as these to open the data importer interface. Please refer to each individual application and tool for specific details!"
+        slide_04_text = "This document includes your input selections, a primer on the mathematical model used, and all of the charts from the wizard summary reports.\n\nThe resulting HTML document and images are saved to the /results/*/report directory. You can view the report in a web browser."
 
-        slide_05_text = "Looking for more help? Check the navigation bar while in each QuESt application for a 'help' button to open an information carousel like this one for application-specific help."
+        slide_05_text = "You can view simulation results in more detail using the Results Viewer tool. You can plot time series data and export simulation results for external processing."
 
         slides = [
-            (os.path.join("es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "03.png"), slide_03_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "04.png"), slide_04_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "05.png"), slide_05_text),
+            (os.path.join("es_gui", "resources", "help_views", "btm", "01.png"), slide_01_text),
+            (os.path.join("es_gui", "resources", "help_views", "btm", "02.png"), slide_02_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "wizard_report", "01.png"), slide_03_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "wizard_report", "02.png"), slide_04_text),
+            (os.path.join("es_gui", "resources", "help_views", "common", "results_viewer", "00.png"), slide_05_text),
         ]
 
         help_carousel_view.add_slides(slides)

@@ -97,24 +97,27 @@ class IndexScreen(Screen):
         help_carousel_view = HelpCarouselModalView()
         help_carousel_view.title.text = "Welcome to QuESt"
 
-        slide_01_text = "QuESt is an application suite for energy storage valuation.\n\nThe list on the left contains the currently available applications. Click on an application to learn a little more about it. Once you have selected an application, click on the 'Get started' button underneath its description to open it."
-
-        slide_02_text = "At the top of the QuESt window is the action bar. The QuESt logo on the left end of the action bar serves as a back button; click on it to return to the previous screen. On the right end of the action bar is the navigation toolbar. The buttons here change depending on the context but several, like those pictured, persist.\n\nYou can use the 'home' button to return to this index screen at any time."
-
-        slide_03_text = "In QuESt, input data management is separate from the analysis tools. Use the QuESt Data Manager to acquire data before proceeding to other QuESt applications and using their analysis tools."
-
-        slide_04_text = "In some QuESt applications, it is possible to import and use your own data. Look out for prompts such as these to open the data importer interface. Please refer to each individual application and tool for specific details!"
-
-        slide_05_text = "Looking for more help? Check the navigation bar while in each QuESt application for a 'help' button to open an information carousel like this one for application-specific help."
+        slide_01_text = ('QuESt Technology Selection is an application with tools for identifying feasible storage '
+                         'technlogies for a given project.')
+        slide_02_text = ('The technology selection wizard identifies which energy storage technologies satisfy the minimum '
+                         'application requirements (such as discharge duration and response time) and rank them. The user '
+                         'is required to indicate the grid location where the storage system will be deployed, which set '
+                         'default values for the other types of inputs.')
+        slide_03_text = ('Upon completion of the wizard, you will be taken to the first results screen, which indicates '
+                         'whether each energy storage technology is a feasible option for the desired project.')
+        slide_04_text = ('The next results screen displays a rank of the feasible technologies based on four factors. The '
+                         'user can modify the weights assigned to each one of these factors, as well as the desired target '
+                         'cost (the latter affects the Cost Score). These adjustments will be reflected in the new Total '
+                         'Score for each technology.')
+        slide_05_text = 'Finally, the user can export any of the previous results to .png or .csv files.'
 
         slides = [
-            (os.path.join("es_gui", "resources", "help_views", "index", "01.png"), slide_01_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "02.png"), slide_02_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "03.png"), slide_03_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "04.png"), slide_04_text),
-            (os.path.join("es_gui", "resources", "help_views", "index", "05.png"), slide_05_text),
+            (os.path.join('es_gui', 'resources', 'help_views', 'tech_selection', '01.png'), slide_01_text),
+            (os.path.join('es_gui', 'resources', 'help_views', 'tech_selection', '03.png'), slide_02_text),
+            (os.path.join('es_gui', 'resources', 'help_views', 'tech_selection', '05.png'), slide_03_text),
+            (os.path.join('es_gui', 'resources', 'help_views', 'tech_selection', '06.png'), slide_04_text),
+            (os.path.join('es_gui', 'resources', 'help_views', 'tech_selection', '07.png'), slide_05_text),
         ]
-
         help_carousel_view.add_slides(slides)
         help_carousel_view.open()
 
