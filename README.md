@@ -100,23 +100,23 @@ QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics 
 QuESt is currently available on Github at: https://github.com/sandialabs/snl-quest. 
 
 
-### Installation Instructions for QuESt
+## Installation Instructions for QuESt
 
-## Prerequisites
+### Prerequisites
 - Python (3.9.x recommended) installed on your system
 - Git installed on your system
 - Currently QuESt is only compatible with Windows
 
-## Installing Python
+### Installing Python
 1. Go to [python.org](https://www.python.org/).
 2. Download a version of Python suitable for your operating system (3.9.x recommended).
 3. Follow the installation instructions provided on the website.
 
-## Installing Git
+### Installing Git
 - Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
 - Follow the installation instructions provided on the website.
 
-## Setting Up a Virtual Environment
+### Setting Up a Virtual Environment
 1. Install `virtualenv` (if not already installed):
     ```bash
     pip install virtualenv
@@ -133,7 +133,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
      .\env\Scripts\activate
      ```
 
-## Installing QuESt
+### Installing QuESt
 
 1. Clone the Repository:
     ```bash
