@@ -1,0 +1,109 @@
+# Uruguay holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.30\n"
+"POT-Creation-Date: 2023-07-17 14:06+0300\n"
+"PO-Revision-Date: 2023-07-17 14:07+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. Presidential Inauguration Day.
+msgid "Inauguración del Presidente de la República"
+msgstr ""
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr ""
+
+#. Cry of Asencio.
+msgid "Grito de Asencio"
+msgstr ""
+
+#. International Workers' Day.
+msgid "Día de los Trabajadores"
+msgstr ""
+
+#. Spain Day.
+msgid "Día de España"
+msgstr ""
+
+#. America Day.
+msgid "Día de América"
+msgstr ""
+
+#. Democracy Day.
+msgid "Día de la Democracia"
+msgstr ""
+
+#. Humanity Day.
+msgid "Día de la Humanidad"
+msgstr ""
+
+#. Constitution Day.
+msgid "Jura de la Constitución"
+msgstr ""
+
+#. Independence Day.
+msgid "Declaratoria de la Independencia"
+msgstr ""
+
+#. Italy Day.
+msgid "Día de Italia"
+msgstr ""
+
+#. Open Town Hall.
+msgid "Cabildo Abierto"
+msgstr ""
+
+#. Beaches Day.
+msgid "Día de las Playas"
+msgstr ""
+
+#. Day of the Family.
+msgid "Día de la Familia"
+msgstr ""
+
+#. Children's Day.
+msgid "Día de los Niños"
+msgstr ""
+
+#. Carnival.
+msgid "Carnaval"
+msgstr ""
+
+#. Tourism Week.
+msgid "Semana de Turismo"
+msgstr ""
+
+#. Landing of the 33 Patriots.
+msgid "Desembarco de los 33 Orientales"
+msgstr ""
+
+#. Battle of Las Piedras.
+msgid "Batalla de Las Piedras"
+msgstr ""
+
+#. Birthday of Artigas.
+msgid "Natalicio de Artigas"
+msgstr ""
+
+#. Cultural Diversity Day.
+msgid "Día de la Diversidad Cultural"
+msgstr ""
+
+#. Columbus Day.
+msgid "Día de la Raza"
+msgstr ""
+
+#. All Souls' Day.
+msgid "Día de los Difuntos"
+msgstr ""

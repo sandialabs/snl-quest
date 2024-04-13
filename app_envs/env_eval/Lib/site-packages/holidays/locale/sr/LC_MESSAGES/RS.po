@@ -1,0 +1,57 @@
+# Serbia holidays.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.26\n"
+"POT-Creation-Date: 2023-02-15 15:18-0800\n"
+"PO-Revision-Date: 2023-02-16 09:01-0800\n"
+"Last-Translator: Arkadii Yakovets <ark@cho.red>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Нова година"
+msgstr ""
+
+#. Orthodox Christmas Day.
+msgid "Божић"
+msgstr ""
+
+#. Statehood Day.
+msgid "Дан државности Србије"
+msgstr ""
+
+#. Labor Day.
+msgid "Празник рада"
+msgstr ""
+
+#. Armistice Day.
+msgid "Дан примирја у Првом светском рату"
+msgstr ""
+
+#. Good Friday.
+msgid "Велики петак"
+msgstr ""
+
+#. Holy Saturday.
+msgid "Велика субота"
+msgstr ""
+
+#. Easter Sunday.
+msgid "Васкрс"
+msgstr ""
+
+#. Easter Monday.
+msgid "Други дан Васкрса"
+msgstr ""
+
+#. %s (observed).
+#, c-format
+msgid "%s (слободан дан)"
+msgstr ""

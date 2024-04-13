@@ -1,0 +1,112 @@
+# Switzerland holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.42\n"
+"POT-Creation-Date: 2023-04-10 15:41+0300\n"
+"PO-Revision-Date: 2024-01-21 14:47+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.4\n"
+
+#. New Year's Day.
+msgid "Neujahrestag"
+msgstr "New Year's Day"
+
+#. Ascension Day.
+msgid "Auffahrt"
+msgstr "Ascension Day"
+
+#. National Day.
+msgid "Nationalfeiertag"
+msgstr "National Day"
+
+#. Christmas Day.
+msgid "Weihnachten"
+msgstr "Christmas Day"
+
+#. Good Friday.
+msgid "Karfreitag"
+msgstr "Good Friday"
+
+#. Easter Monday.
+msgid "Ostermontag"
+msgstr "Easter Monday"
+
+#. Whit Monday.
+msgid "Pfingstmontag"
+msgstr "Whit Monday"
+
+#. St. Stephen's Day.
+msgid "Stephanstag"
+msgstr "St. Stephen's Day"
+
+#. Berchtold's Day.
+msgid "Berchtoldstag"
+msgstr "Berchtold's Day"
+
+#. Corpus Christi.
+msgid "Fronleichnam"
+msgstr "Corpus Christi"
+
+#. Assumption Day.
+msgid "Mariä Himmelfahrt"
+msgstr "Assumption Day"
+
+#. All Saints' Day.
+msgid "Allerheiligen"
+msgstr "All Saints' Day"
+
+#. Immaculate Conception.
+msgid "Mariä Empfängnis"
+msgstr "Immaculate Conception"
+
+#. Labor Day.
+msgid "Tag der Arbeit"
+msgstr "Labor Day"
+
+#. Genevan Fast.
+msgid "Genfer Bettag"
+msgstr "Genevan Fast"
+
+#. Restoration Day.
+msgid "Wiederherstellung der Republik"
+msgstr "Restoration Day"
+
+#. Battle of Naefels Victory Day.
+msgid "Näfelser Fahrt"
+msgstr "Battle of Naefels Victory Day"
+
+#. Independence Day.
+msgid "Fest der Unabhängigkeit"
+msgstr "Independence Day"
+
+#. Republic Day.
+msgid "Jahrestag der Ausrufung der Republik"
+msgstr "Republic Day"
+
+#. St. Joseph's Day.
+msgid "Josefstag"
+msgstr "St. Joseph's Day"
+
+#. St. Nicholas of Flüe.
+msgid "Bruder Klaus"
+msgstr "St. Nicholas of Flüe"
+
+#. Epiphany.
+msgid "Heilige Drei Könige"
+msgstr "Epiphany"
+
+#. Saints Peter and Paul.
+msgid "Peter und Paul"
+msgstr "Saints Peter and Paul"
+
+#. Prayer Monday.
+msgid "Bettagsmontag"
+msgstr "Prayer Monday"

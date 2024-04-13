@@ -1,32 +1,41 @@
-# -*- coding: utf-8 -*-
-from cx_Freeze import setup, Executable
+from setuptools import setup, find_packages
 
-with open('requirements.txt') as f:
-    required_packages = f.read().splitlines()
-    
-include_dirs = [
-    'app_envs',
-    'data',
-    'docs',
-    'images',
-    'licenses',
-    'plots',
-    'snl_libraries',
-    'themes'
-]
+DISTNAME = "Quest"
+VERSION = "2.0"
+PYTHON_REQUIRES = ">=3.6"
+DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
+LONG_DESCRIPTION = open("README.md").read()
+AUTHOR = "Sandia National Laboratories"
+MAINTAINER_EMAIL = "tunguy@sandia.gov"
+LICENSE = "BSD 3-clause"
+URL = "https://github.com/sandialabs/snl-quest.git"
+
+setuptools_kwargs = {
+    "scripts": [],
+    "include_package_data": True,
+    "install_requires": [
+        "PySide6==6.5.2",
+        "pandas==2.2.1",
+        "streamlit==1.32.0",
+        "openai==0.28.1",
+        "configparser==6.0.1",
+        "matplotlib==3.8.3",
+        "geopandas==0.14.3",
+        "psutil==5.9.0",
+        'NodeGraphQt @ git+https://github.com/C3RV1/NodeGraphQt-PySide6'
+    ]
+}
 
 setup(
-      name="Quest",
-      version='2.0',
-      description="An Energy Storage Application Platform",
-
-      options={
-          'build_exe':{
-#              'packages': required_packages,
-              'packages': ['PySide6', 'langchain', 'lida', 'llmx', 'pandas', 'numpy', 'tabulate'],
-              'include_files': [(directory, directory) for directory in include_dirs],
-
-              },
-          },
-      executables=[Executable("main.py", base="Console")],
-      )
+    name=DISTNAME,
+    version=VERSION,
+    packages=find_packages(),
+    python_requires=PYTHON_REQUIRES,
+    description=DESCRIPTION,
+    long_description=LONG_DESCRIPTION,
+    author=AUTHOR,
+    maintainer_email=MAINTAINER_EMAIL,
+    license=LICENSE,
+    url=URL,
+    **setuptools_kwargs
+)

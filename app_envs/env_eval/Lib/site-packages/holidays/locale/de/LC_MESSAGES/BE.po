@@ -1,0 +1,77 @@
+# Belgium holidays de localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.33\n"
+"POT-Creation-Date: 2023-06-27 13:17+0300\n"
+"PO-Revision-Date: 2023-09-06 20:49+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Nieuwjaar"
+msgstr "Neujahr"
+
+#. Easter Sunday.
+msgid "Pasen"
+msgstr "Ostern"
+
+#. Easter Monday.
+msgid "Paasmaandag"
+msgstr "Ostermontag"
+
+#. Labor Day.
+msgid "Dag van de Arbeid"
+msgstr "Tag der Arbeit"
+
+#. Ascension Day.
+msgid "O. L. H. Hemelvaart"
+msgstr "Christi Himmelfahrt"
+
+#. Whit Sunday.
+msgid "Pinksteren"
+msgstr "Pfingsten"
+
+#. Whit Monday.
+msgid "Pinkstermaandag"
+msgstr "Pfingstmontag"
+
+#. National Day.
+msgid "Nationale feestdag"
+msgstr "Nationalfeiertag"
+
+#. Assumption Day.
+msgid "O. L. V. Hemelvaart"
+msgstr "Mariä Himmelfahrt"
+
+#. All Saints' Day.
+msgid "Allerheiligen"
+msgstr "Allerheiligen"
+
+#. Armistice Day.
+msgid "Wapenstilstand"
+msgstr "Waffenstillstand"
+
+#. Christmas Day.
+msgid "Kerstmis"
+msgstr "Weihnachten"
+
+#. Good Friday.
+msgid "Goede Vrijdag"
+msgstr "Karfreitag"
+
+#. Friday after Ascension Day.
+msgid "Vrijdag na O. L. H. Hemelvaart"
+msgstr "Freitag nach Christi Himmelfahrt"
+
+#. Bank Holiday.
+msgid "Banksluitingsdag"
+msgstr "Bankschlusstag"

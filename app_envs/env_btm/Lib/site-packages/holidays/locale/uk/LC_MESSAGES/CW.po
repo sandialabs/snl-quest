@@ -1,0 +1,69 @@
+# Curacao holidays uk localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.27\n"
+"POT-Creation-Date: 2023-06-13 16:35+0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.3.1\n"
+
+#. New Year's Day
+msgid "Aña Nobo"
+msgstr "Новий рік"
+
+#. Carnival Monday
+msgid "Dialuna despues di Carnaval Grandi"
+msgstr "Карнавальний понеділок"
+
+#. Good Friday
+msgid "Bièrnèsantu"
+msgstr "Страсна пʼятниця"
+
+#. Easter Sunday
+msgid "Pasku di Resurekshon"
+msgstr "Великдень"
+
+#. Easter Monday
+msgid "Di dos dia di Pasku di Resurekshon"
+msgstr "Великодній понеділок"
+
+#. King's Day.
+msgid "Dia di Rey"
+msgstr "День короля"
+
+#. Queen's Day.
+msgid "Dia di la Reina"
+msgstr "День королеви"
+
+#. Labor Day
+msgid "Dia di Obrero"
+msgstr "День праці"
+
+#. Ascension Day
+msgid "Dia di Asenshon"
+msgstr "Вознесіння Господнє"
+
+#. National Anthem and Flag Day
+msgid "Dia di Himno i Bandera"
+msgstr "День державного гімну та прапора"
+
+#. Curaçao Day
+msgid "Dia di Pais Kòrsou"
+msgstr "День Кюрасао"
+
+#. Christmas Day
+msgid "Pasku di Nasementu"
+msgstr "Різдво Христове"
+
+#. Second Day of Christmas
+msgid "Di dos dia di Pasku di Nasementu"
+msgstr "Другий день Різдва"

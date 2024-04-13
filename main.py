@@ -1,7 +1,7 @@
 import sys
 import os
 import ctypes
-# import psutil
+import psutil
 from PySide6.QtGui import (
     QIcon,
 )
@@ -22,7 +22,7 @@ from app.about_pages.about_it import about_land
 from snl_libraries.workspace.app import WMainWindow
 from app.data_vis.data_view import data_view
 from configparser import ConfigParser
-
+dirname = os.path.dirname(__file__)
 class MainWindow(QMainWindow, Ui_MainWindow):
     """The main window that acts as platform for each application."""
 
@@ -120,7 +120,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 #           connecting the environments viewer.
 
         self.file_model = QFileSystemModel()
-        env_dir = os.path.join(os.getcwd(), 'app_envs')
+        env_dir = os.path.join(dirname, 'app_envs')
         self.file_model.setRootPath(env_dir)
         self.env_view.setModel(self.file_model)
         self.env_view.setRootIndex(self.file_model.index(env_dir))
@@ -200,14 +200,34 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings = QSettings("Sandia", "Quest")
         settings.setValue("theme", theme)
 
+    def closeEvent(self, event):
+
+        self.terminate_port(5678)
+        event.accept()
+
+    def terminate_port(self, port):
+        for proc in psutil.process_iter():
+            try:
+               for conn in proc.connections():
+                   if conn.laddr.port == port:
+                       proc.terminate()
+                       return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return False
+
 
 if __name__ == '__main__':
     
-    app = QApplication(sys.argv)
+    if not QApplication.instance():
+        app = QApplication(sys.argv)
+    else:
+        app = QApplication.instance()
+
 #       sets the taskbar icon
 
-    myappid = u':/logos/images/logo/Quest_App_Icon.svg'  # path to logo
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    # myappid = u':/logos/images/logo/Quest_App_Icon.svg'  # path to logo
+    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     main_win = MainWindow()
 
     main_win.show()

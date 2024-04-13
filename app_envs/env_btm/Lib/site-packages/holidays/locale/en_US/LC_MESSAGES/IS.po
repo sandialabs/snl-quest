@@ -1,0 +1,81 @@
+# Iceland holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.23\n"
+"POT-Creation-Date: 2023-04-09 14:31+0300\n"
+"PO-Revision-Date: 2023-04-09 14:32+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Nýársdagur"
+msgstr "New Year's Day"
+
+#. Maundy Thursday.
+msgid "Skírdagur"
+msgstr "Maundy Thursday"
+
+#. Good Friday.
+msgid "Föstudagurinn langi"
+msgstr "Good Friday"
+
+#. Easter Sunday.
+msgid "Páskadagur"
+msgstr "Easter Sunday"
+
+#. Easter Monday.
+msgid "Annar í páskum"
+msgstr "Easter Monday"
+
+#. First Day of Summer.
+msgid "Sumardagurinn fyrsti"
+msgstr "First Day of Summer"
+
+#. Labor Day.
+msgid "Verkalýðsdagurinn"
+msgstr "Labor Day"
+
+#. Ascension Day.
+msgid "Uppstigningardagur"
+msgstr "Ascension Day"
+
+#. Whit Sunday.
+msgid "Hvítasunnudagur"
+msgstr "Whit Sunday"
+
+#. Whit Monday.
+msgid "Annar í hvítasunnu"
+msgstr "Whit Monday"
+
+#. National Day.
+msgid "Þjóðhátíðardagurinn"
+msgstr "National Day"
+
+#. Commerce Day.
+msgid "Frídagur verslunarmanna"
+msgstr "Commerce Day"
+
+#. Christmas Eve.
+msgid "Aðfangadagur"
+msgstr "Christmas Eve"
+
+#. Christmas Day.
+msgid "Jóladagur"
+msgstr "Christmas Day"
+
+#. Second Day of Christmas.
+msgid "Annar í jólum"
+msgstr "Second Day of Christmas"
+
+#. New Year's Eve.
+msgid "Gamlársdagur"
+msgstr "New Year's Eve"

@@ -1,0 +1,77 @@
+# Finland holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.23\n"
+"POT-Creation-Date: 2023-04-08 19:30+0300\n"
+"PO-Revision-Date: 2023-04-08 19:46+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Uudenvuodenpäivä"
+msgstr ""
+
+#. Epiphany.
+msgid "Loppiainen"
+msgstr ""
+
+#. Good Friday.
+msgid "Pitkäperjantai"
+msgstr ""
+
+#. Easter Sunday.
+msgid "Pääsiäispäivä"
+msgstr ""
+
+#. Easter Monday.
+msgid "2. pääsiäispäivä"
+msgstr ""
+
+#. May Day.
+msgid "Vappu"
+msgstr ""
+
+#. Ascension Day.
+msgid "Helatorstai"
+msgstr ""
+
+#. Whit Sunday.
+msgid "Helluntaipäivä"
+msgstr ""
+
+#. Midsummer Eve.
+msgid "Juhannusaatto"
+msgstr ""
+
+#. Midsummer Day.
+msgid "Juhannuspäivä"
+msgstr ""
+
+#. All Saints' Day.
+msgid "Pyhäinpäivä"
+msgstr ""
+
+#. Independence Day.
+msgid "Itsenäisyyspäivä"
+msgstr ""
+
+#. Christmas Eve.
+msgid "Jouluaatto"
+msgstr ""
+
+#. Christmas Day.
+msgid "Joulupäivä"
+msgstr ""
+
+#. Second Day of Christmas.
+msgid "Tapaninpäivä"
+msgstr ""

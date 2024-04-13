@@ -1,0 +1,69 @@
+# Norway holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.23\n"
+"POT-Creation-Date: 2023-04-09 13:25+0300\n"
+"PO-Revision-Date: 2023-04-09 13:27+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: no\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Første nyttårsdag"
+msgstr ""
+
+#. Maundy Thursday.
+msgid "Skjærtorsdag"
+msgstr ""
+
+#. Good Friday.
+msgid "Langfredag"
+msgstr ""
+
+#. Easter Sunday.
+msgid "Første påskedag"
+msgstr ""
+
+#. Easter Monday.
+msgid "Andre påskedag"
+msgstr ""
+
+#. Labor Day.
+msgid "Arbeidernes dag"
+msgstr ""
+
+#. Constitution Day.
+msgid "Grunnlovsdag"
+msgstr ""
+
+#. Ascension Day.
+msgid "Kristi himmelfartsdag"
+msgstr ""
+
+#. Whit Sunday.
+msgid "Første pinsedag"
+msgstr ""
+
+#. Whit Monday.
+msgid "Andre pinsedag"
+msgstr ""
+
+#. Christmas Day.
+msgid "Første juledag"
+msgstr ""
+
+#. Second Day of Christmas.
+msgid "Andre juledag"
+msgstr ""
+
+#. Sunday.
+msgid "Søndag"
+msgstr ""

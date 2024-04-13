@@ -11,6 +11,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import QUrl
 import os
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..")
 
 class Browser(QMainWindow):
     def __init__(self, url, streamlit_process):
@@ -35,14 +37,16 @@ class Browser(QMainWindow):
 
 def run_streamlit(path):
     # Start the Streamlit app in headless mode and return the subprocess
-    return subprocess.Popen(["./app_envs/env_viz/Scripts/python.exe", "-m", "streamlit", "run", path, "--server.headless=true", "--server.port", "8506"])
+    act_path = os.path.join(home_dir, "..", "..", "app_envs", "env_viz", "Scripts", "python.exe")
+    return subprocess.Popen([act_path, "-m", "streamlit", "run", path, "--server.headless=true", "--server.port", "8506"])
+    # return subprocess.Popen(["./app_envs/env_viz/Scripts/python.exe", "-m", "streamlit", "run", path, "--server.headless=true", "--server.port", "8506"])
 
 #8506
 if __name__ == '__main__':
     # Start the Streamlit app in a separate thread but keep the subprocess for later
     
-
-    streamlit_process = run_streamlit("./snl_libraries/gpt/app.py")
+    cmd_path = os.path.join(home_dir, "..", "..", "snl_libraries", "gpt", "app.py")
+    streamlit_process = run_streamlit(cmd_path)
  
     # Give Streamlit some time to start
     import time

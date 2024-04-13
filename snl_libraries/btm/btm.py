@@ -38,7 +38,7 @@ import threading
 
 #progress parser
 import sys
-sys.stderr.write("Total complete: 10%\n")
+
 
 from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
@@ -78,7 +78,10 @@ from es_gui.apps.valuation.wizard import ValuationWizard
 from es_gui.apps.btm.home import BehindTheMeterHomeScreen
 from es_gui.apps.btm.cost_savings import CostSavingsWizard
 from es_gui.apps.btm.results_viewer import BtmResultsViewer
-
+try:
+    os.chdir(dirname)
+except OSError as e:
+    pass
 # Font registration.
 LabelBase.register(name='Exo 2',
                    fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'Exo_2', 'Exo2-Regular.ttf'),
@@ -215,34 +218,34 @@ class QuEStScreenManager(ScreenManager):
 
     def __init__(self, **kwargs):
         super(QuEStScreenManager, self).__init__(**kwargs)
-        sys.stderr.write("Total complete: 30%\n")
+
 
         # Add new screens here.
         self.add_widget(IndexScreen())
         self.about_screen = AboutScreen()
         self.settings_screen = SettingsScreen()
-        sys.stderr.write("Total complete: 40%\n")
+
 
         # Data manager.
         self.add_widget(DataManagerHomeScreen(name='data_manager_home'))
         self.add_widget(DataManagerRTOMOdataScreen(name='data_manager_rto_mo_data'))
-        sys.stderr.write("Total complete: 50%\n")
+
         self.add_widget(RateStructureDataScreen(name='data_manager_rate_structure_data'))
         self.add_widget(DataManagerLoadHomeScreen(name='data_manager_load_home'))
         self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
-        sys.stderr.write("Total complete: 60%\n")
+
         self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
         self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
-        sys.stderr.write("Total complete: 70%\n")
+
         self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
 
         # Behind-the-meter applications.
         self.add_widget(BehindTheMeterHomeScreen(name='btm_home'))
-        sys.stderr.write("Total complete: 80%\n")
+
         self.add_widget(CostSavingsWizard(name='cost_savings_wizard'))
-        sys.stderr.write("Total complete: 90%\n")
+
         self.add_widget(BtmResultsViewer(name='btm_results_viewer'))
-        sys.stderr.write("Total complete: 100%\n")
+
 
 
     def launch_btm(self):

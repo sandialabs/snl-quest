@@ -1,0 +1,105 @@
+# Austria holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.42\n"
+"POT-Creation-Date: 2023-04-01 17:13+0300\n"
+"PO-Revision-Date: 2023-04-01 17:18+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Neujahr"
+msgstr "New Year's Day"
+
+#. Epiphany.
+msgid "Heilige Drei Könige"
+msgstr "Epiphany"
+
+#. Easter Monday.
+msgid "Ostermontag"
+msgstr "Easter Monday"
+
+#. Labor Day.
+msgid "Staatsfeiertag"
+msgstr "Labor Day"
+
+#. Ascension Day.
+msgid "Christi Himmelfahrt"
+msgstr "Ascension Day"
+
+#. Whit Monday.
+msgid "Pfingstmontag"
+msgstr "Whit Monday"
+
+#. Corpus Christi.
+msgid "Fronleichnam"
+msgstr "Corpus Christi"
+
+#. Assumption Day.
+msgid "Mariä Himmelfahrt"
+msgstr "Assumption Day"
+
+#. National Day.
+msgid "Nationalfeiertag"
+msgstr "National Day"
+
+#. All Saints' Day.
+msgid "Allerheiligen"
+msgstr "All Saints' Day"
+
+#. Immaculate Conception.
+msgid "Mariä Empfängnis"
+msgstr "Immaculate Conception"
+
+#. Christmas Day.
+msgid "Christtag"
+msgstr "Christmas Day"
+
+#. St. Stephen's Day.
+msgid "Stefanitag"
+msgstr "St. Stephen's Day"
+
+#. Good Friday.
+msgid "Karfreitag"
+msgstr "Good Friday"
+
+#. Christmas Eve.
+msgid "Heiliger Abend"
+msgstr "Christmas Eve"
+
+#. New Year's Eve.
+msgid "Silvester"
+msgstr "New Year's Eve"
+
+#. St. Martin's Day.
+msgid "Hl. Martin"
+msgstr "St. Martin's Day"
+
+#. St. Joseph's Day.
+msgid "Hl. Josef"
+msgstr "St. Joseph's Day"
+
+#. 1920 Carinthian plebiscite.
+msgid "Tag der Volksabstimmung"
+msgstr "1920 Carinthian plebiscite"
+
+#. St. Leopold's Day.
+msgid "Hl. Leopold"
+msgstr "St. Leopold's Day"
+
+#. St. Florian's Day.
+msgid "Hl. Florian"
+msgstr "St. Florian's Day"
+
+#. St. Rupert's Day.
+msgid "Hl. Rupert"
+msgstr "St. Rupert's Day"

@@ -1,0 +1,117 @@
+# Japan holidays.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.30\n"
+"POT-Creation-Date: 2023-07-23 15:45+0300\n"
+"PO-Revision-Date: 2023-07-23 15:47+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. The Crown Prince marriage ceremony.
+msgid "結婚の儀"
+msgstr ""
+
+#. State Funeral of Emperor Shōwa.
+msgid "大喪の礼"
+msgstr ""
+
+#. Enthronement ceremony.
+msgid "即位礼正殿の儀"
+msgstr ""
+
+#. Enthronement day.
+msgid "天皇の即位の日"
+msgstr ""
+
+#. Enthronement ceremony.
+msgid "即位礼正殿の儀が行われる日"
+msgstr ""
+
+#. New Year's Day.
+msgid "元日"
+msgstr ""
+
+#. Coming of Age Day.
+msgid "成人の日"
+msgstr ""
+
+#. Foundation Day.
+msgid "建国記念の日"
+msgstr ""
+
+#. Emperor's Birthday.
+msgid "天皇誕生日"
+msgstr ""
+
+#. Vernal Equinox Day.
+msgid "春分の日"
+msgstr ""
+
+#. Greenery Day.
+msgid "みどりの日"
+msgstr ""
+
+#. Showa Day.
+msgid "昭和の日"
+msgstr ""
+
+#. Constitution Day.
+msgid "憲法記念日"
+msgstr ""
+
+#. Children's Day.
+msgid "こどもの日"
+msgstr ""
+
+#. Marine Day.
+msgid "海の日"
+msgstr ""
+
+#. Mountain Day.
+msgid "山の日"
+msgstr ""
+
+#. Respect for the Aged Day.
+msgid "敬老の日"
+msgstr ""
+
+#. Autumnal Equinox Day.
+msgid "秋分の日"
+msgstr ""
+
+#. Physical Education Day.
+msgid "体育の日"
+msgstr ""
+
+#. Sports Day.
+msgid "スポーツの日"
+msgstr ""
+
+#. Culture Day.
+msgid "文化の日"
+msgstr ""
+
+#. Labor Thanksgiving Day.
+msgid "勤労感謝の日"
+msgstr ""
+
+#. Substitute Holiday.
+msgid "振替休日"
+msgstr ""
+
+#. National Holiday.
+msgid "国民の休日"
+msgstr ""
+
+#. Bank Holiday.
+msgid "銀行休業日"
+msgstr ""

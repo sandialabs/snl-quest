@@ -1,0 +1,76 @@
+# Denmark holidays.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.37\n"
+"POT-Creation-Date: 2023-02-15 08:13-0800\n"
+"PO-Revision-Date: 2023-11-12 16:36+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Nytårsdag"
+msgstr ""
+
+#. Maundy Thursday.
+msgid "Skærtorsdag"
+msgstr ""
+
+#. Good Friday.
+msgid "Langfredag"
+msgstr ""
+
+#. Easter Sunday.
+msgid "Påskedag"
+msgstr ""
+
+#. Easter Monday.
+msgid "Anden påskedag"
+msgstr ""
+
+#. Great Day of Prayers.
+msgid "Store bededag"
+msgstr ""
+
+#. Ascension Day.
+msgid "Kristi himmelfartsdag"
+msgstr ""
+
+#. Whit Sunday.
+msgid "Pinsedag"
+msgstr ""
+
+#. Whit Monday.
+msgid "Anden pinsedag"
+msgstr ""
+
+#. Christmas Day.
+msgid "Juledag"
+msgstr ""
+
+#. Second Day of Christmas.
+msgid "Anden juledag"
+msgstr ""
+
+#. International Workers' Day.
+msgid "Arbejdernes kampdag"
+msgstr ""
+
+#. Constitution Day.
+msgid "Grundlovsdag"
+msgstr ""
+
+#. Christmas Eve.
+msgid "Juleaftensdag"
+msgstr ""
+
+#. New Year's Eve.
+msgid "Nytårsaften"
+msgstr ""

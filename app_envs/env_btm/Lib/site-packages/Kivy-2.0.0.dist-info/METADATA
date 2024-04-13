@@ -1,0 +1,69 @@
+Metadata-Version: 2.1
+Name: Kivy
+Version: 2.0.0
+Summary: A software library for rapid development of hardware-accelerated multitouch applications.
+Home-page: http://kivy.org
+Author: Kivy Team and other contributors
+Author-email: kivy-dev@googlegroups.com
+License: MIT
+Requires-Dist: Kivy-Garden (>=0.1.4)
+Requires-Dist: docutils
+Requires-Dist: pygments
+Requires-Dist: kivy-deps.angle (~=0.3.0) ; sys_platform == "win32"
+Requires-Dist: kivy-deps.sdl2 (~=0.3.1) ; sys_platform == "win32"
+Requires-Dist: kivy-deps.glew (~=0.3.0) ; sys_platform == "win32"
+Requires-Dist: pypiwin32 ; sys_platform == "win32"
+Provides-Extra: angle
+Requires-Dist: kivy-deps.angle (~=0.3.0) ; extra == 'angle'
+Requires-Dist: sys-platform (=="win32") ; extra == 'angle'
+Provides-Extra: base
+Requires-Dist: pillow ; extra == 'base'
+Requires-Dist: docutils ; extra == 'base'
+Requires-Dist: pygments ; extra == 'base'
+Requires-Dist: kivy-deps.angle (~=0.3.0) ; (sys_platform == "win32") and extra == 'base'
+Requires-Dist: kivy-deps.sdl2 (~=0.3.1) ; (sys_platform == "win32") and extra == 'base'
+Requires-Dist: kivy-deps.glew (~=0.3.0) ; (sys_platform == "win32") and extra == 'base'
+Requires-Dist: pypiwin32 ; (sys_platform == "win32") and extra == 'base'
+Provides-Extra: dev
+Requires-Dist: pytest (>=3.6) ; extra == 'dev'
+Requires-Dist: pytest-cov ; extra == 'dev'
+Requires-Dist: pytest-asyncio (!=0.11.0) ; extra == 'dev'
+Requires-Dist: pytest-timeout ; extra == 'dev'
+Requires-Dist: pyinstaller ; extra == 'dev'
+Requires-Dist: sphinx ; extra == 'dev'
+Requires-Dist: sphinxcontrib-blockdiag ; extra == 'dev'
+Requires-Dist: sphinxcontrib-seqdiag ; extra == 'dev'
+Requires-Dist: sphinxcontrib-actdiag ; extra == 'dev'
+Requires-Dist: sphinxcontrib-nwdiag ; extra == 'dev'
+Requires-Dist: flake8 ; extra == 'dev'
+Requires-Dist: kivy-deps.gstreamer-dev (~=0.3.1) ; (sys_platform == "win32") and extra == 'dev'
+Requires-Dist: kivy-deps.sdl2-dev (~=0.3.1) ; (sys_platform == "win32") and extra == 'dev'
+Requires-Dist: kivy-deps.glew-dev (~=0.3.0) ; (sys_platform == "win32") and extra == 'dev'
+Provides-Extra: full
+Requires-Dist: pillow ; extra == 'full'
+Requires-Dist: docutils ; extra == 'full'
+Requires-Dist: pygments ; extra == 'full'
+Requires-Dist: ffpyplayer ; (sys_platform == "linux" or sys_platform == "darwin") and extra == 'full'
+Requires-Dist: kivy-deps.gstreamer (~=0.3.1) ; (sys_platform == "win32") and extra == 'full'
+Requires-Dist: kivy-deps.angle (~=0.3.0) ; (sys_platform == "win32") and extra == 'full'
+Requires-Dist: kivy-deps.sdl2 (~=0.3.1) ; (sys_platform == "win32") and extra == 'full'
+Requires-Dist: kivy-deps.glew (~=0.3.0) ; (sys_platform == "win32") and extra == 'full'
+Requires-Dist: pypiwin32 ; (sys_platform == "win32") and extra == 'full'
+Provides-Extra: glew
+Requires-Dist: kivy-deps.glew (~=0.3.0) ; extra == 'glew'
+Requires-Dist: sys-platform (=="win32") ; extra == 'glew'
+Provides-Extra: gstreamer
+Requires-Dist: kivy-deps.gstreamer (~=0.3.1) ; extra == 'gstreamer'
+Requires-Dist: sys-platform (=="win32") ; extra == 'gstreamer'
+Provides-Extra: media
+Requires-Dist: ffpyplayer ; (sys_platform == "linux" or sys_platform == "darwin") and extra == 'media'
+Requires-Dist: kivy-deps.gstreamer (~=0.3.1) ; (sys_platform == "win32") and extra == 'media'
+Provides-Extra: sdl2
+Requires-Dist: kivy-deps.sdl2 (~=0.3.1) ; extra == 'sdl2'
+Requires-Dist: sys-platform (=="win32") ; extra == 'sdl2'
+Provides-Extra: tuio
+Requires-Dist: oscpy ; extra == 'tuio'
+
+Kivy
+
+

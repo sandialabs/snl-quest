@@ -1,0 +1,87 @@
+# Brunei holidays en_US localization.
+# Authors: PPsyrius <ppsyrius@ppsyrius.dev>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.41\n"
+"POT-Creation-Date: 2023-03-02 00:37+0700\n"
+"PO-Revision-Date: \n"
+"Last-Translator: PPsyrius <ppsyrius@ppsyrius.dev>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. Sultan Hassanal Bolkiah's Golden Jubilee celebration
+msgid "Jubli Emas Sultan Hassanal Bolkiah"
+msgstr "Sultan Hassanal Bolkiah's Golden Jubilee"
+
+#. %s (estimated).
+#, c-format
+msgid "%s (anggaran)"
+msgstr "%s (estimated)"
+
+#. %s (observed).
+#, c-format
+msgid "%s (diperhatikan)"
+msgstr "%s (observed)"
+
+#. New Year's Day
+msgid "Awal Tahun Masihi"
+msgstr "New Year's Day"
+
+#. Lunar New Year
+msgid "Tahun Baru Cina"
+msgstr "Lunar New Year"
+
+#. National Day
+msgid "Hari Kebangsaan"
+msgstr "National Day"
+
+#. Armed Forces Day
+msgid "Hari Angkatan Bersenjata Diraja Brunei"
+msgstr "Armed Forces Day"
+
+#. Sultan Hassanal Bolkiah's Birthday
+msgid "Hari Keputeraan KDYMM Sultan Brunei"
+msgstr "Sultan Hassanal Bolkiah's Birthday"
+
+#. Christmas Day
+msgid "Hari Natal"
+msgstr "Christmas Day"
+
+#. Isra Mi'raj
+msgid "Israk dan Mikraj"
+msgstr "Isra Mi'raj"
+
+#. First Day of Ramadan
+msgid "Hari Pertama Berpuasa"
+msgstr "First Day of Ramadan"
+
+#. Anniversary of the revelation of the Quran
+msgid "Hari Nuzul Al-Quran"
+msgstr "Anniversary of the revelation of the Quran"
+
+#. Eid al-Fitr
+msgid "Hari Raya Aidil Fitri"
+msgstr "Eid al-Fitr"
+
+#. Eid al-Adha
+msgid "Hari Raya Aidil Adha"
+msgstr "Eid al-Adha"
+
+#. Islamic New Year
+msgid "Awal Tahun Hijrah"
+msgstr "Islamic New Year"
+
+#. Birth of the Prophet
+msgid "Maulidur Rasul"
+msgstr "Birth of the Prophet"
+
+#. %s (observed, estimated).
+#, c-format
+msgid "%s (diperhatikan, anggaran)"
+msgstr "%s (observed, estimated)"

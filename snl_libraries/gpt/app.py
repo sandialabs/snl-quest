@@ -19,11 +19,15 @@ def save_api_key_to_config(api_key):
         config.write(configfile)
 
 def get_api_key_from_config():
+    config = configparser.ConfigParser()
     if os.path.exists(config_file):
-        config = configparser.ConfigParser()
         config.read(config_file)
-        return config['openai'].get('api_key', '')
+        try:
+            return config['openai']['api_key']
+        except KeyError:
+            print("Configuration section 'openai' not found.")
     return ''
+
 def load_css(css_file):
     with open(css_file, "r") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)

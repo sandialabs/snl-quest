@@ -1,0 +1,213 @@
+#  ___________________________________________________________________________
+#
+#  Pyomo: Python Optimization Modeling Objects
+#  Copyright (c) 2008-2024
+#  National Technology and Engineering Solutions of Sandia, LLC
+#  Under the terms of Contract DE-NA0003525 with National Technology and
+#  Engineering Solutions of Sandia, LLC, the U.S. Government retains certain
+#  rights in this software.
+#  This software is distributed under the 3-clause BSD License.
+#  ___________________________________________________________________________
+
+import os
+from os.path import join, dirname, abspath
+import types
+
+try:
+    import new
+
+    new_available = True
+except:
+    new_available = False
+
+import pyomo.common.unittest as unittest
+from pyomo.opt import TerminationCondition
+from pyomo.solvers.tests.models.base import all_models
+from pyomo.solvers.tests.testcases import generate_scenarios
+from pyomo.core.kernel.block import IBlock
+
+# The test directory
+thisDir = dirname(abspath(__file__))
+
+# Cleanup Expected Failure Results Files
+_cleanup_expected_failures = True
+
+
+#
+# A function that returns a function that gets
+# added to a test class.
+#
+def create_method(test_name, model, solver, io, test_case, symbolic_labels):
+    is_expected_failure = test_case.status == 'expected failure'
+
+    #
+    # Create a function that executes the test
+    #
+    def writer_test(self):
+        # Create the model test class
+        model_class = test_case.model()
+
+        save_filename = join(thisDir, ("%s.soln.json" % model_class.description))
+        # cleanup possibly existing old test files
+        if os.path.exists(save_filename):
+            os.remove(save_filename)
+
+        # Create the model instance
+        model_class.generate_model(test_case.testcase.import_suffixes)
+        model_class.warmstart_model()
+
+        # solve
+        load_solutions = False
+        opt, results = model_class.solve(
+            solver,
+            io,
+            test_case.testcase.io_options,
+            test_case.testcase.options,
+            symbolic_labels,
+            load_solutions,
+        )
+        termination_condition = results['Solver'][0]['termination condition']
+
+        model_class.post_solve_test_validation(self, results)
+        if (
+            termination_condition == TerminationCondition.unbounded
+            or termination_condition == TerminationCondition.infeasible
+            or termination_condition == TerminationCondition.infeasibleOrUnbounded
+        ):
+            return
+
+        # validate the solution returned by the solver
+        if isinstance(model_class.model, IBlock):
+            model_class.model.load_solution(results.Solution)
+        else:
+            model_class.model.solutions.load_from(
+                results, default_variable_value=opt.default_variable_value()
+            )
+            model_class.save_current_solution(
+                save_filename, suffixes=model_class.test_suffixes
+            )
+        rc = model_class.validate_current_solution(
+            suffixes=model_class.test_suffixes,
+            exclude_suffixes=test_case.exclude_suffixes,
+        )
+
+        if is_expected_failure:
+            if rc[0]:
+                self.fail(
+                    "\nTest model '%s' was marked as an expected "
+                    "failure but no failure occurred. The "
+                    "reason given for the expected failure "
+                    "is:\n\n****\n%s\n****\n\n"
+                    "Please remove this case as an expected "
+                    "failure if the above issue has been "
+                    "corrected in the latest version of the "
+                    "solver." % (model_class.description, test_case.msg)
+                )
+            if _cleanup_expected_failures:
+                os.remove(save_filename)
+
+        if not rc[0]:
+            if not isinstance(model_class.model, IBlock):
+                try:
+                    model_class.model.solutions.store_to(results)
+                except ValueError:
+                    pass
+            self.fail(
+                "Solution mismatch for plugin "
+                + test_name
+                + ', '
+                + io
+                + " interface and problem type "
+                + model_class.description
+                + "\n"
+                + rc[1]
+                + "\n"
+                + (str(results.Solution(0)) if len(results.solution) else "No Solution")
+            )
+
+        # cleanup if the test passed
+        try:
+            os.remove(save_filename)
+        except OSError:
+            pass
+
+    # Skip this test if the status is 'skip'
+    if test_case.status == 'skip':
+
+        def return_test(self):
+            return self.skipTest(test_case.msg)
+
+    elif is_expected_failure:
+
+        @unittest.expectedFailure
+        def return_test(self):
+            return writer_test(self)
+
+    else:
+        # Skip if solver is in demo mode
+        size = getattr(test_case.model, 'size', (None, None, None))
+        for prb, sol in zip(size, test_case.demo_limits):
+            if (prb and sol) and prb > sol:
+
+                def return_test(self):
+                    return self.skipTest(
+                        "Problem is too large for unlicensed %s solver" % solver
+                    )
+
+                break
+            else:
+
+                def return_test(self):
+                    return writer_test(self)
+
+    unittest.pytest.mark.solver(solver)(return_test)
+    return return_test
+
+
+cls = None
+
+#
+# Create test driver classes for each test model
+#
+driver = {}
+for model in all_models():
+    # Get the test case for the model
+    case = all_models(model)
+
+    # Create the test class
+    name = "Test_%s" % model
+    if new_available:
+        cls = new.classobj(name, (unittest.TestCase,), {})
+    else:
+        cls = types.new_class(name, (unittest.TestCase,))
+        cls.__module__ = __name__
+    driver[model] = cls
+    globals()[name] = cls
+
+#
+# Iterate through all test scenarios and add test methods
+#
+for key, value in generate_scenarios():
+    model, solver, io = key
+    cls = driver[model]
+
+    # Symbolic labels
+    test_name = "test_" + solver + "_" + io + "_symbolic_labels"
+    test_method = create_method(test_name, model, solver, io, value, True)
+    if test_method is not None:
+        setattr(cls, test_name, test_method)
+        test_method = None
+
+    # Non-symbolic labels
+    test_name = "test_" + solver + "_" + io + "_nonsymbolic_labels"
+    test_method = create_method(test_name, model, solver, io, value, False)
+    if test_method is not None:
+        setattr(cls, test_name, test_method)
+        test_method = None
+
+# Reset the cls variable, since it contains a unittest.TestCase subclass.
+# This prevents this class from being processed twice!
+cls = None
+
+if __name__ == "__main__":
+    unittest.main()

@@ -35,7 +35,7 @@ import threading
 
 #progress parser
 import sys
-sys.stderr.write("Total complete: 10%\n")
+
 
 from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
@@ -65,7 +65,12 @@ from es_gui.apps.valuation.wizard import ValuationWizard
 # Technology selection
 from es_gui.apps.tech_selection.home import TechSelectionHomeScreen
 #directory management for running from qt
-os.chdir('snl_libraries/tech_selection')
+
+# os.chdir('snl_libraries/tech_selection')
+try:
+    os.chdir(dirname)
+except OSError as e:
+    pass
 from es_gui.apps.tech_selection.tech_selection_wizard import TechSelectionWizard
 from es_gui.apps.tech_selection.results_viewer import TechSelectionFeasible
 
@@ -83,7 +88,7 @@ LabelBase.register(name='Open Sans',
 LabelBase.register(name='Modern Pictograms',
                    fn_regular=os.path.join('es_gui', 'resources', 'fonts', 'modernpictograms', 'ModernPictograms.ttf'))
 
-sys.stderr.write("Total complete: 20%\n")
+
 
 class IndexScreen(Screen):
     """The landing screen."""
@@ -212,7 +217,7 @@ class QuEStScreenManager(ScreenManager):
 
     def __init__(self, **kwargs):
         super(QuEStScreenManager, self).__init__(**kwargs)
-        sys.stderr.write("Total complete: 30%\n")
+
         # Add new screens here.
         self.add_widget(IndexScreen())
         self.about_screen = AboutScreen()
@@ -220,11 +225,11 @@ class QuEStScreenManager(ScreenManager):
 
         # Technology selection application
         self.add_widget(TechSelectionHomeScreen(name='tech_selection_home'))
-        sys.stderr.write("Total complete: 60%\n")
+
         self.add_widget(TechSelectionWizard(name='tech_selection_wizard'))
-        sys.stderr.write("Total complete: 80%\n")
+
         self.add_widget(TechSelectionFeasible(name='feasible_techs'))
-        sys.stderr.write("Total complete: 100%\n")
+
             
     def launch_tech_selection(self):
         """"""

@@ -1,0 +1,90 @@
+# Hungary holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.37\n"
+"POT-Creation-Date: 2023-06-12 19:06+0300\n"
+"PO-Revision-Date: 2023-11-10 22:14+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: hu\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Újév"
+msgstr ""
+
+#. National Day.
+msgid "Nemzeti ünnep"
+msgstr ""
+
+#. Good Friday.
+msgid "Nagypéntek"
+msgstr ""
+
+#. Easter.
+msgid "Húsvét"
+msgstr ""
+
+#. Easter Monday.
+msgid "Húsvét Hétfő"
+msgstr ""
+
+#. Whit Sunday.
+msgid "Pünkösd"
+msgstr ""
+
+#. Whit Monday.
+msgid "Pünkösdhétfő"
+msgstr ""
+
+#. Labor Day.
+msgid "A Munka ünnepe"
+msgstr ""
+
+#. Bread Day.
+msgid "A kenyér ünnepe"
+msgstr ""
+
+#. State Foundation Day.
+msgid "Az államalapítás ünnepe"
+msgstr ""
+
+#. All Saints' Day.
+msgid "Mindenszentek"
+msgstr ""
+
+#. Christmas Day.
+msgid "Karácsony"
+msgstr ""
+
+#. Second Day of Christmas.
+msgid "Karácsony másnapja"
+msgstr ""
+
+#. Proclamation of Soviet Republic Day.
+msgid "A Tanácsköztársaság kikiáltásának ünnepe"
+msgstr ""
+
+#. Liberation Day.
+msgid "A felszabadulás ünnepe"
+msgstr ""
+
+#. Great October Socialist Revolution Day.
+msgid "A nagy októberi szocialista forradalom ünnepe"
+msgstr ""
+
+#. Substituted date format.
+msgid "%Y. %m. %d."
+msgstr ""
+
+#. Day off (substituted from %s).
+#, c-format
+msgid "Pihenőnap (%s-től helyettesítve)"
+msgstr ""

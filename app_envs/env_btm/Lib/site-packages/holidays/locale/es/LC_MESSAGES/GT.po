@@ -1,0 +1,61 @@
+# Guatemala holidays.
+# Authors: Jorge Cadena <jorge.cadena@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.29\n"
+"POT-Creation-Date: 2023-02-19 17:09+0200\n"
+"PO-Revision-Date: 2023-02-19 17:16+0200\n"
+"Last-Translator: Jorge Cadena <jorge.cadena@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. Maundy Thursday.
+msgid "Jueves Santo"
+msgstr ""
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr ""
+
+#. Army Day.
+msgid "Día del Ejército"
+msgstr ""
+
+#. Independence Day.
+msgid "Día de la Independencia"
+msgstr ""
+
+#. All Saints' Day.
+msgid "Día de Todos los Santos"
+msgstr ""
+
+#. Assumption Day.
+msgid "Día de la Asunción"
+msgstr ""
+
+#. Revolution Day.
+msgid "Día de la Revolución"
+msgstr ""
+
+#. Holy Saturday.
+msgid "Sabado Santo"
+msgstr ""
+
+#. Labor Day.
+msgid "Día del Trabajo"
+msgstr ""
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr ""
+
+#. Christmas Day.
+msgid "Día de Navidad"
+msgstr ""

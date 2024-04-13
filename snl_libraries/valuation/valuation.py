@@ -38,7 +38,7 @@ import threading
 
 #progress parser
 import sys
-sys.stderr.write("Total complete: 10%\n")
+
 
 from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
@@ -77,6 +77,10 @@ from es_gui.apps.valuation.home import ValuationHomeScreen
 from es_gui.apps.valuation.batchrunscreen import BatchRunScreen
 from es_gui.apps.valuation.results_viewer import ValuationResultsViewer
 from es_gui.apps.valuation.wizard import ValuationWizard
+try:
+    os.chdir(dirname)
+except OSError as e:
+    pass
 
 # Font registration.
 LabelBase.register(name='Exo 2',
@@ -215,32 +219,32 @@ class QuEStScreenManager(ScreenManager):
 
     def __init__(self, **kwargs):
         super(QuEStScreenManager, self).__init__(**kwargs)
-        sys.stderr.write("Total complete: 30%\n")
+
         # Add new screens here.
         self.add_widget(IndexScreen())
         self.about_screen = AboutScreen()
         self.settings_screen = SettingsScreen()
-        sys.stderr.write("Total complete: 40%\n")
+
         # Data manager.
         self.add_widget(DataManagerHomeScreen(name='data_manager_home'))
         self.add_widget(DataManagerRTOMOdataScreen(name='data_manager_rto_mo_data'))
-        sys.stderr.write("Total complete: 50%\n")
+
         self.add_widget(RateStructureDataScreen(name='data_manager_rate_structure_data'))
         self.add_widget(DataManagerLoadHomeScreen(name='data_manager_load_home'))
-        sys.stderr.write("Total complete: 60%\n")
+
         self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
         self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
         self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
         self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
-        sys.stderr.write("Total complete: 70%\n")
+
         
         # Energy storage valuation.
         self.add_widget(ValuationHomeScreen(name='valuation_home'))
-        sys.stderr.write("Total complete: 80%\n")
+
         self.add_widget(BatchRunScreen(name='batch_run'))
         self.add_widget(ValuationResultsViewer(name='valuation_results_viewer'))
         self.add_widget(ValuationWizard(name='valuation_wizard'))
-        sys.stderr.write("Total complete: 100%\n")
+
     
     def launch_valuation(self):
         """"""

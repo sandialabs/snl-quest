@@ -1,0 +1,81 @@
+# Georgia holidays.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.30\n"
+"POT-Creation-Date: 2023-07-18 17:31+0300\n"
+"PO-Revision-Date: 2023-07-18 17:57+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "ახალი წელი"
+msgstr ""
+
+#. Christmas Day.
+msgid "ქრისტეშობა"
+msgstr ""
+
+#. Epiphany.
+msgid "ნათლისღება"
+msgstr ""
+
+#. Mother's Day.
+msgid "დედის დღე"
+msgstr ""
+
+#. International Women's Day.
+msgid "ქალთა საერთაშორისო დღე"
+msgstr ""
+
+#. Good Friday.
+msgid "წითელი პარასკევი"
+msgstr ""
+
+#. Holy Saturday.
+msgid "დიდი შაბათი"
+msgstr ""
+
+#. Easter Sunday.
+msgid "აღდგომა"
+msgstr ""
+
+#. Easter Monday.
+msgid "შავი ორშაბათი"
+msgstr ""
+
+#. National Unity Day.
+msgid "ეროვნული ერთიანობის დღე"
+msgstr ""
+
+#. Day of Victory over Fascism.
+msgid "ფაშიზმზე გამარჯვების დღე"
+msgstr ""
+
+#. Saint Andrew's Day.
+msgid "წმინდა ანდრია პირველწოდებულის დღე"
+msgstr ""
+
+#. Independence Day.
+msgid "დამოუკიდებლობის დღე"
+msgstr ""
+
+#. Dormition of the Mother of God.
+msgid "მარიამობა"
+msgstr ""
+
+#. Holiday of Svetitskhovloba, Robe of Jesus.
+msgid "მცხეთობის"
+msgstr ""
+
+#. Saint George's Day.
+msgid "გიორგობა"
+msgstr ""

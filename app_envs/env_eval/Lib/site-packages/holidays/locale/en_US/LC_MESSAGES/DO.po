@@ -1,0 +1,65 @@
+# Dominican Republic holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.42\n"
+"POT-Creation-Date: 2023-03-05 12:33+0200\n"
+"PO-Revision-Date: 2024-01-22 13:55+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.4\n"
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr "New Year's Day"
+
+#. Epiphany.
+msgid "Día de los Santos Reyes"
+msgstr "Epiphany"
+
+#. Lady of Altagracia.
+msgid "Día de la Altagracia"
+msgstr "Lady of Altagracia"
+
+#. Juan Pablo Duarte Day.
+msgid "Día de Duarte"
+msgstr "Juan Pablo Duarte Day"
+
+#. Independence Day.
+msgid "Día de Independencia"
+msgstr "Independence Day"
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr "Good Friday"
+
+#. Labor Day.
+msgid "Día del Trabajo"
+msgstr "Labor Day"
+
+#. Corpus Christi.
+msgid "Corpus Christi"
+msgstr "Corpus Christi"
+
+#. Restoration Day.
+msgid "Día de la Restauración"
+msgstr "Restoration Day"
+
+#. Our Lady of Mercedes Day.
+msgid "Día de las Mercedes"
+msgstr "Our Lady of Mercedes Day"
+
+#. Constitution Day.
+msgid "Día de la Constitución"
+msgstr "Constitution Day"
+
+#. Christmas Day.
+msgid "Día de Navidad"
+msgstr "Christmas Day"

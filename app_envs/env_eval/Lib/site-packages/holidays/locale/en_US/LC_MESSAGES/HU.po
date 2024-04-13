@@ -1,0 +1,90 @@
+# Hungary holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.37\n"
+"POT-Creation-Date: 2023-06-12 19:06+0300\n"
+"PO-Revision-Date: 2023-11-10 22:15+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Újév"
+msgstr "New Year's Day"
+
+#. National Day.
+msgid "Nemzeti ünnep"
+msgstr "National Day"
+
+#. Good Friday.
+msgid "Nagypéntek"
+msgstr "Good Friday"
+
+#. Easter.
+msgid "Húsvét"
+msgstr "Easter"
+
+#. Easter Monday.
+msgid "Húsvét Hétfő"
+msgstr "Easter Monday"
+
+#. Whit Sunday.
+msgid "Pünkösd"
+msgstr "Whit Sunday"
+
+#. Whit Monday.
+msgid "Pünkösdhétfő"
+msgstr "Whit Monday"
+
+#. Labor Day.
+msgid "A Munka ünnepe"
+msgstr "Labor Day"
+
+#. Bread Day.
+msgid "A kenyér ünnepe"
+msgstr "Bread Day"
+
+#. State Foundation Day.
+msgid "Az államalapítás ünnepe"
+msgstr "State Foundation Day"
+
+#. All Saints' Day.
+msgid "Mindenszentek"
+msgstr "All Saints' Day"
+
+#. Christmas Day.
+msgid "Karácsony"
+msgstr "Christmas Day"
+
+#. Second Day of Christmas.
+msgid "Karácsony másnapja"
+msgstr "Second Day of Christmas"
+
+#. Proclamation of Soviet Republic Day.
+msgid "A Tanácsköztársaság kikiáltásának ünnepe"
+msgstr "Proclamation of Soviet Republic Day"
+
+#. Liberation Day.
+msgid "A felszabadulás ünnepe"
+msgstr "Liberation Day"
+
+#. Great October Socialist Revolution Day.
+msgid "A nagy októberi szocialista forradalom ünnepe"
+msgstr "Great October Socialist Revolution Day"
+
+#. Substituted date format.
+msgid "%Y. %m. %d."
+msgstr "%m/%d/%Y"
+
+#. Day off (substituted from %s).
+#, c-format
+msgid "Pihenőnap (%s-től helyettesítve)"
+msgstr "Day off (substituted from %s)"

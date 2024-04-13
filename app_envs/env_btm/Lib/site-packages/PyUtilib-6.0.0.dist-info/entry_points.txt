@@ -1,0 +1,15 @@
+
+        [nose.plugins.0.10]
+        nose.testdata = pyutilib.th.nose_testdata:TestData
+        nose.forcedgc = pyutilib.th.nose_gc:ForcedGC
+        nose.timeout = pyutilib.th.nose_timeout:TestTimeout
+        [console_scripts]
+        test.pyutilib = pyutilib.dev.runtests:runPyUtilibTests
+        lbin = pyutilib.dev.lbin:main
+        lpython = pyutilib.dev.lpython:main
+        pypi_downloads = pyutilib.dev.pypi_downloads:main
+        replaceCopyright = pyutilib.dev.replaceCopyright:main
+        checkCopyright = pyutilib.dev.checkCopyright:main
+        pyutilib_test_driver = pyutilib.autotest.driver:main
+        dispatch_srvr=pyutilib.pyro.dispatch_srvr:main
+      

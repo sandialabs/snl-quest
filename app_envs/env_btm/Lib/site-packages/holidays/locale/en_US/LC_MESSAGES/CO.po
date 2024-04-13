@@ -1,0 +1,94 @@
+# Colombia holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.42\n"
+"POT-Creation-Date: 2023-02-19 17:09+0200\n"
+"PO-Revision-Date: 2024-01-23 20:50+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.4\n"
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr "New Year's Day"
+
+#. Epiphany.
+msgid "Día de los Reyes Magos"
+msgstr "Epiphany"
+
+#. Saint Joseph's Day.
+msgid "Día de San José"
+msgstr "Saint Joseph's Day"
+
+#. Labor Day.
+msgid "Día del Trabajo"
+msgstr "Labor Day"
+
+#. Saint Peter and Saint Paul's Day.
+msgid "San Pedro y San Pablo"
+msgstr "Saint Peter and Saint Paul"
+
+#. Independence Day.
+msgid "Día de la Independencia"
+msgstr "Independence Day"
+
+#. Battle of Boyaca.
+msgid "Batalla de Boyacá"
+msgstr "Battle of Boyacá"
+
+#. Assumption Day.
+msgid "La Asunción"
+msgstr "Assumption Day"
+
+#. Columbus Day.
+msgid "Día de la Raza"
+msgstr "Columbus Day"
+
+#. All Saints' Day.
+msgid "Día de Todos los Santos"
+msgstr "All Saints' Day"
+
+#. Independence of Cartagena.
+msgid "Independencia de Cartagena"
+msgstr "Independence of Cartagena"
+
+#. Immaculate Conception.
+msgid "La Inmaculada Concepción"
+msgstr "Immaculate Conception"
+
+#. Christmas Day.
+msgid "Navidad"
+msgstr "Christmas Day"
+
+#. Maundy Thursday.
+msgid "Jueves Santo"
+msgstr "Maundy Thursday"
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr "Good Friday"
+
+#. Ascension Day.
+msgid "Ascensión del señor"
+msgstr "Ascension Day"
+
+#. Corpus Christi.
+msgid "Corpus Christi"
+msgstr "Corpus Christi"
+
+#. Sacred Heart.
+msgid "Sagrado Corazón"
+msgstr "Sacred Heart"
+
+#. %s (observed).
+#, c-format
+msgid "%s (observado)"
+msgstr "%s (observed)"

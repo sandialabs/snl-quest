@@ -1,0 +1,94 @@
+# Colombia holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.41\n"
+"POT-Creation-Date: 2023-02-19 17:09+0200\n"
+"PO-Revision-Date: 2023-02-19 17:16+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr ""
+
+#. Epiphany.
+msgid "Día de los Reyes Magos"
+msgstr ""
+
+#. Saint Joseph's Day.
+msgid "Día de San José"
+msgstr ""
+
+#. Labor Day.
+msgid "Día del Trabajo"
+msgstr ""
+
+#. Saint Peter and Saint Paul's Day.
+msgid "San Pedro y San Pablo"
+msgstr ""
+
+#. Independence Day.
+msgid "Día de la Independencia"
+msgstr ""
+
+#. Battle of Boyaca.
+msgid "Batalla de Boyacá"
+msgstr ""
+
+#. Assumption Day.
+msgid "La Asunción"
+msgstr ""
+
+#. Columbus Day.
+msgid "Día de la Raza"
+msgstr ""
+
+#. All Saints' Day.
+msgid "Día de Todos los Santos"
+msgstr ""
+
+#. Independence of Cartagena.
+msgid "Independencia de Cartagena"
+msgstr ""
+
+#. Immaculate Conception.
+msgid "La Inmaculada Concepción"
+msgstr ""
+
+#. Christmas Day.
+msgid "Navidad"
+msgstr ""
+
+#. Maundy Thursday.
+msgid "Jueves Santo"
+msgstr ""
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr ""
+
+#. Ascension Day.
+msgid "Ascensión del señor"
+msgstr ""
+
+#. Corpus Christi.
+msgid "Corpus Christi"
+msgstr ""
+
+#. Sacred Heart.
+msgid "Sagrado Corazón"
+msgstr ""
+
+#. %s (observed).
+#, c-format
+msgid "%s (observado)"
+msgstr ""

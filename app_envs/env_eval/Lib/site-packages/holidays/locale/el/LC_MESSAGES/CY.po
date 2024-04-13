@@ -1,0 +1,88 @@
+# Cyprus holidays.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.41\n"
+"POT-Creation-Date: 2023-02-15 11:50-0800\n"
+"PO-Revision-Date: 2023-02-16 08:50-0800\n"
+"Last-Translator: Arkadii Yakovets <ark@cho.red>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Πρωτοχρονιά"
+msgstr ""
+
+#. Epiphany.
+msgid "Ημέρα των Θεοφανίων"
+msgstr ""
+
+#. Green Monday.
+msgid "Καθαρά Δευτέρα"
+msgstr ""
+
+#. Greek Independence Day.
+msgid "Ημέρα της Ελληνικής Ανεξαρτησίας"
+msgstr ""
+
+#. Cyprus National Day.
+msgid "Εθνική Ημέρα Κύπρου"
+msgstr ""
+
+#. Good Friday.
+msgid "Μεγάλη Παρασκευή"
+msgstr ""
+
+#. Easter Sunday.
+msgid "Κυριακή του Πάσχα"
+msgstr ""
+
+#. Easter Monday.
+msgid "Δευτέρα της Διακαινησίμου"
+msgstr ""
+
+#. Labor Day.
+msgid "Πρωτομαγιά"
+msgstr ""
+
+#. Whit Monday.
+msgid "Δευτέρα του Αγίου Πνεύματος"
+msgstr ""
+
+#. Assumption Day.
+msgid "Κοίμηση της Θεοτόκου"
+msgstr ""
+
+#. Cyprus Independence Day.
+msgid "Ημέρα της Κυπριακής Ανεξαρτησίας"
+msgstr ""
+
+#. Ochi Day.
+msgid "Ημέρα του Όχι"
+msgstr ""
+
+#. Christmas Eve.
+msgid "Παραμονή Χριστουγέννων"
+msgstr ""
+
+#. Christmas Day.
+msgid "Χριστούγεννα"
+msgstr ""
+
+#. Day After Christmas.
+msgid "Επομένη Χριστουγέννων"
+msgstr ""
+
+#. Easter Tuesday.
+msgid "Τρίτη της Διακαινησίμου"
+msgstr ""
+
+#. Holy Saturday.
+msgid "Μεγάλο Σάββατο"
+msgstr ""

@@ -52,7 +52,7 @@ def sort_df_based_on_sequence(df, results):
     # Reset the index of the sorted DataFrame
     sorted_df = sorted_df.reset_index(drop=True)
     return sorted_df
-
+from snl_libraries.workspace.flow.questflow import *
 class flow:
     def __init__(self, flow_name, nodes_df=None, connections_df=None):
         """
@@ -125,6 +125,9 @@ class flow:
                 
         if node_type == 'data_node':
             self.py_dict["node_instantiations"][node_name] = f"node{node_id}=data_node(node_name='{node_name}')"
+            self.py_dict["node_functions"][node_name] = ""
+        elif node_type == 'back_node':
+            self.py_dict["node_instantiations"][node_name] = ""
             self.py_dict["node_functions"][node_name] = ""
         elif node_type == 'python_node':
             self.py_dict["node_instantiations"][node_name] = f"node{node_id}=python_node(node_name='{node_name}',function={node_name}_function)"
@@ -249,7 +252,7 @@ class flow:
             if key==None:
                 self.py_dict['get_outputs'][connected_node_name]=f"node{connected_node}_outputs=node{connected_node}.get_outputs()"
             elif key=='Show':
-                self.py_dict['get_outputs'][connected_node_name]=f"print('node{connected_node}_outputs:',node{connected_node}.get_outputs())"
+                self.py_dict['get_outputs'][connected_node_name]=f"print('{connected_node_name}_outputs:',node{connected_node}.get_outputs())"
             else:
                 raise ValueError("get_outputs key must be None or 'Show' ")
     # def load(self,flow_file_name):
@@ -345,19 +348,10 @@ class flow:
     def save(self,path):
         flow_name=self.flow_name.replace(" ", "_")
         flow_name=flow_name.lower()
-        self.flow_file_name=flow_name+'.json'
         self.py_file_name = path + flow_name+'_program.py'
-        nodes_df_json=self.nodes_df.to_json(orient='records')
-        connection_df_json=self.connections_df.to_json(orient='records')
-        flow_json_data={'nodes_df':json.loads(nodes_df_json), 'connections_df':json.loads(connection_df_json)}
-        # Save the composed program to the specified file
         with open(self.py_file_name , 'w') as py_file:
             py_file.write(self.main_py)
-        
-        # Save the nodes and connections data to the specified file
-        with open(self.flow_file_name , 'w') as json_file:
-            json.dump(flow_json_data, json_file, indent=4)
-                
+     
     def run(self):
         if self.py_file_name == '':
             print('Please make the flow Python program by running flow.make(py_file_name)')
@@ -372,4 +366,5 @@ class flow:
                 print("Error:\n", result.stderr)
         except Exception as e:
             print(f"An error occurred while running the script: {e}")
+        return result
 

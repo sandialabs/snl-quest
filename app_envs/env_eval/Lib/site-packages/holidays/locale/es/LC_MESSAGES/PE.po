@@ -1,0 +1,77 @@
+# Peru holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.20\n"
+"POT-Creation-Date: 2023-02-21 15:18+0200\n"
+"PO-Revision-Date: 2023-02-21 15:18+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr ""
+
+#. Maundy Thursday.
+msgid "Jueves Santo"
+msgstr ""
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr ""
+
+#. Easter Sunday.
+msgid "Domingo de Resurrección"
+msgstr ""
+
+#. Labor Day.
+msgid "Día del Trabajo"
+msgstr ""
+
+#. Saint Peter and Saint Paul.
+msgid "San Pedro y San Pablo"
+msgstr ""
+
+#. Independence Day.
+msgid "Día de la Independencia"
+msgstr ""
+
+#. Great Military Parade Day.
+msgid "Día de la Gran Parada Militar"
+msgstr ""
+
+#. Battle of Junín.
+msgid "Batalla de Junín"
+msgstr ""
+
+#. Rose of Lima Day.
+msgid "Santa Rosa de Lima"
+msgstr ""
+
+#. Battle of Angamos.
+msgid "Combate de Angamos"
+msgstr ""
+
+#. All Saints' Day.
+msgid "Todos Los Santos"
+msgstr ""
+
+#. Immaculate Conception.
+msgid "Inmaculada Concepción"
+msgstr ""
+
+#. Battle of Ayacucho.
+msgid "Batalla de Ayacucho"
+msgstr ""
+
+#. Christmas Day.
+msgid "Navidad del Señor"
+msgstr ""

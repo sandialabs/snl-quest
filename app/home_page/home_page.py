@@ -7,7 +7,8 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from app.home_page.ui.ui_home_page import Ui_home_page
-
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..")
 
 class home_page(QWidget, Ui_home_page):
     """
@@ -21,7 +22,7 @@ class home_page(QWidget, Ui_home_page):
         simple_percent_parser,
         WorkerSignals,
         SubProcessWorker,
-        SubProcessWorkerLaunch,
+#        SubProcessWorkerLaunch,
         about_hide_window_btn,
         about_data_page,
         about_tech_page,
@@ -179,31 +180,39 @@ class home_page(QWidget, Ui_home_page):
 
 #           checking to see if the environment has been installed previously
 
-        if os.path.isdir('app_envs/env_viz/lib/site-packages/PySide6'):
+        vis_path = os.path.join(home_dir, "..", "..", "app_envs", "env_viz", "Lib", "site-packages", "PySide6")
+        if os.path.isdir(vis_path):
             self.data_vis_fin()
 
-        if os.path.isdir('app_envs/env_tech/Lib/site-packages/glpk'):
+        tech_path = os.path.join(home_dir, "..", "..", "app_envs", "env_tech", "Lib", "site-packages", "glpk")
+        if os.path.isdir(tech_path):
             self.tech_fin()
-
-        if os.path.isdir('app_envs/env_eval/Lib/site-packages/glpk'):
+            
+        eval_path = os.path.join(home_dir, "..", "..", "app_envs", "env_eval", "Lib", "site-packages", "glpk")
+        if os.path.isdir(eval_path):
             self.eval_fin()
 
-        if os.path.isdir('app_envs/env_btm/Lib/site-packages/glpk'):
+        btm_path = os.path.join(home_dir, "..", "..", "app_envs", "env_btm", "Lib", "site-packages", "glpk")
+        if os.path.isdir(btm_path):
             self.btm_fin()
 
-        if os.path.isdir('app_envs/env_perf/Lib/site-packages/glpk'):
+        perf_path = os.path.join(home_dir, "..", "..", "app_envs", "env_perf", "Lib", "site-packages", "glpk")
+        if os.path.isdir(perf_path):
             self.perf_fin()
 
-        # if os.path.isdir('app_envs/env_energy/equity'):
+        equity_path = os.path.join(home_dir, "..", "..", "app_envs", "env_energy", "equity")
+        # if os.path.isdir(equity_path):
         #     self.energy_install_fin()
 
-        if os.path.isdir('app_envs/env_micro/lib/site-packages/ssim'):
+        micro_path = os.path.join(home_dir, "..", "..", "app_envs", "env_micro", "Lib", "site-packages", "ssim")
+        if os.path.isdir(micro_path):
             self.micro_fin()
 
         if os.path.isdir('app_envs/env_plan'):
             self.plan_install_fin()
 
-        if os.path.isdir('app_envs/env_data/Lib/site-packages/glpk'):
+        manager_path = os.path.join(home_dir, "..", "..", "app_envs", "env_data", "Lib", "site-packages", "glpk")
+        if os.path.isdir(manager_path):
             self.manager_fin()
 
 #           Context menu for data gpt

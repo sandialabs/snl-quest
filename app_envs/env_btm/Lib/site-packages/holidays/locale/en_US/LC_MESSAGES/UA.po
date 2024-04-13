@@ -1,0 +1,96 @@
+# Ukraine holidays en_US localization.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2022.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.37\n"
+"POT-Creation-Date: 2023-07-08 19:40+0300\n"
+"PO-Revision-Date: 2024-01-05 13:04+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.4\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+
+#. Date format (see strftime() Format Codes)
+msgid "%d.%m.%Y"
+msgstr "%m/%d/%Y"
+
+#. Day off (substituted from %s).
+#, c-format
+msgid "Вихідний день (перенесено з %s)"
+msgstr "Day off (substituted from %s)"
+
+#. %s (observed).
+#, c-format
+msgid "%s (вихідний)"
+msgstr "%s (observed)"
+
+#. New Year's Day.
+msgid "Новий рік"
+msgstr "New Year's Day"
+
+#. Christmas Day (Julian calendar).
+msgid "Різдво Христове (за юліанським календарем)"
+msgstr "Christmas Day (Julian calendar)"
+
+#. International Women's Day.
+msgid "Міжнародний жіночий день"
+msgstr "International Women's Day"
+
+#. Easter Sunday (Pascha).
+msgid "Великдень (Пасха)"
+msgstr "Easter Sunday (Pascha)"
+
+#. Holy Trinity Day.
+msgid "Трійця"
+msgstr "Holy Trinity Day"
+
+#. Labor Day.
+msgid "День праці"
+msgstr "Labor Day"
+
+#. International Workers' Solidarity Day.
+msgid "День міжнародної солідарності трудящих"
+msgstr "International Workers' Solidarity Day"
+
+#. Day of Victory over Nazism in World War II (Victory Day).
+msgid "День перемоги над нацизмом у Другій світовій війні (День перемоги)"
+msgstr "Day of Victory over Nazism in World War II (Victory Day)"
+
+#. Victory Day.
+msgid "День перемоги"
+msgstr "Victory Day"
+
+#. Day of the Constitution of Ukraine.
+msgid "День Конституції України"
+msgstr "Day of the Constitution of Ukraine"
+
+#. Independence Day.
+msgid "День незалежності України"
+msgstr "Independence Day"
+
+#. Day of defenders of Ukraine.
+msgid "День захисників і захисниць України"
+msgstr "Day of defenders of Ukraine"
+
+#. Defender of Ukraine Day.
+msgid "День захисника України"
+msgstr "Defender of Ukraine Day"
+
+#. Anniversary of the Great October Socialist Revolution.
+msgid "Річниця Великої Жовтневої соціалістичної революції"
+msgstr "Anniversary of the Great October Socialist Revolution"
+
+#. Christmas Day (Gregorian calendar).
+msgid "Різдво Христове (за григоріанським календарем)"
+msgstr "Christmas Day (Gregorian calendar)"
+
+#. Presidential decree holiday.
+msgid "Вихідний згідно указу Президента"
+msgstr "Presidential decree holiday"

@@ -1,0 +1,10 @@
+
+The GitHub contributors page provides a list of developers who have
+contributed to this repository.
+
+The following were the main developers who contributed to the
+original subversion repository:
+. William Hart
+. John Siirola
+. Gabe Hackabiel
+

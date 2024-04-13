@@ -1,0 +1,61 @@
+# Nicaragua holidays.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.22\n"
+"POT-Creation-Date: 2023-03-05 12:23+0200\n"
+"PO-Revision-Date: 2023-03-05 12:43+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr ""
+
+#. Maundy Thursday.
+msgid "Jueves Santo"
+msgstr ""
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr ""
+
+#. Labor Day.
+msgid "Día del Trabajo"
+msgstr ""
+
+#. Revolution Day.
+msgid "Día de la Revolución"
+msgstr ""
+
+#. Battle of San Jacinto Day.
+msgid "Batalla de San Jacinto"
+msgstr ""
+
+#. Independence Day.
+msgid "Día de la Independencia"
+msgstr ""
+
+#. Virgin's Day.
+msgid "Concepción de María"
+msgstr ""
+
+#. Christmas Day.
+msgid "Navidad"
+msgstr ""
+
+#. Descent of Saint Dominic.
+msgid "Bajada de Santo Domingo"
+msgstr ""
+
+#. Ascent of Saint Dominic.
+msgid "Subida de Santo Domingo"
+msgstr ""

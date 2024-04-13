@@ -13,6 +13,8 @@ import time
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 progress_re = re.compile("(\d+)%")
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..")
 
 def simple_percent_parser(output):
     """Match lines using the progress_re regex, returning a single integer for the % progress."""
@@ -75,12 +77,12 @@ class SubProcessWorker(QRunnable):
     def run(self):
         """Initialize the runner function with passed args, kwargs."""
         result = []
-        relative_path = 'snl_libraries/gpt'
-        abs_path = os.path.abspath(relative_path)
+        # relative_path = 'snl_libraries/gpt'
+        # abs_path = os.path.abspath(relative_path)
         with subprocess.Popen(
 
             self.command,
-            cwd=abs_path,
+            cwd=base_dir,
             bufsize=1,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
@@ -130,8 +132,9 @@ class data_view(QWidget, Ui_data_v):
     def launch_app(self):
         """Activate a runner to launch the data visualization app in it's independent environment."""
         #self.data_vis_install_button.setEnabled(False)
+        data_vis_path = os.path.join(home_dir, "..", "..", "snl_libraries", "gpt", "app.py")
         self.runner = SubProcessWorker(
-            command=["streamlit", "run", "app.py", "--server.headless=true", "--server.port", "5678"],
+            command=["streamlit", "run", data_vis_path, "--server.headless=true", "--server.port", "5678"],
             parser=simple_percent_parser,
             )
         self.runner.signals.progress.connect(None)
@@ -156,7 +159,7 @@ class data_view(QWidget, Ui_data_v):
         
 
         
-    def closeEvent(self, event):
-        self.runner = SubProcessWorker()
-        self.runner.terminate()
-        event.accept()
+    # def closeEvent(self, event):
+    #     self.runner = SubProcessWorker()
+    #     self.runner.terminate()
+    #     event.accept()

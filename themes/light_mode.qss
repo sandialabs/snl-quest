@@ -71,7 +71,7 @@ QProgressBar::handle:horizontal {
 #bottom_right_frame {	
 	background-color: rgb(244,245,235);
 }
-#data_app, #tech_app, #eval_app, #btm_app, #perf_app, #eq_app, #micr_app, #plan_app {
+#data_app, #tech_app, #eval_app, #btm_app, #perf_app, #eq_app, #micr_app, #plan_app, #quest_gpt {
 	border: 0px solid rgb(40, 84, 113);
 	border-radius: 6px;
 	

@@ -36,7 +36,6 @@ import os
 import webbrowser
 import threading
 import sys
-sys.stderr.write("Total complete: 10%\n")
 from kivy.utils import get_color_from_hex
 from kivy.lang import Builder
 from kivy.app import App
@@ -88,7 +87,10 @@ from es_gui.apps.performance.results_viewer import PerformanceResultsViewer
 # from es_gui.apps.tech_selection.home import TechSelectionHomeScreen
 # from es_gui.apps.tech_selection.tech_selection_wizard import TechSelectionWizard
 # from es_gui.apps.tech_selection.results_viewer import TechSelectionFeasible
-
+try:
+    os.chdir(dirname)
+except OSError as e:
+    pass
 
 # Font registration.
 LabelBase.register(name='Exo 2',
@@ -146,7 +148,7 @@ class IndexScreen(Screen):
         help_carousel_view.add_slides(slides)
         help_carousel_view.open()
 
-sys.stderr.write("Total complete: 30%\n")
+
 class AboutScreen(ModalView):
     """The about/contact screen."""
     def __init__(self, **kwargs):
@@ -219,7 +221,7 @@ class AboutScreen(ModalView):
 
         self.about_label.bind(on_ref_press=_go_to_webpage)
 
-sys.stderr.write("Total complete: 40%\n")
+
 class SettingsScreen(ModalView):
     """The settings screen. Driven by a custom Settings panel."""
     def on_close(self):
@@ -250,7 +252,7 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
         self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
         self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
-        sys.stderr.write("Total complete: 60%\n")
+
         # Energy storage valuation.
         self.add_widget(ValuationHomeScreen(name='valuation_home'))
         # self.add_widget(BatchRunScreen(name='batch_run'))
@@ -264,10 +266,10 @@ class QuEStScreenManager(ScreenManager):
         
         #Performance applications.
         self.add_widget(PerformanceHomeScreen(name='performance_home'))
-        sys.stderr.write("Total complete: 80%\n")
+
         self.add_widget(PerformanceSimRunScreen(name='performance_sim'))
         self.add_widget(PerformanceResultsViewer(name='performance_results_viewer'))
-        sys.stderr.write("Total complete: 100%\n")
+
         # Technology selection application
         # self.add_widget(TechSelectionHomeScreen(name='tech_selection_home'))
         # self.add_widget(TechSelectionWizard(name='tech_selection_wizard'))

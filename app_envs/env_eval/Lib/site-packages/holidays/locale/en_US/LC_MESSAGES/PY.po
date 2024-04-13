@@ -1,0 +1,73 @@
+# Paraguay holidays en_US localization.
+# Authors: ~Jhellico <jhellico@gmail.com>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.41\n"
+"POT-Creation-Date: 2023-03-05 12:33+0200\n"
+"PO-Revision-Date: 2024-01-05 12:44+0200\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 3.4\n"
+
+#. Public holiday.
+msgid "Asueto adicionale"
+msgstr "Public holiday"
+
+#. Public sector holiday.
+msgid "Asueto de la Administración Pública"
+msgstr "Public sector holiday"
+
+#. New Year's Day.
+msgid "Año Nuevo"
+msgstr "New Year's Day"
+
+#. Patriots Day.
+msgid "Día de los Héroes de la Patria"
+msgstr "Patriots Day"
+
+#. Maundy Thursday.
+msgid "Jueves Santo"
+msgstr "Maundy Thursday"
+
+#. Good Friday.
+msgid "Viernes Santo"
+msgstr "Good Friday"
+
+#. Easter Sunday.
+msgid "Domingo de Resurrección"
+msgstr "Easter Sunday"
+
+#. Labor Day.
+msgid "Día del Trabajador"
+msgstr "Labor Day"
+
+#. Independence Day.
+msgid "Día de la Independencia Nacional"
+msgstr "Independence Day"
+
+#. Chaco Armistice Day.
+msgid "Día de la Paz del Chaco"
+msgstr "Chaco Armistice Day"
+
+#. Asuncion Foundation's Day.
+msgid "Día de la Fundación de Asunción"
+msgstr "Asuncion Foundation's Day"
+
+#. Boqueron Battle Day.
+msgid "Día de la Batalla de Boquerón"
+msgstr "Boqueron Battle Day"
+
+#. Caacupe Virgin Day.
+msgid "Día de la Virgen de Caacupé"
+msgstr "Caacupe Virgin Day"
+
+#. Christmas Day.
+msgid "Navidad"
+msgstr "Christmas Day"

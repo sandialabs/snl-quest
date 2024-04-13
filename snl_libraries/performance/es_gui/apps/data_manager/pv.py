@@ -27,7 +27,11 @@ import urllib3
 urllib3.disable_warnings(requests.packages.urllib3.exceptions.InsecureRequestWarning)
 
 from es_gui.resources.widgets.common import InputError, WarningPopup, ConnectionErrorPopup, MyPopup, RecycleViewRow, FADEIN_DUR, LoadingModalView, PALETTE, rgba_to_fraction, fade_in_animation, DataGovAPIhelp, ParameterRow
-os.chdir('snl_libraries/performance')
+dirname = os.path.dirname(__file__)
+try:
+    os.chdir(dirname)
+except OSError as e:
+    pass
 from es_gui.apps.data_manager.data_manager import DataManagerException, DATA_HOME
 from es_gui.proving_grounds.charts import RateScheduleChart
 from es_gui.apps.data_manager.utils import check_connection_settings

@@ -1,0 +1,78 @@
+# Greece holidays.
+# Authors: Arkadii Yakovets <ark@cho.red>, (c) 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Python Holidays 0.30\n"
+"POT-Creation-Date: 2023-07-27 18:57+0300\n"
+"PO-Revision-Date: 2023-07-27 18:59+0300\n"
+"Last-Translator: ~Jhellico <jhellico@gmail.com>\n"
+"Language-Team: Python Holidays localization team\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Generated-By: Lingua 4.15.0\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#. New Year's Day.
+msgid "Πρωτοχρονιά"
+msgstr ""
+
+#. Epiphany.
+msgid "Θεοφάνεια"
+msgstr ""
+
+#. Green Monday.
+msgid "Καθαρά Δευτέρα"
+msgstr ""
+
+#. Independence Day.
+msgid "Εικοστή Πέμπτη Μαρτίου"
+msgstr ""
+
+#. Good Friday.
+msgid "Μεγάλη Παρασκευή"
+msgstr ""
+
+#. Easter Monday.
+msgid "Δευτέρα του Πάσχα"
+msgstr ""
+
+#. Whit Monday.
+msgid "Δευτέρα του Αγίου Πνεύματος"
+msgstr ""
+
+#. Labor Day.
+msgid "Εργατική Πρωτομαγιά"
+msgstr ""
+
+#. %s (observed).
+#, c-format
+msgid "%s (παρατηρήθηκε)"
+msgstr ""
+
+#. Dormition of the Mother of God.
+msgid "Κοίμηση της Θεοτόκου"
+msgstr ""
+
+#. Ochi Day.
+msgid "Ημέρα του Όχι"
+msgstr ""
+
+#. Christmas Day.
+msgid "Χριστούγεννα"
+msgstr ""
+
+#. Glorifying of the Mother of God.
+msgid "Σύναξη της Υπεραγίας Θεοτόκου"
+msgstr ""
+
+#. Christmas Eve.
+msgid "Παραμονή Χριστουγέννων"
+msgstr ""
+
+#. New Year's Eve.
+msgid "Παραμονή Πρωτοχρονιάς"
+msgstr ""

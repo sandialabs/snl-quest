@@ -14,8 +14,8 @@ from PySide6.QtCore import (
 progress_re = re.compile("(\d+)%")
 
 #           progress parser to create a signal for the progress bars
-
-
+home_dir = os.path.dirname(__file__)
+base_dir = os.path.join(home_dir, "..", "..")
 def simple_percent_parser(output):
     """Match lines using the progress_re regex, returning a single integer for the % progress."""
     m = progress_re.search(output)
@@ -78,12 +78,12 @@ class SubProcessWorker(QRunnable):
     def run(self):
         """Initialize the runner function with passed args, kwargs."""
         result = []
-        relative_path = 'app/tools'
-        abs_path = os.path.abspath(relative_path)
+        # relative_path = 'app/tools'
+        # abs_path = os.path.abspath(relative_path)
         with subprocess.Popen(
 
             self.command,
-            cwd=abs_path,
+            cwd=base_dir,
             bufsize=1,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -108,61 +108,61 @@ class SubProcessWorker(QRunnable):
 #     end::workerRun[]
 
 
-class SubProcessWorkerLaunch(QRunnable):
-    """
-    ProcessWorker worker thread.
+# class SubProcessWorkerLaunch(QRunnable):
+#     """
+#     ProcessWorker worker thread.
 
-    Inherits from QRunnable to handle worker thread setup, signals and wrap-up.
+#     Inherits from QRunnable to handle worker thread setup, signals and wrap-up.
 
-    :param command: command to execute with `subprocess`.
+#     :param command: command to execute with `subprocess`.
 
-    Create the runners for launching apps.
+#     Create the runners for launching apps.
 
-    """
+#     """
 
-    def __init__(self, command, parser=None):
-        """Initiliaze the subprocessworker."""
-        super().__init__()
-        # Store constructor arguments (re-used for processing).
-        self.signals = WorkerSignals()
+#     def __init__(self, command, parser=None):
+#         """Initiliaze the subprocessworker."""
+#         super().__init__()
+#         # Store constructor arguments (re-used for processing).
+#         self.signals = WorkerSignals()
 
-        # The command to be executed.
-        self.command = command
+#         # The command to be executed.
+#         self.command = command
 
-        # The parser function to extract the progress information.
-        self.parser = parser
+#         # The parser function to extract the progress information.
+#         self.parser = parser
 
-    # tag::workerRun[]
-    @Slot()
-    def run(self):
-        """Initialize the runner function with passed args, kwargs."""
-        result = []
+#     # tag::workerRun[]
+#     @Slot()
+#     def run(self):
+#         """Initialize the runner function with passed args, kwargs."""
+#         result = []
 
-        with subprocess.Popen(
+#         with subprocess.Popen(
 
-            self.command,
-            bufsize=1,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True,
+#             self.command,
+#             bufsize=1,
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.STDOUT,
+#             universal_newlines=True,
 
 
-        ) as proc:
-            while proc.poll() is None:
-                data = proc.stdout.readline()
-                print(data)
-                result.append(data)
+#         ) as proc:
+#             while proc.poll() is None:
+#                 data = proc.stdout.readline()
+#                 print(data)
+#                 result.append(data)
 
-                if self.parser:
-                    value = self.parser(data)
-                    if value:
-                        self.signals.progress.emit(value)
+#                 if self.parser:
+#                     value = self.parser(data)
+#                     if value:
+#                         self.signals.progress.emit(value)
 
-        # output = "".join(result)
+#         # output = "".join(result)
 
-        # self.signals.result.emit(output)
-        self.signals.finished.emit(value)
-#     end::workerRun[]
+#         # self.signals.result.emit(output)
+#         self.signals.finished.emit(value)
+# #     end::workerRun[]
 
 
 def about_hide_window_btn(self):
@@ -204,7 +204,8 @@ def about_data_page(self):
 def about_manager_page(self):
     """Navigate to the information about the data manager app in the about drop down."""
     height = self.about_info.height()
-
+    # env_path = os.path.join(home_dir, "..", "tools", "env_create", "a_behind_env.py")
+    # print(env_path)
     if height == 0:
         newheight = 450
 
@@ -224,7 +225,7 @@ def about_manager_page(self):
 def about_tech_page(self):
     """Navigate to the information about the tech selection app in the about drop down."""
     height = self.about_info.height()
-
+    
     if height == 0:
         newheight = 450
 
@@ -358,11 +359,12 @@ def about_plan_page(self):
 
 def data_settings(self):
     """Activate a runner to remove the environment that launches the data gpt app."""
+    vis_del_path = os.path.join(home_dir, "..", "tools", "env_create", "vis_del.py")
     self.quest_gpt_progress_bar.setRange(0,0)
     self.quest_gpt_install_button.setEnabled(False)
     self.quest_gpt_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python vis_del.py",
+        command=["python", vis_del_path],
         parser=simple_percent_parser,
     )
     self.quest_gpt_install_button.setText('Uninstalling')
@@ -382,11 +384,12 @@ def data_uninstall_fin(self):
 
 def tech_settings(self):
     """Activate a runner to remove the environment that launches the tech selection app."""
+    tech_del_path = os.path.join(home_dir, "..", "tools", "env_create", "a_tech_del.py")
     self.tech_progress_bar.setRange(0,0)
     self.tech_selection_install_button.setEnabled(False)
     self.tech_selection_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python a_tech_del.py",
+        command=["python", tech_del_path],
         parser=simple_percent_parser,
     )
     self.tech_selection_install_button.setText('Uninstalling')
@@ -406,11 +409,12 @@ def tech_uninstall_fin(self):
 
 def eval_settings(self):
     """Activate a runner to remove the environment that launches the evaluation app."""
+    eval_del_path = os.path.join(home_dir, "..", "tools", "env_create", "a_eval_del.py")
     self.eval_progress_bar.setRange(0,0)
     self.evaluation_install_button.setEnabled(False)
     self.evaluation_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python a_eval_del.py",
+        command=["python", eval_del_path],
         parser=simple_percent_parser,
     )
     self.evaluation_install_button.setText('Uninstalling')
@@ -431,10 +435,11 @@ def eval_uninstall_fin(self):
 def btm_settings(self):
     """Activate a runner to remove the environment that launches the behind the meter app."""
     self.behind_progress_bar.setRange(0,0)
+    btm_del_path = os.path.join(home_dir, "..", "tools", "env_create", "a_behind_del.py")
     self.behind_the_meter_install_button.setEnabled(False)
     self.behind_the_meter_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python a_behind_del.py",
+        command=["python", btm_del_path],
         parser=simple_percent_parser,
     )
     self.behind_the_meter_install_button.setText('Uninstalling')
@@ -445,7 +450,7 @@ def btm_settings(self):
 
 def btm_uninstall_fin(self):
     """Update the state of the behind the meter action button to be reinstallable."""
-    self.behind_progress_bar.setRange(0,0)
+    self.behind_progress_bar.setRange(0,100)
     self.behind_the_meter_install_button.setEnabled(True)
     self.behind_the_meter_install_button.setChecked(False)
     self.behind_the_meter_install_button.setText('Install')
@@ -455,10 +460,11 @@ def btm_uninstall_fin(self):
 def perf_settings(self):
     """Activate a runner to remove the environment that launches the performance app."""
     self.perf_progress_bar.setRange(0,0)
+    perf_del_path = os.path.join(home_dir, "..", "tools", "env_create", "a_perf_del.py")
     self.performance_install_button.setEnabled(False)
     self.performance_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python a_perf_del.py",
+        command=["python", perf_del_path],
         parser=simple_percent_parser,
     )
     self.performance_install_button.setText('Uninstalling')
@@ -478,11 +484,12 @@ def perf_uninstall_fin(self):
 
 def energy_settings(self):
     """Activate a runner to remove the environment that launches the energy equity app."""
+    equity_del_path = os.path.join(home_dir, "..", "tools", "env_create", "a_energy_del.py")
     self.energy_progress_bar.setRange(0,0)
     self.equity_install_button.setEnabled(False)
     self.equity_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python a_energy_del.py",
+        command=["python", equity_del_path],
         parser=simple_percent_parser,
     )
     self.equity_install_button.setText('Uninstalling')
@@ -502,11 +509,12 @@ def energy_uninstall_fin(self):
 
 def micro_settings(self):
     """Activate a runner to remove the environment that launches the microgrid app."""
+    micro_del_path = os.path.join(home_dir, "..", "tools", "env_create", "a_micro_del.py")
     self.micro_progress_bar.setRange(0,0)
     self.microgrid_install_button.setEnabled(False)
     self.microgrid_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python a_micro_del.py",
+        command=["python", micro_del_path],
         parser=simple_percent_parser,
     )
     self.microgrid_install_button.setText('Uninstalling')
@@ -549,11 +557,12 @@ def plan_uninstall_fin(self):
 
 def manager_settings(self):
     """Activate a runner to remove the environment that launches the data manager app."""
+    manager_del_path = os.path.join(home_dir, "..", "tools", "env_create", "manager_del.py")
     self.data_progress_bar.setRange(0,0)
     self.manager_install_button.setEnabled(False)
     self.manager_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command="python manager_del.py",
+        command=["python", manager_del_path],
         parser=simple_percent_parser,
     )
     self.manager_install_button.setText('Uninstalling')
@@ -573,29 +582,6 @@ def manager_uninstall_fin(self):
 
 #           install methods
 
-
-# def data_man_button_pushed(self):
-#     """Activate a runner to install the environment that launches the data manager app."""
-#     self.data_manager_install_button.setEnabled(False)
-#     self.data_manager_install_button.setChecked(True)
-#     self.runner = SubProcessWorker(
-#         command="python a_data_env.py",
-#         parser=simple_percent_parser,
-#     )
-#     self.data_manager_install_button.setText('Installing')
-#     self.runner.signals.progress.connect(self.data_progress_bar.setValue)
-#     self.threadpool.start(self.runner)
-#     self.runner.signals.finished.connect(self.data_install_fin)
-
-
-# def data_install_fin(self):
-#     """Update the state of the data manager action button to launch."""
-#     self.data_manager_install_button.setEnabled(False)
-#     self.data_manager_install_button.setChecked(False)
-#     self.data_manager_install_button.setText('Launch')
-#     self.data_progress_bar.setValue(0)
-
-
 def tech_select_button_pushed(self):
     """
     State dependent actions.
@@ -605,9 +591,12 @@ def tech_select_button_pushed(self):
     a runner is activated to install the environment that launches the tech selection app.
     """
     self.tech_progress_bar.setRange(0,0)
-    if os.path.isdir('app_envs/env_tech/Lib/site-packages/glpk'):
-        self.runner = SubProcessWorkerLaunch(
-            command=["./app_envs/env_tech/Scripts/python.exe", "./snl_libraries/tech_selection/tech.py"],
+    tech_path = os.path.join(home_dir, "..", "..", "app_envs", "env_tech", "Lib", "site-packages", "glpk")
+    if os.path.isdir(tech_path):
+        tech_act = os.path.join(home_dir, "..", "..", "app_envs", "env_tech", "Scripts", "python.exe")
+        tech_cmd = os.path.join(home_dir, "..", "..", "snl_libraries", "tech_selection", "tech.py")
+        self.runner = SubProcessWorker(
+            command=[tech_act, tech_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.tech_progress_bar.setValue)
@@ -620,10 +609,11 @@ def tech_select_button_pushed(self):
         self.tech_selection_install_button.setEnabled(False)
 
     else:
+        tech_install_path = os.path.join(home_dir, "..", "tools", "env_create", "a_tech_env.py")
         self.tech_selection_install_button.setEnabled(False)
         self.tech_selection_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python a_tech_env.py",
+            command=["python", tech_install_path],
             parser=simple_percent_parser,
         )
         self.tech_selection_install_button.setText('Installing')
@@ -632,12 +622,11 @@ def tech_select_button_pushed(self):
         self.runner.signals.finished.connect(self.tech_bat)
 
 def tech_bat(self):
-    relative_path = 'app/tools/tech.bat'
-    abs_path = os.path.abspath(relative_path)
+    eval_bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "tech.bat")
     self.tech_selection_install_button.setEnabled(False)
     self.tech_selection_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=eval_bat_path,
         parser=simple_percent_parser,
     )
     self.tech_selection_install_button.setText('Installing')
@@ -649,9 +638,10 @@ def tech_bat(self):
 def tech_fin(self):
     """Update the tech selection action button to launch after the runner is complete."""
     self.tech_progress_bar.setRange(0,100)
-    if os.path.isdir('app_envs/env_tech/Lib/site-packages/glpk'):
+    tech_path = os.path.join(home_dir, "..", "..", "app_envs", "env_tech", "Lib", "site-packages", "glpk")
+    if os.path.isdir(tech_path):
         self.tech_selection_install_button.setEnabled(True)
-        self.tech_selection_install_button.setCheckable(False)
+        self.tech_selection_install_button.setChecked(False)
         self.tech_selection_install_button.setText('Launch')
         self.tech_progress_bar.setValue(0)
     else:
@@ -670,9 +660,12 @@ def evaluation_button_pushed(self):
     a runner is activated to install the environment that launches the evaluation app.
     """
     self.eval_progress_bar.setRange(0,0)
-    if os.path.isdir('app_envs/env_eval/Lib/site-packages/glpk'):
-        self.runner = SubProcessWorkerLaunch(
-            command=["./app_envs/env_eval/Scripts/python.exe", "./snl_libraries/valuation/valuation.py"],
+    eval_path = os.path.join(home_dir, "..", "..", "app_envs", "env_eval", "Lib", "site-packages", "glpk")
+    if os.path.isdir(eval_path):
+        eval_act = os.path.join(home_dir, "..", "..", "app_envs", "env_eval", "Scripts", "python.exe")
+        eval_cmd = os.path.join(home_dir, "..", "..", "snl_libraries", "valuation", "valuation.py")
+        self.runner = SubProcessWorker(
+            command=[eval_act, eval_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.eval_progress_bar.setValue)
@@ -684,10 +677,11 @@ def evaluation_button_pushed(self):
         self.evaluation_install_button.setChecked(True)
         self.evaluation_install_button.setEnabled(False)
     else:
+        eval_install_path = os.path.join(home_dir, "..", "tools", "env_create", "a_eval_env.py")
         self.evaluation_install_button.setEnabled(False)
         self.evaluation_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python a_eval_env.py",
+            command=["python", eval_install_path],
             parser=simple_percent_parser,
         )
         self.evaluation_install_button.setText('Installing')
@@ -696,12 +690,11 @@ def evaluation_button_pushed(self):
         self.runner.signals.finished.connect(self.eval_bat)
         
 def eval_bat(self):
-    relative_path = 'app/tools/eval.bat'
-    abs_path = os.path.abspath(relative_path)
+    eval_bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "eval.bat")
     self.evaluation_install_button.setEnabled(False)
     self.evaluation_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=eval_bat_path,
         parser=simple_percent_parser,
     )
     self.evaluation_install_button.setText('Installing')
@@ -712,10 +705,11 @@ def eval_bat(self):
 
 def eval_fin(self):
     """Update the evaluation action button to launch after the runner is complete."""
+    eval_path = os.path.join(home_dir, "..", "..", "app_envs", "env_eval", "Lib", "site-packages", "glpk")
     self.eval_progress_bar.setRange(0,100)
-    if os.path.isdir('app_envs/env_eval/Lib/site-packages/glpk'):
+    if os.path.isdir(eval_path):
         self.evaluation_install_button.setEnabled(True)
-        self.evaluation_install_button.setCheckable(False)
+        self.evaluation_install_button.setChecked(False)
         self.evaluation_install_button.setText('Launch')
         self.eval_progress_bar.setValue(0)
     else:
@@ -734,9 +728,12 @@ def behind_button_pushed(self):
     a runner is activated to install the environment that launches the behind the meter app.
     """
     self.behind_progress_bar.setRange(0,0)
-    if os.path.isdir('app_envs/env_btm/Lib/site-packages/glpk'):
-        self.runner = SubProcessWorkerLaunch(
-            command=["./app_envs/env_btm/Scripts/python.exe", "./snl_libraries/btm/btm.py"],
+    btm_path = os.path.join(home_dir, "..", "..", "app_envs", "env_btm", "Lib", "site-packages", "glpk")
+    if os.path.isdir(btm_path):
+        btm_act = os.path.join(home_dir, "..", "..", "app_envs", "env_btm", "Scripts", "python.exe")
+        btm_cmd = os.path.join(home_dir, "..", "..", "snl_libraries", "btm", "btm.py")
+        self.runner = SubProcessWorker(
+            command=[btm_act, btm_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.behind_progress_bar.setValue)
@@ -749,10 +746,11 @@ def behind_button_pushed(self):
         self.behind_the_meter_install_button.setEnabled(False)
 
     else:
+        btm_install_path = os.path.join(home_dir, "..", "tools", "env_create", "a_behind_env.py")
         self.behind_the_meter_install_button.setEnabled(False)
         self.behind_the_meter_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python a_behind_env.py",
+            command=["python", btm_install_path],
             parser=simple_percent_parser,
         )
         self.behind_the_meter_install_button.setText('Installing')
@@ -761,12 +759,11 @@ def behind_button_pushed(self):
         self.runner.signals.finished.connect(self.btm_bat)
 
 def btm_bat(self):
-    relative_path = 'app/tools/btm.bat'
-    abs_path = os.path.abspath(relative_path)
+    bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "btm.bat")
     self.behind_the_meter_install_button.setEnabled(False)
     self.behind_the_meter_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=bat_path,
         parser=simple_percent_parser,
     )
     self.behind_the_meter_install_button.setText('Installing')
@@ -777,9 +774,10 @@ def btm_bat(self):
 def btm_fin(self):
     """Update the behind the meter action button to launch after the runner is complete."""
     self.behind_progress_bar.setRange(0,100)
-    if os.path.isdir('app_envs/env_btm/Lib/site-packages/glpk'):
+    btm_path = os.path.join(home_dir, "..", "..", "app_envs", "env_btm", "Lib", "site-packages", "glpk")
+    if os.path.isdir(btm_path):
         self.behind_the_meter_install_button.setEnabled(True)
-        self.behind_the_meter_install_button.setCheckable(False)
+        self.behind_the_meter_install_button.setChecked(False)
         self.behind_the_meter_install_button.setText('Launch')
         self.behind_progress_bar.setValue(0)
     else:
@@ -797,9 +795,14 @@ def performance_button_pushed(self):
     a runner is activated to install the environment that launches the performance app.
     """
     self.perf_progress_bar.setRange(0,0)
-    if os.path.isdir('app_envs/env_perf/Lib/site-packages/glpk'):
-        self.runner = SubProcessWorkerLaunch(
-            command=["./app_envs/env_perf/Scripts/python.exe", "./snl_libraries/performance/perf.py"],
+    
+    perf_path = os.path.join(home_dir, "..", "..", "app_envs", "env_perf", "Lib", "site-packages", "glpk")
+    if os.path.isdir(perf_path):
+        perf_act = os.path.join(home_dir, "..", "..", "app_envs", "env_perf", "Scripts", "python.exe")
+        perf_cmd = os.path.join(home_dir, "..", "..", "snl_libraries", "performance", "perf.py")
+
+        self.runner = SubProcessWorker(
+            command=[perf_act, perf_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.perf_progress_bar.setValue)
@@ -811,10 +814,11 @@ def performance_button_pushed(self):
         self.performance_install_button.setChecked(True)
         self.performance_install_button.setEnabled(False)
     else:
+        perf_install_path = os.path.join(home_dir, "..", "tools", "env_create", "a_perf_env.py")
         self.performance_install_button.setEnabled(False)
         self.performance_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python a_perf_env.py",
+            command=["python", perf_install_path],
             parser=simple_percent_parser,
         )
         self.performance_install_button.setText('Installing')
@@ -823,12 +827,11 @@ def performance_button_pushed(self):
         self.runner.signals.finished.connect(self.perf_bat)
 
 def perf_bat(self):
-    relative_path = 'app/tools/perf.bat'
-    abs_path = os.path.abspath(relative_path)
+    perf_bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "perf.bat")
     self.performance_install_button.setEnabled(False)
     self.performance_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=perf_bat_path,
         parser=simple_percent_parser,
     )
     self.performance_install_button.setText('Installing')
@@ -839,9 +842,10 @@ def perf_bat(self):
 def perf_fin(self):
     """Update the behind the meter action button to launch after the runner is complete."""
     self.perf_progress_bar.setRange(0,100)
-    if os.path.isdir('app_envs/env_perf/Lib/site-packages/glpk'):
+    perf_path = os.path.join(home_dir, "..", "..", "app_envs", "env_perf", "Lib", "site-packages", "glpk")
+    if os.path.isdir(perf_path):
         self.performance_install_button.setEnabled(True)
-        self.performance_install_button.setCheckable(False)
+        self.performance_install_button.setChecked(False)
         self.performance_install_button.setText('Launch')
         self.perf_progress_bar.setValue(0)
     else:
@@ -859,13 +863,15 @@ def energy_button_pushed(self):
     If the environment doesn't exist,
     a runner is activated to install the environment that launches the microgrid app.
     """
-    rel_path="./app_envs/env_energy/Scripts/python.exe"
+    
     self.energy_progress_bar.setRange(0, 0)
-    abs_path= os.path.abspath(rel_path)
-    if os.path.isdir('app_envs/env_energy/equity'):
+    equity_path = os.path.join(home_dir, "..", "..", "app_envs", "env_energy", "equity")
+    if os.path.isdir(equity_path):
+        equity_act = os.path.join(home_dir, "..", "..", "app_envs", "env_energy", "Scripts", "python.exe")
+        equity_cmd = os.path.join(home_dir, "..", "..", "app_envs", "env_energy", "equity", "main.py")
 
-        self.runner = SubProcessWorkerLaunch(
-            command=[abs_path, "./app_envs/env_energy/equity/main.py"],
+        self.runner = SubProcessWorker(
+            command=[equity_act, equity_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.energy_progress_bar.setValue)
@@ -877,10 +883,12 @@ def energy_button_pushed(self):
         self.equity_install_button.setChecked(True)
         self.equity_install_button.setEnabled(False)
     else:
+        equity_install_path = os.path.join(home_dir, "..", "tools", "env_create", "a_energy_env.py")
         self.equity_install_button.setEnabled(False)
+        self.equity_install_button.setCheckable(True)
         self.equity_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python a_energy_env.py",
+            command=["python", equity_install_path],
             parser=simple_percent_parser,
         )
         self.equity_install_button.setText('Installing')
@@ -889,12 +897,11 @@ def energy_button_pushed(self):
         self.runner.signals.finished.connect(self.energy_bat)
         
 def energy_bat(self):
-    relative_path = 'app/tools/energy.bat'
-    abs_path = os.path.abspath(relative_path)
+    equity_bat = os.path.join(home_dir, "..", "tools", "batch_files", "energy.bat")
     self.equity_install_button.setEnabled(False)
     self.equity_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=equity_bat,
         parser=simple_percent_parser,
     )
     self.equity_install_button.setText('Installing')
@@ -906,9 +913,10 @@ def energy_bat(self):
 def energy_install_fin(self):
     """Update the energy action button to launch after the runner is complete."""
     self.energy_progress_bar.setRange(0,100)
-    if os.path.isdir('app_envs/env_energy/equity'):
+    equity_path = os.path.join(home_dir, "..", "..", "app_envs", "env_energy", "equity")
+    if os.path.isdir(equity_path):
         self.equity_install_button.setEnabled(True)
-        self.equity_install_button.setCheckable(False)
+        self.equity_install_button.setChecked(False)
         self.equity_install_button.setText('Launch')
         self.energy_progress_bar.setValue(0)
     else:
@@ -926,13 +934,17 @@ def microgrid_button_pushed(self):
     If the environment doesn't exist,
     a runner is activated to install the environment that launches the microgrid app.
     """
-    rel_path="./app_envs/env_micro/Scripts/python.exe"
+    micro_path = os.path.join(home_dir, "..", "..", "app_envs", "env_micro", "Lib", "site-packages", "ssim")
     self.micro_progress_bar.setRange(0, 0)
-    abs_path= os.path.abspath(rel_path)
-    if os.path.isdir('app_envs/env_micro/Lib/site-packages/ssim'):
+    if os.path.isdir(micro_path):
+        perf_act = os.path.join(home_dir, "..", "..", "app_envs", "env_micro", "Scripts", "python.exe")
+        perf_cmd = os.path.join(home_dir, "..", "..", "app_envs", "env_micro", "Lib", "site-packages", "ssim", "ui", "kivy", "ssimapp.py")
 
-        self.runner = SubProcessWorkerLaunch(
-            command=[abs_path, "./app_envs/env_micro/Lib/site-packages/ssim/ui/kivy/ssimapp.py"],
+
+
+
+        self.runner = SubProcessWorker(
+            command=[perf_act, perf_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.micro_progress_bar.setValue)
@@ -944,10 +956,11 @@ def microgrid_button_pushed(self):
         self.microgrid_install_button.setChecked(True)
         self.microgrid_install_button.setEnabled(False)
     else:
+        micro_install_path = os.path.join(home_dir, "..", "tools", "env_create", "a_micro_env.py")
         self.microgrid_install_button.setEnabled(False)
         self.microgrid_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python a_micro_env.py",
+            command=["python", micro_install_path],
             parser=simple_percent_parser,
         )
         self.microgrid_install_button.setText('Installing')
@@ -956,12 +969,11 @@ def microgrid_button_pushed(self):
         self.runner.signals.finished.connect(self.micro_bat)
 
 def micro_bat(self):
-    relative_path = 'app/tools/micro.bat'
-    abs_path = os.path.abspath(relative_path)
+    micro_bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "micro.bat")
     self.microgrid_install_button.setEnabled(False)
     self.microgrid_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=micro_bat_path,
         parser=simple_percent_parser,
     )
     self.microgrid_install_button.setText('Installing')
@@ -972,9 +984,10 @@ def micro_bat(self):
 def micro_fin(self):
     """Update the microgrid action button to launch after the runner is complete."""
     self.micro_progress_bar.setRange(0, 100)
-    if os.path.isdir('app_envs/env_micro/Lib/site-packages/ssim'):
+    micro_path = os.path.join(home_dir, "..", "..", "app_envs", "env_micro", "Lib", "site-packages", "ssim")
+    if os.path.isdir(micro_path):
         self.microgrid_install_button.setEnabled(True)
-        self.microgrid_install_button.setCheckable(False)
+        self.microgrid_install_button.setChecked(False)
         self.microgrid_install_button.setText('Launch')
         self.micro_progress_bar.setValue(0)
     else:
@@ -992,13 +1005,15 @@ def data_vis_button_pushed(self):
     If the environment doesn't exist,
     a runner is activated to install the environment that launches the data visualization app.
     """
-    rel_path="./app_envs/env_viz/Scripts/python.exe"
+    
     self.quest_gpt_progress_bar.setRange(0, 0)
-    abs_path= os.path.abspath(rel_path)
-    if os.path.isdir('app_envs/env_viz/Lib/site-packages/PySide6'):
+    vis_path = os.path.join(home_dir, "..", "..", "app_envs", "env_viz", "Lib", "site-packages", "PySide6")
+    if os.path.isdir(vis_path):
+        vis_act = os.path.join(home_dir, "..", "..", "app_envs", "env_viz", "Scripts", "python.exe")
+        vis_cmd = os.path.join(home_dir, "..", "..", "snl_libraries", "gpt", "main.py")
 
-        self.runner = SubProcessWorkerLaunch(
-            command=[abs_path, "./snl_libraries/gpt/main.py"],
+        self.runner = SubProcessWorker(
+            command=[vis_act, vis_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.quest_gpt_progress_bar.setValue)
@@ -1010,10 +1025,11 @@ def data_vis_button_pushed(self):
         self.quest_gpt_install_button.setChecked(True)
         self.quest_gpt_install_button.setEnabled(False)
     else:
+        vis_install_path = os.path.join(home_dir, "..", "tools", "env_create", "vis_env.py")
         self.quest_gpt_install_button.setEnabled(False)
         self.quest_gpt_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python vis_env.py",
+            command=["python", vis_install_path],
             parser=simple_percent_parser,
         )
         self.quest_gpt_install_button.setText('Installing')
@@ -1022,12 +1038,11 @@ def data_vis_button_pushed(self):
         self.runner.signals.finished.connect(self.data_vis_bat)
 
 def data_vis_bat(self):
-    relative_path = 'app/tools/viz.bat'
-    abs_path = os.path.abspath(relative_path)
+    vis_bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "viz.bat")
     self.quest_gpt_install_button.setEnabled(False)
     self.quest_gpt_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=vis_bat_path,
         parser=simple_percent_parser,
     )
     self.quest_gpt_install_button.setText('Installing')
@@ -1038,9 +1053,10 @@ def data_vis_bat(self):
 def data_vis_fin(self):
     """Update the microgrid action button to launch after the runner is complete."""
     self.quest_gpt_progress_bar.setRange(0, 100)
-    if os.path.isdir('app_envs/env_viz/Lib/site-packages/PySide6'):
+    viz_path = os.path.join(home_dir, "..", "..", "app_envs", "env_viz", "Lib", "site-packages", "Pyside6")
+    if os.path.isdir(viz_path):
         self.quest_gpt_install_button.setEnabled(True)
-        self.quest_gpt_install_button.setCheckable(False)
+        self.quest_gpt_install_button.setChecked(False)
         self.quest_gpt_install_button.setText('Launch')
         self.quest_gpt_progress_bar.setValue(0)
     else:
@@ -1057,13 +1073,14 @@ def manager_button_pushed(self):
     If the environment doesn't exist,
     a runner is activated to install the environment that launches the data manager app.
     """
-    rel_path="./app_envs/env_data/Scripts/python.exe"
     self.data_progress_bar.setRange(0, 0)
-    abs_path= os.path.abspath(rel_path)
-    if os.path.isdir('app_envs/env_data/Lib/site-packages/glpk'):
+    manager_path = os.path.join(home_dir, "..", "..", "app_envs", "env_data", "Lib", "site-packages", "glpk")
+    if os.path.isdir(manager_path):
+        manager_act = os.path.join(home_dir, "..", "..", "app_envs", "env_data", "Scripts", "python.exe")
+        manager_cmd = os.path.join(home_dir, "..", "..", "snl_libraries", "data_manager", "data_manager.py")
 
-        self.runner = SubProcessWorkerLaunch(
-            command=[abs_path, "./snl_libraries/data_manager/data_manager.py"],
+        self.runner = SubProcessWorker(
+            command=[manager_act, manager_cmd],
             parser=simple_percent_parser,
         )
         self.runner.signals.progress.connect(self.data_progress_bar.setValue)
@@ -1075,10 +1092,11 @@ def manager_button_pushed(self):
         self.manager_install_button.setChecked(True)
         self.manager_install_button.setEnabled(False)
     else:
+        manager_install_path = os.path.join(home_dir, "..", "tools", "env_create", "manager_env.py")
         self.manager_install_button.setEnabled(False)
         self.manager_install_button.setChecked(True)
         self.runner = SubProcessWorker(
-            command="python manager_env.py",
+            command=["python", manager_install_path],
             parser=simple_percent_parser,
         )
         self.manager_install_button.setText('Installing')
@@ -1087,12 +1105,11 @@ def manager_button_pushed(self):
         self.runner.signals.finished.connect(self.manager_bat)
 
 def manager_bat(self):
-    relative_path = 'app/tools/manager.bat'
-    abs_path = os.path.abspath(relative_path)
+    manager_bat_path = os.path.join(home_dir, "..", "tools", "batch_files", "manager.bat")
     self.manager_install_button.setEnabled(False)
     self.manager_install_button.setChecked(True)
     self.runner = SubProcessWorker(
-        command=abs_path,
+        command=manager_bat_path,
         parser=simple_percent_parser,
     )
     self.manager_install_button.setText('Installing')
@@ -1103,9 +1120,10 @@ def manager_bat(self):
 def manager_fin(self):
     """Update the microgrid action button to launch after the runner is complete."""
     self.data_progress_bar.setRange(0, 100)
-    if os.path.isdir('app_envs/env_data/Lib/site-packages/glpk'):
+    manager_path = os.path.join(home_dir, "..", "..", "app_envs", "env_data", "Lib", "site-packages", "glpk")
+    if os.path.isdir(manager_path):
         self.manager_install_button.setEnabled(True)
-        self.manager_install_button.setCheckable(False)
+        self.manager_install_button.setChecked(False)
         self.manager_install_button.setText('Launch')
         self.data_progress_bar.setValue(0)
     else:

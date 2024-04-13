@@ -4,7 +4,7 @@ from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 
-from NodeGraphQt import NodeGraph, BaseNode, NodeBaseWidget
+from NodeGraphQt import NodeGraph, BaseNode, NodeBaseWidget, BackdropNode
 from NodeGraphQt.constants import *
 
 from snl_libraries.workspace.flow.questflow import *
@@ -12,9 +12,10 @@ from snl_libraries.workspace.flow.questflow import *
 class PythonEditor(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
-       
+        
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Tab:
+            # Insert four spaces instead of a tab character
             self.insertPlainText("    ")
             return
         super().keyPressEvent(event)
@@ -27,7 +28,7 @@ class PythonSyntaxHighlighter(QSyntaxHighlighter):
         keyword_format = QTextCharFormat()
         keyword_format.setForeground(QColor(Qt.blue))
         keyword_format.setFontWeight(QFont.Bold)
-
+        
         # Keywords
         keywords = [
             '\\bFalse\\b', '\\bNone\\b', '\\bTrue\\b', '\\band\\b', '\\bas\\b', 
@@ -59,6 +60,45 @@ class PythonSyntaxHighlighter(QSyntaxHighlighter):
             while match_iterator.hasNext():
                 match = match_iterator.next()
                 self.setFormat(match.capturedStart(), match.capturedLength(), format)
+class TextEditWidget(QWidget):
+    """
+    Custom widget for text input to be embedded inside a TextNode.
+    """
+    def __init__(self, parent=None):
+        super(TextEditWidget, self).__init__(parent)
+
+
+        self.text_caption = QLabel()
+        # self.text_caption.setFixedWidth(60)
+        self.text_caption.setWordWrap(True)
+        self.text_caption.setStyleSheet("QLabel { color: blue; font-size: 12pt}")
+               
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        # self.layout.setAlignment(Qt.AlignCenter)
+        # self.splitter = QSplitter(self)
+        # self.splitter.addWidget(self.text_caption)
+        self.layout.addWidget(self.text_caption)
+       
+
+class TextNodeWidgetWrapper(NodeBaseWidget):
+    """
+    Wrapper that allows the custom text widget to be added in a TextNode.
+    """
+
+    def __init__(self, parent=None):
+        super(TextNodeWidgetWrapper, self).__init__(parent)
+        self.set_name('Text Caption')
+        self.set_custom_widget(TextEditWidget())
+
+    def get_value(self):
+        widget = self.get_custom_widget()
+        return widget.text_caption.text()
+
+    def set_value(self, value):
+        widget = self.get_custom_widget()
+        widget.text_caption.setText(value)
+ 
 class DataNode(BaseNode):
     __identifier__ = 'QuESt.Workspace'
     NODE_NAME = 'Data Node'
@@ -71,12 +111,14 @@ class DataNode(BaseNode):
         
         self.set_icon('./images/icons/data_icon.png')
         self.set_port_deletion_allowed(mode=True)
+        text_node_widget = TextNodeWidgetWrapper(self.view)
+        self.add_custom_widget(text_node_widget, tab='Custom')
         self.node_type='data_node'
         self.node_input_variable=''
         self.node_input_value=''
         self.node_function_wrapper=''
         self.node_imports=''
-
+        
        
     def add_dynamic_input(self, name, color=(100, 100, 100)):
         """
@@ -95,6 +137,48 @@ class DataNode(BaseNode):
         :param color: Color of the output port as a tuple (R, G, B)
         """
         self.add_output(name, color=color)
+
+
+  
+# class TextNode(BaseNode):
+#     __identifier__ = 'QuESt.Workspace'
+#     NODE_NAME = 'Text Node'
+
+#     def __init__(self):
+#         super(TextNode, self).__init__()
+#         font = self.view.text_item.font()
+#         font.setPointSize(12)
+#         self.view.text_item.setFont(font)
+        
+#         self.set_icon('./images/icons/text_icon.png')
+#         self.set_port_deletion_allowed(mode=True)
+#         self.node_type='text_node'
+#         self.node_input_variable=''
+#         self.node_input_value=''
+#         self.node_function_wrapper=''
+#         self.node_imports=''
+#         # Add custom widget to node
+#         text_node_widget = TextNodeWidgetWrapper(self.view)
+#         self.add_custom_widget(text_node_widget, tab='Custom')
+#     def set_size(self,width,height):
+#         self.set_property('width',width)
+#         self.set_property('height',height)
+#         self.view.width, self.view.height = width, height
+#         self.model.width, self.model.height = width, height
+        
+class BackNode(BackdropNode):
+    __identifier__ = 'QuESt.Workspace'
+    NODE_NAME = 'Back Node'
+
+    def __init__(self):
+        super(BackNode, self).__init__()
+        
+        self.set_backdrop_font_size(12)
+        self.node_type='back_node'
+        self.node_input_variable=''
+        self.node_input_value=''
+        self.node_function_wrapper=''
+        self.node_imports=''
 
 class PyNode(BaseNode):
     __identifier__ = 'QuESt.Workspace'
@@ -144,17 +228,26 @@ class quest_workspace(QWidget):
         self.nodes_df = pd.DataFrame(columns=['node_id', 'node_name', 'node_type', 'node_input_variable','node_input_value','node_function_wrapper', 'node_imports'])
         self.connections_df = pd.DataFrame(columns=['connection_id', 'from_node', 'to_node','mapping'])
 
+        # Toolbar
         self.layout = QHBoxLayout(self)
         self.toolbar = QToolBar("Node Tools", self)
         self.toolbar.setFloatable(True)
         self.toolbar.setMovable(True)
         self.toolbar.setIconSize(QSize(40, 40))
         data_node_icon = QIcon('./images/icons/data_icon.png')
+        text_node_icon = QIcon('./images/icons/text_icon.png')
         py_node_icon = QIcon('./images/icons/python_icon.png')
         action_data_node = QAction(data_node_icon, 'Add Data Node', self)
+        action_text_node = QAction(text_node_icon, 'Add Text Node', self)
         action_py_node = QAction(py_node_icon, 'Add Py Node', self)
+        
+        self.toolbar.addAction(action_text_node)
         self.toolbar.addAction(action_data_node)
         self.toolbar.addAction(action_py_node)
+
+        action_text_node.triggered.connect(self.create_text_node)              
+        action_data_node.triggered.connect(self.create_data_node)
+        action_py_node.triggered.connect(self.create_py_node)
         
         # Create the flow run widget
         self.flow_run_widget = QWidget()
@@ -195,22 +288,31 @@ class quest_workspace(QWidget):
         self.flow_load_layout.addWidget(self.flow_load_input)
         self.flow_load_layout.addWidget(self.flow_load_button)
 
-
+        # Create the flow result widget
+        self.flow_result_widget = QWidget()
+        self.flow_result_widget.setFixedWidth(300) 
+        self.flow_result_layout = QVBoxLayout(self.flow_result_widget)
+        self.flow_result_label = QLabel()
+        self.flow_result_label.setWordWrap(True) 
+        self.flow_result_label.setStyleSheet("QLabel { color: blue; }")
+        
+        self.flow_result_layout.addWidget(self.flow_result_label)
         self.flow_control_container = QWidget()
         self.flow_control_container.setFixedWidth(320)
         self.flow_control_layout = QVBoxLayout(self.flow_control_container)
         self.flow_control_layout.addWidget(self.flow_run_widget)
         self.flow_control_layout.addWidget(self.flow_save_widget)
         self.flow_control_layout.addWidget(self.flow_load_widget)
+        self.flow_control_layout.addWidget(self.flow_result_widget)
         self.flow_control_layout.addStretch(1)
         
-
         # Add the toolbar container to the main layout
         self.graph = NodeGraph()
         self.graph.set_background_color(255, 255, 255)
         self.graph.set_grid_mode(mode=2)
         self.graph.register_node(DataNode)
         self.graph.register_node(PyNode)
+        self.graph.register_node(BackNode)
         self.graph_widget = self.graph.widget
         self.layout.addWidget(self.graph_widget)
         
@@ -269,8 +371,9 @@ class quest_workspace(QWidget):
         # Create python function widget
         self.py_widget = QWidget()
         self.py_widget.setFixedWidth(300)
+        
         self.py_layout = QVBoxLayout(self.py_widget)
-        self.py_label = QLabel("Python Function:")
+        self.py_label = QLabel("Python Wrapper Function:")
         self.py_input = PythonEditor()  # Use QTextEdit for multi-line and text wrapping
         self.python_syntax_highlighter = PythonSyntaxHighlighter(self.py_input.document())
 
@@ -284,6 +387,23 @@ class quest_workspace(QWidget):
         self.py_layout.addWidget(self.py_label)
         self.py_layout.addWidget(self.py_input)
         self.py_layout.addWidget(self.py_button)
+
+        # Create text widget
+        self.text_widget = QWidget()
+        self.text_widget.setFixedWidth(300)
+        self.text_layout = QVBoxLayout(self.text_widget)
+        self.text_editor = QLabel("Caption:")
+        self.text_input = QTextEdit()  
+
+        self.text_input.setFixedHeight(200)
+        self.text_button = QPushButton("Update Caption")
+        self.text_button.clicked.connect(self.update_value)
+        self.text_widget.hide()
+
+        # Add widgets to the python layout
+        self.text_layout.addWidget(self.text_editor)
+        self.text_layout.addWidget(self.text_input)
+        self.text_layout.addWidget(self.text_button)
         
         # Create a container for name_widget and py_widget
         self.properties_container = QWidget()
@@ -295,6 +415,7 @@ class quest_workspace(QWidget):
         self.properties_layout.addWidget(self.type_widget)
         self.properties_layout.addWidget(self.name_widget)
         self.properties_layout.addWidget(self.py_widget)
+        self.properties_layout.addWidget(self.text_widget)
         self.properties_layout.addWidget(self.data_widget)
         self.properties_layout.addWidget(self.value_widget)
         
@@ -306,7 +427,6 @@ class quest_workspace(QWidget):
         self.tab_widget = QTabWidget()
         self.tab_widget.setFixedWidth(320)
         self.tab_layout = QHBoxLayout(self.tab_widget)
-        
         # self.tab_layout.addWidget(self.properties_container)
         self.tab_widget.addTab(self.properties_container, "Node Settings")
         self.tab_widget.addTab(self.flow_control_container, "Flow Control")
@@ -316,14 +436,11 @@ class quest_workspace(QWidget):
         # Node selection signals
         self.graph.node_selected.connect(self.on_node_selected)
         self.graph.node_selection_changed.connect(self.on_node_selected)
-        self.node_counters = {"DataNode": 0, "PyNode": 0}
-        action_data_node.triggered.connect(self.create_data_node)
-        action_py_node.triggered.connect(self.create_py_node)
+        self.node_counters = {"DataNode": 0, "PyNode": 0, "TextNode":0}
         
-    
-    def run_flow(self):
+    def update_flow(self):
         nodes_data=[]
-        
+        self.flow_result_label.setText('')
         for node in self.graph.all_nodes():
             # Extract the required attributes from each node
             node_data = [
@@ -339,20 +456,22 @@ class quest_workspace(QWidget):
             # Append the node data to the data list
             nodes_data.append(node_data)
         # Create a DataFrame from the data list
+        print(nodes_data)
         if len(nodes_data)>0:
             self.nodes_df = pd.DataFrame(nodes_data, columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_function_wrapper', 'node_imports'])
 
         connections_data = []
-        connections=self.graph.serialize_session()['connections']
-        # Iterate through each connection to extract information
-        for i, connection in enumerate(connections, start=1):
-            connection_id = i
-            from_node = connection['out'][0]
-            to_node = connection['in'][0]
-            mapping = {connection['out'][1]: connection['in'][1]}
-            
-            # Append the extracted information to the data list
-            connections_data.append([connection_id, from_node, to_node, mapping])
+        if 'connections' in self.graph.serialize_session():
+            connections=self.graph.serialize_session()['connections']
+            # Iterate through each connection to extract information
+            for i, connection in enumerate(connections, start=1):
+                connection_id = i
+                from_node = connection['out'][0]
+                to_node = connection['in'][0]
+                mapping = {connection['out'][1]: connection['in'][1]}
+                
+                # Append the extracted information to the data list
+                connections_data.append([connection_id, from_node, to_node, mapping])
 
         # Create a DataFrame from the data list
         if len(connections_data)>0:
@@ -360,16 +479,30 @@ class quest_workspace(QWidget):
         
         print(self.nodes_df)
         print(self.connections_df)
+        # flow_name=self.flow_run_input.text()
+        # self.flow=flow(flow_name= flow_name,nodes_df=self.nodes_df, connections_df=self.connections_df)
+        # self.flow.set_inputs()
+        # self.flow.get_outputs(key='Show')
+        # self.flow.make()
+        # self.flow.save('./')
+        # result=self.flow.run()
+        # output_text=f'Outputs:\n {result.stdout} \nErrors:\n {result.stderr}'
+        # self.flow_result_label.setText(output_text)
+        
+    def run_flow(self):
+        self.update_flow()
         flow_name=self.flow_run_input.text()
         self.flow=flow(flow_name= flow_name,nodes_df=self.nodes_df, connections_df=self.connections_df)
         self.flow.set_inputs()
         self.flow.get_outputs(key='Show')
         self.flow.make()
         self.flow.save('./')
-        self.flow.run()
+        result=self.flow.run()
+        output_text=f'Outputs:\n {result.stdout} \nErrors:\n {result.stderr}'
+        self.flow_result_label.setText(output_text)
 
     def save_flow(self):
-
+        self.update_flow()
         nodes_df_json=self.nodes_df.to_json(orient='records')
         connection_df_json=self.connections_df.to_json(orient='records')
         layout_dict=self.graph.serialize_session()
@@ -391,30 +524,37 @@ class quest_workspace(QWidget):
         except FileNotFoundError:
             raise ValueError('The specified JSON file path does not exist. Please check the path and try again.')
         except Exception as e:
-            # This captures other exceptions and you can handle them as needed
             print(f"An error occurred: {e}")
         
         # Load graph layout
         flow_name=flow_json_data['flow_name']
         self.flow_run_input.setText(flow_name)
         layout_dict=flow_json_data['flow_layout']
+        self.graph.clear_session()
         self.graph.deserialize_session(layout_dict)
         nodesdf_list=flow_json_data['nodes_df']
         # self.nodes_df=pd.DataFrame.from_dict(nodesdf_dict,dtype=str)
         print(nodesdf_list)
         existing_nodes={str(node.name()):node for node in self.graph.all_nodes()}
-        print(existing_nodes)
+        # print(existing_nodes)
+        # print(existing_nodes)
         for node_data in nodesdf_list:
             node_name = node_data['node_name']
           
             if node_name in existing_nodes:
                 node = existing_nodes[node_name]
+                print(node.properties())
                 node.node_type = node_data['node_type']
                 node.node_input_variable = node_data['node_input_variable']
                 node.node_input_value = node_data['node_input_value']
                 node.node_function_wrapper = node_data['node_function_wrapper']
                 node.node_imports = node_data['node_imports']
-                print(node.node_type, node.node_input_variable,node.node_input_value, node.node_function_wrapper)
+                if node.node_type=='back_node':
+                    node.set_text(text='')
+                    print(node.node_input_value)
+                    node.set_text(text=node.node_input_value)
+                
+                print(node.id,node.node_type, node.node_input_variable,node.node_input_value, node.node_function_wrapper)
         
     def on_node_selected(self):
         selected_nodes = self.graph.selected_nodes()
@@ -422,72 +562,126 @@ class quest_workspace(QWidget):
             # Show properties widget and update text input with node name
             if isinstance(selected_nodes[0], PyNode):
                 self.py_widget.show()
+                pycode=selected_nodes[0].node_imports+selected_nodes[0].node_function_wrapper
+                self.py_input.setText(pycode)
                 self.data_widget.hide()
                 self.value_widget.hide()
-                self.py_input.setText(selected_nodes[0].node_function_wrapper)
-            else:
+                self.text_widget.hide()
+                
+            elif isinstance(selected_nodes[0], DataNode):
                 self.py_widget.hide()
+                self.text_widget.hide()
                 self.data_widget.show()
                 self.value_widget.show()
                 self.data_input.setText(selected_nodes[0].node_input_variable)
                 self.value_input.setText(selected_nodes[0].node_input_value)
+            
+            else:
+                self.py_widget.hide()
+                self.data_widget.hide()
+                self.value_widget.hide()
+                self.text_widget.show()
+                self.text_input.setText(selected_nodes[0].node_input_value)
                 
             self.name_input.setText(selected_nodes[0].name())
             node_id = selected_nodes[0].id
             node_type = selected_nodes[0].type_
-            node_outputs = list(selected_nodes[0].outputs().keys())
-            if len(node_outputs)>0:
-                self.data_input.setText(f"{node_outputs[0]}")
+            try:
+                node_outputs = list(selected_nodes[0].outputs().keys())
+                if len(node_outputs)>0:
+                    self.data_input.setText(f"{node_outputs[0]}")
+            except:
+                pass
             self.id_label.setText(f"Node ID: {node_id}")
             self.type_label.setText(f"Node Type: {node_type}")
-            
-             # Show or hide the py_widget based on node type
-        
+                   
         else:
-            
             self.name_input.setText(None)
             self.id_label.setText("Node ID:")
             self.type_label.setText("Node Type:")
             self.py_input.setText(None)
             self.data_input.setText(None)
             self.value_input.setText(None)
+            self.text_input.setText(None)
     
     def update_node_name(self):
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1:
             new_name = self.name_input.text()
+            old_pos=selected_nodes[0].pos()
             selected_nodes[0].set_name(new_name)
+            selected_nodes[0].set_selected(selected=False)
+            selected_nodes[0].set_selected(selected=True)
+            selected_nodes[0].set_pos(old_pos[0],old_pos[1])
             selected_nodes[0].node_name1=selected_nodes[0].name()
     
     def update_value(self):
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1:
+            old_pos=selected_nodes[0].pos()
             # Show properties widget and update text input with node name
-            text=self.value_input.text()
             if isinstance(selected_nodes[0], DataNode):
+                text=self.value_input.text()
                 selected_nodes[0].node_input_value=text
-             
+                widget=selected_nodes[0].get_widget('Text Caption')
+                widget.set_value(selected_nodes[0].node_input_value)
+                print(selected_nodes[0].properties())
+            elif isinstance(selected_nodes[0], BackNode):
+                document=self.text_input.document()
+                document_text= document.toPlainText()
+                docSize = document.size()
+                selected_nodes[0].set_size(document.idealWidth(), docSize.height())
+                selected_nodes[0].node_input_value=document_text
+                selected_nodes[0].set_text(text=selected_nodes[0].node_input_value)
+                
+            selected_nodes[0].set_pos(old_pos[0],old_pos[1])
+
     def update_ports(self):
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) != 1:
             return  # Exit if not exactly one node is selected
         
         node = selected_nodes[0]
+        old_pos=node.pos()
         if isinstance(node, PyNode):
             try:
                 python_code = self.py_input.toPlainText()
-                
+
                 # Parse the Python code into an AST
                 parsed_ast = ast.parse(python_code)
-                
-                # Find the first function definition (assuming there's only one)
+
+                # Initialize strings for imports
+                imports_text = ""
+                # Initialize an empty list to hold full function definitions
+                func_defs = []
+
+                # Extracting import statements
+                import_statements = [n for n in ast.walk(parsed_ast) if isinstance(n, (ast.Import, ast.ImportFrom))]
+                for imp in import_statements:
+                    if isinstance(imp, ast.Import):
+                        for alias in imp.names:
+                            if alias.asname:
+                                imports_text += f"import {alias.name} as {alias.asname}\n"
+                            else:
+                                imports_text += f"import {alias.name}\n"
+                    elif isinstance(imp, ast.ImportFrom):
+                        for alias in imp.names:
+                            if alias.asname:
+                                imports_text += f"from {imp.module} import {alias.name} as {alias.asname}\n"
+                            else:
+                                imports_text += f"from {imp.module} import {alias.name}\n"
+
+                node.node_imports=imports_text
+
+                # Extracting all function definitions
                 func_defs = [n for n in ast.walk(parsed_ast) if isinstance(n, ast.FunctionDef)]
-                if not func_defs:
-                    print("No function definition found.")
-                    return
-                func_def = func_defs[0]
-                node.node_function_wrapper=python_code
-                
+                if len(func_defs)>0:
+                    func_def = func_defs[0]
+                else:
+                    raise ValueError('Wrapper function not found!')
+                function_text = ast.unparse(func_def)
+                node.node_function_wrapper=function_text
+
                 # Initialize lists to hold the new input and output port names
                 input_ports = []
                 output_ports = []
@@ -517,10 +711,9 @@ class quest_workspace(QWidget):
 
                 for key in output_ports:
                     node.add_dynamic_output(key)
-                    
             except SyntaxError as e:
                 print(f"Syntax error in Python function: {e}")
-        else:
+        elif isinstance(node, DataNode):
             for out_port_name in node.outputs().keys():
                     for connected_port in  node.outputs()[out_port_name].connected_ports():
                         node.outputs()[out_port_name].disconnect_from(connected_port)
@@ -529,8 +722,9 @@ class quest_workspace(QWidget):
             variable_name = self.data_input.text()
             node.add_dynamic_output(variable_name)
             node.node_input_variable=variable_name
-            
-           
+ 
+        node.set_pos(old_pos[0],old_pos[1])      
+
     def get_newest_node_position(self):
         nodes = self.graph.all_nodes()  # Get all nodes in the graph
         position=(0,0)
@@ -544,19 +738,28 @@ class quest_workspace(QWidget):
         node_name = f"DataNode{self.node_counters['DataNode']}"
         latest_pos = list(self.get_newest_node_position())
         new_pos=(latest_pos[0]+100,latest_pos[1]+100)
-        self.graph.create_node('QuESt.Workspace.DataNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=False)
-                          
+        self.graph.create_node('QuESt.Workspace.DataNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=True)
+
+    def create_text_node(self):
+        self.node_counters["TextNode"] = self.node_counters.get("TextNode", 0) + 1
+        node_name = f"TextNode{self.node_counters['TextNode']}"
+        latest_pos = self.get_newest_node_position()
+        new_pos = (latest_pos[0] + 100, latest_pos[1] + 100) 
+        self.graph.create_node('QuESt.Workspace.BackNode', name=node_name, color=(255, 255, 155), text_color=(0,0,0), pos=new_pos, selected=True,push_undo=True)
+                     
     def create_py_node(self):
         self.node_counters["PyNode"] += 1
         node_name = f"PyNode{self.node_counters['PyNode']}"
         latest_pos = list(self.get_newest_node_position())
         new_pos=(latest_pos[0]+100,latest_pos[1]+100)
-        self.graph.create_node('QuESt.Workspace.PyNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=False)
+        self.graph.create_node('QuESt.Workspace.PyNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=True)
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
             selected_nodes = self.graph.selected_nodes()
+            print(self.graph.selected_nodes())
             for node in selected_nodes:
+                node.view.scene().removeItem(node.view)
                 self.graph.delete_node(node)
         else:
             super().keyPressEvent(event)
@@ -565,6 +768,7 @@ class quest_workspace(QWidget):
         if event.button() == Qt.LeftButton:
             self.on_node_selected()
         super().mousePressEvent(event)
+
 
 class WMainWindow(QMainWindow):
     def __init__(self):
@@ -579,6 +783,6 @@ class WMainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = WMainWindow()
     window.show()
     sys.exit(app.exec())
