@@ -139,19 +139,18 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 1. Clone the Repository:
     ```bash
-    git clone <repository_url>
+    git clone https://github.com/sandialabs/snl-quest.git
     ```
-   Replace `<repository_url>` with the URL of the QuESt GitHub repository.
-
+  
 2. Navigate to the QuESt Directory:
     ```bash
-    cd <repository_name>
+    cd <path_to_quest>
     ```
-   Replace `<repository_name>` with the name of the directory where QuESt was cloned.
+   Replace `<path_to_quest>` with the path to the directory where QuESt was cloned.
 
 3. Install Dependencies:
     ```bash
-    pip install -r requirements.txt
+    python - m pip install -r requirements.txt
     ```
 
 ## Running QuESt
