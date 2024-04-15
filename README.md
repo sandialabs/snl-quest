@@ -110,7 +110,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 ### Installing Python
 1. Python 3.9.13 is recommended.
 2. Installers can be found at: https://www.python.org/downloads/release/python-3913/
-3. Make sure to check the box "Add Python to PATH".
+3. Make sure to check the box "Add Python to PATH" at the bottom of the installer prompt.
 
 ### Installing Git
 - Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
