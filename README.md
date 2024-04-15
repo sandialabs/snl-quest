@@ -108,29 +108,31 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 - Currently QuESt is only compatible with Windows
 
 ### Installing Python
-1. Go to [python.org](https://www.python.org/).
-2. Download a version of Python suitable for your operating system (3.9.x recommended).
-3. Follow the installation instructions provided on the website.
+1. Python 3.9.13 is recommended.
+2. Installers can be found at: https://www.python.org/downloads/release/python-3913/
+3. Make sure to check the box "Add Python to PATH".
 
 ### Installing Git
 - Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
 - Follow the installation instructions provided on the website.
 
 ### Setting Up a Virtual Environment
-1. Install `virtualenv` (if not already installed):
+1. Open Command Prompt.
+2. Install `virtualenv` (if not already installed):
     ```bash
-    pip install virtualenv
+    python -m pip install virtualenv
     ```
-
-2. Create a virtual environment:
+3. Create a virtual environment:
     ```bash
-    virtualenv env
+    cd <your_path>
+    python -m virtualenv <env_name>
     ```
-
-3. Activate the virtual environment:
+    Replace `<your_path>` with the path to the folder where you want to create the virtual environment.
+4. Activate the virtual environment:
    - On Windows:
      ```bash
-     .\env\Scripts\activate
+     cd <your_path>
+     .\<env_name>\Scripts\activate
      ```
 
 ### Installing QuESt
