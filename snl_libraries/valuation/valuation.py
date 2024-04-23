@@ -67,10 +67,10 @@ from es_gui.settings import ESAppSettings
 # Data Manager
 from es_gui.apps.data_manager.home import DataManagerHomeScreen
 from es_gui.apps.data_manager.widgets import DataManagerRTOMOdataScreen
-from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
-from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
-from es_gui.apps.data_manager.pv import PVwattsSearchScreen
-from es_gui.apps.data_manager.nsrdb import NSRDBDataScreen
+# from es_gui.apps.data_manager.rate_structure import RateStructureDataScreen
+# from es_gui.apps.data_manager.load import DataManagerLoadHomeScreen, DataManagerCommercialLoadScreen, DataManagerResidentialLoadScreen
+# from es_gui.apps.data_manager.pv import PVwattsSearchScreen
+# from es_gui.apps.data_manager.nsrdb import NSRDBDataScreen
 
 # Valuation
 from es_gui.apps.valuation.home import ValuationHomeScreen
@@ -229,13 +229,13 @@ class QuEStScreenManager(ScreenManager):
         self.add_widget(DataManagerHomeScreen(name='data_manager_home'))
         self.add_widget(DataManagerRTOMOdataScreen(name='data_manager_rto_mo_data'))
 
-        self.add_widget(RateStructureDataScreen(name='data_manager_rate_structure_data'))
-        self.add_widget(DataManagerLoadHomeScreen(name='data_manager_load_home'))
+        # self.add_widget(RateStructureDataScreen(name='data_manager_rate_structure_data'))
+        # self.add_widget(DataManagerLoadHomeScreen(name='data_manager_load_home'))
 
-        self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
-        self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
-        self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
-        self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
+        # self.add_widget(DataManagerCommercialLoadScreen(name='data_manager_commercial_load'))
+        # self.add_widget(DataManagerResidentialLoadScreen(name='data_manager_residential_load'))
+        # self.add_widget(PVwattsSearchScreen(name='data_manager_pvwatts'))
+        # self.add_widget(NSRDBDataScreen(name='data_manager_nsrdb'))
 
         
         # Energy storage valuation.
@@ -427,11 +427,11 @@ class ValueApp(App):
         config.setdefaults('optimization', {'solver': 'glpk'})
         config.setdefaults('connectivity', {'use_proxy': 0, 'http_proxy': '', 'https_proxy': '', 'use_ssl_verify': 1})
         config.setdefaults('valuation', {'valuation_dms_save': 1, 'valuation_dms_size': 20000})
-        config.setdefaults('btm', {'btm_dms_save': 1, 'btm_dms_size': 20000})
+        # config.setdefaults('btm', {'btm_dms_save': 1, 'btm_dms_size': 20000})
         config.setdefaults('datamanager-pjm', {'pjm_subscription_key': ''})
         config.setdefaults('datamanager-isone', {'iso-ne_api_username': ''})
         config.setdefaults('datamanager-openei', {'openei_key': ''})
-        config.setdefaults('performance', {'performance_dms_save': 1, 'performance_dms_size': 20000})
+        # config.setdefaults('performance', {'performance_dms_save': 1, 'performance_dms_size': 20000})
 
     def build(self):
         # Sets the window/application title.

@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime
 import calendar
-import pyutilib
+# import pyutilib
 
 from kivy.clock import mainthread
 
