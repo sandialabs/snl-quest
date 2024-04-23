@@ -119,7 +119,7 @@ class ValuationOptimizerHandler:
 
                 try:
                     solved_op = self._solve_model(op)
-                except pyutilib.common._exceptions.ApplicationError as e:
+                except Exception as e:
                     logging.error('Op Handler: {error}'.format(error=e))
 
                     if 'No executable found' in e.args[0]:
