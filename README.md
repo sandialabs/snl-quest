@@ -4,7 +4,7 @@
 
 Current release version: 2.0
 
-Release date: March, 2024
+Release date: Feb, 2024
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
