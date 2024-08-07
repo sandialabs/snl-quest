@@ -37,7 +37,7 @@ Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
     - [Installing QuESt](#installing-quest)
   - [Running QuESt](#running-quest)
   - [Deactivating the Virtual Environment](#deactivating-the-virtual-environment)
-    - [Usage Analytics](#usage-analytics)
+  - [Usage Analytics](#usage-analytics)
     - [References](#references)
 
 ### What is it?
@@ -182,7 +182,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
     ```
    This will return you to your system's default Python environment.
 
-### Usage Analytics
+## Usage Analytics
 
 <!-- PLOT_PLACEHOLDER_START -->
 ![Clones Plot](images/read/clones_plot.png)
