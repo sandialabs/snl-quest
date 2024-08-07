@@ -1,8 +1,12 @@
 <img src="snl_libraries/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
+
 # QuESt 2.0: Open-source Platform for Energy Storage Analytics
 
-Current release version: 2.0
+![Downloaded](https://img.shields.io/endpoint?url=https://alope489.github.io/shields/badge_data.json)
+![Latest Release](https://img.shields.io/endpoint?url=https://alope489.github.io/shields/release_badge_data.json)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/sandialabs/snl-quest)](https://github.com//sandialabs/snl-quest/releases)
+[![Dependencies](https://img.shields.io/librariesio/github/sandialabs/snl-quest)](https://libraries.io/github/sandialabs/snl-quest)
 
 Release date: Feb, 2024
 
@@ -13,17 +17,27 @@ For issues and feedback we would appreciate it if you could use the "Issues" fea
 Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 
 ## Table of contents
-- [Introduction](#what-is-it)
-- [App Hub](#the-app_hub)
-- [Workspace](#the-workspace)
-- [QuESt GPT](#quest-gpt)
-- [Innovations](#what-are-the-key-innovations-of-quest-20)
-- [Uniqueness](#how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics)
-- [Advantages](#key-competitive-advantages-of-quest-20)
-- [Installation](#how-to-download-quest)
-- [Contact](#contact)
-- [Feedback](#feedback)
-- [References](#references)
+- [QuESt 2.0: Open-source Platform for Energy Storage Analytics](#quest-20-open-source-platform-for-energy-storage-analytics)
+  - [Contact](#contact)
+    - [Email](#email)
+  - [Table of contents](#table-of-contents)
+    - [What is it?](#what-is-it)
+    - [The App Hub](#the-app-hub)
+    - [The Workspace](#the-workspace)
+    - [QuESt GPT](#quest-gpt)
+    - [What are the key innovations of QuESt 2.0?](#what-are-the-key-innovations-of-quest-20)
+    - [How is QuESt 2.0 different from the other tools in Energy Storage Analytics?](#how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics)
+    - [Key Competitive Advantages of QuESt 2.0:](#key-competitive-advantages-of-quest-20)
+    - [How to download QuESt?](#how-to-download-quest)
+  - [Installation Instructions for QuESt](#installation-instructions-for-quest)
+    - [Prerequisites](#prerequisites)
+    - [Installing Python](#installing-python)
+    - [Installing Git](#installing-git)
+    - [Setting Up a Virtual Environment](#setting-up-a-virtual-environment)
+    - [Installing QuESt](#installing-quest)
+  - [Running QuESt](#running-quest)
+  - [Deactivating the Virtual Environment](#deactivating-the-virtual-environment)
+    - [References](#references)
 
 ### What is it?
 <a id="what-is-it"></a>
