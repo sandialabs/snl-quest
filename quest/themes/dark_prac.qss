@@ -368,6 +368,9 @@ QTabBar::tab:!selected {
 #credit_label{
     background-color: transparent;
 }
+#version{
+    background-color: rgb(24, 24, 24);
+}
 #version_label{
     background-color: transparent;
 }

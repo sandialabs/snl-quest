@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'quest_mainwyGsTy.ui'
+## Form generated from reading UI file 'quest_mainbyprxl.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.5.2
 ##
@@ -937,6 +937,6 @@ class Ui_MainWindow(object):
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"Place Holder 1", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"PlaceHolder 2", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Developed by Sandia National Laboratories", None))
-        self.version_label.setText(QCoreApplication.translate("MainWindow", u"ver 2.0.a ", None))
+        self.version_label.setText(QCoreApplication.translate("MainWindow", u"ver 2.0.b ", None))
     # retranslateUi
 

@@ -1,4 +1,80 @@
-# Master branch changelog
+# QuESt Changelog
+
+# Release Notes for QuESt v2.0.b
+
+**Release Date:** August 8, 2024
+
+## Summary
+
+This release includes significant updates, including restructuring the project as a package, cross-platform compatibility, bug fixes related to installations, and the introduction of a dark mode theme.
+
+## New Features
+
+### Project Restructured as a Package
+- The project has been restructured to follow a more standard Python package layout.
+- **Old Structure**:
+    ```
+    quest/
+    ├── main.py
+    ├── app/..
+    ├── images/..
+    ├── snl_libraries/..
+    └── ...
+    ```
+- **New Structure**:
+    ```
+    snl-quest/
+    ├── quest/
+    │   ├── __main__.py
+    │   ├── app/..
+    │   ├── images/..
+    │   ├── snl_libraries/..
+    │   └── ...
+    ├── docs/
+    ├── licenses/
+    ├── setup.py
+    ├── requirements.txt
+    ├── LICENSE
+    └── .gitignore
+    ```
+- **Key Changes**:
+  - The main entry point has been changed from `main.py` to `__main__.py`.
+  - Additional directories such as `docs`, `licenses`, and configuration files like `setup.py`, `requirements.txt`, `LICENSE`, and `.gitignore` have been added to the project root.
+  - All imports have been updated to start with `from quest`.
+  - QuESt is now run as a module using python -m quest or python3 -m quest.
+  - The snl_libraries applications have been restructured in a similar format.
+  - The snl_libraries applications are now lighter weight.
+
+### Cross-Platform Compatibility
+- QuESt is now fully compatible with Windows, Linux, and macOS.
+- Key changes to achieve cross-platform compatibility:
+  - Refactored file paths to use platform-independent methods.
+  - Updated installation scripts to handle dependencies for different operating systems.
+  - Ensured that all external libraries and tools used are cross-platform compatible.
+- Users can now run the application seamlessly across different operating systems without any additional configuration.
+
+### Dark Mode
+- A new dark mode theme has been introduced to enhance user experience, especially in low-light environments.
+  - Users can switch between light and dark modes from the settings menu.
+
+
+## Improvements
+
+### Installation Process
+
+- Enhanced error messages to provide more informative feedback during installation.
+- Added lock files to unix-type systems scripts to prevent multiple installs of GLPK.
+- Added shell scripts and updated line endings to be consistent with operating system needs.
+
+## Bug Fixes
+
+### Installation Issues
+- Fixed a bug causing app crashes due to incompatible library versions.
+- Resolved issues around the installation of GLPK.
+
+
+
+
 ## Patch 1.2.g
 ### Resolved issues
 * An issue in Data Manager caused by the update of utility list in OpenEI database.

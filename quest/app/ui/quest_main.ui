@@ -1976,7 +1976,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
                 <number>0</number>
                </property>
                <property name="text">
-                <string>ver 2.0.a </string>
+                <string>ver 2.0.b </string>
                </property>
               </widget>
              </item>
