@@ -1,0 +1,52 @@
+[
+    {
+     "name": "Li-ion Battery",
+     "desc": "Modeled after the Notrees Battery Storage Project in western TX.",
+     "parameters": {
+      "Self_discharge_efficiency": 100,
+      "Round_trip_efficiency": 90,
+      "Energy_capacity": 24,
+      "Power_rating": 36
+     }
+    },
+    {
+     "name": "Advanced Lead-acid Battery",
+     "desc": "Modeled after the Kaheawa Wind Power Project II storage system in Maalea, HI.",
+     "parameters": {
+      "Self_discharge_efficiency": 100,
+      "Round_trip_efficiency": 95,
+      "Energy_capacity": 7.5,
+      "Power_rating": 10
+     }
+    },
+    {
+     "name": "Flywheel",
+     "desc": "Modeled after the Beacon Power facility in Hazle Township, PA.",
+     "parameters": {
+      "Self_discharge_efficiency": 100,
+      "Round_trip_efficiency": 85,
+      "Energy_capacity": 5,
+      "Power_rating": 20
+     }
+    },
+    {
+     "name": "Vanadium Redox Flow Battery",
+     "desc": "Modeled after the Minamihayakita Transformer Station storage system in Abira-chou, Hokkaido, Japan.",
+     "parameters": {
+      "Self_discharge_efficiency": 100,
+      "Round_trip_efficiency": 85,
+      "Energy_capacity": 60,
+      "Power_rating": 15
+     }
+    },
+    {
+     "name": "Li-Iron Phosphate Battery",
+     "desc": "Modeled after the Jake Energy Storage Center in Joliet, IL.",
+     "parameters": {
+      "Self_discharge_efficiency": 100,
+      "Round_trip_efficiency": 93,
+      "Energy_capacity": 7.8,
+      "Power_rating": 19.8
+     }
+    }
+]

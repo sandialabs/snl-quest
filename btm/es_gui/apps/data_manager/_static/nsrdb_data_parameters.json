@@ -1,0 +1,57 @@
+[
+    {
+    "name": "location",
+    "attr name": "loc",
+    "notes": "Location for directory purposes.",
+    "default": "Location"
+    },
+    {
+    "name": "latitude",
+    "attr name": "lat",
+    "notes": "The latitude of the site in the range (-90, 90).",
+    "max": 90,
+    "default": 35.08,
+    "step": 1,
+    "units": "deg"
+    },
+    {
+    "name": "longitude",
+    "attr name": "lon",
+    "notes": "The longitude of the site in the range (-180, 180).",
+    "max": 180,
+    "default": -106.65,
+    "step": 1,
+    "units": "deg"
+    },
+    {
+    "name": "year",
+    "attr name": "names",
+    "notes": "Year of requested data",
+    "default": 2015,
+    "step": 1
+    },
+    {
+    "name": "leap year",
+    "attr name": "leap_year",
+    "notes": "The leap year parameter. If true will return leap day data if present.",
+    "default": "true"
+    },
+    {
+    "name": "utc",
+    "attr name": "utc",
+    "notes": "Universal time code. True will use UTC, false will use local time zone of data.",
+    "default": "false"
+    },
+    {
+    "name": "email",
+    "attr name": "email",
+    "notes": "Your email",
+    "default": "Your email"
+    },
+    {
+    "name": "mailing list",
+    "attr name": "mailing_list",
+    "notes": "Do you want to sign up for their mailing list?",
+    "default": "false"
+    }
+]

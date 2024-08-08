@@ -1,0 +1,52 @@
+{
+    "inputs": {
+        "azimuth": "Custom",
+        "tilt": "Custom",
+        "losses": "Custom",
+        "system_capacity": "Custom",
+        "lon": "Custom",
+        "lat": "Custom",
+        "module_type": -1,
+        "array_type": -1,
+        "radius": "0",
+        "timeframe": "hourly"
+    },
+    "errors": [],
+    "warnings": [],
+    "version": "N/A",
+    "ssc_info": {
+        "version": "N/A",
+        "build": "N/A"
+    },
+    "station_info": {
+        "lat": "Custom",
+        "lon": "Custom",
+        "elev": "Custom",
+        "tz": "",
+        "location": "None",
+        "city": "",
+        "state": "",
+        "solar_resource_file": "",
+        "distance": ""
+    },
+    "outputs": {
+        "ac_monthly": [
+        ],
+        "poa_monthly": [
+        ],
+        "solrad_monthly": [
+        ],
+        "dc_monthly": [],
+        "ac_annual": 0,
+        "solrad_annual": 0,
+        "capacity_factor": "Custom",
+        "ac": [],
+        "poa": [],
+        "dn": [],
+        "dc": [],
+        "df": [],
+        "tamb": [],
+        "tcell": [],
+        "wspd": []
+    }
+}
