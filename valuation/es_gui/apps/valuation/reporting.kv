@@ -1,0 +1,99 @@
+<GenerateReportMenu>:
+    size_hint: (0.95, 0.95)
+    auto_dismiss: False
+    sm: sm
+    generate_report_button: generate_report_button
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 10
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_white)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.8
+            size_hint_y: 1.0
+            padding: 0
+
+            ReportScreenManager:
+                id: sm
+
+                Screen:
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.2
+            padding: 10
+            spacing: 5
+
+            ReportBodyText:
+                #size_hint_y: 0.90
+                text: "Click 'Start' to generate a pro forma report for you to view and print. \n\nWe'll need to draw and save some figures from the wizard report so pardon us as we flip through some screens!"
+
+            TileButton:
+                id: generate_report_button
+                size_hint_y: 0.05
+                text: 'Start'
+                on_release: root.generate_report_screens()
+
+            TileButton:
+                size_hint_y: 0.05
+                text: 'Return'
+                on_release: root.dismiss()
+
+<ReportChartToggle>:
+    group: 'chart_type'
+    allow_no_selection: False
+
+    background_down: self.background_normal
+    background_color: (1, 1, 1, 0)
+    color: C(hex_secondary) if self.state == 'down' else C(hex_black)
+    size_hint_x: 1.0
+    size_hint_y: None
+
+    text_size: self.width, None
+    height: self.texture_size[1]
+    halign: 'justify'
+    valign: 'top'
+    bold: True if self.state == 'down' else False
+    font_size: default_font
+
+<OpenGeneratedReportPopup>:
+    title: 'Success!'
+    dismiss_button: dismiss_button
+    open_report_button: open_report_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        PopupLabel:
+            id: popup_text
+            size_hint_y: 0.8
+            text: "We're all done generating the report. Shall we take a look?"
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.2
+            spacing: 10
+
+            Button:
+                id: open_report_button
+                text: "Let's do it!"
+                font_size: stnd_font
+                on_release: root.open_generated_report()
+
+            Button:
+                id: dismiss_button
+                text: 'Not now'
+                font_size: stnd_font
+                on_release: root.dismiss()
+
+

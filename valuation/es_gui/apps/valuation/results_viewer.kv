@@ -1,0 +1,83 @@
+<RunSelector>:
+    size_hint: (0.7, 0.7)
+    background_color: (0, 0, 0, 0.7)
+    auto_dismiss: False
+
+    rv: rv
+    rv_desc: rv_desc
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 0.9
+        padding: (15, 0)
+        spacing: 0
+
+        PopupLabel:
+            valign: 'top'
+            halign: 'left'
+            text: 'For plotting, no more than six selections is recommended.'
+            size_hint_y: 0.1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            size_hint_y: 0.9
+
+            RecycleView:
+                id: rv
+                scroll_type: ['bars', 'content']
+                scroll_wheel_distance: dp(114)
+                bar_width: dp(5)
+                viewclass: 'Row'
+
+                canvas.before:
+                    Color:
+                        rgba: C(hex_black)
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+
+                SelectableRecycleBoxLayout:
+                    default_size: None, dp(40)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                    spacing: dp(5)
+                    multiselect: True
+                    touch_multiselect: True
+
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: 10
+
+                Label:
+                    id: rv_desc
+                    canvas.before:
+                        Color:
+                            rgba: C(hex_black)
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: 'Hover over a saved run to view its details.'
+                    text_size: self.size
+                    font_size: stnd_font
+                    font_name: 'Montserrat'
+                    valign: 'top'
+                    halign: 'left'
+                    markup: True
+                    padding: (10, 10)
+                    size_hint_y: 0.85
+
+                StackLayout:
+                    orientation: 'rl-tb'
+                    padding: 0
+                    size_hint_y: 0.15
+
+                    Button:
+                        text: 'Go!'
+                        font_size: large_font
+                        size_hint_x: 0.30
+                        on_release: root.dismiss()
+
+

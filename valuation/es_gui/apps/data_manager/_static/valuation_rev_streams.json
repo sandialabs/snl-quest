@@ -1,0 +1,72 @@
+{
+ "PJM": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "pjm_pfp",
+   "desc": "In PJM, frequency regulation services are compensated with a pay-for-performance model. Both fast and slow regulation signals are given. Remuneration for faster devices that are able to more closely follow the fast signal is available. However, compensation based on regulation capacity offered is also available."
+  }
+ },
+ "ERCOT": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "ercot_arbreg",
+   "desc": "In ERCOT, frequency regulation services are compensated for by the amount of regulation up or down capacity that is offered on a per MW basis. There is no guarantee that the entirety of the capacity that is bid into the market is actually deployed; this is modeled using regulation efficiency fractions. There are two separate regulation capacity products, but there is no credit based on device performance."
+  }
+ },
+ "MISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "miso_pfp",
+   "desc": ""
+  }
+ },
+ "ISONE": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "isone_pfp",
+   "desc": ""
+  }
+ },
+ "NYISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "nyiso_pfp",
+   "desc": ""
+  }
+ },
+ "SPP": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "spp_pfp",
+   "desc": "In the SPP Integrated Marketplace, operating reserve products available include regulation up and regulation down services. Compensation for regulation capacity offered is available. A compensation model for mileage incurred also exists but not in the day-ahead market."
+  }
+ },
+ "CAISO": {
+  "Arbitrage": {
+   "market type": "arbitrage",
+   "desc": "Arbitrage generally refers to the buying and selling of electrical energy to generate revenue. Prices are based on day-ahead locational marginal pricing (LMP). The differences between day-ahead and real-time LMP are not considered."
+  },
+  "Arbitrage and regulation": {
+   "market type": "caiso_pfp",
+   "desc": ""
+  }
+ }
+}

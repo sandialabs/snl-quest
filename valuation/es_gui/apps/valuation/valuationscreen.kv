@@ -1,0 +1,97 @@
+<ValuationScreen>:
+    run_button: run_button
+
+    GridLayout:
+        cols: 2
+        padding: 10
+        spacing: 10
+
+        GridLayout:
+            rows: 2
+            padding: 0
+            spacing: 10
+
+            GridLayout:
+                cols: 2
+                padding: 0
+                spacing: 10
+
+                MenuTileButton:
+                    background_color: C(hex_primary)
+                    text: '[font=Modern Pictograms][size=80]K[/size][/font]\nLoad Data'
+                    on_release: root.manager.current = 'load_data'
+
+                MenuTileButton:
+                    background_color: C(hex_secondary)
+                    text: '[font=Modern Pictograms][size=80]5[/size][/font]\nSet Parameters'
+                    on_release: root.manager.current = 'set_parameters'
+
+            MenuTileButton:
+                id: run_button
+                background_color: C(hex_cloud_dancer)
+                color: C(hex_black)
+                text: '[font=Modern Pictograms][size=80]P[/size][/font]\nRun Optimization'
+                on_release: root.open_valuation_run_menu()
+
+#        MenuTileButton:
+#            background_color: C(hex_primary)
+#            text: '[font=Modern Pictograms][size=80]8[/size][/font]\nView Results'
+#            on_release: root.manager.current = 'valuation_results_viewer'
+#
+#        MenuTileButton:
+#            background_color: C(hex_secondary)
+#            text: '[font=Modern Pictograms][size=80]B[/size][/font]\nBatch Runs'
+#            on_release: root.manager.current = 'batch_run'
+
+
+<ProgressWindow>:
+    #background_color: [0, 0, 0, 0.7]
+    title: 'Run optimization?'
+    #size_hint: 0.4, 0.5
+
+    progress_label: progress_label
+    progress_bar: progress_bar
+    run_button: run_button
+    view_results_button: view_results_button
+    dismiss_button: dismiss_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: 10
+
+        PopupLabel:
+            id: progress_label
+            size_hint_y: 0.7
+            markup: True
+            halign: 'left'
+            valign: 'top'
+            text: 'Click "Run" to proceed.\n'
+
+        ProgressBar:
+            id: progress_bar
+            max: 100
+            size_hint_y: 0.1
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 10
+            padding: 0
+            size_hint_y: 0.2
+
+            Button:
+                id: run_button
+                text: 'Run'
+                font_size: stnd_font
+
+            Button:
+                id: view_results_button
+                text: 'View results'
+                font_size: stnd_font
+                disabled: True
+
+            Button:
+                id: dismiss_button
+                text: 'Dismiss'
+                font_size: stnd_font
+                on_release: root.dismiss()
