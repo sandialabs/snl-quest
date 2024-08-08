@@ -1,0 +1,22 @@
+Application name,Compatible with residential,Compatible with industrial,Compatible with distribution,Compatible with transmission,Default at residential,Default at industrial,Default at distribution,Default at transmission,Power vs. Energy,Minimum required response time,Requires electric output
+Energy arbitrage (electricity markets),No,No,Yes,Yes,No,No,No,Yes,Energy,hrs,No
+Electric supply capacity,No,No,Yes,Yes,No,No,No,No,Energy,hrs,No
+Peak shaving,Yes,Yes,Yes,Yes,No,No,No,No,Energy,hrs,No
+Renewable energy time shift,Yes,Yes,Yes,Yes,No,No,No,No,Energy,hrs,No
+Frequency regulation,No,No,Yes,Yes,No,No,No,No,Power,sec,No
+Operating reserve (non-spinning),No,No,Yes,Yes,No,No,No,No,Energy,sec,No
+Operating reserve (spinning),No,No,Yes,Yes,No,No,No,No,Energy,sec,No
+Operating reserve (supplementary),No,No,Yes,Yes,No,No,No,No,Energy,sec,No
+Voltage support,No,No,Yes,No,No,No,No,No,Power,sec,Yes
+Black start,No,No,Yes,Yes,No,No,No,No,Power,min,Yes
+Ramp support,Yes,Yes,Yes,Yes,No,No,No,No,Power,sec,Yes
+Transmission upgrade deferral,No,No,Yes,Yes,No,No,No,No,Energy,min,No
+Transmission congestion relief,No,No,Yes,Yes,No,No,No,No,Energy,min,No
+Stability damping control,No,No,Yes,Yes,No,No,No,No,Power,sec,Yes
+Distribution upgrade deferral,No,No,Yes,No,No,No,Yes,No,Energy,min,No
+Voltage regulation,No,No,Yes,No,No,No,No,No,Power,sec,No
+Reliability,No,No,Yes,Yes,No,No,No,No,Energy,sec,Yes
+Resilience (back-up power),Yes,Yes,No,No,Yes,No,No,No,Energy,sec,Yes
+Power quality,Yes,Yes,Yes,No,No,No,No,No,Power,ms,Yes
+Retail TOU energy charges,Yes,Yes,No,No,No,Yes,No,No,Energy,min,No
+Demand charge management,Yes,Yes,No,No,No,No,No,No,Energy,min,No

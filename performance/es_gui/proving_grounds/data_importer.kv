@@ -1,0 +1,141 @@
+<DataImporter>:
+    size_hint: (0.9, 0.9)
+    auto_dismiss: False
+    screen_manager: screen_manager
+    title: title
+    padding: 10
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 5
+        spacing: 10
+
+        TitleTextBase:
+            size_hint_y: 0.1
+            text: 'Import a time series'
+            color: C(hex_secondary)
+            id: title
+        
+        BodyTextBase:
+            size_hint_y: 0.05
+            color: C(hex_white)
+            text: 'Time series data will also be available in the data bank after being imported.'
+        
+        ScreenManager:
+            size_hint_y: 0.75
+            id: screen_manager
+
+            DataImporterFileChooserScreen:
+                name: 'FileChooser'
+
+            DataImporterFormatAnalyzerScreen:
+                name: 'FormatAnalyzer'
+        
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            size_hint_y: 0.1
+            padding: 10
+
+            BoxLayout:
+                size_hint_x: 0.2
+
+                Button:
+                    text: 'Dismiss'
+                    on_release: root.dismiss()
+
+
+<DataImporterFileChooserScreen>:
+    filechooser: filechooser
+    file_chooser_body_text: file_chooser_body_text
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+
+        DataImporterFileChooser:
+            id: filechooser
+            size_hint_y: 0.9
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+
+            BodyTextBase:
+                size_hint_x: 0.9
+                id: file_chooser_body_text
+                color: C(hex_white)
+
+            Button:
+                size_hint_x: 0.1
+                text: 'Select'
+                on_release: root.file_selected()
+
+
+<DataImporterFormatAnalyzerScreen>:
+    data_col_bx: data_col_bx
+    data_col_rv: data_col_rv
+    import_button: import_button
+    format_analyzer_body_text: format_analyzer_body_text
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.9
+            spacing: 50
+            padding: (50, 0)
+
+            BoxLayout:
+                id: datetime_col_bx
+                orientation: 'vertical'
+                size_hint_x: 0.5
+                spacing: 5
+
+                BodyTextBase:
+                    id: format_analyzer_body_text
+                    color: C(hex_white)
+
+            BoxLayout:
+                id: data_col_bx
+                orientation: 'vertical'
+                size_hint_x: 0.5
+                spacing: 5
+                # opacity: 0.05
+
+                TitleTextBase:
+                    text: 'Select the data column.'
+                    color: C(hex_pms312)
+                    size_hint_y: 0.1
+                    font_size: large_font
+                
+                TextInput:
+                    size_hint_y: 0.1
+                    on_text: data_col_rv.filter_rv_data(self.text)
+                    hint_text: 'Filter by name'
+                    multiline: False
+
+                MyRecycleView:
+                    id: data_col_rv
+                    viewclass: 'DataColumnRecycleViewRow'
+
+                    SelectableRecycleBoxLayout:
+                        multiselect: False
+                        touch_multiselect: False
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+
+            BoxLayout:
+                size_hint_x: 0.9
+
+            Button:
+                id: import_button
+                size_hint_x: 0.1
+                text: 'Import'
+                on_release: root.finalize_selections()
+                disabled: True
+        
