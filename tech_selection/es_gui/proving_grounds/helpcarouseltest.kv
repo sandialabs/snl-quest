@@ -1,0 +1,18 @@
+#:kivy 1.11.0
+
+#:include es_gui/proving_grounds/help_carousel.kv
+
+<Home>:
+    orientation: 'vertical'
+    padding: (25, 25)
+
+    BoxLayout:
+        size_hint_y: 0.9
+
+    BoxLayout:
+        orientation: 'vertical'
+        size_hint_y: 0.1
+
+        Button:
+            text: 'Open Help'
+            on_release: root.open_help()

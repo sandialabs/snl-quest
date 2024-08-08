@@ -1,0 +1,36 @@
+dist: xenial   # required for Python >= 3.7
+language: python
+sudo: false # if false, use TravisCI's container based build
+
+python:
+    - "3.6"
+    - "3.7"
+
+# setup miniconda for numpy, scipy, pandas
+before_install:
+    - echo "before install"
+    - export PATH=/usr/lib/ccache:$PATH
+    - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    #- conda update -q conda
+    - conda update conda --no-deps
+    - conda info -a
+    
+install:
+    - echo "install"
+    - conda env create python=$TRAVIS_PYTHON_VERSION --file ci/environment.yml
+    - source activate test_env
+    - conda list
+    - echo $PATH
+    - ls -l /home/travis/miniconda/envs/test_env/lib
+    - pip install git+https://github.com/PyUtilib/pyutilib.git
+    - pip install git+https://github.com/Pyomo/pyomo.git
+    - conda install kivy -c conda-forge
+    - conda install -c conda-forge glpk
+    - python setup.py develop
+
+script:
+    - python -m unittest -v

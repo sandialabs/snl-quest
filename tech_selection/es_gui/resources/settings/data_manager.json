@@ -1,0 +1,35 @@
+[
+    {
+        "type": "title",
+        "title": "PJM"
+    },
+    {
+        "type": "string",
+        "title": "Subscription key",
+        "desc": "Key provided for PJM's Data Miner 2 API access.",
+        "section": "datamanager-pjm",
+        "key": "pjm_subscription_key"
+    },
+    {
+        "type": "title",
+        "title": "ISO-NE"
+    },
+    {
+        "type": "string",
+        "title": "API username",
+        "desc": "Username for ISO-NE Web Services API account.",
+        "section": "datamanager-isone",
+        "key": "iso-ne_api_username"
+    },
+    {
+        "type": "title",
+        "title": "Data.gov Developer Network"
+    },
+    {
+        "type": "string",
+        "title": "API key",
+        "desc": "Key for OpenEI, PVWatts, and other Data.gov developer network API access. Also referred to as NREL Developer Network API key.",
+        "section": "datamanager-openei",
+        "key": "openei_key"
+    }
+]

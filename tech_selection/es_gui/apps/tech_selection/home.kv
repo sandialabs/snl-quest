@@ -1,0 +1,31 @@
+<TechSelectionHomeScreen>:
+    GridLayout:
+        rows: 1
+        padding: 15, 100
+        spacing: 100
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            ValuationHomeTitle:
+                size_hint_y: 0.1
+                text: 'Simulation'
+
+            MenuTileButton:
+                background_color: C(hex_primary)
+                text: '[font=Modern Pictograms][size=80]E[/size][/font]\nTechnology Selection'
+                on_release: root.manager.current = 'tech_selection_wizard'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            ValuationHomeTitle:
+                size_hint_y: 0.1
+                text: 'Analysis'
+
+            MenuTileButton:
+                background_color: C(hex_secondary)
+                text: '[font=Modern Pictograms][size=80]8[/size][/font]\nResults Viewer'
+                on_release: root.manager.current = 'feasible_techs'

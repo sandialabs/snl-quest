@@ -1,0 +1,17 @@
+[
+    {
+        "type": "bool",
+        "title": "Save loaded data",
+        "desc": "Save data previously loaded to disk for future use, even after closing the application.",
+        "section": "performance",
+        "key": "performance_dms_save"
+    },
+
+    {
+        "type": "numeric",
+        "title": "Data cache size",
+        "desc": "The amount of memory to allocate for keeping data loaded (in KB).",
+        "section": "performance",
+        "key": "performance_dms_size"
+    }
+]
