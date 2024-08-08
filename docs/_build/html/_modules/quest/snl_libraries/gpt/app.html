@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.snl_libraries.gpt.app &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">quest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quest.snl_libraries.gpt.app</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quest.snl_libraries.gpt.app</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">import</span> <span class="nn">streamlit.components.v1</span> <span class="k">as</span> <span class="nn">stc</span>
+<span class="c1"># import pygwalker as pyg </span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">openai</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
+<span class="kn">import</span> <span class="nn">io</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># Config file path</span>
+<span class="n">config_file</span> <span class="o">=</span> <span class="s1">&#39;config.ini&#39;</span>
+
+<div class="viewcode-block" id="save_api_key_to_config">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.save_api_key_to_config">[docs]</a>
+<span class="k">def</span> <span class="nf">save_api_key_to_config</span><span class="p">(</span><span class="n">api_key</span><span class="p">):</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;openai&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;api_key&#39;</span><span class="p">:</span> <span class="n">api_key</span><span class="p">}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">config_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_api_key_from_config">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.get_api_key_from_config">[docs]</a>
+<span class="k">def</span> <span class="nf">get_api_key_from_config</span><span class="p">():</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">config_file</span><span class="p">):</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">config_file</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;openai&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;api_key&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
+
+<div class="viewcode-block" id="load_css">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.load_css">[docs]</a>
+<span class="k">def</span> <span class="nf">load_css</span><span class="p">(</span><span class="n">css_file</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">css_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&lt;style&gt;</span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="si">}</span><span class="s1">&lt;/style&gt;&#39;</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="natural_question_to_pandas">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.natural_question_to_pandas">[docs]</a>
+<span class="k">def</span> <span class="nf">natural_question_to_pandas</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">question</span><span class="p">,</span> <span class="n">openai_api_key</span><span class="p">):</span>
+   
+    <span class="c1"># Example columns to include in the prompt for better context understanding</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span>
+    <span class="c1"># print(columns)</span>
+    
+    <span class="c1"># Configure OpenAI API key</span>
+    <span class="n">openai</span><span class="o">.</span><span class="n">api_key</span> <span class="o">=</span> <span class="n">openai_api_key</span>
+    
+    <span class="c1"># Crafting a prompt for the OpenAI API that includes the question and asks for Pandas code</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Assuming &#39;df&#39; is user&#39;s dataframe and is already loaded with columns </span><span class="si">{</span><span class="n">columns</span><span class="si">}</span><span class="s2">, translate the following question into python program using Pandas : &#39;</span><span class="si">{</span><span class="n">question</span><span class="si">}</span><span class="s2">&#39;. The program should print the final results with explanation text. The program should also save any plot in ./data/graphs/latest_graph.png file&quot;</span>
+    
+    <span class="c1"># Sending the question to the OpenAI API</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">openai</span><span class="o">.</span><span class="n">ChatCompletion</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4-0125-preview&quot;</span><span class="p">,</span>
+            <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;You are a helpful assistant analyzing a dataset.&quot;</span><span class="p">},</span>
+                <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+    
+    <span class="c1"># Extracting and returning the suggested Pandas commands</span>
+    
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">:</span>
+            <span class="n">pandas_commands</span><span class="o">=</span><span class="n">response</span><span class="o">.</span><span class="n">choices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">message</span><span class="p">[</span><span class="s1">&#39;content&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">pandas_commands</span><span class="o">=</span> <span class="s2">&quot;No response from the model.&quot;</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;An error occurred: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="n">pandas_commands</span></div>
+
+<div class="viewcode-block" id="extract_content">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.extract_content">[docs]</a>
+<span class="k">def</span> <span class="nf">extract_content</span><span class="p">(</span><span class="n">input_string</span><span class="p">):</span>
+    <span class="c1"># Check if the string starts with &#39;begin&#39; and ends with &#39;end&#39;</span>
+    <span class="c1"># if input_string.startswith(&quot;```python&quot;) and input_string.endswith(&quot;```&quot;):</span>
+    <span class="c1"># Find the index of the first occurrence of ```python and the last occurrence of ```</span>
+    <span class="n">start_index</span> <span class="o">=</span> <span class="n">input_string</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;```python&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="s2">&quot;```python&quot;</span><span class="p">)</span>
+    <span class="n">end_index</span> <span class="o">=</span> <span class="n">input_string</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s2">&quot;```&quot;</span><span class="p">)</span>
+    <span class="c1"># Extract the content between </span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">input_string</span><span class="p">[</span><span class="n">start_index</span><span class="p">:</span><span class="n">end_index</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">content</span></div>
+
+    <span class="c1"># else:</span>
+        <span class="c1"># return &quot;There&#39;s no python code in this message&quot;</span>
+
+<span class="c1"># Function to safely evaluate the generated Python code - Placeholder for demonstration</span>
+<div class="viewcode-block" id="run_code_and_capture_output">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.run_code_and_capture_output">[docs]</a>
+<span class="k">def</span> <span class="nf">run_code_and_capture_output</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">local_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">local_vars</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">local_vars</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Capture the output of the code execution</span>
+    <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">redirect_stdout</span><span class="p">(</span><span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">())</span> <span class="k">as</span> <span class="n">output</span><span class="p">:</span>
+        <span class="n">exec</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="nb">globals</span><span class="p">(),</span> <span class="n">local_vars</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">output</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span> <span class="n">local_vars</span></div>
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../../../quest.snl_libraries.gpt.html#quest.snl_libraries.gpt.app.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    
+    <span class="c1"># Set the page to wide mode</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">set_page_config</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="s2">&quot;wide&quot;</span><span class="p">)</span>
+    <span class="c1"># css_file = &#39;style.css&#39;</span>
+    <span class="c1"># load_css(css_file)</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;QuESt GPT - AI-powered tool for data analysis and visualization&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Attempt to load the API key from config if available</span>
+    <span class="n">saved_api_key</span> <span class="o">=</span> <span class="n">get_api_key_from_config</span><span class="p">()</span>
+    <span class="n">tab1</span><span class="p">,</span> <span class="n">tab2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">tabs</span><span class="p">([</span><span class="s2">&quot;Load Data&quot;</span><span class="p">,</span> <span class="s2">&quot;Analyze Data&quot;</span><span class="p">])</span>
+    <span class="k">with</span> <span class="n">tab1</span><span class="p">:</span>
+        <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>  <span class="c1"># Second column is 2 times wider than the first</span>
+        <span class="k">with</span> <span class="n">col1</span><span class="p">:</span>
+            <span class="c1"># File uploader allows user to add their own CSV</span>
+            <span class="n">uploaded_file</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">file_uploader</span><span class="p">(</span><span class="s2">&quot;Upload your CSV file&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;csv&quot;</span><span class="p">])</span>
+        
+            <span class="k">if</span> <span class="n">uploaded_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">uploaded_csv</span> <span class="o">=</span> <span class="n">uploaded_file</span>   
+                <span class="c1"># Read and display the CSV file</span>
+                <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">uploaded_csv</span> <span class="p">)</span>
+                <span class="c1"># Generate a detailed summary of the CSV</span>
+                <span class="n">summary</span> <span class="o">=</span> <span class="s2">&quot;Summary of the uploaded CSV data:</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="n">summary</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Total rows: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">summary</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Total columns: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">summary</span> <span class="o">+=</span> <span class="s2">&quot;Column names: &quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">summary</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Basic statistics for numerical columns:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">summary</span> <span class="o">+=</span> <span class="n">df</span><span class="o">.</span><span class="n">describe</span><span class="p">()</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span>  <span class="c1"># Basic statistics for numerical columns</span>
+                
+                <span class="c1"># The summary is displayed for informational purposes - to give context</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span> 
+        <span class="k">with</span> <span class="n">col2</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">uploaded_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s2">&quot;uploaded_csv&quot;</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span> <span class="ow">and</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">uploaded_csv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;Data View&quot;</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+                <span class="c1"># Visualize</span>
+                <span class="c1"># pyg_html = pyg.walk(df,return_html=True)</span>
+                <span class="c1"># # Render with components</span>
+                <span class="c1"># stc.html(pyg_html,scrolling=True,height=800)</span>
+
+    <span class="k">with</span> <span class="n">tab2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;results&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">col1</span><span class="p">,</span> <span class="n">col2</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">columns</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="k">with</span> <span class="n">col1</span><span class="p">:</span>
+            <span class="n">api_key</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;Enter your OpenAI API key&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">saved_api_key</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Button to save the API key</span>
+            <span class="n">save_key</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="s2">&quot;Save Key&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">save_key</span><span class="p">:</span>
+                <span class="n">save_api_key_to_config</span><span class="p">(</span><span class="n">api_key</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">success</span><span class="p">(</span><span class="s2">&quot;API key saved successfully!&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="s2">&quot;uploaded_csv&quot;</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span> <span class="ow">and</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">uploaded_csv</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">query_prompt</span> <span class="o">=</span> <span class="s2">&quot;Ask any question about the data or request calculations based on it:&quot;</span>
+                <span class="n">query</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="n">query_prompt</span><span class="p">)</span>
+                <span class="n">analyze_button</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="s2">&quot;Analyze&quot;</span><span class="p">)</span>
+                <span class="c1"># df=pd.read_csv(st.session_state.uploaded_csv )</span>
+                <span class="c1"># Prompt for user query about the data</span>
+                <span class="k">if</span> <span class="n">api_key</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">query</span> <span class="ow">and</span> <span class="n">analyze_button</span><span class="p">:</span>  <span class="c1"># Ensure there&#39;s an API key and a query</span>
+                        <span class="c1"># </span>
+                        <span class="n">pandas_commands</span> <span class="o">=</span> <span class="n">natural_question_to_pandas</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">api_key</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">code</span> <span class="o">=</span> <span class="n">pandas_commands</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+                         
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please enter your question.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please enter your OpenAI API key.&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">col2</span><span class="p">:</span>
+            
+            <span class="k">if</span> <span class="s2">&quot;code&quot;</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span> <span class="ow">and</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">code</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">pycode</span> <span class="o">=</span> <span class="n">extract_content</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">code</span><span class="p">)</span>
+                    <span class="n">show_button</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="s2">&quot;Show results&quot;</span><span class="p">)</span>
+                    <span class="c1"># df=pd.read_csv(st.session_state.uploaded_csv )</span>
+                    <span class="n">local_vars</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;df&quot;</span><span class="p">:</span><span class="n">df</span><span class="p">}</span>
+                    <span class="k">if</span> <span class="n">show_button</span><span class="p">:</span>
+                        <span class="n">output</span> <span class="o">=</span> <span class="n">run_code_and_capture_output</span><span class="p">(</span><span class="n">pycode</span><span class="p">,</span><span class="n">local_vars</span><span class="p">)</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">df1</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">results</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Query History&quot;</span><span class="p">])</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">dataframe</span><span class="p">(</span><span class="n">df1</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">)</span>
+                        <span class="n">image_path</span> <span class="o">=</span> <span class="s1">&#39;./data/graphs/latest_graph.png&#39;</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="n">image_path</span><span class="p">)</span>
+                        
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Please run the code to see the results&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span> <span class="sa">f</span><span class="s2">&quot;An error occurred: </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}</span><span class="s2">, please analyze the question again&quot;</span><span class="p">)</span></div>
+
+        
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

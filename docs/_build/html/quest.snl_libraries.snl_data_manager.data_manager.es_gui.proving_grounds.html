@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds package &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.resources package" href="quest.snl_libraries.snl_data_manager.data_manager.es_gui.resources.html" />
+    <link rel="prev" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.apps.data_manager package" href="quest.snl_libraries.snl_data_manager.data_manager.es_gui.apps.data_manager.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Code Documentation:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">quest</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="quest.html">quest package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="quest.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="quest.app.html">quest.app package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quest.app_envs.html">quest.app_envs package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quest.data.html">quest.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quest.images.html">quest.images package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quest.licenses.html">quest.licenses package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="quest.snl_libraries.html">quest.snl_libraries package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="quest.themes.html">quest.themes package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="quest.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quest.html#module-quest.paths">quest.paths module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quest.html#module-quest.resources_rc">quest.resources_rc module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quest.html#module-quest">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">quest</a></li>
+          <li class="breadcrumb-item"><a href="quest.html">quest package</a></li>
+          <li class="breadcrumb-item"><a href="quest.snl_libraries.html">quest.snl_libraries package</a></li>
+          <li class="breadcrumb-item"><a href="quest.snl_libraries.snl_data_manager.html">quest.snl_libraries.snl_data_manager package</a></li>
+          <li class="breadcrumb-item"><a href="quest.snl_libraries.snl_data_manager.data_manager.html">quest.snl_libraries.snl_data_manager.data_manager package</a></li>
+          <li class="breadcrumb-item"><a href="quest.snl_libraries.snl_data_manager.data_manager.es_gui.html">quest.snl_libraries.snl_data_manager.data_manager.es_gui package</a></li>
+      <li class="breadcrumb-item active">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-package">
+<h1>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds package<a class="headerlink" href="#quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-charttestapp-module">
+<h2>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.ChartTestApp module<a class="headerlink" href="#quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-charttestapp-module" title="Link to this heading"></a></h2>
+</section>
+<section id="module-quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts">
+<span id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-charts-module"></span><h2>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts module<a class="headerlink" href="#module-quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Bar">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">Bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgba</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height_final</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#Bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Bar" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Widget</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Bar.height_final">
+<span class="sig-name descname"><span class="pre">height_final</span></span><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Bar.height_final" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">NumericProperty</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.BarChart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">BarChart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_axis_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">25</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#BarChart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.BarChart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chart</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.BarChart.draw_chart">
+<span class="sig-name descname"><span class="pre">draw_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bar_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#BarChart.draw_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.BarChart.draw_chart" title="Link to this definition"></a></dt>
+<dd><p>Draws the BarChart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bar_data</strong> – List of lists in format [‘name’, ‘color (rgba iterable)’, ‘data value’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.BarChart.generate_bars">
+<span class="sig-name descname"><span class="pre">generate_bars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bar_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#BarChart.generate_bars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.BarChart.generate_bars" title="Link to this definition"></a></dt>
+<dd><p>Computes the size and positions of the bars using bar_data. Adds the bars and axis labels to BarChart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bar_data</strong> – List of lists in format [‘name’, ‘color (rgba iterable)’, ‘data value’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">Chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">do_animation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#Chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RelativeLayout</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.do_animation">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">do_animation</span></span><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.do_animation" title="Link to this definition"></a></dt>
+<dd><p>Set to True to animate the chart when the draw_chart() method is called.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.draw_chart">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">draw_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#Chart.draw_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.draw_chart" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.export_chart">
+<span class="sig-name descname"><span class="pre">export_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#Chart.export_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.export_chart" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.is_drawn">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">is_drawn</span></span><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart.is_drawn" title="Link to this definition"></a></dt>
+<dd><p>Returns True if a chart has been drawn.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ChartLegend">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">ChartLegend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_height</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#ChartLegend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ChartLegend" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">GridLayout</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ChartLegend.gen_legend">
+<span class="sig-name descname"><span class="pre">gen_legend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">legend_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#ChartLegend.gen_legend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ChartLegend.gen_legend" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.DonutChart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">DonutChart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#DonutChart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.DonutChart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chart</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.DonutChart.draw_chart">
+<span class="sig-name descname"><span class="pre">draw_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pie_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#DonutChart.draw_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.DonutChart.draw_chart" title="Link to this definition"></a></dt>
+<dd><p>Generates donut chart using pie_data and draws it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pie_data</strong> – List of lists in format [‘name’, ‘color (rgba iterable)’, ‘data value’]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.LegendEntry">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">LegendEntry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_height</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#LegendEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.LegendEntry" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RelativeLayout</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.MultisetBarChart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">MultisetBarChart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_axis_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">160</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#MultisetBarChart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.MultisetBarChart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart"><code class="xref py py-class docutils literal notranslate"><span class="pre">StackedBarChart</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.MultisetBarChart.generate_bars">
+<span class="sig-name descname"><span class="pre">generate_bars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bar_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#MultisetBarChart.generate_bars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.MultisetBarChart.generate_bars" title="Link to this definition"></a></dt>
+<dd><p>Computes the size and positions of the bars using bar_data. Adds the bars and axis labels to MultisetBarChart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bar_data</strong> – OrderedDict where key: name and value: list of lists in format [‘category’, ‘color (rgba iterable)’, ‘data value’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Pie">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">Pie</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">is_donut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.5</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#Pie"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Pie" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Widget</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Pie.gen_slices">
+<span class="sig-name descname"><span class="pre">gen_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pie_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#Pie.gen_slices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Pie.gen_slices" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Pie.slices">
+<span class="sig-name descname"><span class="pre">slices</span></span><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Pie.slices" title="Link to this definition"></a></dt>
+<dd><p>ListProperty(defaultvalue=0, <a href="#id1"><span class="problematic" id="id2">**</span></a>kw)
+Property that represents a list.</p>
+<blockquote>
+<div><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><cite>defaultvalue</cite>: list, defaults to []</dt><dd><p>Specifies the default value of the property.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>When assigning a list to a <code class="xref py py-class docutils literal notranslate"><span class="pre">ListProperty</span></code>, the list stored in
+the property is a shallow copy of the list and not the original list. This can
+be demonstrated with the following example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">MyWidget</span><span class="p">(</span><span class="n">Widget</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">my_list</span> <span class="o">=</span> <span class="n">ListProperty</span><span class="p">([])</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="n">widget</span> <span class="o">=</span> <span class="n">MyWidget</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;hi&#39;</span><span class="p">:</span> <span class="s1">&#39;hello&#39;</span><span class="p">}]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">widget</span><span class="o">.</span><span class="n">my_list</span> <span class="o">=</span> <span class="n">my_list</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">my_list</span> <span class="ow">is</span> <span class="n">widget</span><span class="o">.</span><span class="n">my_list</span><span class="p">)</span>
+<span class="go">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">my_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">my_list</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">my_list</span><span class="p">)</span>
+<span class="go">[1, 5, {&#39;hi&#39;: &#39;hello&#39;}, 10] [1, 5, {&#39;hi&#39;: &#39;hello&#39;}]</span>
+</pre></div>
+</div>
+<p>However, changes to nested levels will affect the property as well,
+since the property uses a shallow copy of my_list.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">my_list</span><span class="p">[</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;hi&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;bye&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">my_list</span><span class="p">,</span> <span class="n">widget</span><span class="o">.</span><span class="n">my_list</span><span class="p">)</span>
+<span class="go">[1, 5, {&#39;hi&#39;: &#39;bye&#39;}, 10] [1, 5, {&#39;hi&#39;: &#39;bye&#39;}]</span>
+</pre></div>
+</div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.PieChart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">PieChart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#PieChart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.PieChart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chart</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.PieChart.draw_chart">
+<span class="sig-name descname"><span class="pre">draw_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pie_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_donut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#PieChart.draw_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.PieChart.draw_chart" title="Link to this definition"></a></dt>
+<dd><p>Generates pie chart and legend using pie_data and draws them.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pie_data</strong> – List of lists in format [‘name’, ‘color (rgba iterable)’, ‘data value’]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.PieSlice">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">PieSlice</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_end</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">separator_width</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#PieSlice"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.PieSlice" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Widget</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleChart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">RateScheduleChart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_axis_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">90</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">35</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">35</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#RateScheduleChart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleChart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chart</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleChart.draw_chart">
+<span class="sig-name descname"><span class="pre">draw_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_labels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#RateScheduleChart.draw_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleChart.draw_chart" title="Link to this definition"></a></dt>
+<dd><p>Draws the RateScheduleChart.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleChart.generate_tiles">
+<span class="sig-name descname"><span class="pre">generate_tiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">schedule_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">category_colors</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#RateScheduleChart.generate_tiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleChart.generate_tiles" title="Link to this definition"></a></dt>
+<dd><p>Computes the size and positions of the tiles using schedule_data. Adds the tiles and axis labels to RateScheduleChart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>schedule_data</strong> – List of lists or 2D NumPy array.</p></li>
+<li><p><strong>category_colors</strong> – List of rgba tuples to label categories.</p></li>
+<li><p><strong>labels</strong> – List of label strings for each row.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleGridLayout">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">RateScheduleGridLayout</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#RateScheduleGridLayout"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.RateScheduleGridLayout" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">GridLayout</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ScheduleTile">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">ScheduleTile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rgba</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#ScheduleTile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ScheduleTile" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Widget</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ScheduleTile.height_final">
+<span class="sig-name descname"><span class="pre">height_final</span></span><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.ScheduleTile.height_final" title="Link to this definition"></a></dt>
+<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">NumericProperty</span></code></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">StackedBarChart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_axis_format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_spacing</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">legend_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">170</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">50</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#StackedBarChart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.Chart"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chart</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart.draw_chart">
+<span class="sig-name descname"><span class="pre">draw_chart</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bar_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#StackedBarChart.draw_chart"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart.draw_chart" title="Link to this definition"></a></dt>
+<dd><p>Draws the StackedBarChart.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bar_data</strong> – OrderedDict where key: name and value: list of lists in format [‘category’, ‘color (rgba iterable)’, ‘data value’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart.generate_bars">
+<span class="sig-name descname"><span class="pre">generate_bars</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bar_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#StackedBarChart.generate_bars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.StackedBarChart.generate_bars" title="Link to this definition"></a></dt>
+<dd><p>Computes the size and positions of the bars using bar_data. Adds the bars and axis labels to StackedBarChart. Only supports data values &gt;= 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>bar_data</strong> – OrderedDict where key: name and value: list of lists in format [‘category’, ‘color (rgba iterable)’, ‘data value’].</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.format_dollar_string">
+<span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.</span></span><span class="sig-name descname"><span class="pre">format_dollar_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/charts.html#format_dollar_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.charts.format_dollar_string" title="Link to this definition"></a></dt>
+<dd><p>Formats a float representing USD with comma separators, dollar sign, cents precision, and proper negative sign placement.</p>
+</dd></dl>
+
+</section>
+<section id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-data-importer-module">
+<h2>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.data_importer module<a class="headerlink" href="#quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-data-importer-module" title="Link to this heading"></a></h2>
+</section>
+<section id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-data-importer-test-app-module">
+<h2>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.data_importer_test_app module<a class="headerlink" href="#quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-data-importer-test-app-module" title="Link to this heading"></a></h2>
+</section>
+<section id="module-quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel">
+<span id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-help-carousel-module"></span><h2>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel module<a class="headerlink" href="#module-quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel" title="Link to this heading"></a></h2>
+<p>This module is for the HelpCarousel widget.</p>
+<p>A HelpCarousel is a modal view. It contains a carousel which hosts a series of slides with accompanying text. The primary purpose of this widget is to provide additional help illustrated with screenshots or other relevant figures without overloading the main user interface with information. The modal view includes previous and next buttons to navigate the slides in addition to a group of radio buttons to indicate progress in the carousel’s slide deck. The view does not have a dismiss button but auto_dismiss is enabled; the view can be dismissed by clicking outside of it.</p>
+<p>The HelpCarouselModalView is designed to be instantiated then populated using the <cite>add_slides()</cite> class method. This method populates the carousel’s slides with pairs of image sources and text.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.</span></span><span class="sig-name descname"><span class="pre">HelpCarouselModalView</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/help_carousel.html#HelpCarouselModalView"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ModalView</span></code></p>
+<p>A ModalView with a series of prompts for importing time series data from a csv file.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.add_slides">
+<span class="sig-name descname"><span class="pre">add_slides</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">slide_deck</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/help_carousel.html#HelpCarouselModalView.add_slides"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.add_slides" title="Link to this definition"></a></dt>
+<dd><p>Adds image and text to a new slide in the carousel slide deck.</p>
+<p>Each slide consists of a large image on the left and accompanying text on the right.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>slide_deck<span class="classifier">list(tuple)</span></dt><dd><p>Content for each slide (source, caption) where the source is the path to the slide image and the caption is the text</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h3>
+<p>The source is relative to the current working directory (alongside main.py).</p>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.change_slide">
+<span class="sig-name descname"><span class="pre">change_slide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/help_carousel.html#HelpCarouselModalView.change_slide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.change_slide" title="Link to this definition"></a></dt>
+<dd><p>Changes carousel slide in the specified direction.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.current_slide_index">
+<span class="sig-name descname"><span class="pre">current_slide_index</span></span><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.current_slide_index" title="Link to this definition"></a></dt>
+<dd><p>NumericProperty(defaultvalue=0, <a href="#id3"><span class="problematic" id="id4">**</span></a>kw)
+Property that represents a numeric value.</p>
+<blockquote>
+<div><p>It only accepts the int or float numeric data type or a string that can be
+converted to a number as shown below. For other numeric types use ObjectProperty
+or use errorhandler to convert it to an int/float.</p>
+<p>It does not support numpy numbers so they must be manually converted to int/float.
+E.g. <code class="docutils literal notranslate"><span class="pre">widget.num</span> <span class="pre">=</span> <span class="pre">np.arange(4)[0]</span></code> will raise an exception. Numpy arrays are not
+supported at all, even by ObjectProperty because their comparision does not return
+a bool. But if you must use a Kivy property, use a ObjectProperty with <code class="docutils literal notranslate"><span class="pre">comparator</span></code>
+set to <code class="docutils literal notranslate"><span class="pre">np.array_equal</span></code>. E.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">class</span> <span class="nc">A</span><span class="p">(</span><span class="n">EventDispatcher</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="n">data</span> <span class="o">=</span> <span class="n">ObjectProperty</span><span class="p">(</span><span class="n">comparator</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">A</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="nb">print</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="go">&lt;__main__.A object at 0x000001C839B50208&gt; [0 1]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">a</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="go">&lt;__main__.A object at 0x000001C839B50208&gt; [0 1 2]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><cite>defaultvalue</cite>: int or float, defaults to 0</dt><dd><p>Specifies the default value of the property.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">wid</span> <span class="o">=</span> <span class="n">Widget</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wid</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="mi">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">wid</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+<span class="go">42</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">wid</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;plop&quot;</span>
+<span class="go"> Traceback (most recent call last):</span>
+<span class="go">   File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;</span>
+<span class="go">   File &quot;properties.pyx&quot;, line 93, in kivy.properties.Property.__set__</span>
+<span class="go">   File &quot;properties.pyx&quot;, line 111, in kivy.properties.Property.set</span>
+<span class="go">   File &quot;properties.pyx&quot;, line 159, in kivy.properties.NumericProperty.check</span>
+<span class="go"> ValueError: NumericProperty accept only int/float</span>
+</pre></div>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 1.4.1: </span>NumericProperty can now accept custom text and tuple value to indicate a
+type, like “in”, “pt”, “px”, “cm”, “mm”, in the format: ‘10pt’ or (10,
+‘pt’).</p>
+</div>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.on_current_slide_index">
+<span class="sig-name descname"><span class="pre">on_current_slide_index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">instance</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/help_carousel.html#HelpCarouselModalView.on_current_slide_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselModalView.on_current_slide_index" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselSlide">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.</span></span><span class="sig-name descname"><span class="pre">HelpCarouselSlide</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/help_carousel.html#HelpCarouselSlide"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.HelpCarouselSlide" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BoxLayout</span></code></p>
+<p>A slide for the HelpCarousel consisting of a large image (80%) and text (20%) in horizontal orientation.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.SlideProgressRadioButton">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.</span></span><span class="sig-name descname"><span class="pre">SlideProgressRadioButton</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quest/snl_libraries/snl_data_manager/data_manager/es_gui/proving_grounds/help_carousel.html#SlideProgressRadioButton"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel.SlideProgressRadioButton" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">CheckBox</span></code></p>
+<p>Radio button representing progress within the HelpCarousel slide deck.</p>
+</dd></dl>
+
+</section>
+<section id="quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-help-carousel-test-app-module">
+<h2>quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds.help_carousel_test_app module<a class="headerlink" href="#quest-snl-libraries-snl-data-manager-data-manager-es-gui-proving-grounds-help-carousel-test-app-module" title="Link to this heading"></a></h2>
+</section>
+<section id="module-quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-quest.snl_libraries.snl_data_manager.data_manager.es_gui.proving_grounds" title="Link to this heading"></a></h2>
+<p>This package supports and hosts the development of new, complex Kivy widgets for the QuESt GUI.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quest.snl_libraries.snl_data_manager.data_manager.es_gui.apps.data_manager.html" class="btn btn-neutral float-left" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.apps.data_manager package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quest.snl_libraries.snl_data_manager.data_manager.es_gui.resources.html" class="btn btn-neutral float-right" title="quest.snl_libraries.snl_data_manager.data_manager.es_gui.resources package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

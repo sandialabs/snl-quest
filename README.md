@@ -1,14 +1,10 @@
-<img src="snl_libraries/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
-
+<img src="quest/snl_libraries/snl_btm/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt 2.0: Open-source Platform for Energy Storage Analytics
 
-![Downloaded](https://img.shields.io/endpoint?url=https://alope489.github.io/shields/badge_data.json)
-![Latest Release](https://img.shields.io/endpoint?url=https://alope489.github.io/shields/release_badge_data.json)
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/sandialabs/snl-quest)](https://github.com//sandialabs/snl-quest/releases)
-[![Dependencies](https://img.shields.io/librariesio/github/sandialabs/snl-quest)](https://libraries.io/github/sandialabs/snl-quest)
+Current release version: 2.0
 
-Release date: Feb, 2024
+Release date: March, 2024
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
@@ -17,34 +13,23 @@ For issues and feedback we would appreciate it if you could use the "Issues" fea
 Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 
 ## Table of contents
-- [QuESt 2.0: Open-source Platform for Energy Storage Analytics](#quest-20-open-source-platform-for-energy-storage-analytics)
-  - [Contact](#contact)
-    - [Email](#email)
-  - [Table of contents](#table-of-contents)
-    - [What is it?](#what-is-it)
-    - [The App Hub](#the-app-hub)
-    - [The Workspace](#the-workspace)
-    - [QuESt GPT](#quest-gpt)
-    - [What are the key innovations of QuESt 2.0?](#what-are-the-key-innovations-of-quest-20)
-    - [How is QuESt 2.0 different from the other tools in Energy Storage Analytics?](#how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics)
-    - [Key Competitive Advantages of QuESt 2.0:](#key-competitive-advantages-of-quest-20)
-    - [How to download QuESt?](#how-to-download-quest)
-  - [Installation Instructions for QuESt](#installation-instructions-for-quest)
-    - [Prerequisites](#prerequisites)
-    - [Installing Python](#installing-python)
-    - [Installing Git](#installing-git)
-    - [Setting Up a Virtual Environment](#setting-up-a-virtual-environment)
-    - [Installing QuESt](#installing-quest)
-  - [Running QuESt](#running-quest)
-  - [Deactivating the Virtual Environment](#deactivating-the-virtual-environment)
-  - [Usage Analytics](#usage-analytics)
-    - [References](#references)
+- [Introduction](#what-is-it)
+- [App Hub](#the-app_hub)
+- [Workspace](#the-workspace)
+- [QuESt GPT](#quest-gpt)
+- [Innovations](#what-are-the-key-innovations-of-quest-20)
+- [Uniqueness](#how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics)
+- [Advantages](#key-competitive-advantages-of-quest-20)
+- [Installation](#how-to-download-quest)
+- [Contact](#contact)
+- [Feedback](#feedback)
+- [References](#references)
 
 ### What is it?
 <a id="what-is-it"></a>
 QuESt 2.0 is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools.
 
-<img src="images/read/home_page.png" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
+<img src="quest/images/read/home_page.png" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
 
 Currently, QuESt 2.0 includes three main components:
 
@@ -86,19 +71,19 @@ QuESt GPT represents a leap forward in data analytics within the platform, utili
 
 - **Data Insights:** Users can select datasets and ask questions about the data, with QuESt GPT providing insights based on the data's characteristics. This interaction model simplifies complex data analysis, making it accessible to users without deep technical expertise.
 
-- **Utilization of LLMs:** By leveraging advanced open-source LLMs such as OpenAi’sGPT4 and Meta’s Llama2, QuESt GPT can perform sophisticated data analytics tasks, such as characterizing and visualizing large datasets. This enables users to gain deeper insights from their data, supporting more informed decision-making at no costs.
-
+- **Utilization of LLMs:** By leveraging advanced open-source LLMs such as OpenAi’s GPT-4 and Meta’s Llama2, QuESt GPT can perform sophisticated data analytics tasks, such as characterizing and visualizing large datasets. This enables users to gain deeper insights from their data, supporting more informed decision-making at no costs.
 
 ### What are the key innovations of QuESt 2.0?
 <a id="what-are-the-key-innovations-of-quest-20"></a>
-QuESt 2.0 facilitates the advancement of energy storage technology by making powerful analytics tools accessible to all energy storage stake holders, aligning with DOE’s energy storage program goals. The platform standardizes data and program structures, integrates applications seamlessly, and utilizes generative AI for advanced analytics, simplifying user interaction and enabling deeper insights from diverse data sources. This positions QuESt 2.0 as a pioneering platform in the energy storage domain, with the potential to significantly impact both the field and the broader energy landscape. Specifically, the key innovations of QuESt 2.0 include:
-1.	**Integration and Usability:** At its core, QuESt 2.0 revolutionizes how energy storage analytics are performed by providing a seamless, user-friendly platform that integrates multiple applications developed by independent developers. This allows for a more cohesive and efficient user experience, significantly lowering the learning curve for users at various levels of expertise.
-2.	**AI-powered Data Analytics:** The incorporation of QuESt GPT, utilizing Large Language Models (LLM), represents a significant technological leap forward. This feature enables users to perform more sophisticated data analytics, providing deeper insights from diverse data sources. It allows users to interact with data in an intuitive way, asking questions and receiving insights, which democratizes access to complex data analysis.
-3.	**Complex Workflows:** The QuESt Workspace and the QuESt App Hub enhance the platform's capability to support complex analytical workflows. Users can integrate multiple applications into a single process, creating efficient pipelines for data analysis. The users can run their work flows locally or schedule them to run on cloud services (e.g., AWS, Azure..)
+QuESt 2.0 facilitates the advancement of energy storage technology by making powerful analytics tools accessible to all energy storage stakeholders, aligning with DOE’s energy storage program goals. The platform standardizes data and program structures, integrates applications seamlessly, and utilizes generative AI for advanced analytics, simplifying user interaction and enabling deeper insights from diverse data sources. This positions QuESt 2.0 as a pioneering platform in the energy storage domain, with the potential to significantly impact both the field and the broader energy landscape. Specifically, the key innovations of QuESt 2.0 include:
+1. **Integration and Usability:** At its core, QuESt 2.0 revolutionizes how energy storage analytics are performed by providing a seamless, user-friendly platform that integrates multiple applications developed by independent developers. This allows for a more cohesive and efficient user experience, significantly lowering the learning curve for users at various levels of expertise.
+2. **AI-powered Data Analytics:** The incorporation of QuESt GPT, utilizing Large Language Models (LLM), represents a significant technological leap forward. This feature enables users to perform more sophisticated data analytics, providing deeper insights from diverse data sources. It allows users to interact with data in an intuitive way, asking questions and receiving insights, which democratizes access to complex data analysis.
+3. **Complex Workflows:** The QuESt Workspace and the QuESt App Hub enhance the platform's capability to support complex analytical workflows. Users can integrate multiple applications into a single process, creating efficient pipelines for data analysis. The users can run their workflows locally or schedule them to run on cloud services (e.g., AWS, Azure..)
 
 ### How is QuESt 2.0 different from the other tools in Energy Storage Analytics?
 <a id="how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics"></a>
 QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics tools by offering a unified platform rather than a collection of individual tools. While there are numerous tools available, these tend to focus on specific aspects of energy storage analysis and lack the integration and broad applicability that QuESt 2.0 provides.
+
 ### Key Competitive Advantages of QuESt 2.0:
 <a id="key-competitive-advantages-of-quest-20"></a>
 
@@ -114,65 +99,75 @@ QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics 
 <a id="how-to-download-quest"></a>
 QuESt is currently available on Github at: https://github.com/sandialabs/snl-quest. 
 
+### Installation Instructions for QuESt
 
-## Installation Instructions for QuESt
-
-### Prerequisites
+## Prerequisites
 - Python (3.9.x recommended) installed on your system
 - Git installed on your system
-- Currently QuESt is only compatible with Windows
 
-### Installing Python
-1. Python 3.9.13 is recommended.
-2. Installers can be found at: https://www.python.org/downloads/release/python-3913/
-3. Make sure to check the box "Add Python to PATH" at the bottom of the installer prompt.
+## Installing Python
+1. Go to [python.org](https://www.python.org/).
+2. Download a version of Python suitable for your operating system (3.9.x recommended).
+3. Follow the installation instructions provided on the website.
 
-### Installing Git
+## Installing Git
 - Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
 - Follow the installation instructions provided on the website.
 
-### Setting Up a Virtual Environment
-1. Open Command Prompt.
-2. Install `virtualenv` (if not already installed):
+## Setting Up a Virtual Environment
+1. Install `virtualenv` (if not already installed):
     ```bash
-    python -m pip install virtualenv
+    pip install virtualenv
     ```
-3. Create a virtual environment:
+
+2. Create a virtual environment:
     ```bash
-    cd <your_path>
-    python -m virtualenv <env_name>
+    virtualenv env
     ```
-    Replace `<your_path>` with the path to the folder where you want to create the virtual environment.
-4. Activate the virtual environment:
+
+3. Activate the virtual environment:
    - On Windows:
      ```bash
-     cd <your_path>
-     .\<env_name>\Scripts\activate
+     .\env\Scripts\activate
+     ```
+   - On Linux/macOS:
+     ```bash
+     source env/bin/activate
      ```
 
-### Installing QuESt
+## Installing QuESt
 
 1. Clone the Repository:
     ```bash
-    git clone https://github.com/sandialabs/snl-quest.git
+    git clone <repository_url>
     ```
-  
+   Replace `<repository_url>` with the URL of the QuESt GitHub repository.
+
 2. Navigate to the QuESt Directory:
     ```bash
-    cd <path_to_quest>
+    cd <repository_name>
     ```
-   Replace `<path_to_quest>` with the path to the directory where QuESt was cloned.
+   Replace `<repository_name>` with the name of the directory where QuESt was cloned.
 
 3. Install Dependencies:
     ```bash
-    python - m pip install -r requirements.txt
+    pip install .
     ```
 
 ## Running QuESt
 1. Run QuESt:
-    - Once the dependencies are installed, ensure you have navigated to the directory where QuESt is installed and the Virtual environment is activated. You can run QuESt using the following command:
+    - Once the dependencies are installed, ensure you have navigated to the directory where QuESt is installed and the virtual environment is activated. You can run QuESt using the following command:
+        - On Windows:
+            ```bash
+            python -m quest
+            ```
+        - On Linux/macOS:
+            ```bash
+            python3 -m quest
+            ```
+    - Alternatively, after running `pip install .`, you can run QuESt from any location as long as the virtual environment QuESt is downloaded in is activated using the following command:
         ```bash
-        python main.py
+        quest
         ```
 
 ## Deactivating the Virtual Environment
@@ -181,79 +176,6 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
     deactivate
     ```
    This will return you to your system's default Python environment.
-
-## Usage Analytics
-
-<!-- PLOT_PLACEHOLDER_START -->
-![Clones Plot](images/read/clones_plot.png)
-<!-- PLOT_PLACEHOLDER_END -->
-
-<!-- TABLE_DOWNLOADS_PLACEHOLDER_START -->
-| Asset Name                    |   Download Count |
-|:------------------------------|-----------------:|
-| quest_apps_prebuilt_win64.zip |               12 |
-| quest_installer_win64.exe     |               30 |
-| quest_prebuilt_win64.zip      |               26 |
-| QuESt.1.6-beta.zip            |              394 |
-| snl-quest-1.2.f-win10.zip     |              742 |
-| snl-quest-1.2.e-win10.zip     |              197 |
-| snl-quest-1.2.d-win10.zip     |              111 |
-| snl-quest-1.2.c-win10.zip     |               86 |
-| Total                         |             1598 |
-<!-- TABLE_DOWNLOADS_PLACEHOLDER_END -->
-
-<!-- TABLE_PATHS_PLACEHOLDER_START -->
-| Most Visited Path                                                                             |   Times Visited |   Unique Visits |
-|:----------------------------------------------------------------------------------------------|----------------:|----------------:|
-| /sandialabs/snl-quest                                                                         |             898 |             488 |
-| /sandialabs/snl-quest/tree/master/snl_libraries/data_manager/es_gui/apps/data_manager         |              51 |               3 |
-| /sandialabs/snl-quest/issues/30                                                               |              69 |              56 |
-| /sandialabs/snl-quest/blob/master/main.py                                                     |              12 |               4 |
-| /sandialabs/snl-quest/tree/master/__pycache__                                                 |              41 |               8 |
-| /sandialabs/snl-quest/tree/master/docs                                                        |              76 |              22 |
-| /sandialabs/snl-quest/issues/48                                                               |               9 |               5 |
-| /sandialabs/snl-quest/tree/master/snl_libraries/data_manager/es_gui/apps/data_manager/_static |               9 |               1 |
-| /sandialabs/snl-quest/tree/master                                                             |             104 |              37 |
-| /sandialabs/snl-quest/blob/master/README.md                                                   |              42 |              10 |
-| /sandialabs/snl-quest/tree/master/snl_libraries                                               |             103 |              24 |
-| /sandialabs/snl-quest/blob/master/resources_rc.py                                             |              22 |               6 |
-| /sandialabs/snl-quest/blob/master/setup.py                                                    |               9 |               3 |
-| /sandialabs/snl-quest/tree/master/data                                                        |             130 |              32 |
-| /sandialabs/snl-quest/tree/master/app                                                         |             103 |              27 |
-| /sandialabs/snl-quest/blob/master/images/read/home_page.png                                   |              45 |              18 |
-| /sandialabs/snl-quest/tree/master/app/data_vis                                                |              20 |               4 |
-| /sandialabs/snl-quest/tree/master/app/tools                                                   |               9 |               3 |
-| /sandialabs/snl-quest/tree/master/images                                                      |              12 |               3 |
-| /sandialabs/snl-quest/issues                                                                  |              46 |               7 |
-| /sandialabs/snl-quest/tree/master/snl_libraries/data_manager                                  |              45 |               7 |
-| /sandialabs/snl-quest/tree/master/data/SPP                                                    |              30 |               8 |
-| /sandialabs/snl-quest/tree/master/plots                                                       |              13 |               5 |
-| Total                                                                                         |            1898 |             781 |
-<!-- TABLE_PATHS_PLACEHOLDER_END -->
-
-<!-- TABLE_REFERRERS_PLACEHOLDER_START -->
-| Referrer                      |   Number of Referrals |   Unique Referrals |
-|:------------------------------|----------------------:|-------------------:|
-| sandia.gov                    |                   445 |                 98 |
-| Google                        |                   586 |                200 |
-| github.com                    |                   427 |                 95 |
-| u-cursos.cl                   |                    94 |                  7 |
-| linkedin.com                  |                     3 |                  3 |
-| yandex.ru                     |                     3 |                  3 |
-| opensustain.tech              |                     4 |                  4 |
-| Bing                          |                   430 |                 17 |
-| energy.gov                    |                     4 |                  4 |
-| statics.teams.cdn.office.net  |                     8 |                  6 |
-| yandex.by                     |                     4 |                  2 |
-| DuckDuckGo                    |                    47 |                  4 |
-| puspalhazra.com               |                     2 |                  2 |
-| puspalhazra.info              |                     1 |                  1 |
-| link.zhihu.com                |                    15 |                  1 |
-| gbc-excel.officeapps.live.com |                     6 |                  5 |
-| search.brave.com              |                     1 |                  1 |
-| Total                         |                  2080 |                453 |
-<!-- TABLE_REFERRERS_PLACEHOLDER_END -->
-
 
 ### References
 <a id="references"></a>

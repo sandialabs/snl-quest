@@ -1,0 +1,145 @@
+<RCC>
+  <qresource prefix="icon">
+    <file>images/icons/1outline_folder_open_black_24dp.png</file>
+    <file>images/icons/1outline_arrow_back_black_24dp.png</file>
+    <file>images/icons/1outline_replay_black_24dp.png</file>
+    <file>images/icons/1outline_save_black_24dp.png</file>
+    <file>images/logo/api_ver.png</file>
+    <file>images/logo/api2.png</file>
+    <file>images/logo/api.png</file>
+    <file>images/icons/refresh_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/icons/shield_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/icons/send_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/icons/chat_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/icons/info_FILL0_wght200_GRAD0_opsz48(1).svg</file>
+    <file>images/icons/preview_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/token_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/key_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/icon-info.png</file>
+    <file>images/icons/apps_FILL0_wght700_GRAD-25_opsz20.png</file>
+    <file>images/icons/verified_user_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/icons/close_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/icons/close_FILL0_wght400_GRAD0_opsz24.png</file>
+    <file>images/icons/database_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/dataset_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/help_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/home_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/icons/home_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/hub_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/icon_close.png</file>
+    <file>images/icons/icon_maximize.png</file>
+    <file>images/icons/icon_menu.png</file>
+    <file>images/icons/icon_minimize.png</file>
+    <file>images/icons/icon_restore.png</file>
+    <file>images/icons/icon_settings.png</file>
+    <file>images/icons/insert_chart_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/open_in_new_down_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/open_in_new_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/icons/outline_apps_white_18dp.png</file>
+    <file>images/icons/outline_apps_white_24dp.png</file>
+    <file>images/icons/remove_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/icons/search_FILL0_wght200_GRAD0_opsz24 -right.png</file>
+    <file>images/icons/search_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/icons/settings_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/icons/settings_FILL0_wght200_GRAD0_opsz48.png</file>
+    <file>images/logo/Quest_App_Icon.png</file>
+    <file>images/logo/Quest_App_Icon.svg</file>
+    <file>images/logo/Quest_App_Icon_50_transparent.png</file>
+    <file>images/logo/Quest_App_Icon_256.png</file>
+    <file>images/logo/Quest_BTN_Logo_RGB.png</file>
+    <file>images/logo/Quest_Datamanager_Logo_RGB.png</file>
+    <file>images/logo/Quest_Equity_Logo_RGB.png</file>
+    <file>images/logo/Quest_EvaluationLogo_RGB.png</file>
+    <file>images/logo/Quest_Logo_RGB - Copy.png</file>
+    <file>images/logo/Quest_Logo_RGB - Copy3.png</file>
+    <file>images/logo/Quest_Logo_RGB - Copy4.png</file>
+    <file>images/logo/Quest_Logo_RGB.png</file>
+    <file>images/logo/Quest_Logo_RGB.svg</file>
+    <file>images/logo/Quest_Logo_RGB_Reversed.png</file>
+    <file>images/logo/Quest_Logo_RGB_Reversed.svg</file>
+    <file>images/logo/Quest_Microgrid_Logo_RGB.png</file>
+    <file>images/logo/Quest_Perf_Logo_RGB.png</file>
+    <file>images/logo/Quest_Planning_Logo_RGB.png</file>
+    <file>images/logo/Quest_Q_Reversed_RGB.png</file>
+    <file>images/logo/Quest_Q_Reversed_RGB.svg</file>
+    <file>images/logo/Quest_Q_RGB.png</file>
+    <file>images/logo/Quest_Q_RGB.svg</file>
+    <file>images/logo/Quest_Tech_Logo_RGB.png</file>
+  </qresource>
+  <qresource prefix="dark_grey">
+    <file>images/dark_grey/search_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/home_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/help_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/hub_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/info_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/insert_chart_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/key_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/note_add_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/open_in_new_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/open_in_new_down_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/post_add_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/preview_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/remove_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/save_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/send_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/settings_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/token_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_grey/close_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png</file>
+  </qresource>
+  <qresource prefix="dark_icons">
+    <file>images/dark_icons/info_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/close_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/open_in_new_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/open_in_new_down_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/remove_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/save_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/send_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/help_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/hub_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/insert_chart_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/key_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/preview_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/settings_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/token_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+    <file>images/dark_icons/home_24dp_81C241_FILL0_wght200_GRAD0_opsz24.png</file>
+  </qresource>
+  <qresource prefix="svgs">
+    <file>images/svgs/home_FILL0_wght200_GRAD0_opsz48.svg</file>
+  </qresource>
+  <qresource prefix="chat_icons">
+    <file>images/chat_icons/arrow_back_FILL0_wght100_GRAD0_opsz48.png</file>
+    <file>images/chat_icons/folder_open_FILL0_wght100_GRAD0_opsz48.png</file>
+    <file>images/chat_icons/replay_FILL0_wght100_GRAD0_opsz48.png</file>
+  </qresource>
+  <qresource prefix="logos">
+    <file>images/logo/New_DOE_Logo_Color.jpg</file>
+    <file>images/logo/SNL_Stacked_Black_Blue.jpg</file>
+    <file>images/logo/Quest_Logo_RGB - GPT.png</file>
+    <file>images/logo/7f821d7c-8fa8-49ac-b2b0-0d5cc8a329da.png</file>
+    <file>images/icons/analytics_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/icons/bar_chart_FILL0_wght200_GRAD0_opsz48.svg</file>
+    <file>images/logo/Quest_App_Icon.png</file>
+    <file>images/logo/Quest_App_Icon.svg</file>
+    <file>images/logo/Quest_App_Icon_50_transparent.png</file>
+    <file>images/logo/Quest_App_Icon_256.png</file>
+    <file>images/logo/Quest_BTN_Logo_RGB.png</file>
+    <file>images/logo/Quest_Datamanager_Logo_RGB.png</file>
+    <file>images/logo/Quest_Equity_Logo_RGB.png</file>
+    <file>images/logo/Quest_EvaluationLogo_RGB.png</file>
+    <file>images/logo/Quest_Logo_RGB - Copy.png</file>
+    <file>images/logo/Quest_Logo_RGB - Copy3.png</file>
+    <file>images/logo/Quest_Logo_RGB - Copy4.png</file>
+    <file>images/logo/Quest_Logo_RGB.png</file>
+    <file>images/logo/Quest_Logo_RGB.svg</file>
+    <file>images/logo/Quest_Logo_RGB_Reversed.png</file>
+    <file>images/logo/Quest_Logo_RGB_Reversed.svg</file>
+    <file>images/logo/Quest_Microgrid_Logo_RGB.png</file>
+    <file>images/logo/Quest_Perf_Logo_RGB.png</file>
+    <file>images/logo/Quest_Planning_Logo_RGB.png</file>
+    <file>images/logo/Quest_Q_Reversed_RGB.png</file>
+    <file>images/logo/Quest_Q_Reversed_RGB.svg</file>
+    <file>images/logo/Quest_Q_RGB.png</file>
+    <file>images/logo/Quest_Q_RGB.svg</file>
+    <file>images/logo/Quest_Tech_Logo_RGB.png</file>
+  </qresource>
+</RCC>

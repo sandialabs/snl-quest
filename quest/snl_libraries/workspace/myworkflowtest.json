@@ -1,0 +1,293 @@
+{
+    "flow_name": "myworkflow",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x29494b53460": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "DataNode1",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    103.19696164437329,
+                    66.96801655712477
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "a",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x29494b53670": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "DataNode2",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    97.0695739049356,
+                    339.36597515526427
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "b",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x29494b53970": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "./images/icons/python_icon.png",
+                "name": "len",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    370.3882818765253,
+                    276.8165929821515
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "lx",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "len",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x29494b53b80": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "./images/icons/python_icon.png",
+                "name": "sum",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    657.0908888692134,
+                    117.20950255331988
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "x",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "y",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "z",
+                        "multi_connection": true,
+                        "display_name": true
+                    },
+                    {
+                        "name": "2z",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            }
+        },
+        "connections": [
+            {
+                "out": [
+                    "0x29494b53460",
+                    "a"
+                ],
+                "in": [
+                    "0x29494b53b80",
+                    "x"
+                ]
+            },
+            {
+                "out": [
+                    "0x29494b53670",
+                    "b"
+                ],
+                "in": [
+                    "0x29494b53970",
+                    "lx"
+                ]
+            },
+            {
+                "out": [
+                    "0x29494b53970",
+                    "len"
+                ],
+                "in": [
+                    "0x29494b53b80",
+                    "y"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x29494b53460",
+            "node_name": "DataNode1",
+            "node_type": "data_node",
+            "node_input_variable": "a",
+            "node_input_value": "10",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x29494b53670",
+            "node_name": "DataNode2",
+            "node_type": "data_node",
+            "node_input_variable": "b",
+            "node_input_value": "[1,2,3]",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x29494b53970",
+            "node_name": "len",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def len_function(lx):\n    return {'len':len(lx)}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x29494b53b80",
+            "node_name": "sum",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def sum_function(x,y):\n    return {'z':x+y, '2z': 2*(x+y)}",
+            "node_imports": ""
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x29494b53460",
+            "to_node": "0x29494b53b80",
+            "mapping": {
+                "a": "x"
+            }
+        },
+        {
+            "connection_id": 2,
+            "from_node": "0x29494b53670",
+            "to_node": "0x29494b53970",
+            "mapping": {
+                "b": "lx"
+            }
+        },
+        {
+            "connection_id": 3,
+            "from_node": "0x29494b53970",
+            "to_node": "0x29494b53b80",
+            "mapping": {
+                "len": "y"
+            }
+        }
+    ]
+}

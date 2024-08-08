@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../../../../_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="../../../../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../../../index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../../../modules.html">quest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../../../index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Tue Nov 13 14:48:42 2018</span>
+
+<span class="sd">@author: tunguy</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="c1">#from pandas.io.json import json_normalize</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="kn">import</span> <span class="n">json_normalize</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">holidays</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+
+<div class="viewcode-block" id="download_utdata">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.download_utdata">[docs]</a>
+<span class="k">def</span> <span class="nf">download_utdata</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">url_iou</span><span class="o">=</span><span class="s2">&quot;https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/500990ae-ada2-4791-9206-01dc68e36f12/download/iouzipcodes2017.csv&quot;</span>
+    <span class="n">url_noniou</span><span class="o">=</span><span class="s2">&quot;https://openei.org/doe-opendata/dataset/53490bd4-671d-416d-aae2-de844d2d2738/resource/672523aa-0d8a-4e6c-8a10-67e311bb1691/download/noniouzipcodes2017.csv&quot;</span>
+    
+    <span class="n">proxy_dict</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">http_proxy_on</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">https_proxy_on</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">succeed</span><span class="o">=</span><span class="kc">True</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">proxy_dict</span><span class="p">[</span><span class="s2">&quot;http&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;http_proxy&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">http_proxy_on</span><span class="o">=</span><span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">proxy_dict</span><span class="p">[</span><span class="s2">&quot;https&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;https_proxy&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">https_proxy_on</span><span class="o">=</span><span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">des_dir</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dirloc&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">des_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span>    
+        
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">des_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">des_dir</span><span class="p">)</span>
+        
+    <span class="n">des_file_iou</span> <span class="o">=</span> <span class="n">des_dir</span><span class="o">+</span><span class="s2">&quot;iouzipcodes2017.csv&quot;</span>
+    <span class="n">des_file_noniou</span> <span class="o">=</span> <span class="n">des_dir</span><span class="o">+</span><span class="s2">&quot;noniouzipcodes2017.csv&quot;</span>
+    <span class="n">proxy_support</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">ProxyHandler</span><span class="p">(</span><span class="n">proxy_dict</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">proxy_support</span><span class="p">)</span>
+    <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url_iou</span><span class="p">,</span> <span class="n">des_file_iou</span><span class="p">)</span>  
+    <span class="k">except</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span> <span class="k">as</span> <span class="n">e1</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e1</span><span class="p">)</span>
+        <span class="n">succeed</span><span class="o">=</span><span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url_noniou</span><span class="p">,</span> <span class="n">des_file_noniou</span><span class="p">)</span>  
+    <span class="k">except</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span> <span class="k">as</span> <span class="n">e2</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e2</span><span class="p">)</span>
+        <span class="n">suceed</span><span class="o">=</span><span class="kc">False</span>
+        
+    <span class="k">if</span> <span class="n">succeed</span><span class="p">:</span>
+        <span class="n">df_iou</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">des_file_iou</span><span class="p">)</span>
+        <span class="n">df_noniou</span><span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">des_file_noniou</span><span class="p">)</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_iou</span><span class="p">,</span><span class="n">df_noniou</span><span class="p">],</span><span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">utdataframe</span></div>
+
+
+<div class="viewcode-block" id="search_utdata_byname">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.search_utdata_byname">[docs]</a>
+<span class="k">def</span> <span class="nf">search_utdata_byname</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;utdataframe&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utname</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;utname&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">utname</span><span class="o">=</span><span class="s2">&quot;na&quot;</span>
+           
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">utdataframe</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">utdatabyname</span><span class="o">=</span><span class="n">utdataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">utdataframe</span><span class="p">[</span><span class="s1">&#39;utility_name&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">utname</span><span class="p">]</span>
+        <span class="n">utdatabyname</span><span class="o">=</span><span class="n">utdatabyname</span><span class="p">[[</span><span class="s1">&#39;eiaid&#39;</span><span class="p">,</span><span class="s1">&#39;utility_name&#39;</span><span class="p">,</span><span class="s1">&#39;state&#39;</span><span class="p">,</span><span class="s1">&#39;ownership&#39;</span><span class="p">]]</span>
+        <span class="n">utdatabyname</span><span class="o">=</span><span class="n">utdatabyname</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">utdatabyname</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Dataframe</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">utdatabyname</span></div>
+
+
+<div class="viewcode-block" id="search_utdata_byzip">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.search_utdata_byzip">[docs]</a>
+<span class="k">def</span> <span class="nf">search_utdata_byzip</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;utdataframe&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utzip</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;utzip&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">utzip</span><span class="o">=</span><span class="s2">&quot;na&quot;</span>
+           
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">utdataframe</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">utdatabyzip</span><span class="o">=</span><span class="n">utdataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">utdataframe</span><span class="p">[</span><span class="s1">&#39;zip&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">utzip</span><span class="p">]</span>
+        <span class="n">utdatabyzip</span><span class="o">=</span><span class="n">utdatabyzip</span><span class="p">[[</span><span class="s1">&#39;eiaid&#39;</span><span class="p">,</span><span class="s1">&#39;utility_name&#39;</span><span class="p">,</span><span class="s1">&#39;state&#39;</span><span class="p">,</span><span class="s1">&#39;ownership&#39;</span><span class="p">]]</span>
+        <span class="n">utdatabyzip</span><span class="o">=</span><span class="n">utdatabyzip</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">utdatabyzip</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Dataframe</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">utdatabyzip</span></div>
+
+
+<div class="viewcode-block" id="search_utdata_bystate">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.search_utdata_bystate">[docs]</a>
+<span class="k">def</span> <span class="nf">search_utdata_bystate</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;utdataframe&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">utdataframe</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+            
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">utstate</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;utstate&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">utstate</span><span class="o">=</span><span class="s2">&quot;na&quot;</span>
+           
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">utdataframe</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">utdatabystate</span><span class="o">=</span><span class="n">utdataframe</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">utdataframe</span><span class="p">[</span><span class="s1">&#39;state&#39;</span><span class="p">]</span><span class="o">==</span><span class="n">utstate</span><span class="p">]</span>
+        <span class="n">utdatabystate</span><span class="o">=</span><span class="n">utdatabystate</span><span class="p">[[</span><span class="s1">&#39;eiaid&#39;</span><span class="p">,</span><span class="s1">&#39;utility_name&#39;</span><span class="p">,</span><span class="s1">&#39;state&#39;</span><span class="p">,</span><span class="s1">&#39;ownership&#39;</span><span class="p">]]</span>
+        <span class="n">utdatabystate</span><span class="o">=</span><span class="n">utdatabystate</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">utdatabystate</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Dataframe</span><span class="p">()</span>
+    
+    <span class="k">return</span> <span class="n">utdatabystate</span></div>
+
+
+<div class="viewcode-block" id="find_utschld">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.find_utschld">[docs]</a>
+<span class="k">def</span> <span class="nf">find_utschld</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">proxy_dict</span><span class="o">=</span><span class="p">{}</span>
+    <span class="n">http_proxy_on</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">https_proxy_on</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">succeed</span><span class="o">=</span><span class="kc">True</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">proxy_dict</span><span class="p">[</span><span class="s2">&quot;http&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;http_proxy&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">http_proxy_on</span><span class="o">=</span><span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">proxy_dict</span><span class="p">[</span><span class="s2">&quot;https&quot;</span><span class="p">]</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;https_proxy&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">https_proxy_on</span><span class="o">=</span><span class="kc">False</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">eia_id</span><span class="o">=</span><span class="s2">&quot;&amp;eia=&quot;</span><span class="o">+</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;eiaid&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">eia_id</span><span class="o">=</span><span class="s2">&quot;no_id&quot;</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;&amp;api_key=&quot;</span><span class="o">+</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;api_key&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;no_key&quot;</span>
+       
+    <span class="n">root_url</span><span class="o">=</span><span class="s2">&quot;https://api.openei.org/utility_rates?&quot;</span>
+    <span class="n">version</span><span class="o">=</span><span class="s2">&quot;version=5&quot;</span>
+    <span class="n">request_format</span><span class="o">=</span><span class="s2">&quot;&amp;format=json&quot;</span>
+    <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;&amp;detail=full&quot;</span>
+    <span class="n">url_openei</span><span class="o">=</span><span class="n">root_url</span><span class="o">+</span><span class="n">version</span><span class="o">+</span><span class="n">request_format</span><span class="o">+</span><span class="n">api_key</span><span class="o">+</span><span class="n">eia_id</span><span class="o">+</span><span class="n">detail</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">url_openei</span><span class="p">)</span>
+    
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">des_dir</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;dirloc&quot;</span><span class="p">]</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">des_dir</span><span class="o">=</span><span class="s2">&quot;./&quot;</span>    
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">des_dir</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">des_dir</span><span class="p">)</span>
+    
+    <span class="n">des_file</span><span class="o">=</span><span class="n">des_dir</span><span class="o">+</span><span class="s2">&quot;schedule.json&quot;</span>
+    
+    <span class="n">proxy_support</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">ProxyHandler</span><span class="p">(</span><span class="n">proxy_dict</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">build_opener</span><span class="p">(</span><span class="n">proxy_support</span><span class="p">)</span>
+    <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">install_opener</span><span class="p">(</span><span class="n">opener</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url_openei</span><span class="p">,</span> <span class="n">des_file</span><span class="p">)</span>  
+    <span class="k">except</span> <span class="n">urllib</span><span class="o">.</span><span class="n">error</span><span class="o">.</span><span class="n">URLError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="n">succeed</span><span class="o">=</span><span class="kc">False</span>
+    
+    <span class="n">schld</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">des_file</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">())</span> 
+<span class="c1">#    schld_data=json_normalize(schld[&#39;items&#39;])</span>
+    <span class="k">return</span> <span class="n">schld</span><span class="p">[</span><span class="s1">&#39;items&#39;</span><span class="p">]</span> <span class="c1"># this is a list of schedules in which each element contains the full details of a schedule.</span></div>
+
+
+<div class="viewcode-block" id="read_load_profile">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.read_load_profile">[docs]</a>
+<span class="k">def</span> <span class="nf">read_load_profile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">month</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads the annual load profile file located at path and returns the array of the load profile for the given month.&quot;&quot;&quot;</span>
+    <span class="n">load_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+
+    <span class="c1"># Assumptions: column 0 is datetime, column 1 is data</span>
+    <span class="n">datetime_column_name</span> <span class="o">=</span> <span class="n">load_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">data_column_name</span> <span class="o">=</span> <span class="n">load_df</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1"># Overwrite DateTime column (esp. for data obtained from OpenEI)</span>
+    <span class="n">datetime_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">hour_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">datetime_start</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">load_df</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;H&quot;</span><span class="p">)</span>
+    <span class="n">load_df</span><span class="p">[</span><span class="n">datetime_column_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hour_range</span>
+
+    <span class="c1"># Filter by given month.</span>
+    <span class="n">datetime_column</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">load_df</span><span class="p">[</span><span class="n">datetime_column_name</span><span class="p">])</span>
+    <span class="n">load_df_month</span> <span class="o">=</span> <span class="n">load_df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">datetime_column</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">month</span><span class="p">)]</span>
+    <span class="n">load_profile</span> <span class="o">=</span> <span class="n">load_df_month</span><span class="p">[</span><span class="n">data_column_name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">return</span> <span class="n">load_profile</span></div>
+
+
+<div class="viewcode-block" id="read_pv_profile">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.read_pv_profile">[docs]</a>
+<span class="k">def</span> <span class="nf">read_pv_profile</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">month</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads the annual PV profile file located at path and returns the array of the PV profile for the given month.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">month</span><span class="p">)</span>
+    
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">profile_obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+    <span class="n">pv_output_w</span> <span class="o">=</span> <span class="n">profile_obj</span><span class="p">[</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="s1">&#39;ac&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Convert to kW.</span>
+    <span class="n">df_pv_output</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">pv_output_w</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;kW&#39;</span><span class="p">])</span><span class="o">*</span><span class="mf">1e-3</span>
+
+    <span class="c1"># Apply datetime index for filtering.</span>
+    <span class="n">datetime_start</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">hour_range</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="n">datetime_start</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">pv_output_w</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;H&#39;</span><span class="p">)</span>
+    <span class="n">df_pv_output</span><span class="p">[</span><span class="s1">&#39;dt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hour_range</span>
+
+    <span class="c1"># Filter by given month.</span>
+    <span class="n">df_pv_month</span> <span class="o">=</span> <span class="n">df_pv_output</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df_pv_output</span><span class="p">[</span><span class="s1">&#39;dt&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">month</span><span class="p">)]</span>
+    <span class="n">pv_output_kw</span> <span class="o">=</span> <span class="n">df_pv_month</span><span class="p">[</span><span class="s1">&#39;kW&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">return</span> <span class="n">pv_output_kw</span></div>
+
+
+<div class="viewcode-block" id="get_pv_profile_string">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.get_pv_profile_string">[docs]</a>
+<span class="k">def</span> <span class="nf">get_pv_profile_string</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads the PV profile JSON object and returns a list of string descriptors.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">profile_obj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+    
+    <span class="n">module_type_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Standard&#39;</span><span class="p">,</span> <span class="s1">&#39;Premium&#39;</span><span class="p">,</span> <span class="s1">&#39;Thin Film&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">]</span>
+    <span class="n">array_type_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Fixed (open rack)&#39;</span><span class="p">,</span> <span class="s1">&#39;Fixed (roof mounted)&#39;</span><span class="p">,</span> <span class="s1">&#39;1-axis&#39;</span><span class="p">,</span> <span class="s1">&#39;1-axis (backtracking)&#39;</span><span class="p">,</span> <span class="s1">&#39;2-axis&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">]</span>
+    
+    <span class="n">query_inputs</span> <span class="o">=</span> <span class="n">profile_obj</span><span class="p">[</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Skip if this is a custom/imported profile.</span>
+    <span class="k">if</span> <span class="n">query_inputs</span><span class="p">[</span><span class="s2">&quot;array_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Custom&quot;</span><span class="p">,]</span>
+
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="s1">&#39;Location: </span><span class="si">{lat}</span><span class="s1">, </span><span class="si">{lon}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">lat</span><span class="o">=</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">],</span> <span class="n">lon</span><span class="o">=</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">])</span>
+    <span class="n">system_capacity</span> <span class="o">=</span> <span class="s1">&#39;System Capacity: </span><span class="si">{0}</span><span class="s1"> kW&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;system_capacity&#39;</span><span class="p">])</span>
+    <span class="n">azimuth</span> <span class="o">=</span> <span class="s1">&#39;Azimuth: </span><span class="si">{0}</span><span class="s1"> deg&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;azimuth&#39;</span><span class="p">])</span>
+    <span class="n">tilt</span> <span class="o">=</span> <span class="s1">&#39;Tilt: </span><span class="si">{0}</span><span class="s1"> deg&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;tilt&#39;</span><span class="p">])</span>
+    <span class="n">array_type</span> <span class="o">=</span> <span class="s1">&#39;Array Type: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">array_type_list</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;array_type&#39;</span><span class="p">])])</span>
+    <span class="n">module_type</span> <span class="o">=</span> <span class="s1">&#39;Module Type: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">module_type_list</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;module_type&#39;</span><span class="p">])])</span>
+    <span class="n">system_losses</span> <span class="o">=</span> <span class="s1">&#39;System Losses: </span><span class="si">{0}</span><span class="s1">%&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">query_inputs</span><span class="p">[</span><span class="s1">&#39;losses&#39;</span><span class="p">])</span>
+
+    <span class="n">descriptors</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">coordinates</span><span class="p">,</span>
+        <span class="n">system_capacity</span><span class="p">,</span>
+        <span class="n">azimuth</span><span class="p">,</span>
+        <span class="n">tilt</span><span class="p">,</span>
+        <span class="n">array_type</span><span class="p">,</span>
+        <span class="n">module_type</span><span class="p">,</span>
+        <span class="n">system_losses</span><span class="p">,</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">descriptors</span></div>
+
+
+
+<div class="viewcode-block" id="input_df">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.btm.readutdata.input_df">[docs]</a>
+<span class="k">def</span> <span class="nf">input_df</span><span class="p">(</span><span class="n">year</span><span class="p">,</span><span class="n">wkday_eschld</span><span class="p">,</span><span class="n">wkend_eschld</span><span class="p">,</span><span class="n">wkday_dschld</span><span class="p">,</span><span class="n">wkend_dschld</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a Pandas dataframe from the downloaded rate schedule data.</span>
+<span class="sd">    :param year: an integer.</span>
+<span class="sd">    :param wkday_eschld: a 12x24 NumPy array, wkday_schld[i][j] is the tou energy schedule of hour j+1 in a weekday of month i+1</span>
+<span class="sd">    :param wkend_eschld: a 12x24 NumPy array, wkend_schld[i][j] is the tou energy schedule of hour j+1 in a weekend day or a holiday of month i+1</span>
+<span class="sd">    :param wkday_dschld: a 12x24 NumPy array, wkday_schld[i][j] is the tou demand schedule of hour j+1 in a weekday of month i+1</span>
+<span class="sd">    :param wkend_dschld: a 12x24 NumPy array, wkend_schld[i][j] is the tou demand schedule of hour j+1 in a weekend day or a holiday of month i+1</span>
+<span class="sd">    </span>
+<span class="sd">    :return opt_df: a Pandas dataframe with the following template:|year|month|day|hour|tou_energy_schedule|tou_demand_schedule|</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">column_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;year&#39;</span><span class="p">,</span><span class="s1">&#39;month&#39;</span><span class="p">,</span><span class="s1">&#39;day&#39;</span><span class="p">,</span><span class="s1">&#39;hour&#39;</span><span class="p">,</span><span class="s1">&#39;tou_energy_schedule&#39;</span><span class="p">,</span><span class="s1">&#39;tou_demand_schedule&#39;</span><span class="p">]</span>
+    <span class="n">data_list</span><span class="o">=</span><span class="p">[]</span>
+    <span class="n">nday</span><span class="o">=</span><span class="p">{</span><span class="mi">1</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="mi">2</span><span class="p">:</span><span class="mi">28</span><span class="p">,</span><span class="mi">3</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="mi">4</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span><span class="mi">5</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="mi">6</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span><span class="mi">7</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="mi">8</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="mi">9</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span><span class="mi">10</span><span class="p">:</span><span class="mi">31</span><span class="p">,</span><span class="mi">11</span><span class="p">:</span><span class="mi">30</span><span class="p">,</span><span class="mi">12</span><span class="p">:</span><span class="mi">31</span><span class="p">}</span>
+    
+    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">year</span><span class="p">)</span><span class="o">%</span><span class="mi">4</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+        <span class="n">nday</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">=</span><span class="mi">29</span>
+        
+    <span class="n">us_holidays</span><span class="o">=</span><span class="n">holidays</span><span class="o">.</span><span class="n">UnitedStates</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">month</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">13</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">day</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">nday</span><span class="p">[</span><span class="n">month</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">date</span><span class="o">=</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+            <span class="n">dayofweek</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">weekday</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">hour</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">25</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">date</span> <span class="ow">in</span> <span class="n">us_holidays</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">dayofweek</span><span class="o">&gt;</span><span class="mi">4</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wkend_dschld</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>  
+                        <span class="n">row</span><span class="o">=</span><span class="p">[</span><span class="n">year</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">day</span><span class="p">,</span><span class="n">hour</span><span class="p">,</span><span class="n">wkend_eschld</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">hour</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">wkend_dschld</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">hour</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">row</span><span class="o">=</span><span class="p">[</span><span class="n">year</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">day</span><span class="p">,</span><span class="n">hour</span><span class="p">,</span><span class="n">wkend_eschld</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">hour</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wkday_dschld</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>  
+                        <span class="n">row</span><span class="o">=</span><span class="p">[</span><span class="n">year</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">day</span><span class="p">,</span><span class="n">hour</span><span class="p">,</span><span class="n">wkday_eschld</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">hour</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">wkday_dschld</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">hour</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">row</span><span class="o">=</span><span class="p">[</span><span class="n">year</span><span class="p">,</span><span class="n">month</span><span class="p">,</span><span class="n">day</span><span class="p">,</span><span class="n">hour</span><span class="p">,</span><span class="n">wkday_eschld</span><span class="p">[</span><span class="n">month</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">hour</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="mi">0</span><span class="p">]</span>
+                    
+                <span class="n">data_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="n">opt_df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data_list</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="n">column_list</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">opt_df</span></div>
+
+                    
+<span class="c1"># Example             </span>
+<span class="c1">#utdataframe = download_utdata(https_proxy=&quot;wwwproxy.sandia.gov:80&quot;)</span>
+<span class="c1">#utdata=search_utdata_byzip(utdataframe=utdataframe,utzip=87185)</span>
+<span class="c1">#utid=utdata[&#39;eiaid&#39;].values</span>
+<span class="c1">#utid=[14328]</span>
+<span class="c1">#print(utid)</span>
+<span class="c1">#schld_data=find_utschld(https_proxy=&quot;wwwproxy.sandia.gov:80&quot;,eiaid=str(utid[0]),api_key=&quot;QqYsZ7wI57tBiNaqc4IZfffvgWaorWER6J3D69tw&quot;)</span>
+<span class="c1">#</span>
+<span class="c1">#for i in range(len(schld_data)):</span>
+<span class="c1">#    print(i,schld_data[i][&#39;name&#39;])</span>
+<span class="c1">#</span>
+<span class="c1">#print(schld_data[471].keys())</span>
+<span class="c1">#print(schld_data[471][&#39;flatdemandstructure&#39;])</span>
+<span class="c1">#</span>
+<span class="c1">#wkday_eschld=schld_data[471][&#39;energyweekdayschedule&#39;]</span>
+<span class="c1">#wkend_eschld=schld_data[471][&#39;energyweekendschedule&#39;]</span>
+<span class="c1">#tou_erate=schld_data[471][&#39;energyratestructure&#39;]</span>
+<span class="c1">#</span>
+<span class="c1">#wkday_dschld=schld_data[471][&#39;demandweekdayschedule&#39;]</span>
+<span class="c1">#wkend_dschld=schld_data[471][&#39;demandweekendschedule&#39;]</span>
+<span class="c1">#tou_drate=schld_data[471][&#39;demandratestructure&#39;]</span>
+<span class="c1">#</span>
+<span class="c1">#flat_dschld=schld_data[471][&#39;flatdemandmonths&#39;]</span>
+<span class="c1">#flat_drate=schld_data[471][&#39;flatdemandstructure&#39;]</span>
+<span class="c1">#</span>
+<span class="c1">#year=2016</span>
+<span class="c1">#opt_df=input_df(year,wkday_eschld,wkend_eschld,wkday_dschld,wkend_dschld)</span>
+<span class="c1">#opt_df.to_csv(&#39;./input.csv&#39;)</span>
+<span class="c1">#print(opt_df)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

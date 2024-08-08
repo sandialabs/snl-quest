@@ -1,0 +1,18 @@
+quest.snl\_libraries.snl\_data\_manager.data\_manager.libs.garden package
+=========================================================================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   quest.snl_libraries.snl_data_manager.data_manager.libs.garden.garden_matplotlib
+
+Module contents
+---------------
+
+.. automodule:: quest.snl_libraries.snl_data_manager.data_manager.libs.garden
+   :members:
+   :undoc-members:
+   :show-inheritance:
