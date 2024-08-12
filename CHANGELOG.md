@@ -6,7 +6,7 @@
 
 ## Summary
 
-This release includes significant updates, including restructuring the project as a package, cross-platform compatibility, bug fixes related to installations, and the introduction of a dark mode theme.
+This release includes significant updates, including restructuring the project as a package, cross-platform compatibility, bug fixes related to installations, an option for real-time updates, and the introduction of a dark mode theme.
 
 ## New Features
 
