@@ -3,19 +3,8 @@ import os
 import ctypes
 import psutil
 import requests
-from PySide6.QtGui import (
-    QIcon,
-    QPixmap
-)
-
-from PySide6.QtWidgets import (
-    QMainWindow,
-    QApplication,
-    QSizeGrip,
-    QWidget,
-    QMessageBox,
-    QFileSystemModel
-)
+from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize
 
 from quest.app.ui.ui_quest_main import Ui_MainWindow
@@ -27,7 +16,9 @@ from configparser import ConfigParser
 from quest.paths import get_path
 from quest.app.ui_tools.custom_splash import CustomSplashScreen, SplashScreenUpdater
 from quest.app.updates.updater import UpdateChecker
+
 dirname = get_path()
+
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
     The main window that acts as the platform for the application.
@@ -44,96 +35,71 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """Initialize the app and load in the widgets."""
         super().__init__()
 
-#           initializing mainwindow and setting up ui
+        # Initializing mainwindow and setting up UI
         self.setupUi(self)
         self.stackedWidget.setCurrentWidget(self.home_page)
 
-#           resize window and exit
-
+        # Resize window and exit
         self.max_resize_button.clicked.connect(lambda: self.showFullScreen())
         self.exit_app_button.clicked.connect(lambda: self.close())
         self.norm_resize_button.clicked.connect(lambda: self.showNormal())
         self.min_resize_button.clicked.connect(lambda: self.showMinimized())
 
-#           adjusting the top bar appearance/function
-        # self.setWindowFlag(Qt.FramelessWindowHint)
+        # Adjusting the top bar appearance/function
         self.setWindowFlag(Qt.CustomizeWindowHint)
         self.setWindowFlag(Qt.WindowMaximizeButtonHint, False)
         self.setWindowFlag(Qt.WindowMinimizeButtonHint, False)
         self.setWindowFlag(Qt.WindowCloseButtonHint, False)
         self.setWindowFlag(Qt.Window, False)
 
-#           setting window title and icon
-
+        # Setting window title and icon
         self.setWindowTitle("Quest")
         quest_icon = os.path.join(":", "logos", "images", "logo", "Quest_App_Icon.svg")
         self.setWindowIcon(QIcon(quest_icon))
 
-      #  self.showMaximized()
-
-#           navigate to home and set home page
-
+        # Navigate to home and set home page
         self.home_button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.home_page))
 
-
-#           navigate to settings page
-
+        # Navigate to settings page
         self.setting_button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.settings_page))
 
-#           navigate to work space
-
+        # Navigate to work space
         self.workspace_button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.work_space))
 
-#           navigate to about page
-
+        # Navigate to about page
         self.about.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.about_page))
 
-#           navigate to chat page
-
+        # Navigate to chat page
         self.chat_button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.chat_page))
 
-#           adding chat bot
-
+        # Adding chat bot
         self.chat_layout.addWidget(data_view())
 
-#           adding the home page widget
-
+        # Adding the home page widget
         self.home_page_layout.addWidget(home_page())
 
-#           adding the about page widget
-
+        # Adding the about page widget
         self.about_page_layout.addWidget(about_land())
 
-#           adding the settings widget
-
-#        self.settings_page_layout.addWidget(settings_widge())
-
-#           adding the workspace widget
+        # Adding the workspace widget
         self.work_graph = WMainWindow()
         self.work_space_layout.addWidget(self.work_graph)
 
-
-
-#           connecting to the quest pop down methods
-
-#        self.top_logo_button.clicked.connect(self.about_quest_window)
+        # Connecting to the quest pop down methods
         self.hide_quest.clicked.connect(self.quest_hide_window)
 
-#           navigating the settings page
-
+        # Navigating the settings page
         self.appearance_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.appearance_page))
         self.environments_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.environments_page))
         self.api_keys_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.api_keys_page))
 
-
-#           creating config for api page
+        # Creating config for API page
         self.config = ConfigParser()
         self.config_file = 'config.ini'
         self.save_api.clicked.connect(self.save_config)
         self.load_api.clicked.connect(self.load_config)
 
-#           connecting the environments viewer.
-
+        # Connecting the environments viewer
         self.file_model = QFileSystemModel()
         env_dir = os.path.join(dirname, 'app_envs')
         self.file_model.setRootPath(env_dir)
@@ -143,12 +109,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.env_path.setReadOnly(True)
         self.env_path.setText(env_dir)
 
-#           creating a toggle for themes
-
-        #self.dark_mode_button.setEnabled(False)
+        # Creating a toggle for themes
         saved_theme = self.load_theme_pref()
-
-
         if saved_theme == 'dark_mode':
             self.set_dark_mode()
             self.dark_mode_button.setChecked(True)
@@ -171,7 +133,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def save_config(self):
         """
         Save the entered string to a config file.
-
         """
         user_input = self.api_entry.text()
         self.config['openai'] = {"api_key": user_input}
@@ -182,7 +143,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def load_config(self):
         """
         Load the saved information from the config file to the QLineEdit widget.
-
         """
         try:
             self.config.read(self.config_file)
@@ -212,7 +172,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.work_graph.set_light_graph()
         self.set_stream_theme("light")
 
-
     def load_stylesheet(self, path):
         """
         Load a stylesheet from the given path.
@@ -228,7 +187,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def load_theme_pref(self):
         """
         Load the saved theme.
-
         :return: The saved theme
         :rtype: str
         """
@@ -244,7 +202,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings = QSettings("Sandia", "Quest")
         settings.setValue("theme", theme)
 
-
     def set_stream_theme(self, theme):
         # Update the config.toml file
         toml_theme = os.path.join(dirname, ".streamlit", "config.toml")
@@ -257,18 +214,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         """
         Handle clean exit of application.
-
         :param event: Triggered by the close event.
         :type event: QCloseEvent
         """
-
         self.terminate_port(5678)
         event.accept()
 
     def terminate_port(self, port):
         """
         Clean exit from all ports in use.
-
         :param port: The port to terminate
         :type port: int
         :return: True if the process was terminated, False otherwise.
@@ -276,10 +230,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         for proc in psutil.process_iter():
             try:
-               for conn in proc.connections():
-                   if conn.laddr.port == port:
-                       proc.terminate()
-                       return True
+                for conn in proc.connections():
+                    if conn.laddr.port == port:
+                        proc.terminate()
+                        return True
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return False
@@ -315,22 +269,36 @@ def main():
     branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
 
     update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
-    update_checker.worker.progress.connect(updater.show_message)
+    update_checker.success.connect(lambda message: updater.show_message(message))
+    update_checker.error.connect(lambda message: updater.show_message(message))
+    update_checker.finished.connect(lambda: splash.close())
 
-    # Handle specific progress messages to connect to main_win.show and splash.close
-    def handle_progress(message):
-        if message in ["The application has been updated.", "No updates were applied.", "Your application is up to date."]:
-            splash.close()
-            main_win.show()
-
-    update_checker.worker.progress.connect(handle_progress)
     update_checker.check_for_updates()
 
     # Initialize the main window
     main_win = MainWindow()
+   # update_checker.main_window = main_win  # Set the main window for the update checker
+
+    # Show the main window after the update check
+    def show_main_window():
+        splash.close()
+        main_win.show()
+
+    update_checker.finished.connect(show_main_window)
+
+    # Connect the prompt_update signal to show the QMessageBox
+    def prompt_update():
+        reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            update_checker.apply_update()
+            show_main_window()
+        else:
+            update_checker.skip_update()
+            show_main_window()
+
+    update_checker.prompt_update.connect(prompt_update)
 
     sys.exit(app.exec())
-
 
 if __name__ == '__main__':
     main()
