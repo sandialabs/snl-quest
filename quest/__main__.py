@@ -242,9 +242,7 @@ def main():
     """
     Entry point to launch the app.
     """
-    restart_code = 1  # Initial value to enter the loop
-
-    while restart_code == 1:
+    try:
         # Check if a QApplication instance already exists
         if not QApplication.instance():
             app = QApplication(sys.argv)
@@ -267,7 +265,7 @@ def main():
         updater = SplashScreenUpdater(splash)
 
         # Create and start the update checker
-        repo_path = os.path.abspath(os.path.join(dirname, '..'))  # Set to the top-level directory of the project
+        repo_path = os.path.join(dirname, '..')  # Set to the top-level directory of the project
         repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
         branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
 
@@ -294,14 +292,20 @@ def main():
             reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
             if reply == QMessageBox.Yes:
                 update_checker.apply_update()
-                app.exit(1)  # Exit with code 1 to indicate a restart
+                # Relaunch the application
+                python = sys.executable
+                os.execl(python, python, *sys.argv)
             else:
                 update_checker.skip_update()
                 show_main_window()
 
         update_checker.prompt_update.connect(prompt_update)
 
-        restart_code = app.exec()
+        sys.exit(app.exec())
+
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
