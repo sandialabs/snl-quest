@@ -297,7 +297,7 @@ def main():
                     update_checker.apply_update()
                     # Relaunch the application
                     python = sys.executable
-                    os.execl(python, python, *sys.argv)
+                    os.execl(python, python, "-m", "quest")
                 else:
                     update_checker.skip_update()
                     show_main_window()
