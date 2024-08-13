@@ -304,7 +304,7 @@ def main():
 
             update_checker.prompt_update.connect(prompt_update)
         except:
-            show_main_window()
+            pass
 
         sys.exit(app.exec())
 
