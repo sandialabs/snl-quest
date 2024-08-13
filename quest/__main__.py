@@ -296,6 +296,7 @@ def main():
                 if reply == QMessageBox.Yes:
                     update_checker.apply_update()
                     # Relaunch the application
+                    app.quit()
                     python = sys.executable
                     os.execl(python, python, "-m", "quest")
                 else:
