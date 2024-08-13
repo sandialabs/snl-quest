@@ -31,7 +31,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     from quest.app.tools.pop_down import quest_hide_window, about_quest_window
 
-    def __init__(self, app, *args, **kwargs):
+    def __init__(self, app=None, *args, **kwargs):
         """Initialize the app and load in the widgets."""
         super().__init__()
 
@@ -222,8 +222,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :param event: Triggered by the close event.
         :type event: QCloseEvent
         """
-        self.terminate_port(5678)
-        self.app.quit()
+        self.terminate_port(5678)  # Assuming this is a method to clean up resources
+        if self.app:
+            self.app.quit()  # Ensure the application exits cleanly
         event.accept()
 
     def terminate_port(self, port):
@@ -256,7 +257,7 @@ def main():
             app = QApplication.instance()
 
         # Setup and display the splash screen
-        quest_splash = os.path.join(dirname, "images", "logo", "Quest_App_Icon.svg")
+        quest_splash = os.path.join(os.path.dirname(__file__), "images", "logo", "Quest_App_Icon.svg")
         original_pixmap = QPixmap(quest_splash)
         resized_pixmap = original_pixmap.scaled(QSize(300, 350), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         splash = CustomSplashScreen(resized_pixmap)
@@ -271,16 +272,17 @@ def main():
         updater = SplashScreenUpdater(splash)
 
         # Create and start the update checker
-        repo_path = os.path.join(dirname, '..')  # Set to the top-level directory of the project
+        repo_path = os.path.join(os.path.dirname(__file__), '..')  # Set to the top-level directory of the project
         repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
         branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
+
         # Initialize the main window
-        main_win = MainWindow()
-            # Show the main window after the update check
+        main_win = MainWindow(app)
+
+        # Show the main window after the update check
         def show_main_window():
             splash.close()
             main_win.show()
-
 
         try:
             update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
@@ -290,11 +292,6 @@ def main():
 
             update_checker.check_for_updates()
 
-
-            # update_checker.main_window = main_win  # Set the main window for the update checker
-
-
-
             update_checker.finished.connect(show_main_window)
 
             # Connect the prompt_update signal to show the QMessageBox
@@ -302,8 +299,9 @@ def main():
                 reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     update_checker.apply_update()
-                    # Relaunch the application
+                    # Close the current application instance
                     app.quit()
+                    # Relaunch the application
                     python = sys.executable
                     os.execl(python, python, "-m", "quest")
                 else:
