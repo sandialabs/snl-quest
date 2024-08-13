@@ -32,13 +32,14 @@ setup(
         "matplotlib==3.8.3",
         "geopandas==0.14.3",
         "psutil==5.9.0",
+        "GitPython==3.1.43",
         'NodeGraphQt @ git+https://github.com/C3RV1/NodeGraphQt-PySide6'
     ],
 
     package_data={
         '': ['*.txt', '*.rst', '*.json', '*.jpg', '*.qss', '*.sh', '*.svg', '*.png', '*.kv', '*.bat', '*.csv', '*.md', '*.yml', '*.dll', '*.idf', '*.doctree', '.*info', '*.html', '*.js', '*.inv', '*.gif', '*.css', '*.eps', '*.pickle', '*.xlsx', '*.ttf', '*.pdf', '**/license*', '*.yml', '*.ui', '*.eot', '*.woff', '*.woff2', 'LICENSE', '*.mplstyle', '*.ini' ],
     },
-    
+
     entry_points={
         'console_scripts': [
             'quest = quest.__main__:main'

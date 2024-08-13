@@ -6,7 +6,7 @@
 
 ## Summary
 
-This release includes significant updates, including restructuring the project as a package, cross-platform compatibility, bug fixes related to installations, and the introduction of a dark mode theme.
+This release includes significant updates, including restructuring the project as a package, cross-platform compatibility, bug fixes related to installations, an update check that is applied when the app is launched, and the introduction of a dark mode theme.
 
 ## New Features
 
@@ -57,6 +57,9 @@ This release includes significant updates, including restructuring the project a
 - A new dark mode theme has been introduced to enhance user experience, especially in low-light environments.
   - Users can switch between light and dark modes from the settings menu.
 
+### Automated Updates
+- QuESt now checks the github repository for any stable updates that have pushed.
+-This allows for real time bug fixes and app updates to be deployed to all users.
 
 ## Improvements
 
@@ -81,7 +84,7 @@ This release includes significant updates, including restructuring the project a
 
 ## Patch 1.2.f
 ### QuESt
-* A quick-start tour is now available from the home index screen of QuESt. 
+* A quick-start tour is now available from the home index screen of QuESt.
   * <img src="patch_note_resources/patch-quickstart-tour.png" alt="A quick-start tour is now available from the home index screen of QuESt." width=600px margin="auto" />
   * This tour consists of a sequence of slides explaining the general usage of QuESt and is aimed to help new or returning users get oriented.
   * <img src="patch_note_resources/patch-quickstart-tour2.png" alt="Opening the quick-start tour opens a 'help' view which contains a sequence of slides explaining QuESt in general." width=600px margin="auto" />
@@ -96,12 +99,12 @@ This release includes significant updates, including restructuring the project a
   * <img src="patch_note_resources/patch-data-importer.png" alt="The data importer can be used to select data from disk rather than from the QuESt data bank." width=600px margin="auto" />
   * Upon opening the data importer, a series of prompts will appear. The file chooser can be used to select the desired CSV file to use.
     * The drive displayed in the file chooser is based on where QuESt is launched from. Only folders and .csv files will be displayed.
-    * <img src="patch_note_resources/patch-data-importer2.png" alt="The data importer's file chooser is used to select the CSV file to use." width=600px margin="auto" /> 
-    * Folders can be expanded by clicking the dropdown arrow to the left of the folder name. Folders can be entered by clicking on the folder name. Clicking the "..\" at the top of the current directory listing will navigate up one directory level. 
+    * <img src="patch_note_resources/patch-data-importer2.png" alt="The data importer's file chooser is used to select the CSV file to use." width=600px margin="auto" />
+    * Folders can be expanded by clicking the dropdown arrow to the left of the folder name. Folders can be entered by clicking on the folder name. Clicking the "..\" at the top of the current directory listing will navigate up one directory level.
     * To finalize file selection, double-click on the desired file name or click on the file name and click on the 'Select' button.
     * <img src="patch_note_resources/patch-data-importer3.png" alt="The data column from the selected file must be specified." width=600px margin="auto" />
     * Next, the data column must be specified to determine the time series that will be used. The requirements for the data will vary among the different data importers, but generally, for hourly data a time series of length 8,760 (for one standard year) is expected. Please refer to the accompoanying description in the data importer window for specific details.
-    * If the selected time series passes validation, the data importer will report a successful import. Upon returning to the current application, the data importer button will change appearance to indicate that time series data was imported and will be used in the current application. 
+    * If the selected time series passes validation, the data importer will report a successful import. Upon returning to the current application, the data importer button will change appearance to indicate that time series data was imported and will be used in the current application.
     * <img src="patch_note_resources/patch-data-importer4.png" alt="The datetime and data columns from the selected file must be specified." width=600px margin="auto" />
     * Note that any data imported will be made available for future use in the QuESt data bank. The data may be denoted by an "imported/" tag (in the case of load profile data) and the name will be based on the originating CSV file name and the data column specified during the import process.
     * Selecting from the data bank after import will override the imported data.
@@ -144,7 +147,7 @@ This release includes significant updates, including restructuring the project a
 #### QuESt Data Manager
 * PV profiles that are obtained using PVWatts now use the "TMY3" dataset instead of the default "NSRDB" dataset.
   * This is to maintain consistency with the load profiles obtained from OpenEI.org which are based on TMY3.
-  
+
 #### QuESt Valuation
 * The "Single Run" mode in QuESt Valuation has been deprecated and removed from the GUI.
   * The functionality of the "Single Run" mode is already duplicated by the "Batch Run" mode.
@@ -193,7 +196,7 @@ This patch is the official release of QuESt BTM, the application for behind-the-
   * Specify parameters such as the location of the system in latitude and longitude coordinates, the nameplate capacity, the module and array types, and the system efficiency.
   * <img src="patch_note_resources/patch-pv-profile.png" alt="Specify parameters such as the location of the system in latitude and longitude coordinates, the nameplate capacity, the module and array types, and the system efficiency." width=600px margin="auto" />
   * Save the photovoltaic power profile for use in other QuESt applications.
-  
+
 #### QuESt Valuation
 * The appearance of the Valuation Wizard has been slightly adjusted.
 * Some rudimentary value checking for energy storage system parameters has been implemented.
@@ -214,7 +217,7 @@ This patch is the official release of QuESt BTM, the application for behind-the-
   * <img src="patch_note_resources/patch-costsavings-3.png" alt="Select a PV profile (optional)." width=600px margin="auto" />
   * Describe the parameters of the energy storage system.
   * <img src="patch_note_resources/patch-costsavings-4.png" alt="Describe the parameters of the energy storage system." width=600px margin="auto" />
-  * One year of operation will be simulated to minimize cost and the total bill with and without energy storage will be calculated. This includes energy charges, demand charges, and net metering charges and/or credits. 
+  * One year of operation will be simulated to minimize cost and the total bill with and without energy storage will be calculated. This includes energy charges, demand charges, and net metering charges and/or credits.
   * <img src="patch_note_resources/patch-costsavings-5.png" alt="One year of operation will be simulated to minimize cost and the total bill with and without energy storage will be calculated. This includes energy charges, demand charges, and net metering charges and/or credits." width=600px margin="auto" />
   * A summary report can be generated at the end of the wizard that includes more detail on the mathematical formulation, a summary of the scenario specified, and a summary of the results including figures.
   * <img src="patch_note_resources/patch-costsavings-6.png" alt="A summary report can be generated at the end of the wizard that includes more detail on the mathematical formulation, a summary of the scenario specified, and a summary of the results including figures." width=600px margin="auto" />
@@ -236,11 +239,11 @@ This patch is the official release of QuESt BTM, the application for behind-the-
   * If this issue persists, we may consider using alternative means to generate the charts external to the GUI. Generating the report again may solve the issue.
 * An issue where search filters, such as those in selection lists or in the utility rate structure tool in QuESt Data Manager, are too sensitive to queries.
   * We plan on implementing "fuzzy" search or similar concepts to ease the use of these search tools and filters.
-* An issue where QuESt will be reported as "not responding" by the operating system during batch optimization processes such as those in the QuESt Valuation and QuESt BTM applications. 
+* An issue where QuESt will be reported as "not responding" by the operating system during batch optimization processes such as those in the QuESt Valuation and QuESt BTM applications.
   * This is due to the processing requirements of solving the models preventing the GUI from being updated. We will consider restructuring how the computation is performed in order to minimize GUI freezes.
 
 ## Patch 1.1
-This patch provides a number of content and quality of life updates for QuESt Data Manager and QuESt Valuation. 
+This patch provides a number of content and quality of life updates for QuESt Data Manager and QuESt Valuation.
 
 ### QuESt
 #### QuESt Data Manager

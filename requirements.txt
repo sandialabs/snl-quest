@@ -6,4 +6,5 @@ configparser==6.0.1
 matplotlib==3.8.3
 geopandas==0.14.3
 psutil==5.9.0
+GitPython==3.1.43
 git+https://github.com/cancom84/NodeGraphQt-PySide6.git
