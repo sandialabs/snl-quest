@@ -270,7 +270,7 @@ def main():
         branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
 
         update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
-        update_checker.success.connect(lambda message: updater.show_message(message))
+        #update_checker.success.connect(lambda message: updater.show_message(message))
         update_checker.error.connect(lambda message: updater.show_message(message))
         update_checker.finished.connect(lambda: splash.close())
 
