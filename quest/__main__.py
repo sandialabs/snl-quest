@@ -31,9 +31,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     from quest.app.tools.pop_down import quest_hide_window, about_quest_window
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, app, *args, **kwargs):
         """Initialize the app and load in the widgets."""
         super().__init__()
+
+        #store an instance of app for clean exits
+        self.app = app
 
         # Initializing mainwindow and setting up UI
         self.setupUi(self)
@@ -119,6 +122,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         self.light_mode_button.clicked.connect(self.set_light_mode)
         self.dark_mode_button.clicked.connect(self.set_dark_mode)
+
+
 
     def file_clicked(self, index):
         """
@@ -218,6 +223,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :type event: QCloseEvent
         """
         self.terminate_port(5678)
+        self.app.quit()
         event.accept()
 
     def terminate_port(self, port):
@@ -274,7 +280,8 @@ def main():
         def show_main_window():
             splash.close()
             main_win.show()
-        
+
+
         try:
             update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
             update_checker.success.connect(lambda message: updater.show_message(message))
