@@ -268,38 +268,43 @@ def main():
         repo_path = os.path.join(dirname, '..')  # Set to the top-level directory of the project
         repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
         branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
-
-        update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
-        #update_checker.success.connect(lambda message: updater.show_message(message))
-        update_checker.error.connect(lambda message: updater.show_message(message))
-        update_checker.finished.connect(lambda: splash.close())
-
-        update_checker.check_for_updates()
-
         # Initialize the main window
         main_win = MainWindow()
-        # update_checker.main_window = main_win  # Set the main window for the update checker
-
-        # Show the main window after the update check
+            # Show the main window after the update check
         def show_main_window():
             splash.close()
             main_win.show()
+        
+        try:
+            update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
+            update_checker.success.connect(lambda message: updater.show_message(message))
+            update_checker.error.connect(lambda message: updater.show_message(message))
+            update_checker.finished.connect(lambda: splash.close())
 
-        update_checker.finished.connect(show_main_window)
+            update_checker.check_for_updates()
 
-        # Connect the prompt_update signal to show the QMessageBox
-        def prompt_update():
-            reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-            if reply == QMessageBox.Yes:
-                update_checker.apply_update()
-                # Relaunch the application
-                python = sys.executable
-                os.execl(python, python, *sys.argv)
-            else:
-                update_checker.skip_update()
-                show_main_window()
 
-        update_checker.prompt_update.connect(prompt_update)
+            # update_checker.main_window = main_win  # Set the main window for the update checker
+
+
+
+            update_checker.finished.connect(show_main_window)
+
+            # Connect the prompt_update signal to show the QMessageBox
+            def prompt_update():
+                reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    update_checker.apply_update()
+                    # Relaunch the application
+                    python = sys.executable
+                    os.execl(python, python, *sys.argv)
+                else:
+                    update_checker.skip_update()
+                    show_main_window()
+
+            update_checker.prompt_update.connect(prompt_update)
+        except:
+            show_main_window()
 
         sys.exit(app.exec())
 
