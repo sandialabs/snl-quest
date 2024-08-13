@@ -5,6 +5,7 @@ import psutil
 import requests
 from PySide6.QtGui import (
     QIcon,
+    QPixmap
 )
 
 from PySide6.QtWidgets import (
@@ -15,7 +16,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QFileSystemModel
 )
-from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint
+from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize
 
 from quest.app.ui.ui_quest_main import Ui_MainWindow
 from quest.app.home_page.home_page import home_page
@@ -24,6 +25,8 @@ from quest.snl_libraries.workspace.app import WMainWindow
 from quest.app.data_vis.data_view import data_view
 from configparser import ConfigParser
 from quest.paths import get_path
+from quest.app.ui_tools.custom_splash import CustomSplashScreen, SplashScreenUpdater
+from quest.app.updates.updater import UpdateChecker
 dirname = get_path()
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -285,14 +288,47 @@ def main():
     """
     Entry point to launch the app.
     """
+    # Check if a QApplication instance already exists
     if not QApplication.instance():
         app = QApplication(sys.argv)
     else:
         app = QApplication.instance()
 
+    # Setup and display the splash screen
+    quest_splash = os.path.join(dirname, "images", "logo", "Quest_App_Icon.svg")
+    original_pixmap = QPixmap(quest_splash)
+    resized_pixmap = original_pixmap.scaled(QSize(300, 350), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    splash = CustomSplashScreen(resized_pixmap)
+    splash.setWindowFlags(Qt.FramelessWindowHint)
+    splash.showMessage("Loading...", Qt.AlignBottom | Qt.AlignCenter, Qt.white)
+
+    splash.show()
+    # Process events to ensure the splash screen is displayed immediately
+    app.processEvents()
+
+    # Create a SplashScreenUpdater object
+    updater = SplashScreenUpdater(splash)
+
+    # Create and start the update checker
+    repo_path = os.path.abspath(os.path.join(dirname, '..'))  # Set to the top-level directory of the project
+    repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
+    branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
+
+    update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
+    update_checker.worker.progress.connect(updater.show_message)
+
+    # Handle specific progress messages to connect to main_win.show and splash.close
+    def handle_progress(message):
+        if message in ["The application has been updated.", "No updates were applied.", "Your application is up to date."]:
+            splash.close()
+            main_win.show()
+
+    update_checker.worker.progress.connect(handle_progress)
+    update_checker.check_for_updates()
+
+    # Initialize the main window
     main_win = MainWindow()
 
-    main_win.show()
     sys.exit(app.exec())
 
 
