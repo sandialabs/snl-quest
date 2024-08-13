@@ -242,63 +242,66 @@ def main():
     """
     Entry point to launch the app.
     """
-    # Check if a QApplication instance already exists
-    if not QApplication.instance():
-        app = QApplication(sys.argv)
-    else:
-        app = QApplication.instance()
+    restart_code = 1  # Initial value to enter the loop
 
-    # Setup and display the splash screen
-    quest_splash = os.path.join(dirname, "images", "logo", "Quest_App_Icon.svg")
-    original_pixmap = QPixmap(quest_splash)
-    resized_pixmap = original_pixmap.scaled(QSize(300, 350), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-    splash = CustomSplashScreen(resized_pixmap)
-    splash.setWindowFlags(Qt.FramelessWindowHint)
-    splash.showMessage("Loading...", Qt.AlignBottom | Qt.AlignCenter, Qt.white)
-
-    splash.show()
-    # Process events to ensure the splash screen is displayed immediately
-    app.processEvents()
-
-    # Create a SplashScreenUpdater object
-    updater = SplashScreenUpdater(splash)
-
-    # Create and start the update checker
-    repo_path = os.path.abspath(os.path.join(dirname, '..'))  # Set to the top-level directory of the project
-    repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
-    branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
-
-    update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
-    update_checker.success.connect(lambda message: updater.show_message(message))
-    update_checker.error.connect(lambda message: updater.show_message(message))
-    update_checker.finished.connect(lambda: splash.close())
-
-    update_checker.check_for_updates()
-
-    # Initialize the main window
-    main_win = MainWindow()
-   # update_checker.main_window = main_win  # Set the main window for the update checker
-
-    # Show the main window after the update check
-    def show_main_window():
-        splash.close()
-        main_win.show()
-
-    update_checker.finished.connect(show_main_window)
-
-    # Connect the prompt_update signal to show the QMessageBox
-    def prompt_update():
-        reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            update_checker.apply_update()
-            show_main_window()
+    while restart_code == 1:
+        # Check if a QApplication instance already exists
+        if not QApplication.instance():
+            app = QApplication(sys.argv)
         else:
-            update_checker.skip_update()
-            show_main_window()
+            app = QApplication.instance()
 
-    update_checker.prompt_update.connect(prompt_update)
+        # Setup and display the splash screen
+        quest_splash = os.path.join(dirname, "images", "logo", "Quest_App_Icon.svg")
+        original_pixmap = QPixmap(quest_splash)
+        resized_pixmap = original_pixmap.scaled(QSize(300, 350), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        splash = CustomSplashScreen(resized_pixmap)
+        splash.setWindowFlags(Qt.FramelessWindowHint)
+        splash.showMessage("Loading...", Qt.AlignBottom | Qt.AlignCenter, Qt.white)
 
-    sys.exit(app.exec())
+        splash.show()
+        # Process events to ensure the splash screen is displayed immediately
+        app.processEvents()
+
+        # Create a SplashScreenUpdater object
+        updater = SplashScreenUpdater(splash)
+
+        # Create and start the update checker
+        repo_path = os.path.abspath(os.path.join(dirname, '..'))  # Set to the top-level directory of the project
+        repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
+        branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
+
+        update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
+        update_checker.success.connect(lambda message: updater.show_message(message))
+        update_checker.error.connect(lambda message: updater.show_message(message))
+        update_checker.finished.connect(lambda: splash.close())
+
+        update_checker.check_for_updates()
+
+        # Initialize the main window
+        main_win = MainWindow()
+        # update_checker.main_window = main_win  # Set the main window for the update checker
+
+        # Show the main window after the update check
+        def show_main_window():
+            splash.close()
+            main_win.show()
+
+        update_checker.finished.connect(show_main_window)
+
+        # Connect the prompt_update signal to show the QMessageBox
+        def prompt_update():
+            reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                update_checker.apply_update()
+                app.exit(1)  # Exit with code 1 to indicate a restart
+            else:
+                update_checker.skip_update()
+                show_main_window()
+
+        update_checker.prompt_update.connect(prompt_update)
+
+        restart_code = app.exec()
 
 if __name__ == '__main__':
     main()
