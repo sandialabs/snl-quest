@@ -263,8 +263,8 @@ class home_page(QWidget, Ui_home_page):
 
         # Evaluation app
         eval_front = form_apps()
-        eval_image = os.path.join(base_dir, "images", "logo", "Quest_EvaluationLogo_RGB.png")
-       # eval_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_RGB_Reversed.png")
+       # eval_image = os.path.join(base_dir, "images", "logo", "Quest_EvaluationLogo_RGB.png")
+        eval_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_RGB_Reversed.png")
         eval_image = eval_image.replace("\\", "/")
         eval_front.app_image.setStyleSheet(f"image: url({eval_image});")
 
