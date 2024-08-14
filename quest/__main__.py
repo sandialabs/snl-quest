@@ -301,6 +301,7 @@ def main():
             def prompt_update():
                 reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.Yes:
+                    main_win.close()
                     update_checker.apply_update()
                     # Close the current application instance
                     app.quit()
