@@ -123,8 +123,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.light_mode_button.clicked.connect(self.set_light_mode)
         self.dark_mode_button.clicked.connect(self.set_dark_mode)
 
-
-
     def file_clicked(self, index):
         """
         Displays the file path of objects in environments.
@@ -255,6 +253,9 @@ def main():
             app = QApplication(sys.argv)
         else:
             app = QApplication.instance()
+
+        # Ensure the application quits when the last window is closed
+        app.setQuitOnLastWindowClosed(True)
 
         # Setup and display the splash screen
         quest_splash = os.path.join(os.path.dirname(__file__), "images", "logo", "Quest_App_Icon.svg")
