@@ -165,10 +165,6 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
             ```bash
             python3 -m quest
             ```
-    - Alternatively, after running `pip install .`, you can run QuESt from any location as long as the virtual environment QuESt is downloaded in is activated using the following command:
-        ```bash
-        quest
-        ```
 
 ## Deactivating the Virtual Environment
 1. Deactivate the Virtual Environment:

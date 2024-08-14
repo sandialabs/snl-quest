@@ -260,7 +260,7 @@ def main():
         app.setQuitOnLastWindowClosed(True)
 
         # Setup and display the splash screen
-        quest_splash = os.path.join(os.path.dirname(__file__), "images", "logo", "Quest_App_Icon.svg")
+        quest_splash = os.path.join(dirname, "images", "logo", "Quest_App_Icon.svg")
         original_pixmap = QPixmap(quest_splash)
         resized_pixmap = original_pixmap.scaled(QSize(300, 350), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         splash = CustomSplashScreen(resized_pixmap)
@@ -275,7 +275,7 @@ def main():
         updater = SplashScreenUpdater(splash)
 
         # Create and start the update checker
-        repo_path = os.path.join(os.path.dirname(__file__), '..')  # Set to the top-level directory of the project
+        repo_path = os.path.join(dirname, '..')  # Set to the top-level directory of the project
         repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
         branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
 

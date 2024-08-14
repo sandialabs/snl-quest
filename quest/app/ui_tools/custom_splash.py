@@ -49,6 +49,7 @@ class CustomSplashScreen(QSplashScreen):
         # Add the splash screen content (pixmap) to the layout
         self.splash_content = QLabel(self)
         self.splash_content.setPixmap(pixmap)
+       # self.splash_content.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.splash_content)
 
     def mousePressEvent(self, event):
