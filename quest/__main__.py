@@ -276,8 +276,8 @@ def main():
 
         # Create and start the update checker
         repo_path = os.path.join(dirname, '..')  # Set to the top-level directory of the project
-        repo_url = 'https://github.com/sandialabs/snl-quest.git'  # Update with your actual repository URL
-        branch_name = 'QuESt_2.0.b'  # Use the branch you want to work with
+        repo_url = 'https://github.com/sandialabs/snl-quest.git'
+        branch_name = 'QuESt_2.0.b'
 
         # Initialize the main window
         main_win = MainWindow(app)

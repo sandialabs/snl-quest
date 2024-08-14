@@ -151,7 +151,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 3. Install Dependencies:
     ```bash
-    pip install .
+    pip install -e .
     ```
 
 ## Running QuESt
@@ -164,6 +164,10 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
         - On Linux/macOS:
             ```bash
             python3 -m quest
+            ```
+        - Alternatively quest may be run any directory as long as the venv is active using the terminal command:
+            ```bash
+            quest
             ```
 
 ## Deactivating the Virtual Environment

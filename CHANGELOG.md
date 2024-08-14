@@ -59,7 +59,7 @@ This release includes significant updates, including restructuring the project a
 
 ### Automated Updates
 - QuESt now checks the github repository for any stable updates that have been pushed.
--This allows for real time bug fixes and app updates to be deployed to all users.
+- This allows for real time bug fixes and app updates to be deployed to all users.
 
 ## Improvements
 
