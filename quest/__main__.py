@@ -223,6 +223,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.terminate_port(5678)  # Assuming this is a method to clean up resources
         if self.app:
             self.app.quit()  # Ensure the application exits cleanly
+        sys.stdout.flush()
+        sys.stderr.flush()
         event.accept()
 
     def terminate_port(self, port):
@@ -316,6 +318,8 @@ def main():
 
     except Exception as e:
         print(f"An error occurred: {e}")
+        sys.stdout.flush()
+        sys.stderr.flush()
         sys.exit(1)
 
 if __name__ == '__main__':
