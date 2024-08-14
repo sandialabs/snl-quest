@@ -5,7 +5,7 @@ import psutil
 import requests
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
-from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize
+from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess
 
 from quest.app.ui.ui_quest_main import Ui_MainWindow
 from quest.app.home_page.home_page import home_page
@@ -301,9 +301,8 @@ def main():
                     update_checker.apply_update()
                     # Close the current application instance
                     app.quit()
-                    # Relaunch the application
-                    python = sys.executable
-                    os.execl(python, python, "-m", "quest")
+                    # Relaunch the application using QProcess
+                    QProcess.startDetached(sys.executable, ["-m", "quest"])
                 else:
                     update_checker.skip_update()
                     show_main_window()
@@ -312,7 +311,7 @@ def main():
         except:
             pass
 
-        sys.exit(app.exec())
+        app.exec()
 
     except Exception as e:
         print(f"An error occurred: {e}")
