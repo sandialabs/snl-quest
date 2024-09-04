@@ -1,5 +1,0 @@
-requests
-matplotlib
-pandas
-tabulate
-python-dateutil
