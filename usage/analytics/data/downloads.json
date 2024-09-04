@@ -1,0 +1,74 @@
+[
+    {
+        "release_id": 148732718,
+        "release_name": "QuESt 2.0",
+        "asset_id": 163603601,
+        "asset_name": "quest_apps_prebuilt_win64.zip",
+        "download_count": 20,
+        "created_at": "2024-04-22T18:36:55Z",
+        "updated_at": "2024-04-22T18:38:53Z"
+    },
+    {
+        "release_id": 148732718,
+        "release_name": "QuESt 2.0",
+        "asset_id": 163320377,
+        "asset_name": "quest_installer_win64.exe",
+        "download_count": 34,
+        "created_at": "2024-04-21T01:28:02Z",
+        "updated_at": "2024-04-21T01:28:03Z"
+    },
+    {
+        "release_id": 148732718,
+        "release_name": "QuESt 2.0",
+        "asset_id": 163824247,
+        "asset_name": "quest_prebuilt_win64.zip",
+        "download_count": 32,
+        "created_at": "2024-04-23T20:08:27Z",
+        "updated_at": "2024-04-23T20:18:06Z"
+    },
+    {
+        "release_id": 75384405,
+        "release_name": "v1.6",
+        "asset_id": 75854002,
+        "asset_name": "QuESt.1.6-beta.zip",
+        "download_count": 395,
+        "created_at": "2022-08-25T19:17:08Z",
+        "updated_at": "2022-08-25T19:17:17Z"
+    },
+    {
+        "release_id": 22941629,
+        "release_name": "v1.2.f",
+        "asset_id": 17419686,
+        "asset_name": "snl-quest-1.2.f-win10.zip",
+        "download_count": 743,
+        "created_at": "2020-01-17T23:09:31Z",
+        "updated_at": "2020-01-17T23:09:35Z"
+    },
+    {
+        "release_id": 20694867,
+        "release_name": "v1.2.e",
+        "asset_id": 15479105,
+        "asset_name": "snl-quest-1.2.e-win10.zip",
+        "download_count": 198,
+        "created_at": "2019-10-14T22:46:18Z",
+        "updated_at": "2019-10-14T22:46:21Z"
+    },
+    {
+        "release_id": 17783059,
+        "release_name": "v1.2.d",
+        "asset_id": 13026377,
+        "asset_name": "snl-quest-1.2.d-win10.zip",
+        "download_count": 111,
+        "created_at": "2019-06-04T21:33:43Z",
+        "updated_at": "2019-06-04T21:33:45Z"
+    },
+    {
+        "release_id": 17144362,
+        "release_name": "v1.2.c",
+        "asset_id": 12376060,
+        "asset_name": "snl-quest-1.2.c-win10.zip",
+        "download_count": 86,
+        "created_at": "2019-05-03T21:43:24Z",
+        "updated_at": "2019-05-03T21:54:46Z"
+    }
+]
