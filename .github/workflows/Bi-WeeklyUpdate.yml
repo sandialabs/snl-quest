@@ -24,7 +24,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         QUEST_TOKEN: ${{ secrets.QUEST_TOKEN }}
-      run: python usage/__main__.py --biweekly
+      run: python src/__main__.py --biweekly
 
     - name: Configure Git
       run: |
@@ -33,6 +33,6 @@ jobs:
 
     - name: Commit and push changes
       run: |
-        git add usage/analytics/data/*.json usage/analytics/plots/*.png usage/analytics/plots/*.md
+        git add src/analytics/data/*.json src/analytics/plots/*.png src/analytics/plots/*.md
         git commit -m "Bi-weekly update: Aggregated JSON data, plots, and README"
         git push

@@ -1,12 +1,12 @@
-name: Daily GitHub Stats Update
+name: Bi-Weekly GitHub Stats Aggregation
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
+    - cron: '0 0 */14 * *'  # Run every 14 days at midnight
   workflow_dispatch:
 
 jobs:
-  update-daily:
+  update-biweekly:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -18,13 +18,13 @@ jobs:
         python-version: '3.8'
 
     - name: Install dependencies
-      run: pip install -r usage/requirements.txt
+      run: pip install -r requirements.txt
 
-    - name: Run daily update
+    - name: Run bi-weekly update
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         QUEST_TOKEN: ${{ secrets.QUEST_TOKEN }}
-      run: python usage/__main__.py
+      run: python usage/__main__.py --biweekly
 
     - name: Configure Git
       run: |
@@ -33,6 +33,6 @@ jobs:
 
     - name: Commit and push changes
       run: |
-        git add usage/analytics/data/*.json usage/analytics/plots/*.png usage/analytics/plots/*.md usage/analytics/shields/*.json README.md
-        git commit -m "Daily update: JSON data, shields, plots, and README"
+        git add usage/analytics/data/*.json usage/analytics/plots/*.png usage/analytics/plots/*.md
+        git commit -m "Bi-weekly update: Aggregated JSON data, plots, and README"
         git push
