@@ -1,0 +1,38 @@
+name: Bi-Weekly GitHub Stats Aggregation
+
+on:
+  schedule:
+    - cron: '0 0 */14 * *'  # Run every 14 days at midnight
+  workflow_dispatch:
+
+jobs:
+  update-biweekly:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run bi-weekly update
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        QUEST_TOKEN: ${{ secrets.QUEST_TOKEN }}
+      run: python usage/__main__.py --biweekly
+
+    - name: Configure Git
+      run: |
+        git config --global user.name 'github-actions'
+        git config --global user.email 'github-actions@github.com'
+
+    - name: Commit and push changes
+      run: |
+        git add usage/analytics/data/*.json usage/analytics/plots/*.png usage/analytics/plots/*.md
+        git commit -m "Bi-weekly update: Aggregated JSON data, plots, and README"
+        git push
