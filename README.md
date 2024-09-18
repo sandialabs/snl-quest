@@ -125,7 +125,8 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 7. Double-click the file called unix_entry.sh or run it from the terminal (some systems may require users to always run quest from the terminal):
    ```bash
     ./unix_entry.sh
-   - This will run the batch file, check for and install any missing dependencies (Git, Python 3.9.13, virtual environment), and launch the QuESt application.
+
+- This will run the batch file, check for and install any missing dependencies (Git, Python 3.9.13, virtual environment), and launch the QuESt application.
 
 
 ## Installation for Developers:
@@ -185,7 +186,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 ## Running QuESt
 ## Easy Version:
-1. If you have followed the Easy Installation steps you can now double click on the win_entry.bat if you are on windows or on the unix_entry if you are on mac or linux to launch quest. Some unix based systems may require users to always use the terminal to run the unix_entry.sh.
+1. If you have followed the Easy Installation steps you can now double click on the win_entry.bat if you are on windows or on the unix_entry if you are on mac or linux to launch quest. Some unix based systems may require users to always use the terminal to run the unix_entry.sh script to launch QuESt.
 
 ## For Developers:
 1. Run QuESt:
