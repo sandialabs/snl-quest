@@ -101,6 +101,35 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 ### Installation Instructions for QuESt
 
+## Easy Installation (Recommended)
+
+1. Click on the code button at the top of the page and then select "Download ZIP" from the dropdown.
+   <img src="quest/images/read/git_extract.png" alt="Download zip" width=600px margin="auto" />
+
+2. Go to the location of the downloaded ZIP folder (default is Downloads).
+
+3. Extract the ZIP folder to your desired location (e.g., Desktop).
+
+### For Windows Users:
+4. Navigate to the extracted folder.
+5. Double-click the file called `win_entry.bat`.
+   - This will run the batch file, check for and install any missing dependencies (Git, Python 3.9.13, virtual environment), and launch the QuESt application.
+
+### For Unix Users (Linux and macOS):
+4. Navigate to the extracted folder.
+5. Open a terminal and navigate to the extracted folder.
+6. Make the script executable by running:
+   ```bash
+   chmod +x unix_entry.sh
+
+7. Double-click the file called unix_entry.sh or run it from the terminal (some systems may require users to always run quest from the terminal):
+   ```bash
+    ./unix_entry.sh
+   - This will run the batch file, check for and install any missing dependencies (Git, Python 3.9.13, virtual environment), and launch the QuESt application.
+
+
+## Installation for Developers:
+
 ## Prerequisites
 - Python (3.9.x recommended) installed on your system
 - Git installed on your system
@@ -155,6 +184,10 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
     ```
 
 ## Running QuESt
+## Easy Version:
+1. If you have followed the Easy Installation steps you can now double click on the win_entry.bat if you are on windows or on the unix_entry if you are on mac or linux to launch quest. Some unix based systems may require users to always use the terminal to run the unix_entry.sh.
+
+## For Developers:
 1. Run QuESt:
     - Once the dependencies are installed, ensure you have navigated to the directory where QuESt is installed and the virtual environment is activated. You can run QuESt using the following command:
         - On Windows:

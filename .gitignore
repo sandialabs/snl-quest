@@ -11,3 +11,4 @@ config.ini
 **/__pycache__/
 *.pyc
 venv/
+quest_20/

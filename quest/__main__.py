@@ -260,7 +260,7 @@ def main():
         app.setQuitOnLastWindowClosed(True)
 
         # Setup and display the splash screen
-        quest_splash = os.path.join(dirname, "images", "logo", "Quest_App_Icon.svg")
+        quest_splash = os.path.join(dirname, "images", "logo", "Quest_Logo_RGB.png")
         original_pixmap = QPixmap(quest_splash)
         resized_pixmap = original_pixmap.scaled(QSize(300, 350), Qt.KeepAspectRatio, Qt.SmoothTransformation)
         splash = CustomSplashScreen(resized_pixmap)

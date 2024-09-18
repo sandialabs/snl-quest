@@ -12,9 +12,9 @@ class CustomTitleBar(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
-        self.title_label = QLabel("QuESt 2.0")
-        self.title_label.setStyleSheet("color: white; padding-left: 10px;")
-        layout.addWidget(self.title_label)
+        #self.title_label = QLabel("QuESt 2.0")
+        #self.title_label.setStyleSheet("color: white; padding-left: 10px;")
+        #layout.addWidget(self.title_label)
 
         self.minimize_button = QPushButton("-")
         self.minimize_button.setFixedSize(QSize(30, 30))
