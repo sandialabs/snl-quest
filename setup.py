@@ -24,7 +24,7 @@ setup(
     license=LICENSE,
     url=URL,
     install_requires=[
-        "kivy==2.1.0",
+        "kivy==2.0.0",
         "scipy==1.12.0",
         "pandas==2.2.1",
         "pyomo==6.7.1",
