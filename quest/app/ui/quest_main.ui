@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1063</width>
+    <width>1193</width>
     <height>626</height>
    </rect>
   </property>
@@ -792,7 +792,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>989</width>
+               <width>1119</width>
                <height>71</height>
               </rect>
              </property>
@@ -1573,10 +1573,44 @@ li.checked::marker { content: &quot;\2612&quot;; }
                                      </widget>
                                     </item>
                                     <item>
-                                     <widget class="QLineEdit" name="env_path">
-                                      <property name="placeholderText">
-                                       <string>path/to/envs...</string>
+                                     <widget class="QFrame" name="frame_14">
+                                      <property name="frameShape">
+                                       <enum>QFrame::NoFrame</enum>
                                       </property>
+                                      <property name="frameShadow">
+                                       <enum>QFrame::Raised</enum>
+                                      </property>
+                                      <layout class="QHBoxLayout" name="horizontalLayout_7">
+                                       <property name="leftMargin">
+                                        <number>0</number>
+                                       </property>
+                                       <property name="topMargin">
+                                        <number>0</number>
+                                       </property>
+                                       <property name="rightMargin">
+                                        <number>0</number>
+                                       </property>
+                                       <property name="bottomMargin">
+                                        <number>0</number>
+                                       </property>
+                                       <item>
+                                        <widget class="QLineEdit" name="env_path">
+                                         <property name="placeholderText">
+                                          <string>path/to/envs...</string>
+                                         </property>
+                                        </widget>
+                                       </item>
+                                       <item>
+                                        <widget class="QPushButton" name="add_path">
+                                         <property name="text">
+                                          <string>Add Path</string>
+                                         </property>
+                                         <property name="flat">
+                                          <bool>true</bool>
+                                         </property>
+                                        </widget>
+                                       </item>
+                                      </layout>
                                      </widget>
                                     </item>
                                     <item>

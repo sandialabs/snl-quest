@@ -3,6 +3,7 @@ import os
 import ctypes
 import psutil
 import requests
+import subprocess
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess
@@ -120,9 +121,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # else:
         #     self.set_light_mode()
         self.set_light_mode()
-        self.light_mode_button.clicked.connect(self.set_light_mode)
+        #self.light_mode_button.clicked.connect(self.set_light_mode)
         self.dark_mode_button.setEnabled(False)
         #self.dark_mode_button.clicked.connect(self.set_dark_mode)
+        self.add_path.clicked.connect(self.add_path_to_env)
 
     def file_clicked(self, index):
         """
@@ -173,8 +175,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         light = os.path.join(dirname, "themes", "light_mode.qss")
         self.load_stylesheet(light)
         self.save_theme_pref("light_mode")
-        self.work_graph.set_light_graph()
-        self.set_stream_theme("light")
+        #self.work_graph.set_light_graph()
+        #self.set_stream_theme("light")
 
     def load_stylesheet(self, path):
         """
@@ -245,6 +247,32 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
         return False
+
+
+    def add_path_to_env(self):
+        path = self.env_path.text().strip()
+        print(path)  # For debugging
+        if not path:
+            QMessageBox.warning(self, "Warning", "Please enter a valid path.")
+            return
+
+        # Add to current session's sys.path
+        sys.path.append(path)
+
+        # Determine the site-packages directory based on the current environment
+        if os.name == 'nt':  # Windows
+            venv_site_packages = os.path.join(sys.prefix, 'Lib', 'site-packages')
+        else:  # Unix/Linux or macOS
+            venv_site_packages = os.path.join(sys.prefix, 'lib', 'python' + sys.version[:3], 'site-packages')
+
+        pth_file_path = os.path.join(venv_site_packages, 'my_paths.pth')
+
+        try:
+            with open(pth_file_path, 'a') as f:
+                f.write(path + '\n')
+            QMessageBox.information(self, "Success", f"Path added to the current session's module search path: {path}\nAlso saved to {pth_file_path} for future sessions.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to create .pth file: {e}")
 
 def main():
     """

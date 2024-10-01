@@ -72,7 +72,6 @@ class ViewerEnum(Enum):
     """
     #: default background color for the node graph.
     BACKGROUND_COLOR = (255, 255, 255)
-    ###(255, 255, 255)
     #: style node graph background with no grid or dots.
     GRID_DISPLAY_NONE = 0
     #: style node graph background with dots.
@@ -83,7 +82,7 @@ class ViewerEnum(Enum):
     GRID_SIZE = 20
     #: grid line color.
     GRID_COLOR = (180, 180, 180)
-    ###### (180, 180, 180)
+
 
 class ViewerNavEnum(Enum):
     """

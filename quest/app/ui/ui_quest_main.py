@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'quest_mainbyprxl.ui'
+## Form generated from reading UI file 'quest_mainWEJfcY.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.5.2
 ##
@@ -25,7 +25,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.resize(1063, 626)
+        MainWindow.resize(1193, 626)
         MainWindow.setStyleSheet(u"")
         self.style_sheet = QWidget(MainWindow)
         self.style_sheet.setObjectName(u"style_sheet")
@@ -321,7 +321,7 @@ class Ui_MainWindow(object):
         self.scrollArea_3.setWidgetResizable(True)
         self.scrollAreaWidgetContents_3 = QWidget()
         self.scrollAreaWidgetContents_3.setObjectName(u"scrollAreaWidgetContents_3")
-        self.scrollAreaWidgetContents_3.setGeometry(QRect(0, 0, 989, 71))
+        self.scrollAreaWidgetContents_3.setGeometry(QRect(0, 0, 1119, 71))
         self.scrollAreaWidgetContents_3.setStyleSheet(u"")
         self.horizontalLayout_27 = QHBoxLayout(self.scrollAreaWidgetContents_3)
         self.horizontalLayout_27.setSpacing(0)
@@ -644,10 +644,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_11.addWidget(self.label_4)
 
-        self.env_path = QLineEdit(self.frame_9)
+        self.frame_14 = QFrame(self.frame_9)
+        self.frame_14.setObjectName(u"frame_14")
+        self.frame_14.setFrameShape(QFrame.NoFrame)
+        self.frame_14.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_7 = QHBoxLayout(self.frame_14)
+        self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
+        self.horizontalLayout_7.setContentsMargins(0, 0, 0, 0)
+        self.env_path = QLineEdit(self.frame_14)
         self.env_path.setObjectName(u"env_path")
 
-        self.verticalLayout_11.addWidget(self.env_path)
+        self.horizontalLayout_7.addWidget(self.env_path)
+
+        self.add_path = QPushButton(self.frame_14)
+        self.add_path.setObjectName(u"add_path")
+        self.add_path.setFlat(True)
+
+        self.horizontalLayout_7.addWidget(self.add_path)
+
+
+        self.verticalLayout_11.addWidget(self.frame_14)
 
         self.env_view = QTreeView(self.frame_9)
         self.env_view.setObjectName(u"env_view")
@@ -924,6 +940,7 @@ class Ui_MainWindow(object):
         self.dark_mode_button.setText(QCoreApplication.translate("MainWindow", u"Dark Mode", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"Environments", None))
         self.env_path.setPlaceholderText(QCoreApplication.translate("MainWindow", u"path/to/envs...", None))
+        self.add_path.setText(QCoreApplication.translate("MainWindow", u"Add Path", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"API Key", None))
         self.api_entry.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Enter API Key...", None))
 #if QT_CONFIG(tooltip)
