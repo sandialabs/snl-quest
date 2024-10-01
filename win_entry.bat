@@ -27,6 +27,7 @@ PowerShell -Command "curl '%GIT_URL%' -o '%GIT_INSTALLER_PATH%'"
 ECHO Installing Git
 START "" /WAIT %TEMP%\Git-Installer.exe
 :: Delete the installer after installation
+SETX PATH "%PATH%;C:\Program Files\Git\bin;C:\Program Files\Git\cmd"
 DEL %TEMP%\Git-Installer.exe
 
 :: Check if Python is installed system-wide
