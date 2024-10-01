@@ -113,15 +113,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.env_path.setText(env_dir)
 
         # Creating a toggle for themes
-        saved_theme = self.load_theme_pref()
-        if saved_theme == 'dark_mode':
-            self.set_dark_mode()
-            self.dark_mode_button.setChecked(True)
-        else:
-            self.set_light_mode()
-
+        # saved_theme = self.load_theme_pref()
+        # if saved_theme == 'dark_mode':
+        #     self.set_dark_mode()
+        #     self.dark_mode_button.setChecked(True)
+        # else:
+        #     self.set_light_mode()
+        self.set_light_mode()
         self.light_mode_button.clicked.connect(self.set_light_mode)
-        self.dark_mode_button.clicked.connect(self.set_dark_mode)
+        self.dark_mode_button.setEnabled(False)
+        #self.dark_mode_button.clicked.connect(self.set_dark_mode)
 
     def file_clicked(self, index):
         """

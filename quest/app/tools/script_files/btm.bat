@@ -47,6 +47,12 @@ del %OUTPUT%
 echo GLPK installation successful
 garden install matplotlib
 echo Garden installation matplotlib succesful
+
+set VENV_PACKAGES=%VENV_PATH%\Lib\site-packages
+set PYTHONPATH=%PYTHONPATH%;%VENV_PACKAGES%
+setx VENV_PACKAGES "%VENV_PACKAGES%"
+setx PYTHONPATH "%PYTHONPATH%;%VENV_PACKAGES%"
+
 REM Deactivate the virtual environment
 deactivate
 exit /b 0
