@@ -33,7 +33,7 @@ setup(
         "geopandas==0.14.3",
         "psutil==5.9.0",
         "GitPython==3.1.43",
-        #'NodeGraphQt @ git+https://github.com/C3RV1/NodeGraphQt-PySide6'
+        'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git'
     ],
 
     package_data={
