@@ -39,7 +39,7 @@ IF %ERRORLEVEL% EQU 0 (
     DEL temp.txt
     IF "!SYS_PY_VERSION!"=="%TARGET_PY_VERSION%" (
         ECHO System-wide Python %TARGET_PY_VERSION% is already installed.
-        GOTO setup_virtualenv
+        GOTO setup_virtualenv_from_system_python
     )
 )
 
@@ -50,7 +50,7 @@ IF EXIST "%PYTHON_LOCAL%" (
     DEL temp.txt
     IF "!LOCAL_PY_VERSION!"=="%TARGET_PY_VERSION%" (
         ECHO Python %TARGET_PY_VERSION% is already installed in the installation directory.
-        GOTO setup_virtualenv
+        GOTO setup_virtualenv_from_local_python
     )
 )
 
