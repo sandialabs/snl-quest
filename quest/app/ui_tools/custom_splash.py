@@ -39,12 +39,12 @@ class CustomSplashScreen(QSplashScreen):
 
         # Create a vertical layout for the container
         layout = QVBoxLayout(self.container)
-        layout.setContentsMargins(0, 0, 0, 60)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
         # Add the custom title bar to the layout
-        self.title_bar = CustomTitleBar(self)
-        layout.addWidget(self.title_bar)
+        # self.title_bar = CustomTitleBar(self)
+        # layout.addWidget(self.title_bar)
 
         # Add the splash screen content (pixmap) to the layout
         self.splash_content = QLabel(self)
