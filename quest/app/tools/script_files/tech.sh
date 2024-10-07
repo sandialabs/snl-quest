@@ -1,17 +1,5 @@
 #!/bin/bash
 
-LOCKFILE="/tmp/glpk_install.lock"
-
-# Function to check if GLPK is installed
-is_glpk_installed() {
-    if command -v glpsol &> /dev/null; then
-        echo "GLPK is already installed."
-        return 0
-    else
-        return 1
-    fi
-}
-
 # Function to install GLPK on Ubuntu/Debian
 install_glpk_on_debian() {
     echo "Installing GLPK on Ubuntu/Debian..."
@@ -73,18 +61,6 @@ attempt_install_via_package_manager() {
     esac
 }
 
-# Function to acquire a lock
-acquire_lock() {
-    exec 200>$LOCKFILE
-    flock -n 200 && return 0 || return 1
-}
-
-# Function to release the lock
-release_lock() {
-    flock -u 200
-    rm -f $LOCKFILE
-}
-
 # Set the path to the virtual environment and setup.py
 VENV_PATH="$(dirname "$0")/../../../app_envs/env_tech"
 SETUP_PATH="$(dirname "$0")/../../../snl_libraries/snl_tech_selection"
@@ -107,38 +83,11 @@ echo "Installing Python package..."
 pip install "$SETUP_PATH"
 pip install kivy-garden==0.1.5
 
-# Check if GLPK is installed
-if ! is_glpk_installed; then
-    # Try to acquire the lock
-    if acquire_lock; then
-        echo "Acquired lock. Installing GLPK..."
-        # Try to install GLPK via package manager
-        if ! attempt_install_via_package_manager; then
-            echo "Failed to install GLPK via package manager. Please install GLPK manually."
-        fi
-        # Release the lock
-        release_lock
-    else
-        echo "Could not acquire lock. Another installation is in progress. Waiting..."
-        # Wait for the lock to be released
-        while ! acquire_lock; do
-            sleep 1
-        done
-        echo "Acquired lock after waiting. Checking GLPK installation..."
-        # Check if GLPK is installed again after acquiring the lock
-        if ! is_glpk_installed; then
-            echo "GLPK is still not installed. Installing GLPK..."
-            if ! attempt_install_via_package_manager; then
-                echo "Failed to install GLPK via package manager. Please install GLPK manually."
-            fi
-        else
-            echo "GLPK was installed by another process."
-        fi
-        release_lock
-    fi
+# Try to install GLPK via package manager
+if ! attempt_install_via_package_manager; then
+    echo "Failed to install GLPK via package manager. Please install GLPK manually."
 fi
-
-GARDEN_PATH="$VENV_PATH/bin/garden"
+GARDEN_PATH="$(dirname "$0")/../../../app_envs/env_tech/bin/garden"
 echo "Garden Path: $GARDEN_PATH"
 chmod +x $GARDEN_PATH
 "$GARDEN_PATH" install matplotlib

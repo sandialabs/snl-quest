@@ -1,0 +1,869 @@
+{
+    "flow_name": "valuation_flow",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x21af11202e0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "iso",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    299.0111140357724,
+                    137.6418555473711
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "iso_name",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"PJM\""
+                }
+            },
+            "0x21af11203d0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "node",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    301.2398811214908,
+                    260.9093072980846
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "node_id",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"1\""
+                }
+            },
+            "0x21af1120580": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "market",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    296.17628571138016,
+                    364.14228353747177
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "market_type",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"pjm_pfp\""
+                }
+            },
+            "0x21af1120730": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "Power Rating",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    1.6595860647412621,
+                    532.0165776516643
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "1"
+                }
+            },
+            "0x21af11208e0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "Energy Capacity",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    0.8061261487170555,
+                    663.5088685396111
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "energy",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "4"
+                }
+            },
+            "0x21af1120a90": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "Round Trip",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -2.9423699563330104,
+                    788.1889603461477
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rte",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "0.85"
+                }
+            },
+            "0x21af1120c40": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "months",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    307.41235416358603,
+                    479.74535086944934
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "m",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "[(\"3\",\"2018\")]"
+                }
+            },
+            "0x21af1120ee0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "./images/icons/python_icon.png",
+                "name": "ess_parameters",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 103.3,
+                "pos": [
+                    307.4036422892547,
+                    613.2412725531703
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "energy",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "rte",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "ess_parameters",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x21af1120f70": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "./images/icons/python_icon.png",
+                "name": "op_request",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 149.5,
+                "pos": [
+                    680.8830161008597,
+                    401.8991430474411
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "iso",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "node",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "market",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "month",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "ess",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "request",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x21aec8d62b0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "./images/icons/data_icon.png",
+                "name": "Solver",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    682.6482556558674,
+                    631.0845814408558
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "solver_name",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "'glpk'"
+                }
+            },
+            "0x21aec8d6700": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "./images/icons/python_icon.png",
+                "name": "valuation",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 224.515625,
+                "height": 80.2,
+                "pos": [
+                    948.0078585114559,
+                    524.2442125462513
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "request",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "solver_name",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "optimization_results",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x21aec8d6a60": {
+                "type_": "QuESt.Workspace.BackNode",
+                "icon": null,
+                "name": "Valuation Optimization Handler",
+                "color": [
+                    255,
+                    255,
+                    155
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 295.5977050565208,
+                "height": 126.70318241943622,
+                "pos": [
+                    659.8057788450341,
+                    144.963363373554
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": false,
+                "subgraph_session": {},
+                "custom": {
+                    "backdrop_text": "This is the workprocess for setting up a valuation analysis that estimates the revenue of an energy storage system participating in ISO/RTO markets"
+                }
+            }
+        },
+        "connections": [
+            {
+                "out": [
+                    "0x21af11202e0",
+                    "iso_name"
+                ],
+                "in": [
+                    "0x21af1120f70",
+                    "iso"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af11203d0",
+                    "node_id"
+                ],
+                "in": [
+                    "0x21af1120f70",
+                    "node"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af1120580",
+                    "market_type"
+                ],
+                "in": [
+                    "0x21af1120f70",
+                    "market"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af1120730",
+                    "power"
+                ],
+                "in": [
+                    "0x21af1120ee0",
+                    "power"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af11208e0",
+                    "energy"
+                ],
+                "in": [
+                    "0x21af1120ee0",
+                    "energy"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af1120a90",
+                    "rte"
+                ],
+                "in": [
+                    "0x21af1120ee0",
+                    "rte"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af1120c40",
+                    "m"
+                ],
+                "in": [
+                    "0x21af1120f70",
+                    "month"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af1120ee0",
+                    "ess_parameters"
+                ],
+                "in": [
+                    "0x21af1120f70",
+                    "ess"
+                ]
+            },
+            {
+                "out": [
+                    "0x21af1120f70",
+                    "request"
+                ],
+                "in": [
+                    "0x21aec8d6700",
+                    "request"
+                ]
+            },
+            {
+                "out": [
+                    "0x21aec8d62b0",
+                    "solver_name"
+                ],
+                "in": [
+                    "0x21aec8d6700",
+                    "solver_name"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x21af11202e0",
+            "node_name": "iso",
+            "node_type": "data_node",
+            "node_input_variable": "iso_name",
+            "node_input_value": "\"PJM\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af11203d0",
+            "node_name": "node",
+            "node_type": "data_node",
+            "node_input_variable": "node_id",
+            "node_input_value": "\"1\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af1120580",
+            "node_name": "market",
+            "node_type": "data_node",
+            "node_input_variable": "market_type",
+            "node_input_value": "\"pjm_pfp\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af1120730",
+            "node_name": "Power Rating",
+            "node_type": "data_node",
+            "node_input_variable": "power",
+            "node_input_value": "1",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af11208e0",
+            "node_name": "Energy Capacity",
+            "node_type": "data_node",
+            "node_input_variable": "energy",
+            "node_input_value": "4",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af1120a90",
+            "node_name": "Round Trip",
+            "node_type": "data_node",
+            "node_input_variable": "rte",
+            "node_input_value": "0.85",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af1120c40",
+            "node_name": "months",
+            "node_type": "data_node",
+            "node_input_variable": "m",
+            "node_input_value": "[(\"3\",\"2018\")]",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af1120ee0",
+            "node_name": "ess_parameters",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def ess_parameters_function(power, energy, rte):\n    params = {}\n    params['Power_rating'] = power\n    params['Energy_capacity'] = energy\n    params['Round_trip_efficiency'] = rte\n    params['Self_discharge_efficiency'] = 1\n    params['R'] = 0\n    params['Reserve_reg_min'] = 0\n    params['Reserve_reg_max'] = 1\n    params['State_of_charge_min'] = 0\n    params['State_of_charge_max'] = 1\n    params['State_of_charge_init'] = 0.5\n    return {'ess_parameters': [params]}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21af1120f70",
+            "node_name": "op_request",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def op_request_function(iso, node, market, month, ess):\n    request = {}\n    request['param set'] = ess\n    request['iso'] = iso\n    request['node id'] = node\n    request['market type'] = market\n    request['months'] = month\n    return {'request': request}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21aec8d62b0",
+            "node_name": "Solver",
+            "node_type": "data_node",
+            "node_input_variable": "solver_name",
+            "node_input_value": "'glpk'",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x21aec8d6700",
+            "node_name": "valuation",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def valuation_function(request, solver_name):\n    dms = ValuationDMS(max_memory=10000, save_data=True, save_name='valuation_dms.p', home_path='data')\n    handler = ValuationOptimizerHandler(solver_name=solver_name, dms=dms)\n    handler.process_requests(request)\n    op_results = handler.get_solved_ops()\n    return {'optimization_results': op_results}",
+            "node_imports": "from valuation.es_gui.apps.valuation.op_handler1 import ValuationOptimizerHandler\nfrom valuation.es_gui.tools.valuation.valuation_dms import ValuationDMS\n"
+        },
+        {
+            "node_id": "0x21aec8d6a60",
+            "node_name": "Valuation Optimization Handler",
+            "node_type": "back_node",
+            "node_input_variable": "",
+            "node_input_value": "This is the workprocess for setting up a valuation analysis that estimates the revenue of an energy storage system participating in ISO/RTO markets",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x21af11202e0",
+            "to_node": "0x21af1120f70",
+            "mapping": {
+                "iso_name": "iso"
+            }
+        },
+        {
+            "connection_id": 2,
+            "from_node": "0x21af11203d0",
+            "to_node": "0x21af1120f70",
+            "mapping": {
+                "node_id": "node"
+            }
+        },
+        {
+            "connection_id": 3,
+            "from_node": "0x21af1120580",
+            "to_node": "0x21af1120f70",
+            "mapping": {
+                "market_type": "market"
+            }
+        },
+        {
+            "connection_id": 4,
+            "from_node": "0x21af1120730",
+            "to_node": "0x21af1120ee0",
+            "mapping": {
+                "power": "power"
+            }
+        },
+        {
+            "connection_id": 5,
+            "from_node": "0x21af11208e0",
+            "to_node": "0x21af1120ee0",
+            "mapping": {
+                "energy": "energy"
+            }
+        },
+        {
+            "connection_id": 6,
+            "from_node": "0x21af1120a90",
+            "to_node": "0x21af1120ee0",
+            "mapping": {
+                "rte": "rte"
+            }
+        },
+        {
+            "connection_id": 7,
+            "from_node": "0x21af1120c40",
+            "to_node": "0x21af1120f70",
+            "mapping": {
+                "m": "month"
+            }
+        },
+        {
+            "connection_id": 8,
+            "from_node": "0x21af1120ee0",
+            "to_node": "0x21af1120f70",
+            "mapping": {
+                "ess_parameters": "ess"
+            }
+        },
+        {
+            "connection_id": 9,
+            "from_node": "0x21af1120f70",
+            "to_node": "0x21aec8d6700",
+            "mapping": {
+                "request": "request"
+            }
+        },
+        {
+            "connection_id": 10,
+            "from_node": "0x21aec8d62b0",
+            "to_node": "0x21aec8d6700",
+            "mapping": {
+                "solver_name": "solver_name"
+            }
+        }
+    ]
+}

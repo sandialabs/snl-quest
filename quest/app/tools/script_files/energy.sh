@@ -1,17 +1,5 @@
 #!/bin/bash
 
-LOCKFILE="/tmp/glpk_install.lock"
-
-# Function to check if GLPK is installed
-is_glpk_installed() {
-    if command -v glpsol &> /dev/null; then
-        echo "GLPK is already installed."
-        return 0
-    else
-        return 1
-    fi
-}
-
 # Function to install GLPK on Ubuntu/Debian
 install_glpk_on_debian() {
     echo "Installing GLPK on Ubuntu/Debian..."
@@ -72,19 +60,6 @@ attempt_install_via_package_manager() {
         ;;
     esac
 }
-
-# Function to acquire a lock
-acquire_lock() {
-    exec 200>$LOCKFILE
-    flock -n 200 && return 0 || return 1
-}
-
-# Function to release the lock
-release_lock() {
-    flock -u 200
-    rm -f $LOCKFILE
-}
-
 # Set the path to the virtual environment and requirements file using the updated paths
 VENV_PATH="$(dirname "$0")/../../../app_envs/env_energy"
 REQ_PATH="$(dirname "$0")/../reqs/energy_reqs.txt"
@@ -99,10 +74,7 @@ fi
 
 # Activate the virtual environment
 source "$VENV_PATH/bin/activate"
-
-# Install system dependencies for Python packages
 sudo apt-get install -y python3-dev libblas-dev liblapack-dev gfortran
-
 # Install requirements from the requirements file
 pip install -r "$REQ_PATH"
 
@@ -111,47 +83,19 @@ mkdir -p "$VENV_PATH/$equity_dir"
 
 # Clone the GitHub repository
 git clone https://github.com/sandialabs/snl-quest-equity.git "$VENV_PATH/equity"
-EQUITY_PATH="$VENV_PATH/equity/main.py"
-
-# Check if GLPK is installed
-if ! is_glpk_installed; then
-    # Try to acquire the lock
-    if acquire_lock; then
-        echo "Acquired lock. Installing GLPK..."
-        # Try to install GLPK via package manager
-        if ! attempt_install_via_package_manager; then
-            echo "Failed to install GLPK via package manager. Please install GLPK manually."
-        fi
-        # Release the lock
-        release_lock
-    else
-        echo "Could not acquire lock. Another installation is in progress. Waiting..."
-        # Wait for the lock to be released
-        while ! acquire_lock; do
-            sleep 1
-        done
-        echo "Acquired lock after waiting. Checking GLPK installation..."
-        # Check if GLPK is installed again after acquiring the lock
-        if ! is_glpk_installed; then
-            echo "GLPK is still not installed. Installing GLPK..."
-            if ! attempt_install_via_package_manager; then
-                echo "Failed to install GLPK via package manager. Please install GLPK manually."
-            fi
-        else
-            echo "GLPK was installed by another process."
-        fi
-        release_lock
-    fi
+EQUITY_PATH="$(dirname "$0")/../../../app_envs/env_energy/equity/main.py"
+# Try to install GLPK via package manager
+if ! attempt_install_via_package_manager; then
+    echo "Failed to install GLPK via package manager. Please install GLPK manually."
 fi
-
-GARDEN_PATH="$VENV_PATH/bin/garden"
+GARDEN_PATH="$(dirname "$0")/../../../app_envs/env_energy/bin/garden"
 echo "Garden Path: $GARDEN_PATH"
 chmod +x $GARDEN_PATH
 "$GARDEN_PATH" install matplotlib
 chmod +x $EQUITY_PATH
-
 # Deactivate the virtual environment
 echo "Deactivating virtual environment..."
 deactivate
 
 echo "Setup complete."
+

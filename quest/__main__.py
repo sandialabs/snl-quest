@@ -316,34 +316,34 @@ def main():
             splash.close()
             main_win.show()
 
-        try:
-            update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
-            update_checker.success.connect(lambda message: updater.show_message(message))
-            update_checker.error.connect(lambda message: updater.show_message(message))
-            update_checker.finished.connect(lambda: splash.close())
+        # try:
+        #     update_checker = UpdateChecker(app, repo_path, repo_url, branch_name)
+        #     update_checker.success.connect(lambda message: updater.show_message(message))
+        #     update_checker.error.connect(lambda message: updater.show_message(message))
+        #     update_checker.finished.connect(lambda: splash.close())
 
-            update_checker.check_for_updates()
+        #     update_checker.check_for_updates()
 
-            update_checker.finished.connect(show_main_window)
+        #     update_checker.finished.connect(show_main_window)
 
-            # Connect the prompt_update signal to show the QMessageBox
-            def prompt_update():
-                reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-                if reply == QMessageBox.Yes:
-                    main_win.close()
-                    update_checker.apply_update()
-                    # Close the current application instance
-                    app.quit()
-                    # Relaunch the application using QProcess
-                    QProcess.startDetached(sys.executable, ["-m", "quest"])
-                else:
-                    update_checker.skip_update()
-                    show_main_window()
+        #     # Connect the prompt_update signal to show the QMessageBox
+        #     def prompt_update():
+        #         reply = QMessageBox.question(main_win, 'Update Available', "An update is available. Do you want to pull the latest changes?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        #         if reply == QMessageBox.Yes:
+        #             main_win.close()
+        #             update_checker.apply_update()
+        #             # Close the current application instance
+        #             app.quit()
+        #             # Relaunch the application using QProcess
+        #             QProcess.startDetached(sys.executable, ["-m", "quest"])
+        #         else:
+        #             update_checker.skip_update()
+        #             show_main_window()
 
-            update_checker.prompt_update.connect(prompt_update)
-        except:
-            pass
-
+        #     update_checker.prompt_update.connect(prompt_update)
+        # except:
+        #     pass
+        show_main_window()
         app.exec()
 
     except Exception as e:

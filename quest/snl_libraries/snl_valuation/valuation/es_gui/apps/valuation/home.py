@@ -12,6 +12,8 @@ from valuation.es_gui.proving_grounds.help_carousel import HelpCarouselModalView
 from .op_handler import ValuationOptimizerHandler
 from valuation.paths import get_path
 dirname = get_path()
+data_path = os.path.join(dirname, 'data')
+#DATA_HOME = data_path
 
 class ValuationHomeScreen(Screen):
     """
@@ -24,7 +26,7 @@ class ValuationHomeScreen(Screen):
         self.dms = ValuationDMS(max_memory=App.get_running_app().config.getint('valuation', 'valuation_dms_size')*1000,
                                 save_data=bool(App.get_running_app().config.getint('valuation', 'valuation_dms_save')),
                                 save_name='valuation_dms.p',
-                                home_path='data')
+                                home_path=data_path)
         self.handler = ValuationOptimizerHandler(App.get_running_app().config.get('optimization', 'solver'))
         self.handler.dms = self.dms
 
