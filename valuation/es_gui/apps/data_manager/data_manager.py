@@ -18,8 +18,8 @@ from kivy.properties import NumericProperty
 from valuation.es_gui.resources.widgets.common import LoadingModalView,WarningPopup
 from valuation.paths import get_path
 dirname = get_path()
-data_path = os.path.join(dirname, 'data')
-DATA_HOME = data_path
+
+DATA_HOME = 'data'
 
 STATE_ABBR_TO_NAME = {
     'AL': 'Alabama',
