@@ -26,23 +26,18 @@ if [ ! -d "$PYTHON_DIR" ]; then
     fi
 fi
 
+# Compile Python if not already compiled
+if [ ! -f "$PYTHON_DIR/bin/python3" ]; then
+    echo "Compiling Python..."
+    cd "$PYTHON_DIR"
+    ./configure --prefix="$INSTALL_DIR/portable_python"
+    make
+    make install
+    cd "$INSTALL_DIR"
+fi
+
 # Define the path to the Python executable
 PYTHON_PATH="$PYTHON_DIR/bin/python3"
-
-# Check if Git is already installed
-if ! command -v git &> /dev/null
-then
-    echo "Git has not been detected..."
-    echo "Installing Git..."
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-        sudo apt-get update
-        sudo apt-get install -y git
-    elif [[ "$OSTYPE" == "darwin"* ]]; then
-        brew install git
-    fi
-else
-    echo "Git is already installed."
-fi
 
 # Set up virtual environment using venv
 if [ ! -d "$QUEST_ENV" ]; then
