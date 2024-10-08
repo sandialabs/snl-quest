@@ -12,3 +12,4 @@ config.ini
 *.pyc
 venv/
 quest_20/
+quest_20b/

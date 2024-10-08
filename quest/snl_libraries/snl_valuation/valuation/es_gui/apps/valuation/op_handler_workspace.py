@@ -12,12 +12,12 @@ from valuation.es_gui.tools.valuation.valuation_optimizer import ValuationOptimi
 
 class ValuationOptimizerHandler:
     """A handler for creating and solving ValuationOptimizer instances as requested."""
-    #dms = None
     solved_ops = []
 
     def __init__(self, solver_name, dms):
         self._solver_name = solver_name
-        self.dms = dms
+        self._dms = dms
+
     @property
     def solver_name(self):
         """The name of the solver for Pyomo to call."""
@@ -163,7 +163,7 @@ class ValuationOptimizerHandler:
         # time_finished = datetime.now().strftime('%A, %B %d, %Y %H:%M:%S')
         time_finished = datetime.now().strftime('%b %d, %Y %H:%M:%S')
         name = ' | '.join([time_finished, node_name, year, calendar.month_abbr[int(month)], repr(param_set)])
-        print(name)
+
         results_dict = {}
 
         results_dict['name'] = name
@@ -188,27 +188,4 @@ class ValuationOptimizerHandler:
 
         return return_list
 
-if __name__ == '__main__':
-    with open('valuation_optimizer.log', 'w'):
-        pass
 
-    logging.basicConfig(filename='valuation_optimizer.log', format='[%(levelname)s] %(asctime)s: %(message)s',
-                        level=logging.INFO)
-    
-    op = ValuationOptimizer()
-
-    fpath = os.path.join('data', 'PJM')
-    year = 2015
-    month = 3
-    nodeid = '51217'
-
-    daLMP, mr, rega, regd, RegCCP, RegPCP = read_pjm_data(fpath,year,month,nodeid)
-
-    handler_requests = {}
-    handler_requests['iso'] = 'PJM'
-    handler_requests['market type'] = 'pjm_pfp'
-    handler_requests['months'] = [(month, year),]
-    handler_requests['node id'] = nodeid
-
-
-    results, gross_revenue = op.run()

@@ -6,6 +6,25 @@ SET "GIT_URL=https://github.com/git-for-windows/git/releases/download/v2.37.3.wi
 SET "GIT_INSTALLER_PATH=%TEMP%\Git-Installer.exe"
 SET "PACKAGE_NAME=quest"
 SET "QUEST_ENV=quest_20"
+SET "ZIP_FILE=WPy64-39100.zip"
+
+:: Define the path to the Python executable
+SET "PYTHON_PATH=%~dp0portable_python\WPy64-39100\python-3.9.10.amd64\python.exe"
+
+:: Unzip the Python distribution if it doesn't exist
+IF NOT EXIST "%~dp0portable_python\WPy64-39100" (
+    ECHO Unzipping Python distribution...
+    PowerShell -Command "Expand-Archive -Path '%~dp0portable_python\%ZIP_FILE%' -DestinationPath '%~dp0portable_python'"
+    
+    :: Check if the unzip was successful
+    IF EXIST "%~dp0portable_python\WPy64-39100" (
+        ECHO Deleting the zip file...
+        DEL "%~dp0portable_python\%ZIP_FILE%"
+    ) ELSE (
+        ECHO Failed to unzip the Python distribution.
+        GOTO end
+    )
+)
 
 :: Check if Git is already installed
 :check_git
@@ -14,13 +33,16 @@ IF %ERRORLEVEL% EQU 0 (
     echo Git is already installed.
     GOTO setup_virtualenv
 )
+
 :: Use PowerShell to download Git installer
 ECHO Git has not been detected...
 ECHO Downloading Git Installer from github.com...
 PowerShell -Command "curl '%GIT_URL%' -o '%GIT_INSTALLER_PATH%'"
+
 :: Install Git silently
 ECHO Installing Git
 START "" /WAIT %TEMP%\Git-Installer.exe
+
 :: Delete the installer after installation
 DEL %TEMP%\Git-Installer.exe
 
@@ -28,9 +50,8 @@ DEL %TEMP%\Git-Installer.exe
 ECHO Checking for existing virtual environment: %QUEST_ENV%
 if not exist "%QUEST_ENV%\Scripts\activate" (
     ECHO Creating a virtual environment: %QUEST_ENV%
-    python -m pip install --upgrade pip
-    python -m pip install virtualenv
-    python -m virtualenv %QUEST_ENV%
+    %PYTHON_PATH% -m pip install --upgrade pip
+    %PYTHON_PATH% -m venv %QUEST_ENV%
 ) else (
     ECHO Virtual environment already exists.
 )
