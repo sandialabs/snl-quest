@@ -27,8 +27,8 @@ install_dependencies() {
     if [[ "$OSTYPE" == "darwin"* ]]; then
         # Check for Homebrew
         if ! command -v brew &> /dev/null; then
-            echo "Homebrew is not installed. Please install Homebrew first."
-            exit 1
+            echo "Homebrew is not installed. Installing Homebrew..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         fi
 
         # Install dependencies
