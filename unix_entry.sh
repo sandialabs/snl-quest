@@ -10,6 +10,7 @@ PACKAGE_NAME="quest"
 QUEST_ENV="quest_20"
 PYTHON_TAR="$INSTALL_DIR/portable_python/Python-3.9.13.tgz"
 PYTHON_DIR="$INSTALL_DIR/portable_python/Python-3.9.13"
+PYTHON_DIR_EXE="$INSTALL_DIR/portable_python"
 
 # Function to check and install dependencies
 install_dependencies() {
@@ -82,7 +83,7 @@ if [ ! -f "$PYTHON_DIR/bin/python3" ]; then
 fi
 
 # Define the path to the Python executable
-PYTHON_PATH="$PYTHON_DIR/bin/python3"
+PYTHON_PATH="$PYTHON_DIR_EXE/bin/python3"
 
 # Set up virtual environment using venv
 if [ ! -d "$QUEST_ENV" ]; then
