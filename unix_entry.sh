@@ -11,6 +11,47 @@ QUEST_ENV="quest_20"
 PYTHON_TAR="$INSTALL_DIR/portable_python/Python-3.9.13.tgz"
 PYTHON_DIR="$INSTALL_DIR/portable_python/Python-3.9.13"
 
+# Function to check and install dependencies
+install_dependencies() {
+    echo "Checking for required dependencies..."
+
+    # Check for Xcode Command Line Tools
+    if ! xcode-select -p &> /dev/null; then
+        echo "Xcode Command Line Tools are not installed. Installing..."
+        xcode-select --install
+        echo "Please complete the installation and rerun the script."
+        exit 1
+    fi
+
+    # For macOS
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        # Check for Homebrew
+        if ! command -v brew &> /dev/null; then
+            echo "Homebrew is not installed. Please install Homebrew first."
+            exit 1
+        fi
+
+        # Install dependencies
+        brew install openssl readline zlib
+
+    # For Ubuntu/Debian
+    elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        # Update package list
+        sudo apt-get update
+
+        # Install dependencies
+        sudo apt-get install -y build-essential libssl-dev libffi-dev libbz2-dev \
+            libreadline-dev libsqlite3-dev zlib1g-dev libgdbm-dev liblzma-dev \
+            tk-dev
+    else
+        echo "Unsupported OS: $OSTYPE"
+        exit 1
+    fi
+}
+
+# Check and install dependencies
+install_dependencies
+
 # Unzip the Python distribution if it doesn't exist
 if [ ! -d "$PYTHON_DIR" ]; then
     echo "Unzipping Python distribution..."
@@ -30,9 +71,13 @@ fi
 if [ ! -f "$PYTHON_DIR/bin/python3" ]; then
     echo "Compiling Python..."
     cd "$PYTHON_DIR"
+    
+    # Configure, compile, and install
     ./configure --prefix="$INSTALL_DIR/portable_python"
     make
     make install
+    
+    # Return to the original directory
     cd "$INSTALL_DIR"
 fi
 
