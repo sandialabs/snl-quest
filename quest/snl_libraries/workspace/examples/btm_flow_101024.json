@@ -1,0 +1,1320 @@
+{
+    "flow_name": "btm_flow",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x1962e8f96d0": {
+                "type_": "QuESt.Workspace.BackNode",
+                "icon": null,
+                "name": "BTM Optimization Handler",
+                "color": [
+                    255,
+                    255,
+                    155
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 378.6637780683644,
+                "height": 130.1585985343803,
+                "pos": [
+                    514.316759512516,
+                    81.21537985689815
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": false,
+                "subgraph_session": {},
+                "custom": {
+                    "backdrop_text": "This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure."
+                }
+            },
+            "0x1962e8f9790": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "data_manager",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    541.6212525206836,
+                    612.1893547302437
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "data_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "dms",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962e8f9820": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "data_location",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    95.98465722821015,
+                    817.6867984064637
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "data_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"data\""
+                }
+            },
+            "0x1962e8f98e0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "load_profile",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 195.0,
+                "height": 80,
+                "pos": [
+                    79.76719699672526,
+                    458.79527882758237
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "load_data_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "load_profile",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962e8f9a60": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "pv_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -298.4468068538671,
+                    308.52739220530714
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "pv_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "r\"C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\app_envs\\env_btm\\Lib\\site-packages\\btm\\data\\pv\\SFpv100kW.json\""
+                }
+            },
+            "0x1962e8f9c70": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "pv_profile",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    94.95278271103098,
+                    312.8059467193558
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "pv_data_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "pv_profile",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962e8f9df0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "rate_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -296.62710816529557,
+                    168.0620856477492
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rate_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "r\"C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\app_envs\\env_btm\\Lib\\site-packages\\btm\\data\\rate_structures\\e19.json\""
+                }
+            },
+            "0x1962bdc1040": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "rate_structure",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    95.06728803671876,
+                    168.09812309317476
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "rate_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "rate_structure",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962bdc11c0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "btm_op_request",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 218.0,
+                "height": 125.4,
+                "pos": [
+                    517.3924191709032,
+                    356.43667102601944
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "rate_structure",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "pv_profile",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "load_profile",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "ess_parameters",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "btm_op_request",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962bdc13a0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "btm_op_process",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 223.0,
+                "height": 102.3,
+                "pos": [
+                    1064.7999682505379,
+                    549.4867745518596
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "btm_op_request",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "dms",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "solver_name",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "btm_solved_ops",
+                        "multi_connection": true,
+                        "display_name": true
+                    },
+                    {
+                        "name": "handler_status",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962bdc1730": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "power rating",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -294.93675521362536,
+                    598.2215711246814
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "100"
+                }
+            },
+            "0x1962bdc1af0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "ess_parameters",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 102.3,
+                "pos": [
+                    94.87787805798212,
+                    637.545141924836
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "energy",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "rte",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "ess_parameters",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962bdc1c70": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "energy capacity",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -296.6593597106332,
+                    730.598652571707
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "energy",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "400"
+                }
+            },
+            "0x1962bdc1fa0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "rte",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -299.14363953571217,
+                    844.5114086529048
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rte",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "0.88"
+                }
+            },
+            "0x1962bdde190": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "solver",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    542.4026104877669,
+                    817.800744532498
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "solver_name",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"glpk\""
+                }
+            },
+            "0x1962bdde340": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\QuESt\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "load_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -295.8094717647698,
+                    458.18646258223805
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "load_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "r\"C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\app_envs\\env_btm\\Lib\\site-packages\\btm\\data\\load\\commercial\\USA_CA_San.Francisco.Intl.AP.724940_TMY3\\RefBldgLargeHotelNew2004_7.1_5.0_3C_USA_CA_SAN_FRANCISCO.csv\""
+                }
+            },
+            "0x1962e8f91c0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\python_icon.png",
+                "name": "results",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 209.0,
+                "height": 80,
+                "pos": [
+                    1443.7617418116306,
+                    586.8883906818662
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "solved_ops",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "saved_location",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "saved_location",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1962bb03e50": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\images\\icons\\data_icon.png",
+                "name": "results_location",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    1105.8914495935585,
+                    724.367893773601
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rs_location",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"./results/workspace\""
+                }
+            }
+        },
+        "connections": [
+            {
+                "in": [
+                    "0x1962e8f9790",
+                    "data_path"
+                ],
+                "out": [
+                    "0x1962e8f9820",
+                    "data_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962e8f9790",
+                    "dms"
+                ],
+                "in": [
+                    "0x1962bdc13a0",
+                    "dms"
+                ]
+            },
+            {
+                "in": [
+                    "0x1962e8f98e0",
+                    "load_data_path"
+                ],
+                "out": [
+                    "0x1962bdde340",
+                    "load_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962e8f98e0",
+                    "load_profile"
+                ],
+                "in": [
+                    "0x1962bdc11c0",
+                    "load_profile"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962e8f9a60",
+                    "pv_path"
+                ],
+                "in": [
+                    "0x1962e8f9c70",
+                    "pv_data_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962e8f9c70",
+                    "pv_profile"
+                ],
+                "in": [
+                    "0x1962bdc11c0",
+                    "pv_profile"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962e8f9df0",
+                    "rate_path"
+                ],
+                "in": [
+                    "0x1962bdc1040",
+                    "rate_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962bdc1040",
+                    "rate_structure"
+                ],
+                "in": [
+                    "0x1962bdc11c0",
+                    "rate_structure"
+                ]
+            },
+            {
+                "in": [
+                    "0x1962bdc11c0",
+                    "ess_parameters"
+                ],
+                "out": [
+                    "0x1962bdc1af0",
+                    "ess_parameters"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962bdc11c0",
+                    "btm_op_request"
+                ],
+                "in": [
+                    "0x1962bdc13a0",
+                    "btm_op_request"
+                ]
+            },
+            {
+                "in": [
+                    "0x1962bdc13a0",
+                    "solver_name"
+                ],
+                "out": [
+                    "0x1962bdde190",
+                    "solver_name"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962bdc13a0",
+                    "btm_solved_ops"
+                ],
+                "in": [
+                    "0x1962e8f91c0",
+                    "solved_ops"
+                ]
+            },
+            {
+                "out": [
+                    "0x1962bdc1730",
+                    "power"
+                ],
+                "in": [
+                    "0x1962bdc1af0",
+                    "power"
+                ]
+            },
+            {
+                "in": [
+                    "0x1962bdc1af0",
+                    "energy"
+                ],
+                "out": [
+                    "0x1962bdc1c70",
+                    "energy"
+                ]
+            },
+            {
+                "in": [
+                    "0x1962bdc1af0",
+                    "rte"
+                ],
+                "out": [
+                    "0x1962bdc1fa0",
+                    "rte"
+                ]
+            },
+            {
+                "in": [
+                    "0x1962e8f91c0",
+                    "saved_location"
+                ],
+                "out": [
+                    "0x1962bb03e50",
+                    "rs_location"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x1962e8f96d0",
+            "node_name": "BTM Optimization Handler",
+            "node_type": "back_node",
+            "node_input_variable": "",
+            "node_input_value": "This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962e8f9790",
+            "node_name": "data_manager",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def data_manager_function(data_path):\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\n    return {'dms': dms}",
+            "node_imports": "from btm.es_gui.tools.btm.btm_dms import BtmDMS\n"
+        },
+        {
+            "node_id": "0x1962e8f9820",
+            "node_name": "data_location",
+            "node_type": "data_node",
+            "node_input_variable": "data_path",
+            "node_input_value": "\"data\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962e8f98e0",
+            "node_name": "load_profile",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def load_profile_function(load_data_path):\n    load_profile = {'name': 'sfload', 'path': load_data_path}\n    return {'load_profile': load_profile}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962e8f9a60",
+            "node_name": "pv_path",
+            "node_type": "data_node",
+            "node_input_variable": "pv_path",
+            "node_input_value": "r\"C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\app_envs\\env_btm\\Lib\\site-packages\\btm\\data\\pv\\SFpv100kW.json\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962e8f9c70",
+            "node_name": "pv_profile",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def pv_profile_function(pv_data_path):\n    pv_profile = {'name': 'sanfran100kwpv', 'path': pv_data_path}\n    return {'pv_profile': pv_profile}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962e8f9df0",
+            "node_name": "rate_path",
+            "node_type": "data_node",
+            "node_input_variable": "rate_path",
+            "node_input_value": "r\"C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\app_envs\\env_btm\\Lib\\site-packages\\btm\\data\\rate_structures\\e19.json\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdc1040",
+            "node_name": "rate_structure",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def rate_structure_function(rate_path):\n    with open(rate_path, 'r') as file:\n        rate_structure = json.load(file)\n    return {'rate_structure': rate_structure}",
+            "node_imports": "import json\n"
+        },
+        {
+            "node_id": "0x1962bdc11c0",
+            "node_name": "btm_op_request",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\n    return {'btm_op_request': op_handler_request}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdc13a0",
+            "node_name": "btm_op_process",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def btm_op_process_function(btm_op_request, dms, solver_name):\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}",
+            "node_imports": "from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\n"
+        },
+        {
+            "node_id": "0x1962bdc1730",
+            "node_name": "power rating",
+            "node_type": "data_node",
+            "node_input_variable": "power",
+            "node_input_value": "100",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdc1af0",
+            "node_name": "ess_parameters",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def ess_parameters_function(power, energy, rte):\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\n    return {'ess_parameters': [params]}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdc1c70",
+            "node_name": "energy capacity",
+            "node_type": "data_node",
+            "node_input_variable": "energy",
+            "node_input_value": "400",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdc1fa0",
+            "node_name": "rte",
+            "node_type": "data_node",
+            "node_input_variable": "rte",
+            "node_input_value": "0.88",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdde190",
+            "node_name": "solver",
+            "node_type": "data_node",
+            "node_input_variable": "solver_name",
+            "node_input_value": "\"glpk\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962bdde340",
+            "node_name": "load_path",
+            "node_type": "data_node",
+            "node_input_variable": "load_path",
+            "node_input_value": "r\"C:\\Users\\tunguy\\Desktop\\quest20b\\snl-quest-QuESt_2.0.b\\quest\\app_envs\\env_btm\\Lib\\site-packages\\btm\\data\\load\\commercial\\USA_CA_San.Francisco.Intl.AP.724940_TMY3\\RefBldgLargeHotelNew2004_7.1_5.0_3C_USA_CA_SAN_FRANCISCO.csv\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1962e8f91c0",
+            "node_name": "results",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def results_function(solved_ops, saved_location):\n    os.makedirs(saved_location, exist_ok=True)\n    for op in solved_ops:\n        op_results = op[1].results\n        file_name = op[0]\n        file_name = re.sub('[^\\\\w\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\n        file_name = saved_location + '/' + file_name\n        op_results.to_csv(file_name, index=False)\n    return {'saved_location': saved_location}",
+            "node_imports": "import os\nimport re\n"
+        },
+        {
+            "node_id": "0x1962bb03e50",
+            "node_name": "results_location",
+            "node_type": "data_node",
+            "node_input_variable": "rs_location",
+            "node_input_value": "\"./results/workspace\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x1962e8f9820",
+            "to_node": "0x1962e8f9790",
+            "mapping": {
+                "data_path": "data_path"
+            }
+        },
+        {
+            "connection_id": 2,
+            "from_node": "0x1962e8f9790",
+            "to_node": "0x1962bdc13a0",
+            "mapping": {
+                "dms": "dms"
+            }
+        },
+        {
+            "connection_id": 3,
+            "from_node": "0x1962bdde340",
+            "to_node": "0x1962e8f98e0",
+            "mapping": {
+                "load_path": "load_data_path"
+            }
+        },
+        {
+            "connection_id": 4,
+            "from_node": "0x1962e8f98e0",
+            "to_node": "0x1962bdc11c0",
+            "mapping": {
+                "load_profile": "load_profile"
+            }
+        },
+        {
+            "connection_id": 5,
+            "from_node": "0x1962e8f9a60",
+            "to_node": "0x1962e8f9c70",
+            "mapping": {
+                "pv_path": "pv_data_path"
+            }
+        },
+        {
+            "connection_id": 6,
+            "from_node": "0x1962e8f9c70",
+            "to_node": "0x1962bdc11c0",
+            "mapping": {
+                "pv_profile": "pv_profile"
+            }
+        },
+        {
+            "connection_id": 7,
+            "from_node": "0x1962e8f9df0",
+            "to_node": "0x1962bdc1040",
+            "mapping": {
+                "rate_path": "rate_path"
+            }
+        },
+        {
+            "connection_id": 8,
+            "from_node": "0x1962bdc1040",
+            "to_node": "0x1962bdc11c0",
+            "mapping": {
+                "rate_structure": "rate_structure"
+            }
+        },
+        {
+            "connection_id": 9,
+            "from_node": "0x1962bdc1af0",
+            "to_node": "0x1962bdc11c0",
+            "mapping": {
+                "ess_parameters": "ess_parameters"
+            }
+        },
+        {
+            "connection_id": 10,
+            "from_node": "0x1962bdc11c0",
+            "to_node": "0x1962bdc13a0",
+            "mapping": {
+                "btm_op_request": "btm_op_request"
+            }
+        },
+        {
+            "connection_id": 11,
+            "from_node": "0x1962bdde190",
+            "to_node": "0x1962bdc13a0",
+            "mapping": {
+                "solver_name": "solver_name"
+            }
+        },
+        {
+            "connection_id": 12,
+            "from_node": "0x1962bdc13a0",
+            "to_node": "0x1962e8f91c0",
+            "mapping": {
+                "btm_solved_ops": "solved_ops"
+            }
+        },
+        {
+            "connection_id": 13,
+            "from_node": "0x1962bdc1730",
+            "to_node": "0x1962bdc1af0",
+            "mapping": {
+                "power": "power"
+            }
+        },
+        {
+            "connection_id": 14,
+            "from_node": "0x1962bdc1c70",
+            "to_node": "0x1962bdc1af0",
+            "mapping": {
+                "energy": "energy"
+            }
+        },
+        {
+            "connection_id": 15,
+            "from_node": "0x1962bdc1fa0",
+            "to_node": "0x1962bdc1af0",
+            "mapping": {
+                "rte": "rte"
+            }
+        },
+        {
+            "connection_id": 16,
+            "from_node": "0x1962bb03e50",
+            "to_node": "0x1962e8f91c0",
+            "mapping": {
+                "rs_location": "saved_location"
+            }
+        }
+    ]
+}
