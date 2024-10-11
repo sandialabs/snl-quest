@@ -6,7 +6,7 @@ import calendar
 import pyutilib
 import numpy as np
 
-from kivy.clock import mainthread
+# from kivy.clock import mainthread
 
 from btm.es_gui.tools.btm.btm_optimizer import BtmOptimizer, BadParameterException, IncompatibleDataException
 import btm.es_gui.tools.btm.readutdata as readutdata
