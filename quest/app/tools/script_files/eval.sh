@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Temporary file to indicate installation in progress
+INSTALL_FLAG="/tmp/glpk_install_in_progress.flag"
+
+# Function to check if GLPK is installed
+check_glpk_installed() {
+    command -v glpsol >/dev/null 2>&1
+}
+
 # Function to install GLPK on Ubuntu/Debian
 install_glpk_on_debian() {
     echo "Installing GLPK on Ubuntu/Debian..."
@@ -19,18 +27,27 @@ install_glpk_on_arch() {
     sudo pacman -Sy --noconfirm glpk
 }
 
-# Function to install GLPK on macOS (using Homebrew)
+# Function to install GLPK on macOS from source
 install_glpk_on_macos() {
-    echo "Installing GLPK on macOS..."
-    brew install glpk
+    echo "Installing GLPK on macOS from source..."
+    GLPK_TAR="glpk-latest.tar.gz"
+    curl -O https://ftp.gnu.org/gnu/glpk/$GLPK_TAR
+    tar -xzf $GLPK_TAR
+    GLPK_DIR=$(tar -tf $GLPK_TAR | head -n 1 | cut -f1 -d"/")
+    
+    # Run installation commands without changing directories
+    ./configure --prefix=/usr/local "$GLPK_DIR"
+    make -C "$GLPK_DIR"
+    sudo make -C "$GLPK_DIR" install
+    rm -rf $GLPK_TAR "$GLPK_DIR"
 }
 
 # Attempt to install GLPK via package manager based on OS
 attempt_install_via_package_manager() {
-    OS="`uname`"
+    OS="$(uname)"
     case $OS in
       'Linux')
-        DISTRO="`grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"'`"
+        DISTRO="$(grep '^ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')"
         case $DISTRO in
           'ubuntu' | 'debian')
             install_glpk_on_debian
@@ -83,13 +100,31 @@ echo "Installing Python package..."
 pip install "$SETUP_PATH"
 pip install kivy-garden==0.1.5
 
-# Try to install GLPK via package manager
-if ! attempt_install_via_package_manager; then
-    echo "Failed to install GLPK via package manager. Please install GLPK manually."
+# Check if GLPK is already installed
+if check_glpk_installed; then
+    echo "GLPK is already installed."
+else
+    # Check if installation is in progress
+    if [ -e "$INSTALL_FLAG" ]; then
+        echo "GLPK installation is already in progress. Skipping GLPK installation."
+    else
+        # Create the installation flag file
+        touch "$INSTALL_FLAG"
+
+        # Ensure the flag file is removed on exit
+        trap 'rm -f "$INSTALL_FLAG"' EXIT
+
+        echo "GLPK is not installed. Installing..."
+        # Try to install GLPK via package manager
+        if ! attempt_install_via_package_manager; then
+            echo "Failed to install GLPK. Please install it manually."
+        fi
+    fi
 fi
+
 GARDEN_PATH="$(dirname "$0")/../../../app_envs/env_eval/bin/garden"
 echo "Garden Path: $GARDEN_PATH"
-chmod +x $GARDEN_PATH
+chmod +x "$GARDEN_PATH"
 "$GARDEN_PATH" install matplotlib
 
 # Deactivate the virtual environment
