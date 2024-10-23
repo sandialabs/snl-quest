@@ -139,7 +139,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 ## Setting Up a Virtual Environment
 1. Install `virtualenv` (if not already installed):
     ```bash
-    pip install virtualenv
+    python3 -m pip install virtualenv
     ```
 
 2. Create a virtual environment:
@@ -154,7 +154,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 7. With the virtual env activated we can now setup the environment for QuESt with the following command:
     ```bash
-    pip install -e .
+    python3 -m pip install -e .
     ```
 8. Run QuESt with the following command:
 
