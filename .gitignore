@@ -1,0 +1,15 @@
+quest/app_envs/*
+!quest/app_envs/__init__.py
+quest/plots/*
+quest/app/tools/0.24.2
+quest/app/tools/5.6
+quest/app/tools/3.5.1
+config.ini
+**/build/
+**/dist/
+**/*.egg-info/
+**/__pycache__/
+*.pyc
+venv/
+quest_20/
+quest_20b/

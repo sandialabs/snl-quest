@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.app.home_page.home_page &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">quest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quest.app.home_page.home_page</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quest.app.home_page.home_page</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtCore</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QThreadPool</span><span class="p">,</span>
+    <span class="n">QPropertyAnimation</span><span class="p">,</span>
+    <span class="n">QEasingCurve</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtWidgets</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QMenu</span><span class="p">,</span>
+    <span class="n">QWidget</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+    <span class="n">QTextBrowser</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">quest.app.home_page.ui.ui_home_page</span> <span class="kn">import</span> <span class="n">Ui_home_page</span>
+<span class="kn">from</span> <span class="nn">quest.app.home_page.front_end</span> <span class="kn">import</span> <span class="n">form_apps</span>
+<span class="kn">from</span> <span class="nn">quest.app.home_page.home_back_end</span> <span class="kn">import</span> <span class="n">app_manager</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c1"># home_dir = os.path.dirname(__file__)</span>
+<span class="c1"># base_dir = os.path.join(home_dir, &quot;..&quot;, &quot;..&quot;)</span>
+
+<span class="kn">from</span> <span class="nn">quest.paths</span> <span class="kn">import</span> <span class="n">get_path</span>
+<span class="n">base_dir</span> <span class="o">=</span> <span class="n">get_path</span><span class="p">()</span>
+
+<div class="viewcode-block" id="gui_connector">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.gui_connector">[docs]</a>
+<span class="k">class</span> <span class="nc">gui_connector</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Connects the front-end GUI with the back-end logic for managing application installation and removal.</span>
+
+<span class="sd">    This class handles the interactions between the GUI elements and the back-end processes,</span>
+<span class="sd">    updating the GUI based on the state of the application installation or removal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">front_end</span><span class="p">,</span> <span class="n">back_end</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the GUI connector with the front-end, back-end, and state information.</span>
+
+<span class="sd">        :param front_end: The front-end GUI elements.</span>
+<span class="sd">        :type front_end: QWidget</span>
+<span class="sd">        :param back_end: The back-end logic for managing installation and removal.</span>
+<span class="sd">        :type back_end: app_manager</span>
+<span class="sd">        :param state: The environment directory to check for installation status.</span>
+<span class="sd">        :type state: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span> <span class="o">=</span> <span class="n">front_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">back</span> <span class="o">=</span> <span class="n">back_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">install_display</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">menu</span> <span class="o">=</span> <span class="n">QMenu</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">menu</span><span class="o">.</span><span class="n">addAction</span><span class="p">(</span><span class="s2">&quot;Uninstall&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_removal</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">setting_button</span><span class="o">.</span><span class="n">setMenu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">menu</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Launch&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="gui_connector.install_display">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.gui_connector.install_display">[docs]</a>
+    <span class="k">def</span> <span class="nf">install_display</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display the installation progress and update the GUI accordingly.</span>
+
+<span class="sd">        This method sets the progress bar to indeterminate, disables the install button,</span>
+<span class="sd">        and starts the installation process. It updates the button text based on the</span>
+<span class="sd">        installation status and connects the back-end&#39;s finished signal to reset the GUI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">install</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Running&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Installing&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_gui</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gui_connector.reset_gui">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.gui_connector.reset_gui">[docs]</a>
+    <span class="k">def</span> <span class="nf">reset_gui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Reset the GUI elements to their default state after installation or removal.</span>
+
+<span class="sd">        This method sets the progress bar to determinate, enables the install button,</span>
+<span class="sd">        and updates the button text based on the installation status.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Launch&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Install&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gui_connector.app_removal">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.gui_connector.app_removal">[docs]</a>
+    <span class="k">def</span> <span class="nf">app_removal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display the removal progress and update the GUI accordingly.</span>
+
+<span class="sd">        This method sets the progress bar to indeterminate, disables the install button,</span>
+<span class="sd">        and starts the removal process. It updates the button text to &#39;Uninstalling&#39;</span>
+<span class="sd">        and connects the back-end&#39;s finished signal to reset the GUI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s1">&#39;Uninstalling&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">remove_app</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">back</span><span class="o">.</span><span class="n">runner</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reset_gui</span><span class="p">)</span></div>
+</div>
+
+
+<div class="viewcode-block" id="InfoPage">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.InfoPage">[docs]</a>
+<span class="k">class</span> <span class="nc">InfoPage</span><span class="p">(</span><span class="n">QWidget</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A page that displays information with a title, contact, and additional info.</span>
+
+<span class="sd">    This class sets up a QTextBrowser to display formatted HTML content.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">contact</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the InfoPage with the given title, contact, and info.</span>
+
+<span class="sd">        :param title: The title of the information page.</span>
+<span class="sd">        :type title: str</span>
+<span class="sd">        :param contact: The contact information to display.</span>
+<span class="sd">        :type contact: str</span>
+<span class="sd">        :param info: The additional information to display.</span>
+<span class="sd">        :type info: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_browser</span> <span class="o">=</span> <span class="n">QTextBrowser</span><span class="p">()</span>
+        <span class="c1"># Formatting the info content</span>
+        <span class="n">html_content</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        &lt;html&gt;</span>
+<span class="s2">            &lt;body&gt;</span>
+<span class="s2">                &lt;h1 style=&quot;font-size:26px; font-weight:bold;&quot;&gt;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s2">&lt;/h1&gt;</span>
+<span class="s2">                &lt;p style=&quot;font-size:14px;&quot;&gt;</span><span class="si">{</span><span class="n">info</span><span class="si">}</span><span class="s2">&lt;/p&gt;</span>
+<span class="s2">                &lt;p style=&quot;font-size:14px; font-weight:bold;&quot;&gt;Contact&lt;/p&gt;</span>
+<span class="s2">                &lt;p style=&quot;font-size:14px;&quot;&gt;</span><span class="si">{</span><span class="n">contact</span><span class="si">}</span><span class="s2">&lt;/p&gt;</span>
+<span class="s2">            &lt;/body&gt;</span>
+<span class="s2">        &lt;/html&gt;</span>
+<span class="s2">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_browser</span><span class="o">.</span><span class="n">setHtml</span><span class="p">(</span><span class="n">html_content</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text_browser</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setLayout</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span></div>
+
+
+
+
+<div class="viewcode-block" id="info_drop">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.info_drop">[docs]</a>
+<span class="k">class</span> <span class="nc">info_drop</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manage the dynamic drop-down GUI updates.</span>
+
+<span class="sd">    This class handles the creation and management of information pages within a stacked widget,</span>
+<span class="sd">    and provides methods to connect buttons to these pages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">about_info</span><span class="p">,</span> <span class="n">stacked</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the info_drop manager with the given about_info widget and stacked widget.</span>
+
+<span class="sd">        :param about_info: The widget containing the about information.</span>
+<span class="sd">        :type about_info: QWidget</span>
+<span class="sd">        :param stacked: The stacked widget to manage the information pages.</span>
+<span class="sd">        :type stacked: QStackedWidget</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span> <span class="o">=</span> <span class="n">about_info</span>        
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="n">stacked</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pages</span> <span class="o">=</span> <span class="p">[]</span>
+    
+<div class="viewcode-block" id="info_drop.add_page">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.info_drop.add_page">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">contact</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a new information page to the stacked widget.</span>
+
+<span class="sd">        :param title: The title of the information page.</span>
+<span class="sd">        :type title: str</span>
+<span class="sd">        :param contact: The contact information to display.</span>
+<span class="sd">        :type contact: str</span>
+<span class="sd">        :param info: The additional information to display.</span>
+<span class="sd">        :type info: str</span>
+<span class="sd">        :return: The index of the newly added page in the stacked widget.</span>
+<span class="sd">        :rtype: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">InfoPage</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">contact</span><span class="p">,</span> <span class="n">info</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">index</span></div>
+
+
+
+
+<div class="viewcode-block" id="info_drop.connect_about">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.info_drop.connect_about">[docs]</a>
+    <span class="k">def</span> <span class="nf">connect_about</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">button</span><span class="p">,</span> <span class="n">page_index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Connect a button to navigate to a specific information page.</span>
+
+<span class="sd">        :param button: The button to connect.</span>
+<span class="sd">        :type button: QPushButton</span>
+<span class="sd">        :param page_index: The index of the page to navigate to.</span>
+<span class="sd">        :type page_index: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_page_drop</span><span class="p">,</span> <span class="n">page_index</span><span class="p">))</span></div>
+
+    
+<div class="viewcode-block" id="info_drop.about_page_drop">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.info_drop.about_page_drop">[docs]</a>
+    <span class="k">def</span> <span class="nf">about_page_drop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Navigate to the information page and animate the drop-down effect.</span>
+
+<span class="sd">        :param page_index: The index of the page to navigate to.</span>
+<span class="sd">        :type page_index: int</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">page_index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="home_page">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.home_page">[docs]</a>
+<span class="k">class</span> <span class="nc">home_page</span><span class="p">(</span><span class="n">QWidget</span><span class="p">,</span> <span class="n">Ui_home_page</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The landing screen.</span>
+
+<span class="sd">    Initialize the install manager class.</span>
+<span class="sd">    Initialize the app removal class.</span>
+<span class="sd">    Initialize the info drop downs.</span>
+<span class="sd">    Update state based on files at launch</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the home page.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+<span class="c1">#           Set up the ui</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setupUi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<span class="c1">#           Thread runner</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span> <span class="o">=</span> <span class="n">QThreadPool</span><span class="p">()</span>
+<span class="c1">#           gui objects for the about page class</span>
+        <span class="n">about</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span>
+        <span class="n">stacked</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stackedWidget_2</span>
+<span class="c1">#       path to deletion tool</span>
+        <span class="n">del_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;env_delete&quot;</span><span class="p">,</span> <span class="s2">&quot;delete_env.py&quot;</span><span class="p">)</span>
+<span class="c1">#       package entry point identifier</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="s1">&#39;-m&#39;</span>
+
+<span class="c1">#       declare info page</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span> <span class="o">=</span> <span class="n">info_drop</span><span class="p">(</span><span class="n">about</span><span class="p">,</span> <span class="n">stacked</span><span class="p">)</span>
+
+        <span class="c1"># Tech Selection app</span>
+        <span class="n">tech_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">tech_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Tech_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">tech_image</span> <span class="o">=</span> <span class="n">tech_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">tech_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">tech_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">tech_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_tech&quot;</span><span class="p">)</span>
+        <span class="n">tech_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_tech&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">tech_env_cmd</span> <span class="o">=</span> <span class="s2">&quot;tech_selection&quot;</span>
+        <span class="n">tech_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;tech.bat&quot;</span><span class="p">)</span>
+        <span class="n">tech_del_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_tech&quot;</span><span class="p">)</span>
+        <span class="n">tech_solve</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span><span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">,</span> <span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="s2">&quot;GLPK-4.65&quot;</span><span class="p">,</span> <span class="s2">&quot;w64&quot;</span> <span class="p">)</span>
+        <span class="n">tech_back</span> <span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">tech_env_path</span><span class="p">,</span> <span class="n">tech_env_act</span><span class="p">,</span> <span class="n">tech_env_cmd</span><span class="p">,</span> <span class="n">tech_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">tech_del_name</span><span class="p">,</span> <span class="n">tech_solve</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tech_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">tech_front</span><span class="p">,</span> <span class="n">tech_back</span><span class="p">,</span> <span class="n">tech_env_path</span><span class="p">)</span>
+
+
+        <span class="n">tech_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Technology Selection&quot;</span><span class="p">,</span> <span class="s2">&quot;Tu Nguyen tunguy@sandia.gov&quot;</span><span class="p">,</span><span class="s2">&quot;An application for identifying the energy storage technologies most suitable for a given project. This tool is based on multiple parameters that characterize each storage technology; the technologies that do not satisfy the minimum application requirements are filtered out and the remaining technologies are ranked to indicate their compatibility to the desired project.&quot;</span><span class="p">)</span>
+        <span class="n">tech_about_button</span> <span class="o">=</span> <span class="n">tech_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">tech_about_button</span><span class="p">,</span> <span class="n">tech_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">tech_front</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Evaluation app</span>
+        <span class="n">eval_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">eval_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_EvaluationLogo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">eval_image</span> <span class="o">=</span> <span class="n">eval_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">eval_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">eval_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+        
+        <span class="n">eval_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_eval&quot;</span><span class="p">)</span>
+        <span class="n">eval_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_eval&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">eval_env_cmd</span> <span class="o">=</span> <span class="s2">&quot;valuation&quot;</span>
+        <span class="n">eval_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;eval.bat&quot;</span><span class="p">)</span>
+        <span class="n">eval_del_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_eval&quot;</span><span class="p">)</span>
+        <span class="n">eval_solve</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span><span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">,</span> <span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="s2">&quot;GLPK-4.65&quot;</span><span class="p">,</span> <span class="s2">&quot;w64&quot;</span> <span class="p">)</span>
+        <span class="n">eval_back</span><span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">eval_env_path</span><span class="p">,</span> <span class="n">eval_env_act</span><span class="p">,</span> <span class="n">eval_env_cmd</span><span class="p">,</span> <span class="n">eval_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">eval_del_name</span><span class="p">,</span> <span class="n">eval_solve</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">eval_front</span><span class="p">,</span> <span class="n">eval_back</span><span class="p">,</span> <span class="n">eval_env_path</span><span class="p">)</span>
+
+        <span class="n">eval_about_button</span> <span class="o">=</span> <span class="n">eval_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">eval_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Valuation&quot;</span><span class="p">,</span> <span class="s2">&quot;Tu Nguyen tunguy@sandia.gov&quot;</span><span class="p">,</span><span class="s2">&quot;An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">eval_about_button</span><span class="p">,</span> <span class="n">eval_page</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">eval_front</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Performance app</span>
+        <span class="n">perf_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">perf_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Perf_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">perf_image</span> <span class="o">=</span> <span class="n">perf_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">perf_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">perf_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">perf_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_perf&quot;</span><span class="p">)</span>                                   
+        <span class="n">perf_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_perf&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">perf_env_cmd</span> <span class="o">=</span> <span class="s2">&quot;performance&quot;</span>
+        <span class="n">perf_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;perf.bat&quot;</span><span class="p">)</span>
+        <span class="n">perf_del_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_perf&quot;</span><span class="p">)</span>
+        <span class="n">perf_solve</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span><span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">,</span> <span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="s2">&quot;GLPK-4.65&quot;</span><span class="p">,</span> <span class="s2">&quot;w64&quot;</span> <span class="p">)</span>
+        <span class="n">perf_back</span><span class="o">=</span><span class="n">app_manager</span><span class="p">(</span><span class="n">perf_env_path</span><span class="p">,</span> <span class="n">perf_env_act</span><span class="p">,</span> <span class="n">perf_env_cmd</span><span class="p">,</span> <span class="n">perf_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">perf_del_name</span><span class="p">,</span> <span class="n">perf_solve</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>   
+        <span class="bp">self</span><span class="o">.</span><span class="n">perf_obj</span><span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">perf_front</span><span class="p">,</span> <span class="n">perf_back</span><span class="p">,</span> <span class="n">perf_env_path</span><span class="p">)</span>
+
+
+        <span class="n">perf_about_button</span> <span class="o">=</span> <span class="n">perf_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">perf_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Performance&quot;</span><span class="p">,</span> <span class="s2">&quot;Walker Olis wolis@sandia.gov&quot;</span><span class="p">,</span> <span class="s2">&quot;An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air conditioning loads. This tool leverages the building simulation tool EnergyPlus to model the energy consumption of a particular battery housing.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">perf_about_button</span><span class="p">,</span> <span class="n">perf_page</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">perf_front</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Behind the meter app</span>
+        <span class="n">btm_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">btm_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_BTN_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">btm_image</span> <span class="o">=</span> <span class="n">btm_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">btm_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">btm_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">btm_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">)</span>
+        <span class="n">btm_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">btm_env_cmd</span> <span class="o">=</span> <span class="s2">&quot;btm&quot;</span>
+        <span class="n">btm_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;btm.bat&quot;</span><span class="p">)</span>
+        <span class="n">btm_del_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">)</span>
+        <span class="n">btm_solve</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span><span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">,</span> <span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="s2">&quot;GLPK-4.65&quot;</span><span class="p">,</span> <span class="s2">&quot;w64&quot;</span> <span class="p">)</span>
+        <span class="n">btm_back</span> <span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">btm_env_path</span><span class="p">,</span> <span class="n">btm_env_act</span><span class="p">,</span> <span class="n">btm_env_cmd</span><span class="p">,</span> <span class="n">btm_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">btm_del_name</span><span class="p">,</span> <span class="n">btm_solve</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btm_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">btm_front</span><span class="p">,</span> <span class="n">btm_back</span><span class="p">,</span> <span class="n">btm_env_path</span><span class="p">)</span>
+
+        <span class="n">btm_about_button</span> <span class="o">=</span> <span class="n">btm_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">btm_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt BTM&quot;</span><span class="p">,</span> <span class="s2">&quot;Tu Nguyen tunguy@sandia.gov&quot;</span><span class="p">,</span> <span class="s2">&quot;A collection of tools for behind-the-meter (BTM) energy storage systems: &lt;br&gt;*Estimate cost savings for time-of-use and/or net-metering customers&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">btm_about_button</span><span class="p">,</span> <span class="n">btm_page</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">btm_front</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1"># Microgrid app</span>
+        <span class="n">micro_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">micro_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Microgrid_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">micro_image</span> <span class="o">=</span> <span class="n">micro_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">micro_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">micro_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">micro_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_micro&quot;</span><span class="p">)</span>
+        <span class="n">micro_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_micro&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win&#39;</span><span class="p">):</span>
+            <span class="n">micro_env_cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_micro&quot;</span><span class="p">,</span> <span class="s2">&quot;Lib&quot;</span><span class="p">,</span> <span class="s2">&quot;site-packages&quot;</span><span class="p">,</span> <span class="s2">&quot;ssim&quot;</span><span class="p">,</span> <span class="s2">&quot;ui&quot;</span><span class="p">,</span> <span class="s2">&quot;kivy&quot;</span><span class="p">,</span> <span class="s2">&quot;ssimapp.py&quot;</span><span class="p">)</span>
+            <span class="n">micro_mod</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">micro_env_cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_micro&quot;</span><span class="p">,</span> <span class="s2">&quot;bin&quot;</span><span class="p">,</span> <span class="s2">&quot;ssim&quot;</span><span class="p">)</span>
+            <span class="n">micro_mod</span> <span class="o">=</span> <span class="s2">&quot;exe&quot;</span>
+        <span class="n">micro_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;micro.bat&quot;</span><span class="p">)</span>
+        <span class="n">micro_del_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_micro&quot;</span><span class="p">)</span>
+        <span class="n">micro_back</span> <span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">micro_env_path</span><span class="p">,</span> <span class="n">micro_env_act</span><span class="p">,</span> <span class="n">micro_env_cmd</span><span class="p">,</span> <span class="n">micro_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">micro_del_name</span><span class="p">,</span> <span class="n">mod</span><span class="o">=</span><span class="n">micro_mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">micro_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">micro_front</span><span class="p">,</span> <span class="n">micro_back</span><span class="p">,</span> <span class="n">micro_env_path</span><span class="p">)</span>
+
+        <span class="n">micro_about_button</span> <span class="o">=</span> <span class="n">micro_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">micro_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Microgrid&quot;</span><span class="p">,</span> <span class="s2">&quot;John Eddy jpeddy@sandia.gov&quot;</span><span class="p">,</span> <span class="s2">&quot;The QuESt Microgrid app is a Discrete Event Simulator for evaluating energy storage systems connected to electrical power distribution systems.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">micro_about_button</span><span class="p">,</span> <span class="n">micro_page</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">micro_front</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Data GPT app</span>
+        <span class="n">gpt_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">gpt_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Logo_RGB - GPT.png&quot;</span><span class="p">)</span>
+        <span class="n">gpt_image</span> <span class="o">=</span> <span class="n">gpt_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">gpt_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">gpt_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">gpt_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_viz&quot;</span><span class="p">)</span>
+        <span class="n">gpt_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_viz&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">gpt_env_cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;snl_libraries&quot;</span><span class="p">,</span> <span class="s2">&quot;gpt&quot;</span><span class="p">,</span> <span class="s2">&quot;main.py&quot;</span><span class="p">)</span>
+        <span class="n">gpt_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;viz.bat&quot;</span><span class="p">)</span>
+        <span class="n">gpt_del_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_viz&quot;</span><span class="p">,)</span>
+        <span class="n">gpt_back</span> <span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">gpt_env_path</span><span class="p">,</span> <span class="n">gpt_env_act</span><span class="p">,</span> <span class="n">gpt_env_cmd</span><span class="p">,</span> <span class="n">gpt_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">gpt_del_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gpt_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">gpt_front</span><span class="p">,</span> <span class="n">gpt_back</span><span class="p">,</span> <span class="n">gpt_env_path</span><span class="p">)</span> 
+
+        <span class="n">gpt_about_button</span> <span class="o">=</span> <span class="n">gpt_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">gpt_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt-GPT&lt;br&gt;&lt;span style=&#39;font-size:16px; font-weight:bold;&#39;&gt; AI-powered tool for data analysis and visualization&lt;/span&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;Tu Nguyen tunguy@sandia.gov&quot;</span><span class="p">,</span> <span class="s2">&quot;This application helps users analyze and visualize their dataset (in CSV files). The application utilizes Large Language Models (LLMs) to translate users queries into python codes for performing data analysis and visualization. Currently, GPT4 models (OpenAI&#39;s API: https://openai.com/product) and codellama2 model (Replicate&#39;s API: https://replicate.com/) are used within the application. &quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">gpt_about_button</span><span class="p">,</span> <span class="n">gpt_page</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">gpt_front</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+         
+        <span class="c1"># Data manager app</span>
+        <span class="n">data_man_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">data_man_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Datamanager_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">data_man_image</span> <span class="o">=</span> <span class="n">data_man_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">data_man_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">data_man_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">data_man_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_data&quot;</span><span class="p">)</span>
+        <span class="n">data_man_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_data&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">data_man_env_cmd</span> <span class="o">=</span> <span class="s2">&quot;data_manager&quot;</span>
+        <span class="n">data_man_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;manager.bat&quot;</span><span class="p">)</span>
+        <span class="n">data_man_del_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_data&quot;</span><span class="p">)</span>
+        <span class="n">data_man_solve</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span><span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_btm&quot;</span><span class="p">,</span> <span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="s2">&quot;GLPK-4.65&quot;</span><span class="p">,</span> <span class="s2">&quot;w64&quot;</span> <span class="p">)</span>
+        <span class="n">data_man_back</span> <span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">data_man_env_path</span><span class="p">,</span> <span class="n">data_man_env_act</span><span class="p">,</span> <span class="n">data_man_env_cmd</span><span class="p">,</span> <span class="n">data_man_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">data_man_del_path</span><span class="p">,</span> <span class="n">data_man_solve</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_man_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">data_man_front</span><span class="p">,</span> <span class="n">data_man_back</span><span class="p">,</span> <span class="n">data_man_env_path</span><span class="p">)</span>
+
+        <span class="n">data_man_about_button</span> <span class="o">=</span> <span class="n">data_man_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">data_man_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Data Manager&quot;</span><span class="p">,</span> <span class="s2">&quot;Tu Nguyen tunguy@sandia.gov&quot;</span><span class="p">,</span> <span class="s2">&quot;An application for acquiring data from open sources. Data selected for download is acquired in a format and structure compatible with other QuESt applications. Data that can be acquired includes:&lt;br&gt;&lt;ul&gt;&lt;li&gt;Independent system operators (ISOs) and regional transmission organization (RTOs) market and operations data &lt;/li&gt;&lt;li&gt;U.S. utility rate structures (tariffs) &lt;/li&gt;&lt;li&gt;Commercial or residential building load profiles &lt;/li&gt;&lt;li&gt;Photovoltaic (PV) power profiles&lt;/li&gt;&lt;/ul&gt;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">data_man_about_button</span><span class="p">,</span> <span class="n">data_man_page</span><span class="p">)</span>
+       
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">data_man_front</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Energy Equity app</span>
+        <span class="n">equity_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="n">equity_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Equity_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">equity_image</span> <span class="o">=</span> <span class="n">equity_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="n">equity_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">equity_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+
+        <span class="n">equity_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;equity&quot;</span><span class="p">)</span>
+        <span class="n">equity_env_act</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;Scripts&quot;</span><span class="p">,</span> <span class="s2">&quot;python.exe&quot;</span><span class="p">)</span>
+        <span class="n">equity_env_cmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;equity&quot;</span><span class="p">,</span> <span class="s2">&quot;main.py&quot;</span><span class="p">)</span>
+        <span class="n">equity_script_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app&quot;</span><span class="p">,</span> <span class="s2">&quot;tools&quot;</span><span class="p">,</span> <span class="s2">&quot;script_files&quot;</span><span class="p">,</span> <span class="s2">&quot;energy.bat&quot;</span><span class="p">)</span>
+        <span class="n">equity_del_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_energy&quot;</span><span class="p">)</span>
+        <span class="n">equity_solve</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span><span class="s2">&quot;app_envs&quot;</span><span class="p">,</span> <span class="s2">&quot;env_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;glpk&quot;</span><span class="p">,</span> <span class="s2">&quot;GLPK-4.65&quot;</span><span class="p">,</span> <span class="s2">&quot;w64&quot;</span> <span class="p">)</span>
+        <span class="n">equity_back</span> <span class="o">=</span> <span class="n">app_manager</span><span class="p">(</span><span class="n">equity_env_path</span><span class="p">,</span> <span class="n">equity_env_act</span><span class="p">,</span> <span class="n">equity_env_cmd</span><span class="p">,</span> <span class="n">equity_script_path</span><span class="p">,</span> <span class="n">del_path</span><span class="p">,</span> <span class="n">equity_del_path</span><span class="p">,</span> <span class="n">equity_solve</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equity_obj</span> <span class="o">=</span> <span class="n">gui_connector</span><span class="p">(</span><span class="n">equity_front</span><span class="p">,</span> <span class="n">equity_back</span><span class="p">,</span> <span class="n">equity_env_path</span><span class="p">)</span>
+
+        <span class="n">equity_about_button</span> <span class="o">=</span> <span class="n">equity_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">equity_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Energy Equity&quot;</span><span class="p">,</span> <span class="s2">&quot;David Rosewater dmrose@sandia.gov&quot;</span><span class="p">,</span> <span class="s2">&quot;An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">equity_about_button</span><span class="p">,</span> <span class="n">equity_page</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">equity_front</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="c1">#Planning app place holder</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span> <span class="o">=</span> <span class="n">form_apps</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">progress_bar</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">setting_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">install_button</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="s2">&quot;Upcoming&quot;</span><span class="p">)</span>
+        <span class="n">plan_image</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_dir</span><span class="p">,</span> <span class="s2">&quot;images&quot;</span><span class="p">,</span> <span class="s2">&quot;logo&quot;</span><span class="p">,</span> <span class="s2">&quot;Quest_Planning_Logo_RGB.png&quot;</span><span class="p">)</span>
+        <span class="n">plan_image</span> <span class="o">=</span> <span class="n">plan_image</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;/&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">app_image</span><span class="o">.</span><span class="n">setStyleSheet</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;image: url(</span><span class="si">{</span><span class="n">plan_image</span><span class="si">}</span><span class="s2">);&quot;</span><span class="p">)</span>
+        
+        <span class="n">plan_about_button</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">about_button</span>
+        <span class="n">plan_page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">add_page</span><span class="p">(</span><span class="s2">&quot;QuESt Planning&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;This app is still in development and will be released to the QuESt platform soon.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_info_page</span><span class="o">.</span><span class="n">connect_about</span><span class="p">(</span><span class="n">plan_about_button</span><span class="p">,</span> <span class="n">plan_page</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gridLayout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<span class="c1">#           connecting the search bar funtion</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Search apps&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineEdit</span><span class="o">.</span><span class="n">textChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">update_display</span><span class="p">)</span>
+
+<span class="c1">#       hide the about window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">about_hide</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_hide_window_btn</span><span class="p">)</span>
+
+<div class="viewcode-block" id="home_page.about_hide_window_btn">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.home_page.about_hide_window_btn">[docs]</a>
+    <span class="k">def</span> <span class="nf">about_hide_window_btn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">         </span><span class="sd">&quot;&quot;&quot;Button to minimize the about drop down page on the homescreen.&quot;&quot;&quot;</span>
+         <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="o">.</span><span class="n">height</span><span class="p">()</span>
+
+         <span class="k">if</span> <span class="n">height</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">newheight</span> <span class="o">=</span> <span class="mi">450</span>
+
+         <span class="k">else</span><span class="p">:</span>
+           <span class="n">newheight</span> <span class="o">=</span> <span class="mi">0</span>
+
+         <span class="bp">self</span><span class="o">.</span><span class="n">animation</span> <span class="o">=</span> <span class="n">QPropertyAnimation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">about_info</span><span class="p">,</span> <span class="sa">b</span><span class="s2">&quot;maximumHeight&quot;</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setDuration</span><span class="p">(</span><span class="mi">250</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setStartValue</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEndValue</span><span class="p">(</span><span class="n">newheight</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">setEasingCurve</span><span class="p">(</span><span class="n">QEasingCurve</span><span class="o">.</span><span class="n">InOutQuart</span><span class="p">)</span>
+         <span class="bp">self</span><span class="o">.</span><span class="n">animation</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="home_page.update_display">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_page.home_page.update_display">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dynamic update of visible apps.&quot;&quot;&quot;</span>
+        <span class="n">tech_selection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tech_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">evaluation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eval_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">behind_the_meter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">btm_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">performance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">perf_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">microgrid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">micro_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">planning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plan_front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">data_gpt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpt_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">data_manager</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_man_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        <span class="n">energy_equity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">equity_obj</span><span class="o">.</span><span class="n">front</span><span class="o">.</span><span class="n">app_search</span>
+        
+
+<span class="c1">#           list of apps to search</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">widget_names</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;tech_selection&quot;</span><span class="p">,</span> <span class="s2">&quot;evaluation&quot;</span><span class="p">,</span> <span class="s2">&quot;behind_the_meter&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;performance&quot;</span><span class="p">,</span> <span class="s2">&quot;energy_equity&quot;</span><span class="p">,</span> <span class="s2">&quot;microgrid&quot;</span><span class="p">,</span> <span class="s2">&quot;planning&quot;</span><span class="p">,</span> <span class="s2">&quot;data_gpt&quot;</span><span class="p">,</span> <span class="s2">&quot;data_manager&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">widget_names</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">widget</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+
+                <span class="nb">eval</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="nb">eval</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span><span class="o">.</span><span class="n">setVisible</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
+</div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">home_page</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

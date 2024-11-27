@@ -1,11 +1,7 @@
-Quest V 1.0.6
-=============
+quest
+=====
 
 .. toctree::
    :maxdepth: 4
 
-   app
-   main
-   resources_rc
-   snl
-   themes
+   quest

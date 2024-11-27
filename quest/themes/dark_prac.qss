@@ -1,0 +1,401 @@
+/* General widget background and text color */
+QWidget {
+	font: 11pt "Segoe UI";
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+}
+
+/* Button styles */
+QPushButton {
+    background-color: transparent;
+    padding: 5px;
+    border-radius: 2px;
+    color: #d4d4d4;
+}
+QPushButton:focus {
+    outline: none;
+}
+QPushButton:hover {
+	border: 2px solid rgb(42, 42, 42);
+	border-radius: 4px;
+}
+QPushButton:pressed {
+    background-color: #3c3c3c;
+}
+QPushButton:checked {
+    background: rgb(40, 84, 113);
+    color: #ffffff;  /* Optional: Change text color when checked */
+}
+QToolButton:hover {
+	border: 2px solid rgb(42, 42, 42);
+	border-radius: 4px;
+}
+/* Text Edit */
+QTextEdit {
+    background-color: #252526;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+}
+
+/* Labels */
+QLabel {
+    color: #d4d4d4;
+}
+
+/* Line Edit */
+QLineEdit {
+    background-color: #333333;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+}
+
+/* Menu Bar */
+QMenuBar {
+    background-color: #252526;
+    color: #d4d4d4;
+}
+QMenuBar::item:selected {
+    background-color: #3c3c3c;
+}
+
+/* Menu */
+QMenu {
+    background-color: #252526;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+}
+QMenu::item:selected {
+    background-color: #3c3c3c;
+}
+
+QScrollBar:vertical {
+	border: none;
+    background: rgb(40, 84, 113);
+    width: 8px;
+    margin: 0px 0 0px 0;
+	border-radius: 4px;
+ }
+ QScrollBar::handle:vertical {	
+	background: rgb(129,194,65);
+    min-height: 25px;
+	border-radius: 4px
+ }
+ QScrollBar::add-line:vertical {
+     height: 0px;
+}
+ QScrollBar::sub-line:vertical {
+	height: 0px;
+}
+ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+     background: none;
+ }
+
+ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+     background: none;
+ }
+QScrollBar:horizontal {
+	border: none;
+    background: rgb(40, 84, 113);
+    height: 8px;
+    margin: 0px 0 0px 0;
+	border-radius: 4px;
+ }
+ QScrollBar::handle:horizontal {	
+	background: rgb(129,194,65);
+    min-width: 25px;
+	border-radius: 4px
+ }
+
+ QScrollBar::add-line:horizontal {
+     width: 0px;
+}
+ QScrollBar::sub-line:horizontal {
+	width: 0px;
+}
+ QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal {
+     background: none;
+ }
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+     background: none;
+ }
+/* Tool Tips */
+QToolTip {
+    color: #ffffff;
+    background-color: #252526;
+    border: 1px solid #3c3c3c;
+}
+QComboBox {
+    background-color: #252526;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+}
+
+/* QSlider Styles */
+QSlider::groove:horizontal {
+    border: 1px solid #444; /* Border color of the groove */
+    height: 8px; /* Height of the horizontal groove */
+    background: #333; /* Background color of the groove */
+    margin: 2px 0; /* Vertical margin */
+    border-radius: 6x; /* Rounded corners for the groove */
+}
+
+QSlider::handle:horizontal {
+    background: #DDD; /* Handle color */
+    border: 1px solid #666; /* Handle border color */
+    width: 18px; /* Width of the horizontal handle */
+    margin: -2px 0; /* Expand outside the groove by 2px top and bottom */
+    border-radius: 6px; /* Circular handle */
+}
+
+QSlider::handle:horizontal:hover {
+    background: #EEE; /* Lighter handle color when hovered */
+    border: 1px solid #AAA; /* Lighter border color when hovered */
+}
+
+QSlider::sub-page:horizontal {
+    background: rgb(129, 194, 65); /* Color of the portion of the groove to the left of the handle */
+    border-radius: 6px; /* Rounded corners for the sub-page */
+}
+
+QSlider::add-page:horizontal {
+    background: #666;  /* Color of the portion of the groove to the right of the handle */
+    border-radius: 6px; /* Rounded corners for the add-page */
+}
+
+QTableWidget {
+    border: none; /* Border color for the table */
+    background-color: transparent; /* Dark background color for the table */
+    color: #ddd; /* Light text color for contrast */
+    gridline-color: #555; /* Color for the grid lines */
+}
+
+QTableWidget::item {
+    padding: 5px; /* Padding within each cell */
+    border-color: #555; /* Border color for each cell, if needed */
+}
+
+QTableWidget::item:selected {
+    background-color: #555; /* Background color for selected items */
+    color: #eee; /* Text color for selected items */
+}
+
+QHeaderView::section {
+    background-color: #333; /* Background color for the header */
+    padding: 4px; /* Padding within the header */
+    border: 1px solid #444; /* Border color for the header */
+    color: #ddd; /* Text color for the header */
+}
+QTableView QTableCornerButton::section {
+    background-color: #222;
+    border: 1px solid #555;
+}
+/* QWebEngineView */
+QWebEngineView {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #3c3c3c;
+}
+
+/* QWebEngineView Scroll Bar */
+QWebEngineView QScrollBar:vertical, QWebEngineView QScrollBar:horizontal {
+    border: 1px solid #3c3c3c;
+    background: #252526;
+}
+QWebEngineView QScrollBar::handle:vertical, QWebEngineView QScrollBar::handle:horizontal {
+    background: #3c3c3c;
+    min-height: 20px;
+    min-width: 20px;
+}
+/* Plat Specific */
+#progress_bar {
+    min-height: 4px;
+    max-height: 4px;
+    border-radius: 2px;
+    background-color: rgb(24, 24, 24);
+}
+#progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+#progress_5 {
+	background-color: rgb(24, 24, 24);
+	border-radius: 0px;
+}
+
+#fformat QFrame {
+    background-color: rgb(24, 24, 24);
+    border-radius: 9px;
+}
+
+#fformat #app_search.QFrame:hover {
+    background-color: rgb(42, 42, 42);
+    border-radius: 6px;
+    border-width: 2px;
+
+}
+#fformat #app_search QFrame {
+    border-radius: 0px;
+}
+
+/* QTabWidget styles */
+QTabWidget::pane {
+    border: 1px solid rgb(40, 84, 113);
+    background-color: #1e1e1e; /* Match the general widget background */
+}
+
+QTabWidget::tab-bar {
+    left: 5px; /* Move the tab bar slightly to the left */
+}
+
+/* QTabBar styles */
+QTabBar::tab {
+    background: #333333; /* Match the line edit background */
+    color: #d4d4d4; /* Match the general text color */
+    border: 1px solid #3c3c3c; /* Match the text edit border */
+    border-radius: 4px;
+    padding: 5px;
+    margin: 2px;
+}
+
+QTabBar::tab:selected {
+    background: rgb(40, 84, 113); /* Highlight color for selected tab */
+    color: white; /* Text color for selected tab */
+}
+
+QTabBar::tab:!selected {
+    background: #333333; /* Background for unselected tabs */
+    color: #d4d4d4; /* Text color for unselected tabs */
+}
+
+
+
+/* Update icon styles */
+
+#home_button.QPushButton {
+    icon: url(:/dark_grey/images/dark_grey/home_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#workspace_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/hub_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#chat_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/insert_chart_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#setting_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/settings_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#about.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/help_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#appearance_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/preview_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 24px 24px;
+}
+
+#environments_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/token_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 24px 24px;
+}
+
+#api_keys_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/key_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 24px 24px;
+}
+#load_api.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/send_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+#save_api.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/save_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+#min_resize_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/remove_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+#norm_resize_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/open_in_new_down_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+#max_resize_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/open_in_new_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+#exit_app_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/close_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#about_button.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/info_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+#about_hide.QPushButton {
+	icon: url(:/dark_grey/images/dark_grey/remove_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    icon-size: 32px 32px;
+}
+
+#top_central_frame{
+    background-color: rgb(24, 24, 24);
+}
+#top_label{
+    background-color: transparent;
+}
+#top_right_frame{
+    background-color: rgb(24, 24, 24);
+}
+#menu{
+    background-color: rgb(24, 24, 24);
+}
+#bottom_left_frame{
+    background-color: transparent;
+}
+#top_menu_bar{
+    background-color: transparent;
+}
+#credit_frame{
+    background-color: rgb(24, 24, 24);
+}
+#credit_label{
+    background-color: transparent;
+}
+#version{
+    background-color: rgb(24, 24, 24);
+}
+#version_label{
+    background-color: transparent;
+}
+QTextBrowser {
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    background-color: transparent; /* Optional: Set background to transparent if needed */
+}
+#settings_menu{
+	background-color: rgb(27, 27, 27);
+}
+#label_3{
+	background-color: rgb(27, 27, 27);
+}
+#top_right_frame.QPushButton:hover {
+	border: 2px solid rgb(42, 42, 42);
+	border-radius: 4px;
+}
+
+#home_page #frame_9 QLineEdit{
+    border: 0.5px solid gray;
+    border-radius: 2px;
+    image: url(:/dark_grey/images/dark_grey/search_24dp_D4D4D4_FILL0_wght200_GRAD0_opsz24.png);
+    image-position: right;
+
+    selection-color: black;
+}

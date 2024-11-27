@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.app.home_page.home_back_end &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">quest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quest.app.home_page.home_back_end</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quest.app.home_page.home_back_end</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">PySide6.QtCore</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QThreadPool</span><span class="p">,</span>
+    <span class="n">QObject</span><span class="p">,</span>
+    <span class="n">QRunnable</span><span class="p">,</span>
+    <span class="n">Signal</span><span class="p">,</span>
+    <span class="n">Slot</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">platform</span>
+
+<span class="c1"># home_dir = os.path.dirname(__file__)</span>
+<span class="c1"># base_dir = os.path.join(home_dir, &quot;..&quot;, &quot;..&quot;)</span>
+<span class="kn">from</span> <span class="nn">quest.paths</span> <span class="kn">import</span> <span class="n">get_path</span>
+<span class="n">base_dir</span> <span class="o">=</span> <span class="n">get_path</span><span class="p">()</span>
+<span class="n">progress_re</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s2">&quot;(\d+)%&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="simple_percent_parser">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.simple_percent_parser">[docs]</a>
+<span class="k">def</span> <span class="nf">simple_percent_parser</span><span class="p">(</span><span class="n">output</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Match lines using the progress_re regex, returning a single integer for the % progress.&quot;&quot;&quot;</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">progress_re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="n">pc_complete</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">pc_complete</span><span class="p">)</span></div>
+
+
+<span class="c1">#           creating signals and threads to run multiple functions simultaneously</span>
+
+
+<div class="viewcode-block" id="WorkerSignals">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.WorkerSignals">[docs]</a>
+<span class="k">class</span> <span class="nc">WorkerSignals</span><span class="p">(</span><span class="n">QObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Defines the signals available from a running worker thread.</span>
+
+<span class="sd">    Supported signals are:</span>
+
+<span class="sd">    finished: No data</span>
+<span class="sd">    result: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="nb">str</span>
+    <span class="p">)</span>  <span class="c1"># Send back the output from the process as a string.</span>
+    <span class="n">progress</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="nb">int</span>
+    <span class="p">)</span>  <span class="c1"># Return an integer 0-100 showing the current progress.</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span>
+        <span class="nb">int</span>
+    <span class="p">)</span></div>
+
+<span class="c1">#           Returns an int to signify the progress is complete</span>
+
+
+<div class="viewcode-block" id="SubProcessWorker">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.SubProcessWorker">[docs]</a>
+<span class="k">class</span> <span class="nc">SubProcessWorker</span><span class="p">(</span><span class="n">QRunnable</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ProcessWorker worker thread.</span>
+
+<span class="sd">    Inherits from QRunnable to handle worker thread setup, signals and wrap-up.</span>
+
+<span class="sd">    :param command: command to execute with `subprocess`.</span>
+
+<span class="sd">    Create the runners for installation.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">parser</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiliaze the subprocessworker.&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="c1"># Store constructor arguments (re-used for processing).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span> <span class="o">=</span> <span class="n">WorkerSignals</span><span class="p">()</span>
+
+        <span class="c1"># The command to be executed.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">command</span> <span class="o">=</span> <span class="n">command</span>
+
+        <span class="c1"># The parser function to extract the progress information.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">parser</span>
+
+    <span class="c1"># tag::workerRun[]</span>
+<div class="viewcode-block" id="SubProcessWorker.run">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.SubProcessWorker.run">[docs]</a>
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize the runner function with passed args, kwargs.&quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">command</span><span class="p">,</span>
+            <span class="n">cwd</span><span class="o">=</span><span class="n">base_dir</span><span class="p">,</span>
+            <span class="n">bufsize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+            <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">,</span>
+            <span class="n">universal_newlines</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+
+
+        <span class="p">)</span> <span class="k">as</span> <span class="n">proc</span><span class="p">:</span>
+
+            <span class="k">while</span> <span class="n">proc</span><span class="o">.</span><span class="n">poll</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">proc</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">progress</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signals</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+</div>
+
+<span class="c1">#     end::workerRun[]</span>
+
+
+<div class="viewcode-block" id="app_manager">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.app_manager">[docs]</a>
+<span class="k">class</span> <span class="nc">app_manager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages the installation and removal of applications within a specified environment.</span>
+
+<span class="sd">    This class handles the setup, activation, and execution of commands to manage</span>
+<span class="sd">    application environments, including installation and removal processes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env_path</span><span class="p">,</span> <span class="n">env_act</span><span class="p">,</span> <span class="n">env_cmd</span><span class="p">,</span> <span class="n">script_path</span><span class="p">,</span> <span class="n">app_del</span><span class="p">,</span> <span class="n">env_del</span><span class="p">,</span> <span class="n">solve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mod</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the app manager with the necessary paths and commands.</span>
+
+<span class="sd">        :param env_path: Path to the environment directory.</span>
+<span class="sd">        :type env_path: str</span>
+<span class="sd">        :param env_act: Command to activate the environment.</span>
+<span class="sd">        :type env_act: str</span>
+<span class="sd">        :param env_cmd: Command to run within the environment.</span>
+<span class="sd">        :type env_cmd: str</span>
+<span class="sd">        :param script_path: Path to the script for setting up the environment.</span>
+<span class="sd">        :type script_path: str</span>
+<span class="sd">        :param app_del: Path to the script for deleting the application.</span>
+<span class="sd">        :type app_del: str</span>
+<span class="sd">        :param env_del: Name of the environment to delete.</span>
+<span class="sd">        :type env_del: str</span>
+<span class="sd">        :param solve: Optional path to the solver executable.</span>
+<span class="sd">        :type solve: str, optional</span>
+<span class="sd">        :param mod: Optional modifier for the activation command.</span>
+<span class="sd">        :type mod: str, optional</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span> <span class="o">=</span> <span class="n">QThreadPool</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_path</span> <span class="o">=</span> <span class="n">env_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_act</span> <span class="o">=</span> <span class="n">env_act</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_cmd</span> <span class="o">=</span> <span class="n">env_cmd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_path</span> <span class="o">=</span> <span class="n">script_path</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">app_del_path</span> <span class="o">=</span> <span class="n">app_del</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">env_del_name</span> <span class="o">=</span> <span class="n">env_del</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solve_path</span> <span class="o">=</span> <span class="n">solve</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mod</span> <span class="o">=</span> <span class="n">mod</span>
+
+<div class="viewcode-block" id="app_manager.install">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.app_manager.install">[docs]</a>
+    <span class="k">def</span> <span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Install the application by setting up and activating the environment.</span>
+
+<span class="sd">        This method checks if the environment directory exists and determines the</span>
+<span class="sd">        appropriate activation command based on the operating system. It then starts</span>
+<span class="sd">        a subprocess to run the installation command.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Check if the environment directory exists</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">env_path</span><span class="p">):</span>
+ 
+            <span class="c1"># Determine the activation command based on the OS</span>
+            <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+                <span class="n">act_command</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">env_act</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_cmd</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mod</span> <span class="k">else</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">env_act</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_cmd</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;PATH&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">os</span><span class="o">.</span><span class="n">pathsep</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">solve_path</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># For Unix-like systems</span>
+                <span class="n">activate_script_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_act</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;Scripts/python.exe&#39;</span><span class="p">,</span> <span class="s1">&#39;bin/activate&#39;</span><span class="p">)</span>
+                <span class="c1"># Construct the activation command for Unix-like systems</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mod</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mod</span> <span class="o">!=</span> <span class="s1">&#39;exe&#39;</span><span class="p">:</span>
+                        <span class="n">act_command</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;/bin/bash&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;source </span><span class="si">{</span><span class="n">activate_script_path</span><span class="si">}</span><span class="s2"> &amp;&amp; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env_cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">act_command</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">env_cmd</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">act_command</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;/bin/bash&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;source </span><span class="si">{</span><span class="n">activate_script_path</span><span class="si">}</span><span class="s2"> &amp;&amp; python3 </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">env_cmd</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
+        
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Determine the script to run (batch file for Windows, shell script for others)</span>
+            <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+                <span class="n">script_command</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">script_path</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">script_command</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;/bin/bash&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">script_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.bat&#39;</span><span class="p">,</span> <span class="s1">&#39;.sh&#39;</span><span class="p">)]</span>
+            
+            <span class="c1"># Use script_command if the environment directory does not exist</span>
+            <span class="n">act_command</span> <span class="o">=</span> <span class="n">script_command</span>
+
+        <span class="c1"># Start the subprocess worker with the determined command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="n">act_command</span><span class="p">,</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="app_manager.remove_app">
+<a class="viewcode-back" href="../../../../quest.app.home_page.html#quest.app.home_page.home_back_end.app_manager.remove_app">[docs]</a>
+    <span class="k">def</span> <span class="nf">remove_app</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove the application by deleting the specified environment.</span>
+
+<span class="sd">        This method starts a subprocess to run the command that deletes the environment</span>
+<span class="sd">        associated with the application.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;Windows&quot;</span><span class="p">:</span>
+            <span class="n">python_cmd</span> <span class="o">=</span> <span class="s2">&quot;python&quot;</span>  
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">python_cmd</span> <span class="o">=</span> <span class="s2">&quot;python3&quot;</span>  
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="n">SubProcessWorker</span><span class="p">(</span>
+            <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="n">python_cmd</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_del_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">env_del_name</span><span class="p">],</span>
+            <span class="n">parser</span><span class="o">=</span><span class="n">simple_percent_parser</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threadpool</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runner</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

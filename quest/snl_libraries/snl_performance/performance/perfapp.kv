@@ -1,0 +1,481 @@
+#:kivy 1.10.1
+#: import SwapTransition kivy.uix.screenmanager.SwapTransition
+#: import os os
+
+#:set WELCOME_TITLE_APP '{app_name}: '.format(app_name=APP_NAME)
+#:set WELCOME_TITLE_TAG '[font={font}][size={size}][color={color}]{tagline}[/color][/size][/font]'.format(font='Rajdhani', size=int(large_font), color=hex_secondary, tagline=TAGLINE)
+#:set WELCOME_TITLE WELCOME_TITLE_APP+WELCOME_TITLE_TAG
+
+#:include es_gui/settings.kv
+
+#:include es_gui/apps/data_manager/home.kv
+#:include es_gui/apps/data_manager/rate_structure.kv
+#:include es_gui/apps/data_manager/load.kv
+#:include es_gui/apps/data_manager/widgets.kv
+#:include es_gui/apps/data_manager/pv.kv
+#:include es_gui/apps/data_manager/nsrdb.kv
+
+#:include es_gui/apps/performance/home.kv
+#:include es_gui/apps/performance/performance_sim.kv
+
+#:include es_gui/proving_grounds/data_importer.kv
+#:include es_gui/proving_grounds/help_carousel.kv
+
+#:import dirname performance.paths.dirname
+
+<IndexScreen>:
+    name: 'index'
+
+    app_select_sm: app_select_sm
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 15
+        spacing: 15
+
+        AnchorLayout:
+            anchor_x: 'left'
+            anchor_y: 'top'
+            size_hint_y: 0.15
+            spacing: 5
+
+            BoxLayout:
+                orientation: 'horizontal'
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.20
+
+                    Image:
+                        source: os.path.join(dirname, 'es_gui', 'resources', 'logo', 'Quest_Logo_RGB.png')
+                        allow_stretch: False
+
+                AnchorLayout:
+                    anchor_x: 'center'
+                    anchor_y: 'center'
+                    size_hint_x: 0.65
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        spacing: 10
+                        size_hint: (0.25, 0.8)
+
+                        BodyTextBase:
+                            font_name: 'Exo 2'
+                            text: 'New or returning user?'
+
+                        TileButton:
+                            text: 'Take a quick tour'
+                            background_color: C(hex_pms312)
+                            on_release: root.open_intro_help_carousel()
+                
+                BoxLayout:
+                    size_hint_x: 0.15
+
+                    Image:
+                        source: os.path.join(dirname, 'es_gui', 'resources', 'images', 'SNL_Stacked_Black_Blue.jpg')
+                        allow_stretch: False
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: (1, 0.75)
+
+            GridLayout:
+                size_hint_x: 0.4
+                cols: 1
+                spacing: 5
+                row_force_default: True
+                row_default_height: self.height/6
+                padding: (100, 50)
+
+                AppSelectionIndexButton:
+                    text: ('[font=Modern Pictograms][size=54]_[/font][/size]\nQuESt Data Manager')
+                    on_state: root.app_select_sm.current = 'quest manager'
+
+              #  AppSelectionIndexButton:
+               #     text: ('[font=Modern Pictograms][size=54]$[/font][/size]\nQuESt Valuation')
+                #    on_state: root.app_select_sm.current = 'valuation'
+                
+               # AppSelectionIndexButton:
+                #    text: ('[font=Modern Pictograms][size=54]p[/font][/size]\nQuESt BTM')
+                 #   on_state: root.app_select_sm.current = 'btm'
+                    
+                AppSelectionIndexButton:
+                    text: ('[font=Modern Pictograms][size=54]6[/font][/size]\nQuESt Performance')
+                    on_state: root.app_select_sm.current = 'performance'
+					
+		#		AppSelectionIndexButton:
+        #            text: ('[font=Modern Pictograms][size=54]E[/font][/size]\nTechnology Selection')
+         #           on_state: root.app_select_sm.current = 'technology selection'
+
+            BoxLayout:
+                size_hint_x: 0.6
+                orientation: 'vertical'
+                padding: (70, 0)
+
+                ScreenManager:
+                    id: app_select_sm
+                    transition: SwapTransition()
+
+                    Screen:
+                        name: 'blank start'
+
+                    Screen:
+                        name: 'quest manager'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt Data Manager'
+
+                            AppSelectionDescBody:
+                                text: 'Manages the acquisition of data from ISO/RTOs, databases, and other sources for use in QuESt applications, including: \n *ISO/RTO historical market data \n *U.S. utility rate structures/tariffs \n *Commercial and residential building load profiles \n *Photovoltaic power system profiles \n *Weather data'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.current = 'data_manager_home'
+
+                    Screen:
+                        name: 'valuation'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt Valuation'
+
+                            AppSelectionDescBody:
+                                text: 'Estimates value for an energy storage system providing ISO/RTO services. Uses historical data to determine the maximum amount of revenue that the energy storage system could have generated by stacking multiple services/value streams (e.g., ancillary services, energy arbitrage). This retrospective analysis estimates value from future cash flows.'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_valuation()
+                    
+                    Screen:
+                        name: 'btm'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt BTM' 
+
+                            AppSelectionDescBody:
+                                text: 'A collection of tools for behind-the-meter (BTM) energy storage systems: \n *Estimate cost savings for time-of-use and/or net-metering customers'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_btm()
+                                    
+                    Screen:
+                        name: 'performance'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'QuESt Performance'
+
+                            AppSelectionDescBody:
+                                text: 'Estimates the effect heating and cooling loads have on battery energy storage performance.'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_performance()
+
+                    Screen:
+                        name: 'technology selection'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'Technology Selection'
+
+                            AppSelectionDescBody:
+                                text: 'Help users understand and select different energy storage technologies for various applications.'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Get started'
+                                    on_release: root.manager.launch_tech_selection()
+
+                    Screen:
+                        name: 'handbook'
+
+                        AppSelectionDescBox:
+                            AppSelectionDescTitle:
+                                text: 'Electricity Storage Handbook'
+
+                            AppSelectionDescBody:
+                                text: 'The Electricity Storage Handbook serves as an information resource for investors and venture capitalists, providing the latest developments in technologies and tools to guide their evaluations of energy storage opportunities. It includes a comprehensive database of the cost of current storage systems in a wide variety of electric utility and customer services, along with interconnection schematics.'
+
+                            AnchorLayout:
+                                anchor_x: 'center'
+                                anchor_y: 'top'
+
+                                AppIndexGoButton:
+                                    text: 'Coming soon!'
+                                    disabled: True
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.10
+            spacing: 50
+
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint_x: 0.75
+
+                BodyTextBase:
+                    font_size: sp(18)
+                    text: 'Copyright 2018 National Technology & Engineering Solutions of Sandia, LLC (NTESS). Under the terms of Contract DE-NA0003525 with NTESS, the U.S. Government retains certain rights in this software.'
+
+            AnchorLayout:
+                size_hint_x: 0.25
+                anchor_y: 'center'
+                anchor_x: 'right'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    BoxLayout:
+                        size_hint_x: 0.5
+
+                        Image:
+                            source: os.path.join(dirname, 'es_gui', 'resources', 'images', 'New_DOE_Logo_Color.jpg')
+                            allow_stretch: False
+
+                    BoxLayout:
+                        size_hint_x: 0.5
+
+                        Image:
+                            source: os.path.join(dirname, 'es_gui', 'resources', 'images', 'NNSA Logo_Color.png')
+                            allow_stretch: False
+
+<AppSelectionDescBox@BoxLayout>:
+    orientation: 'vertical'
+    spacing: 10
+
+<AppSelectionDescTitle@TitleTextBase>:
+    size_hint_y: 0.1
+    color: C(hex_primary)
+    #text_size: self.size
+
+<AppSelectionDescBody@BodyTextBase>:
+    size_hint_y: 0.9
+    valign: 'top'
+    halign: 'justify'
+    text_size: self.size
+    color: C(hex_black)
+
+<AppSelectionIndexButton@ToggleTileButton>:
+    group: 'apps_index'
+    allow_no_selection: False
+    font: stnd_font
+
+<AppIndexGoButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    size_hint_x: 1.0
+    size_hint_y: 0.15
+
+<IndexBottomButton@TileButton>:
+    font_size: stnd_font
+    color: C(hex_black)
+    background_color: C('#FFFFFF')
+    halign: 'left'
+
+<AboutScreen>:
+    about_label: about_label
+    auto_dismiss: False
+    size_hint: (0.52, 0.90)
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        padding: (25, 10)
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.15
+            padding: 10
+
+            canvas.before:
+                Color:
+                    rgb: C(hex_primary)
+
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+
+            Image:
+                source: os.path.join(dirname, 'es_gui', 'resources', 'logo', 'Quest_Logo_RGB_Reversed.png')
+                allow_stretch: False
+
+        # TitleTextBase:
+        #     size_hint_y: 0.08
+
+        #     text: '[b]About[/b]'
+        #     #color: C(hex_dark_blue)
+        #     #font_size: large_font
+
+        #     markup: True
+
+        ScrollView:
+            size_hint_y: 0.78
+            size_hint_x: 1
+            scroll_type: ['bars', 'content']
+            effect_cls: 'OpacityScrollEffect'
+
+            BodyTextBase:
+                size_hint_y: None
+                size_hint_x: 1
+                id: about_label
+                markup: True
+                color: C(hex_black)
+                halign: 'justify'
+
+        AnchorLayout:
+            anchor_x: 'right'
+            anchor_y: 'bottom'
+            padding: 5
+            size_hint_y: 0.07
+
+            TileButton:
+                #background_color: C(hex_warm_gray)
+                text: 'Got it, thanks!'
+                #font_size: stnd_font
+                size_hint_y: 1
+                size_hint_x: 0.25
+                on_release: root.dismiss()
+
+<NavigationBar>:
+    background_image: os.path.join(dirname, 'es_gui', 'resources', 'images', 'white.png')
+    background_normal: ''
+    background_color: (0, 83.0/255, 118.0/255, 1)
+    #background_color: C(hex_black)
+    size_hint_y: 0.05
+
+    ActionView:
+        use_separator: True
+
+        ActionPrevious:
+            title: ''
+            #color: C(hex_primary)
+            with_previous: True
+            app_icon: os.path.join(dirname, 'es_gui', 'resources', 'logo', 'Quest_App_Icon_50_transparent.png')
+            on_release: root.go_up_screen()
+
+
+<NavigationButton>:
+    #color: C(hex_primary)
+
+<SettingsScreen>:
+    auto_dismiss: False
+    size_hint: (0.75, 0.80)
+    settings_box: settings_box
+
+    BoxLayout:
+        orientation: 'vertical'
+        id: settings_box
+
+<ValuationHomeTitle@TitleTextBase>:
+
+<ValuationHomeScreen>:
+    wizard_button: wizard_button
+    advanced_button: advanced_button
+
+    GridLayout:
+        rows: 1
+        padding: 15, 100
+        spacing: 100
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            ValuationHomeTitle:
+                text: 'Simulation'
+                size_hint_y: 0.1
+
+            GridLayout:
+                cols: 1
+                spacing: 10
+
+                MenuTileButton:
+                    id: wizard_button
+                    background_color: C(hex_primary)
+                    text: '[font=Modern Pictograms][size=80]B[/size][/font]\nWizard'
+                    on_release: root.manager.current = 'valuation_wizard'
+
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: 10
+
+                    # MenuTileButton:
+                    #     background_color: C(hex_pms312)
+                    #     text: '[font=Modern Pictograms][size=80]r[/size][/font]\nSingle Run'
+                    #     on_release: root.manager.current = 'load_data'
+                    #     disabled: True
+
+                    MenuTileButton:
+                        id: advanced_button
+                        background_color: C(hex_pms137)
+                        text: '[font=Modern Pictograms][size=80]u[/size][/font]\nBatch Runs'
+                        on_release: root.manager.current = 'batch_run'
+
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+
+            ValuationHomeTitle:
+                text: 'Analysis'
+                size_hint_y: 0.1
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+
+                MenuTileButton:
+                    background_color: C(hex_secondary)
+                    text: '[font=Modern Pictograms][size=80]8[/size][/font]\nResults Viewer'
+                    on_release: root.manager.current = 'valuation_results_viewer'
+<WizardHeaderDesc@TitleTextBase>:
+    size_hint_y: 0.1
+<WizardBodyText@BodyTextBase>:
+    markup: True
+    text_size: self.size
+    valign: 'top'
+    halign: 'justify'
+
+<ValuationWizardPrevButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Previous'
+    size_hint_x: 0.15
+
+<ValuationWizardNextButton@TileButton>:
+    background_color: C(hex_primary)
+    color: C(hex_white)
+    text: 'Continue'
+    size_hint_x: 0.15

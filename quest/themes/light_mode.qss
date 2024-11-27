@@ -1,0 +1,678 @@
+QWidget {
+	font: 11pt "Segoe UI";
+}
+
+QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+QToolButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+QScrollBar:vertical {
+	border: none;
+    background: rgb(40, 84, 113);
+    width: 8px;
+    margin: 0px 0 0px 0;
+	border-radius: 4px;
+ }
+ QScrollBar::handle:vertical {	
+	background: rgb(129,194,65);
+    min-height: 25px;
+	border-radius: 4px
+ }
+ QScrollBar::add-line:vertical {
+     height: 0px;
+}
+ QScrollBar::sub-line:vertical {
+	height: 0px;
+}
+ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+     background: none;
+ }
+
+ QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+     background: none;
+ }
+QScrollBar:horizontal {
+	border: none;
+    background: rgb(40, 84, 113);
+    height: 8px;
+    margin: 0px 0 0px 0;
+	border-radius: 4px;
+ }
+ QScrollBar::handle:horizontal {	
+	background: rgb(129,194,65);
+    min-width: 25px;
+	border-radius: 4px
+ }
+
+ QScrollBar::add-line:horizontal {
+     width: 0px;
+}
+ QScrollBar::sub-line:horizontal {
+	width: 0px;
+}
+ QScrollBar::up-arrow:horizontal, QScrollBar::down-arrow:horizontal {
+     background: none;
+ }
+QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {
+     background: none;
+ }
+
+QProgressBar::handle:horizontal {	
+	background: rgb(129,194,65);
+    min-width: 25px;
+	border-radius: 4px
+ }
+
+#bottom_frame {
+  	border-top: 0.5px solid rgb(211,211,211);
+	border-bottom:0.5px solid rgb(211,211,211);
+}
+#bottom_right_frame {	
+	background-color: rgb(244,245,235);
+}
+#data_app, #tech_app, #eval_app, #btm_app, #perf_app, #eq_app, #micr_app, #plan_app, #quest_gpt {
+	border: 0px solid rgb(40, 84, 113);
+	border-radius: 6px;
+	
+}
+
+QStackedWidget {
+    background-color: rgb(255, 255, 255);
+}
+
+#credit_frame{
+    font: 10pt;
+}
+
+#quest_about{
+    border: 0px;
+}
+
+#hide_quest{	
+    border: none;
+   	background-color: transparent;
+   	padding-left: 0px;
+}
+#hide_quest:hover {
+    border: 2px solid rgb(129, 194, 65);
+   	border-radius: 4px;
+}
+#hide_quest:pressed {	
+    background-color: rgb(129, 194, 65);
+   	border-radius: 4px;
+}
+#hide_quest:checked {	
+    background-color: rgb(129, 194, 65);
+   	border-radius: 4px;
+}
+
+#top_right_frame QPushButton {	
+    border: 1px solid transparent;
+   	background-color: transparent;
+   	padding-left: 0px;
+}
+#top_right_frame QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+   	border-radius: 4px;
+}
+#top_right_frame QPushButton:pressed {	
+    background-color: rgb(129, 194, 65);
+   	border-radius: 4px;
+
+}
+
+#bottom_menu_bar QPushButton {	
+	border: none;
+	background-color: transparent;
+	padding-left: 0px;
+}
+#bottom_menu_bar QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#bottom_menu_bar QPushButton:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#bottom_menu_bar QPushButton:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+
+#top_menu_bar QPushButton {	
+	border: none;
+	background-color: transparent;
+	padding-left: 0px;
+}
+#top_menu_bar QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#top_menu_bar QPushButton:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#top_menu_bar QPushButton:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+
+
+#top_logo_button{	
+	border: none;
+	background-color: transparent;
+	padding-left: 0px;
+}
+#top_logo_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#top_logo_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#top_logo_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+
+
+#home_page #home_frame #frame_9 #about_info #about_info_cont #frame_2 #about_info_container #about_hide{	
+	border: none;
+	background-color: transparent;
+	padding-left: 0px;
+}
+#home_page #home_frame #frame_9 #about_info #about_info_cont #frame_2 #about_info_container #about_hide:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_frame #frame_9 #about_info #about_info_cont #frame_2 #about_info_container #about_hide:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_frame #frame_9 #about_info #about_info_cont #frame_2 #about_info_container #about_hide:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+
+#home_page #home_apps QPushButton {	
+	border: none;
+	background-color: transparent;
+	padding-left: 0px;
+}
+
+#home_page #home_apps QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps QPushButton:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps QPushButton:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+
+#home_page #home_apps QFrame{
+    background-color: rgb(226, 235, 242);
+}
+
+
+/* btm app light mode */
+
+
+#home_page #btm_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_3::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #behind_the_meter_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #behind_the_meter_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #behind_the_meter_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #behind_the_meter_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_3{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #behind_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #behind_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+#home_page #home_apps{
+    background-color: rgb(255, 255, 255);
+}
+#settings_menu{
+	background-color: rgb(220,220,220);
+}
+#label_9{
+    font: 700 16pt "Segoe UI";
+    background-color: rgb(220,220,220);
+}
+
+
+/* perf app light mode */
+
+#home_page #perf_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_8::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #performance_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #performance_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #performance_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #performance_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_8{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #perf_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #perf_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+
+
+/* eval app light mode */
+
+#home_page #eval_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_2::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #evaluation_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #evaluation_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #evaluation_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #evaluation_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_2{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #eval_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #eval_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+
+
+
+/* tech app light mode */
+
+#home_page #tech_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_7::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #tech_selection_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #tech_selection_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #tech_selection_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #tech_selection_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_7{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #tech_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #tech_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+
+
+
+/* equity app light mode */
+
+#home_page #eq_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_9::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #equity_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #equity_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #equity_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #equity_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_9{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #energy_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #energy_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+
+/* microgrid app light mode */
+
+#home_page #micr_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_10::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #microgrid_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #microgrid_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #microgrid_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #microgrid_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_10{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #micro_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #micro_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+
+
+
+/* planning app light mode */
+
+#home_page #plan_app:hover{
+	background-color: rgb(216, 228, 238);
+}
+
+#home_page #app_setting_button_11::menu-indicator {
+    width: 0px;
+}
+#home_page #home_apps #planning_install_button{	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#home_page #home_apps #planning_install_button:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #planning_install_button:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #planning_install_button:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#home_page #home_apps #progress_11{
+    background-color: rgb(226, 235, 242);
+}
+
+#home_page #plan_progress_bar{
+
+	min-height: 4px;
+	max-height: 4px;
+	border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#home_page #plan_progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+
+
+/* light mode for chatpage */
+
+
+#chat_page #frame_12{
+    background-color: rgb(255, 255, 255);
+}
+
+#chat_page #frame_2{
+      background-color: rgb(255, 255, 255);  
+}
+
+
+/* settings page light mode */
+
+#settings_page QPushButton {	
+	border: none;
+	background-color: transparent;
+	padding-left: 0px;
+}
+#settings_page QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#settings_page QPushButton:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#settings_page QPushButton:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#progress_bar {
+    min-height: 4px;
+    max-height: 4px;
+    border-radius: 2px;
+	background-color: rgb(226, 235, 242);
+}
+#progress_bar::chunk {
+    border-radius: 2px;
+    background-color: rgb(129, 194, 65);
+}
+#progress_5 {
+	background-color: rgb(226, 235, 242);
+}
+#fformat QFrame {
+    background-color: rgb(226, 235, 242);
+    border-radius: 6px;
+}
+
+#fformat #app_search.QFrame:hover {
+    background-color: rgb(216, 228, 238);
+    border-radius: 6px;
+}
+#fformat #app_search QFrame {
+    border-radius: 6px;
+}
+
+#fformat #install_button.QPushButton {
+	background-color: rgb(40, 84, 113);
+}
+#install_button.QPushButton {
+    border: none;
+    color: white;
+    background-color: rgb(40, 84, 113);
+    padding-left: 0px;
+    border-radius: 4px;
+}
+
+#install_button.QPushButton:hover {
+    border: 2px solid rgb(129, 194, 65);
+    border-radius: 4px;
+}
+
+#install_button.QPushButton:pressed {
+    background-color: rgb(129, 194, 65);
+    border-radius: 4px;
+}
+
+#install_button.QPushButton:checked {
+    background-color: rgb(129, 194, 65);
+    border-radius: 4px;
+}
+QTextBrowser {
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    background-color: transparent; /* Optional: Set background to transparent if needed */
+}
+
+#data_welcome #frame_6 QPushButton {	
+	border: none;
+	color:white;
+	background-color: rgb(40, 84, 113);
+	padding-left: 0px;
+	border-radius:4px;
+}
+
+#data_welcome #frame_6 QPushButton:hover {
+	border: 2px solid rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#data_welcome #frame_6 QPushButton:pressed {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+#data_welcome #frame_6 QPushButton:checked {	
+	background-color: rgb(129, 194, 65);
+	border-radius: 4px;
+}
+
+#home_page #frame_9 QLineEdit{
+	border: 0.5px solid gray;
+	border-radius: 2px;
+	image: url(:/icon/images/icons/search_FILL0_wght200_GRAD0_opsz24.png);
+	image-position: right;
+
+	selection-color: black;
+}

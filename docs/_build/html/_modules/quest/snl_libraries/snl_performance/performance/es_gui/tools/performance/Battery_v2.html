@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2 &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../../../../_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="../../../../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../../../index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../../../modules.html">quest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../../../index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Dec 23 11:24:37 2020</span>
+
+<span class="sd">@author: wolis</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">scipy.optimize</span>
+
+<div class="viewcode-block" id="Battery">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.html#quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2.Battery">[docs]</a>
+<span class="k">class</span> <span class="nc">Battery</span><span class="p">:</span>
+    
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">eCap</span><span class="p">,</span><span class="n">pRat</span><span class="p">,</span><span class="n">n_s</span><span class="p">,</span><span class="n">n_p</span><span class="p">,</span><span class="n">q_rate</span> <span class="o">=</span> <span class="mf">2.5</span><span class="p">,</span><span class="n">v_rate</span> <span class="o">=</span> <span class="mf">3.6</span><span class="p">,</span><span class="n">r</span> <span class="o">=</span> <span class="mf">0.02</span><span class="p">,</span><span class="n">k</span> <span class="o">=</span> <span class="mf">0.005</span><span class="p">,</span><span class="n">tau</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">):</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">=</span> <span class="n">eCap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pRat</span> <span class="o">=</span> <span class="n">pRat</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_c</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_d</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_loss</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pe_heat_loss</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soc_begin</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">eCap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soc_end</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_s</span> <span class="o">=</span> <span class="n">n_s</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">=</span> <span class="n">n_p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">q_rate</span> <span class="o">=</span> <span class="n">q_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">v_rate</span> <span class="o">=</span> <span class="n">v_rate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">r</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">=</span> <span class="n">tau</span>
+        
+        
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">p_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Charge Power. {MW}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_c</span>
+    
+    <span class="nd">@p_c</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">p_c</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">pRat</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pRat</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_c</span> <span class="o">=</span> <span class="n">value</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">p_d</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Discharge Power. {MW}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_d</span>
+    
+    <span class="nd">@p_d</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">p_d</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        
+        <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">pRat</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pRat</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_d</span> <span class="o">=</span> <span class="n">value</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">heat_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Current heat loss of battery. {MW}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_loss</span>
+    
+    <span class="nd">@heat_loss</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">heat_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_loss</span> <span class="o">=</span> <span class="n">value</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pe_heat_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Current heat loss of power electronics. {MW}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pe_heat_loss</span>
+    
+    <span class="nd">@pe_heat_loss</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">pe_heat_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pe_heat_loss</span> <span class="o">=</span> <span class="n">value</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">soc_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Current state of charge of battery. {MWh}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soc_begin</span>
+    
+    <span class="nd">@soc_begin</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">soc_begin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soc_begin</span> <span class="o">=</span> <span class="n">value</span>
+        
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">soc_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            State of charge after simulation. {MWh}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_soc_end</span>
+    
+    <span class="nd">@soc_end</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">soc_end</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_soc_end</span> <span class="o">=</span> <span class="n">value</span>
+        
+<div class="viewcode-block" id="Battery.find_pc">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.html#quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2.Battery.find_pc">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_pc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">P_c</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            For root finding algorithm to determine charge required to reach 95% charge.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">soe</span> <span class="o">=</span> <span class="mf">0.95</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span>
+        <span class="n">P_d</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_rate</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v_rate</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="p">)</span>
+        <span class="n">const_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span>
+        <span class="n">heat_term_charge</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="o">*</span><span class="n">P_c</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">heat_term_discharge</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">P_lc</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="p">(</span><span class="n">heat_term_charge</span> <span class="o">+</span> <span class="n">const_term</span><span class="o">*</span><span class="n">P_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span>
+        <span class="n">P_ld</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="p">(</span><span class="n">heat_term_discharge</span> <span class="o">+</span> <span class="n">const_term</span><span class="o">*</span><span class="n">P_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span>
+        <span class="n">f_c</span> <span class="o">=</span> <span class="n">P_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">-</span> <span class="n">P_lc</span>
+        <span class="n">f_d</span> <span class="o">=</span> <span class="n">P_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">+</span> <span class="n">P_ld</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_s</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span> <span class="o">+</span> <span class="n">f_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">-</span> <span class="n">f_d</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">-</span> <span class="n">soe</span></div>
+
+
+<div class="viewcode-block" id="Battery.find_pd">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.html#quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2.Battery.find_pd">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_pd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">P_d</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            For root finding algorithm to determine discharge required to reach 5% charge.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+        <span class="n">soe</span> <span class="o">=</span> <span class="mf">0.05</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span>
+        <span class="n">P_c</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_rate</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v_rate</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="p">)</span>
+        <span class="n">const_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span>
+        <span class="n">heat_term_charge</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="o">*</span><span class="n">P_c</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">heat_term_discharge</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">P_lc</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="p">(</span><span class="n">heat_term_charge</span> <span class="o">+</span> <span class="n">const_term</span><span class="o">*</span><span class="n">P_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span>
+        <span class="n">P_ld</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="p">(</span><span class="n">heat_term_discharge</span> <span class="o">+</span> <span class="n">const_term</span><span class="o">*</span><span class="n">P_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span>
+        <span class="n">f_c</span> <span class="o">=</span> <span class="n">P_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">-</span> <span class="n">P_lc</span>
+        <span class="n">f_d</span> <span class="o">=</span> <span class="n">P_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">+</span> <span class="n">P_ld</span>
+    
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_s</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span> <span class="o">+</span> <span class="n">f_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">-</span> <span class="n">f_d</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">-</span> <span class="n">soe</span></div>
+
+    
+<div class="viewcode-block" id="Battery.new_soe_Lion_Pbacid">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.html#quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2.Battery.new_soe_Lion_Pbacid">[docs]</a>
+    <span class="k">def</span> <span class="nf">new_soe_Lion_Pbacid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Determines next state of charge based upon charge/discharge profile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        
+
+        <span class="n">coef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q_rate</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">v_rate</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="p">)</span>
+        <span class="n">const_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">)</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span>
+        <span class="n">heat_term_charge</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">/</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">))</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">p_c</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">heat_term_discharge</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">P_lc</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="p">(</span><span class="n">heat_term_charge</span> <span class="o">+</span> <span class="n">const_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">p_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span>
+        <span class="n">P_ld</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="p">(</span><span class="n">heat_term_discharge</span> <span class="o">+</span> <span class="n">const_term</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">p_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span>
+        <span class="n">f_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">-</span> <span class="n">P_lc</span>
+        <span class="n">f_d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_d</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span> <span class="o">+</span> <span class="n">P_ld</span>
+        
+        <span class="n">soe</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_s</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span> <span class="o">+</span> <span class="n">f_c</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">-</span> <span class="n">f_d</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tau</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">soc_end</span> <span class="o">=</span> <span class="n">soe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_loss</span> <span class="o">=</span> <span class="n">coef</span><span class="o">*</span><span class="n">heat_term_charge</span> <span class="o">+</span> <span class="n">coef</span><span class="o">*</span><span class="n">heat_term_discharge</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pe_heat_loss</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">n_p</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p_c</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_d</span><span class="p">)</span></div>
+
+    
+<div class="viewcode-block" id="Battery.sim_battery">
+<a class="viewcode-back" href="../../../../../../../../quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.html#quest.snl_libraries.snl_performance.performance.es_gui.tools.performance.Battery_v2.Battery.sim_battery">[docs]</a>
+    <span class="k">def</span> <span class="nf">sim_battery</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Controls the battery to charge/discharge within physical limits.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">new_soe_Lion_Pbacid</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_end</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">*</span><span class="mf">0.95</span><span class="p">:</span>                
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sol</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">root_scalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">find_pc</span><span class="p">,</span> <span class="n">bracket</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">pRat</span><span class="p">],</span> <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;bisect&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p_c</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">root</span>
+            
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_soe_Lion_Pbacid</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="c1">#                print(e)</span>
+<span class="c1">#                print(&#39;Not charging&#39;)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">soc_end</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span>
+                <span class="n">heat_loss</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Charge root finding did not work&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">p_c</span><span class="p">)</span>            
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc_end</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="o">*</span><span class="mf">0.05</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">sol</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">optimize</span><span class="o">.</span><span class="n">root_scalar</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">find_pd</span><span class="p">,</span> <span class="n">bracket</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">pRat</span><span class="p">],</span> <span class="n">method</span> <span class="o">=</span> <span class="s1">&#39;bisect&#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p_d</span> <span class="o">=</span> <span class="n">sol</span><span class="o">.</span><span class="n">root</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_soe_Lion_Pbacid</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<span class="c1">#                print(e)</span>
+<span class="c1">#                print(&#39;Charging...&#39;)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p_d</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p_c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pRat</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">new_soe_Lion_Pbacid</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">BaseException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Discharge root finding did not work&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">soc_begin</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">eCap</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">p_c</span><span class="p">)</span> </div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

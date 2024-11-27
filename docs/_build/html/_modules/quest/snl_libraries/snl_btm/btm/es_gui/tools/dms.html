@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quest.snl_libraries.snl_btm.btm.es_gui.tools.dms &mdash; QuESt 2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../../../_static/documentation_options.js?v=60dbed4a"></script>
+        <script src="../../../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../../index.html" class="icon icon-home">
+            QuESt
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../../modules.html">quest</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../../index.html">QuESt</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">quest.snl_libraries.snl_btm.btm.es_gui.tools.dms</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quest.snl_libraries.snl_btm.btm.es_gui.tools.dms</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">absolute_import</span>
+
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="DataManagementSystem">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem">[docs]</a>
+<span class="k">class</span> <span class="nc">DataManagementSystem</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class used to store processed DataFrames as NumPy ndarrays and manage memory consumed. Data is stored in nested dictionaries up to a depth of 2: {key_0: {key_0_0: data}}. When the calculated memory exceeds max_memory, the dictionary at depth 1 at the front of the queue is popped out of the dictionary until the memory consumption is less than the maximum. The queue is determined by time of accessing. Accessing or adding to the structure at any depth will push the depth 1 dictionary to the back of the queue.</span>
+
+<span class="sd">    :param save_name: The path/filename to pickle the DMS&#39;s data.</span>
+<span class="sd">    :param max_memory: The maximum amount of memory, in bytes, that the contained ndarrays may collectively occupy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_name</span><span class="p">,</span> <span class="n">save_data</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">max_memory</span><span class="o">=</span><span class="mi">500000</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_used</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span> <span class="o">=</span> <span class="n">max_memory</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_data</span> <span class="o">=</span> <span class="n">save_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_name</span> <span class="o">=</span> <span class="n">save_name</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_name</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pfile</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pfile</span><span class="p">)</span>
+                <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Successfully loaded </span><span class="si">{fname}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_name</span><span class="p">))</span>
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">pickle</span><span class="o">.</span><span class="n">PickleError</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s1">&#39;DMS: Could not unpickle data; purging and restarting DMS.&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">delete_pickle</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    
+<div class="viewcode-block" id="DataManagementSystem.delete_pickle">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.delete_pickle">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes the pickle file used for self.data object persistence.&quot;&quot;&quot;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.save_state">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.save_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">save_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pickles self.data at self.save_name.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_data</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Saving </span><span class="si">{0}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_name</span><span class="p">))</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_name</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pfile</span><span class="p">:</span>
+                <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">pfile</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.pop">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.pop">[docs]</a>
+    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Shortcut for popping the queue of the OrderedDict.&quot;&quot;&quot;</span>
+        <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">popitem</span><span class="p">(</span><span class="n">last</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Popped: &#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">k</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.requeue">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.requeue">[docs]</a>
+    <span class="k">def</span> <span class="nf">requeue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Moves self.data[key] to the back of the queue for being purged.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+            <span class="n">to_requeue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">to_requeue</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.manage_memory">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.manage_memory">[docs]</a>
+    <span class="k">def</span> <span class="nf">manage_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pops entries from the queue until occupied memory is less than the maximum allocated.&quot;&quot;&quot;</span>
+        <span class="n">dms_sz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_memory</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">dms_sz</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Memory limit exceeded. Purging old data...&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Currently using: &#39;</span><span class="p">,</span> <span class="n">dms_sz</span><span class="p">,</span> <span class="s1">&#39;bytes&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Maximum allowed: &#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_memory</span><span class="p">,</span> <span class="s1">&#39;bytes&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">dms_sz</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_memory</span><span class="p">()</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Now using: &#39;</span><span class="p">,</span> <span class="n">dms_sz</span><span class="p">,</span> <span class="s1">&#39;bytes&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.compute_memory">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.compute_memory">[docs]</a>
+    <span class="k">def</span> <span class="nf">compute_memory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the memory footprint of the entire data structure.&quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_compute_memory</span><span class="p">(</span><span class="n">coll</span><span class="p">):</span>
+            <span class="n">dms_sz</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">coll</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">array_sz</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">nbytes</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">array_sz</span> <span class="o">=</span> <span class="n">_compute_memory</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+                <span class="n">dms_sz</span> <span class="o">+=</span> <span class="n">array_sz</span>
+            <span class="k">return</span> <span class="n">dms_sz</span>
+
+        <span class="n">dms_sz</span> <span class="o">=</span> <span class="n">_compute_memory</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">memory_used</span> <span class="o">=</span> <span class="n">dms_sz</span>
+        <span class="k">return</span> <span class="n">dms_sz</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.add_data">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.add_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds value to self.data[arg[0]][...][arg[N-1]]. Requeues self.data[arg[0]] after updating.&quot;&quot;&quot;</span>
+
+        <span class="c1"># def _add_data(keys, val):</span>
+        <span class="c1">#     val = {keys.pop(): val}</span>
+        <span class="c1">#     if keys:</span>
+        <span class="c1">#         val = _add_data(keys, val)</span>
+        <span class="c1">#     return val</span>
+
+        <span class="c1"># # TODO: generalize this to nested dictionaries greater than depth=2...</span>
+        <span class="c1"># args = list(args)</span>
+
+        <span class="c1"># if args[0] in self.data:</span>
+        <span class="c1">#     # dictionary at depth=1 already defined for key=args[0]</span>
+        <span class="c1">#     tmp_dict = _add_data(args[1:], value)</span>
+        <span class="c1">#     self.data[args[0]].update(tmp_dict)</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     # dictionary at depth=1 not defined yet for key=args[0]</span>
+        <span class="c1">#     try:</span>
+        <span class="c1">#         tmp_dict = _add_data(args[1:], value)</span>
+        <span class="c1">#     except IndexError:</span>
+        <span class="c1">#         # this dictionary only goes to depth=2</span>
+        <span class="c1">#         tmp_dict = value</span>
+        <span class="c1">#     finally:</span>
+        <span class="c1">#         self.data[args[0]] = tmp_dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">requeue</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manage_memory</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DataManagementSystem.get_data">
+<a class="viewcode-back" href="../../../../../../../quest.snl_libraries.snl_btm.btm.es_gui.tools.html#quest.snl_libraries.snl_btm.btm.es_gui.tools.dms.DataManagementSystem.get_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves NumPy ndarray from self.data according to provided sequence of keys.&quot;&quot;&quot;</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&gt;&gt;&gt; Warning: Already reached end of data tree. Too many arguments provided.&#39;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;keys provided: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;current key: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+                <span class="k">break</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">tmp</span> <span class="o">=</span> <span class="n">tmp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Data not yet in DMS, loading...&#39;</span><span class="p">)</span>
+                    <span class="k">raise</span><span class="p">(</span><span class="ne">KeyError</span><span class="p">(</span><span class="s1">&#39;KeyError when retrieving: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">requeue</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;DMS: Data located in DMS, retrieving...&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tmp</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Tu Nguyen.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
