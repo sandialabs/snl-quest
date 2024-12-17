@@ -436,6 +436,28 @@ class home_page(QWidget, Ui_home_page):
         self.gridLayout.addWidget(plan_front, 2, 0)
 
 
+        #Progress app
+        progress_front = form_apps()
+        progress_image = os.path.join(base_dir, "images", "logo", "progress_transparent_alt.png")
+        progress_image = progress_image.replace("\\", "/")
+        progress_front.app_image.setStyleSheet(f"image: url({progress_image});")
+
+        progress_env_path = os.path.join(base_dir, "app_envs", "env_progress", "snl_quest_progress")
+        progress_env_act = os.path.join(base_dir, "app_envs", "env_progress", "Scripts", "python.exe")
+
+        progress_env_cmd = "progress"
+        progress_script_path = os.path.join(base_dir, "app", "tools", "script_files", "progress.bat")
+        progress_del_path = os.path.join(base_dir, "app_envs", "env_progress")
+        progress_solve = os.path.join(base_dir,"app_envs", "env_progress", "glpk", "GLPK-4.65", "w64" )
+
+        progress_back = app_manager(progress_env_path, progress_env_act, progress_env_cmd, progress_script_path, del_path, progress_del_path, progress_solve, mod)
+        self.progress_obj = gui_connector(progress_front, progress_back, progress_env_path)
+
+        progress_about_button = progress_front.about_button
+        progress_page = self.add_info_page.add_page("QuESt Progress", "Atri Bera abera@sandia.gov", "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.")
+        self.add_info_page.connect_about(progress_about_button, progress_page)
+
+        self.gridLayout.addWidget(progress_front, 2, 1)
 ##      place holder formats
         # #Planning app place holder
         # self.plan_front = form_apps()
@@ -487,7 +509,8 @@ class home_page(QWidget, Ui_home_page):
         behind_the_meter = self.btm_obj.front.app_search
         performance = self.perf_obj.front.app_search
         microgrid = self.micro_obj.front.app_search
-        planning = self.plan_obj.app_search
+        planning = self.plan_obj.front.app_search
+        progress = self.progress_obj.front.app_search
         data_gpt = self.gpt_obj.front.app_search
         data_manager = self.data_man_obj.front.app_search
         energy_equity = self.equity_obj.front.app_search
@@ -497,7 +520,7 @@ class home_page(QWidget, Ui_home_page):
 
         self.widget_names = [
             "tech_selection", "evaluation", "behind_the_meter",
-            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager",
+            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager", "progress",
             ]
 
         for widget in self.widget_names:
