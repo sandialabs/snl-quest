@@ -1,23 +1,19 @@
 @echo off
 
-REM Set the path to the virtual environment
-set VENV_PATH=%~dp0..\..\..\app_envs\env_btm
+set VENV_PATH=%~dp0..\..\..\app_envs\env_planning
 
 REM Set the path to the setup.py file
-set SETUP_PATH=%~dp0..\..\..\snl_libraries\snl_btm
+set SETUP_PATH=%~dp0..\..\..\app_envs\env_planning\snl_quest_planning
 
-REM Create the virtual environment if it doesn't exist
-if not exist "%VENV_PATH%" (
-    python -m venv %VENV_PATH%
-)
-
-REM Activate the virtual environment
+set planning_dir=snl_quest_planning
+python -m venv %VENV_PATH%
 call "%VENV_PATH%\Scripts\activate"
 
-REM Install the Python package within the virtual environment
+mkdir "%VENV_PATH%\%planning_dir%"
 
-pip install "%SETUP_PATH%"
+git clone https://github.com/sandialabs/quest_planning.git "%VENV_PATH%\snl_quest_planning"
 
+pip install -e "%SETUP_PATH%"
 REM Define the GLPK URL and destination
 set URL=https://sourceforge.net/projects/winglpk/files/winglpk/GLPK-4.65/winglpk-4.65.zip/download
 set OUTPUT=%VENV_PATH%\glpk.zip
@@ -45,10 +41,6 @@ REM Clean up
 del %OUTPUT%
 
 echo GLPK installation successful
-garden install matplotlib
-echo Garden installation matplotlib succesful
 
-
-REM Deactivate the virtual environment
 deactivate
 exit /b 0

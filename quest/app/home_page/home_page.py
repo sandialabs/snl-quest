@@ -412,21 +412,48 @@ class home_page(QWidget, Ui_home_page):
 
         self.gridLayout.addWidget(equity_front, 1, 3)
 
-        #Planning app place holder
-        self.plan_front = form_apps()
-        self.plan_front.progress_bar.setValue(0)
-        self.plan_front.setting_button.setEnabled(False)
-        self.plan_front.install_button.setEnabled(False)
-        self.plan_front.install_button.setText("Upcoming")
-        plan_image = os.path.join(base_dir, "images", "logo", "Quest_Planning_Logo_RGB.png")
+        #Planning app
+        plan_front = form_apps()
+        plan_image = os.path.join(base_dir, "images", "logo", "custom_QP_logo.png")
         plan_image = plan_image.replace("\\", "/")
-        self.plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
+        plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
 
-        plan_about_button = self.plan_front.about_button
-        plan_page = self.add_info_page.add_page("QuESt Planning", "", "This app is still in development and will be released to the QuESt platform soon.")
+        plan_env_path = os.path.join(base_dir, "app_envs", "env_planning", "snl_quest_planning")
+        plan_env_act = os.path.join(base_dir, "app_envs", "env_planning", "Scripts", "python.exe")
+
+        plan_env_cmd = "quest_planning"
+        plan_script_path = os.path.join(base_dir, "app", "tools", "script_files", "plan.bat")
+        plan_del_path = os.path.join(base_dir, "app_envs", "env_planning")
+        plan_solve = os.path.join(base_dir,"app_envs", "env_planning", "glpk", "GLPK-4.65", "w64" )
+
+        plan_back = app_manager(plan_env_path, plan_env_act, plan_env_cmd, plan_script_path, del_path, plan_del_path, plan_solve, mod)
+        self.plan_obj = gui_connector(plan_front, plan_back, plan_env_path)
+
+        plan_about_button = plan_front.about_button
+        plan_page = self.add_info_page.add_page("QuESt Planning", "Cody Newlun cjnewlu@sandia.gov", "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.")
         self.add_info_page.connect_about(plan_about_button, plan_page)
 
-        self.gridLayout.addWidget(self.plan_front, 2, 0)
+        self.gridLayout.addWidget(plan_front, 2, 0)
+
+
+##      place holder formats
+        # #Planning app place holder
+        # self.plan_front = form_apps()
+        # self.plan_front.progress_bar.setValue(0)
+        # self.plan_front.setting_button.setEnabled(False)
+        # self.plan_front.install_button.setEnabled(False)
+        # self.plan_front.install_button.setText("Upcoming")
+        # plan_image = os.path.join(base_dir, "images", "logo", "Quest_Planning_Logo_RGB.png")
+        # plan_image = plan_image.replace("\\", "/")
+        # self.plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
+
+        # plan_about_button = self.plan_front.about_button
+        # plan_page = self.add_info_page.add_page("QuESt Planning", "", "This app is still in development and will be released to the QuESt platform soon.")
+        # self.add_info_page.connect_about(plan_about_button, plan_page)
+
+        # self.gridLayout.addWidget(self.plan_front, 2, 0)
+
+
 
 #           connecting the search bar funtion
 
@@ -460,7 +487,7 @@ class home_page(QWidget, Ui_home_page):
         behind_the_meter = self.btm_obj.front.app_search
         performance = self.perf_obj.front.app_search
         microgrid = self.micro_obj.front.app_search
-        planning = self.plan_front.app_search
+        planning = self.plan_obj.app_search
         data_gpt = self.gpt_obj.front.app_search
         data_manager = self.data_man_obj.front.app_search
         energy_equity = self.equity_obj.front.app_search
