@@ -458,6 +458,30 @@ class home_page(QWidget, Ui_home_page):
         self.add_info_page.connect_about(progress_about_button, progress_page)
 
         self.gridLayout.addWidget(progress_front, 2, 1)
+
+
+        #AFR app
+        afr_front = form_apps()
+        afr_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_AFR.png")
+        afr_image = afr_image.replace("\\", "/")
+        afr_front.app_image.setStyleSheet(f"image: url({afr_image});")
+
+        afr_env_path = os.path.join(base_dir, "app_envs", "env_afr")
+        afr_env_act = os.path.join(base_dir, "app_envs", "env_afr", "Scripts", "python.exe")
+
+        afr_env_cmd = "afr"
+        afr_script_path = os.path.join(base_dir, "app", "tools", "script_files", "afr.bat")
+        afr_del_path = os.path.join(base_dir, "app_envs", "env_afr")
+        afr_solve = os.path.join(base_dir,"app_envs", "env_afr", "glpk", "GLPK-4.65", "w64" )
+
+        afr_back = app_manager(afr_env_path, afr_env_act, afr_env_cmd, afr_script_path, del_path, afr_del_path, afr_solve, mod)
+        self.afr_obj = gui_connector(afr_front, afr_back, afr_env_path)
+
+        afr_about_button = afr_front.about_button
+        afr_page = self.add_info_page.add_page("QuESt Analysis for Regulators", "Walker Olis wolis@sandia.gov", "QuESt Analysis for Regulators is a python-based tool for analyzing the impact of energy storage, PV, and wind deployment on capacity goals.")
+        self.add_info_page.connect_about(afr_about_button, afr_page)
+
+        self.gridLayout.addWidget(afr_front, 2, 2)
 ##      place holder formats
         # #Planning app place holder
         # self.plan_front = form_apps()

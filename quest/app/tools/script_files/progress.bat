@@ -11,7 +11,7 @@ call "%VENV_PATH%\Scripts\activate"
 
 mkdir "%VENV_PATH%\%progress_dir%"
 
-git clone -b prog_b https://github.com/sandialabs/snl-progress.git "%VENV_PATH%\snl_quest_progress"
+git clone https://github.com/sandialabs/snl-progress.git "%VENV_PATH%\snl_quest_progress"
 
 pip install -e "%SETUP_PATH%"
 REM Define the GLPK URL and destination

@@ -1,0 +1,339 @@
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="56.1161699999999" height="97.29998999999998" version="1.0" id="svg2" inkscape:version="0.91 r13725" sodipodi:docname="USA counties.svg">
+  <defs id="defs9439"/>
+  <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-width="798" inkscape:window-height="828" id="namedview9437" showgrid="false" showguides="true" inkscape:zoom="0.64950808" inkscape:cx="494.98999" inkscape:cy="313.535" inkscape:window-x="-7" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:current-layer="svg2"/>
+  <metadata id="metadata4">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title/>
+        <cc:license rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/"/>
+        <dc:date>2019-10-06</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>U.S. Census Bureau, Abe.suleiman, Lokal_Profil</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://commons.wikimedia.org/wiki/File:Usa_counties_large.svg</dc:source>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <style id="style6">
+  /*
+   * Below are Cascading Style Sheet (CSS) definitions in use in this file,
+   * which allow easily changing how counties are displayed.
+   *
+   *
+   * For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
+   * https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
+   *
+   * The county codes used in this file combine the 2-digit state code, which is in the second column of the file
+   * linked above, and the 3-digit county code, which is in the third column of the file linked above. Each value
+   * for the "id" attribute for each county is in the following form: "c[state_code][county-code]". For example,
+   * for Loving Country in Texas, the state code is "48" and the county code is "301", so the id name for the
+   * county is "c48301".
+   *
+   * County codes used in this file can also be found on Wikimedia Commons at this link:
+   * https://commons.wikimedia.org/wiki/File_talk:Usa_counties_large.svg/county_codes
+   *
+   * Examples:
+   *
+   * To color two counties red (in this case Loving County and Dallas County in Texas) simply
+   * go to the CSS insertion point and add:
+   *
+   * #c48301, #c48113 {fill:red}
+   *
+   * To color an entire state's counties (in the case New Mexico, with "35" being the state code) a green,
+   * go to the CSS insertion point and add:
+   *
+   * path[id*='c35'] {fill:#34A853}
+   *
+   */
+  #counties {fill:#d0d0d0;stroke:#000;stroke-width:.17829;} 
+  #borders {fill:none;stroke:#221e1f;stroke-width:.89143;} 
+  #separator {fill:none;stroke:#a9a9a9;stroke-width:2.3177309;}
+ </style>
+  <g id="counties" transform="translate(-665.9667000000001,-213.99)" style="fill:#d0d0d0;stroke:#ffffff;stroke-width:0.17828999">
+    <path id="c18127" d="m 677.91,218.94 1.0965,10.913 -0.14619,0.192 -0.49207,0.275 -0.15155,-0.04 -1.3264,-0.841 -0.93066,-0.323 -0.34588,-0.09 -0.19255,0.04 -0.97166,0.563 -0.40293,0.578 -0.87717,-8.799 4.7406,-2.467" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2401">Porter, IN</title>
+    </path>
+    <path id="c18089" d="m 667.86,219.93 5.3094,1.479 0.87717,8.799 -0.92531,0.628 -1.9334,1.2776 -2.2528,0.31939 -0.27278,-3.045 -0.80229,-9.458" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2404">Lake, IN</title>
+    </path>
+    <path id="c18123" d="m 690.04,298.02 1.9433,-0.272 0.20296,1.2844 1.8955,-0.10436 0.2906,2.542 -0.35479,1.211 -0.10519,0.01 -0.36905,0.07 -0.0963,0.06 -0.0731,0.104 -0.0303,0.251 0.1355,1.373 -1.1731,2.674 -0.49921,0.387 -0.2389,0.08 -0.13728,0 -3.1967,-3.316 -0.0588,-4.814 -0.11054,-1.012 2.0253,-0.17 -0.0499,-0.346" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2407">Perry, IN</title>
+    </path>
+    <path id="c18147" d="m 688.18,299.55 0.0588,4.814 -2.7973,1.854 -1.1179,1.047 -1.3425,2.425 -2.6262,-1.751 -0.0874,-1.109 0.0303,-0.09 3.0451,-4.598 0.94154,-0.045 -0.13746,-2.123 4.0328,-0.426" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2410">Spencer, IN</title>
+    </path>
+    <path id="c18173" d="m 678.71,299.49 4.3805,-0.1 0.0464,0.64917 1.0055,-0.0702 0.13746,2.123 -0.94154,0.045 -3.0451,4.598 -0.0303,0.09 0.0874,1.109 -0.64361,-0.45 -2.7563,-0.739 -0.1765,-2.17 -0.41898,0.04 -0.15867,-2.009 -0.009,-1.013 -0.0571,-0.827 2.6707,-0.257 -0.0909,-1.02" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2413">Warrick, IN</title>
+    </path>
+    <path id="c18163" d="m 672.23,301.88 3.9544,-0.28 0.009,1.013 0.15867,2.009 0.41898,-0.04 0.1765,2.17 -1.5026,0.43681 -1.0138,-1.151 -0.43221,1.6764 0.81185,0.98166 -0.67758,0.94419 -1.0492,-0.26756 0.2272,-1.4954 -0.75836,0.20098 -0.3227,-6.197" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2416">Vanderburgh, IN</title>
+    </path>
+    <path id="c18129" d="m 667.34,300.87 -0.0234,0.10938 -0.10352,2.4121 -0.25781,5.3242 -0.0488,0.0996 -0.01,0.0215 -0.0391,0.0293 -0.0313,0 -0.85937,0.0293 0.90625,2.0352 0.83113,-0.0668 0.66431,0.42621 0.37813,-0.65038 0.44626,-0.29606 -0.84836,-1.3726 0.13595,-0.56964 4.0742,-0.32421 -0.32226,-6.1953 -0.0366,-0.47457 -2.4088,-0.0313 0.0186,-0.5849 z" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2419">Posey, IN</title>
+    </path>
+    <path id="c18051" d="m 675.51,293.1 -4.7012,3.1719 0,-0.006 -3.4629,4.5977 2.4659,-0.0771 -0.0186,0.58295 2.4088,0.0332 0.0366,0.47262 3.9551,-0.27929 -0.0566,-0.82813 2.6699,-0.25586 -0.36523,-4.1152 -0.15234,-0.0606 -0.94532,0.16016 -0.25,0.0898 -1.0547,-1.2715 -0.39258,-0.65039 z" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2422">Gibson, IN</title>
+    </path>
+    <path id="c18125" d="m 679.41,292.47 3.079,0.417 0.60261,6.509 -4.3805,0.1 -0.27456,-3.095 -0.15154,-0.06 -0.94671,0.16 -0.2496,0.09 -1.0537,-1.271 -0.39223,-0.651 -0.13728,-1.565 0.65075,-0.233 1.182,-0.186 0.11945,0.03 0.97345,0.656 0.22999,-0.06 0.30666,-0.273 0.23355,-0.234 0.2086,-0.329" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2425">Pike, IN</title>
+    </path>
+    <path id="c18037" d="m 689.4,291.95 0.31379,3.028 0.32983,3.039 0.0499,0.346 -2.0253,0.17 0.11054,1.012 -4.0328,0.426 -1.0055,0.0702 -0.0464,-0.64917 -0.60261,-6.509 2.6583,-0.01 1.0454,-0.61325 3.205,-0.30475" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2428">Dubois, IN</title>
+    </path>
+    <path id="c18025" d="m 696.29,293.67 0.95562,-0.09 0.40293,6.776 -3.6246,2.329 0.35479,-1.211 -0.2906,-2.542 -1.8955,0.10436 -0.20296,-1.2844 -1.9433,0.272 -0.32983,-3.039 4.0828,-0.448 2.5548,-0.2 -0.0642,-0.666" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2431">Crawford, IN</title>
+    </path>
+    <path id="c18061" d="m 701.2,293.27 0.21751,2.009 0.39401,0.635 0.0571,0 0.73098,0.538 0.36905,0.305 0.0391,1.5281 1.1108,0.0889 0.0232,0.177 -0.44215,4.041 -0.86826,0.296 -0.53664,0.177 -2.5959,-0.128 -0.12837,-0.02 -0.78089,-0.307 -0.81121,-0.537 -0.0874,-0.06 -0.041,-0.06 -0.10519,-0.161 -0.12836,-0.449 -0.0161,-0.04 -0.007,-0.105 -0.007,-0.161 0,-0.04 0.0553,-0.649 -0.40293,-6.776 3.9615,-0.305" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2434">Harrison, IN</title>
+    </path>
+    <path id="c18043" d="m 701.88,293.19 0.0178,0.168 0.51347,0.119 2.8205,-0.319 0.98058,1.157 -0.39402,1.478 -1.6723,2.757 -0.0232,-0.177 -1.1108,-0.0889 -0.0391,-1.5281 -0.36905,-0.305 -0.73098,-0.538 -0.0571,0 -0.39401,-0.635 -0.21751,-2.009 0.6757,-0.08" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2437">Floyd, IN</title>
+    </path>
+    <path id="c18019" d="m 708.95,288.05 1.2944,-0.055 1.2944,0.22803 0.0553,1.449 -3.2787,3.712 -2.4978,2.41 0.39402,-1.478 -0.98058,-1.157 -2.8205,0.319 -0.51347,-0.119 -0.0178,-0.168 -0.14441,-1.624 0.77912,-0.394 1.1089,-0.15 0.29774,-0.379 0.25673,-0.701 -0.041,-0.319 0.46042,-0.42888 0.083,-0.85347 4.2703,-0.29165" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2440">Clark, IN</title>
+    </path>
+    <path id="c18115" d="m 715.8,279.31 4.2611,-2.418 1.774,2.828 -6.0404,0.02 0.005,-0.433" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2443">Ohio, IN</title>
+    </path>
+    <path id="c18155" d="m 715.8,279.74 6.0404,-0.02 0.24247,1.003 -3.8902,2.63 -2.9239,2.001 -0.61865,-5.11 -0.0716,-0.42886 1.2216,-0.0721" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2446">Switzerland, IN</title>
+    </path>
+    <path id="c18077" d="m 710.38,280.73 4.2682,-0.495 0.61865,5.11 -2.4835,-0.862 -1.2444,3.736 -1.2944,-0.22803 -1.2944,0.055 -0.20147,-1.673 -0.68997,-0.256 -0.53129,-0.291 -0.57587,-0.612 -0.3958,-0.506 -0.14441,-1.262 1.2694,-0.344 0.56161,-0.901 0.17828,-0.543 0.32092,-0.728 1.6385,-0.2" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2449">Jefferson, IN</title>
+    </path>
+    <path id="c18143" d="m 706.41,283.45 0.14441,1.262 0.3958,0.506 0.57587,0.612 0.53129,0.291 0.68997,0.256 0.20147,1.673 -4.2703,0.29165 -0.083,0.85347 -0.46042,0.42888 -0.0865,-0.66032 -0.65265,1.5e-4 -0.40897,-3.2548 1.0421,-0.57768 0.42879,-1.2853 1.9522,-0.396" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2452">Scott, IN</title>
+    </path>
+    <path id="c18175" d="m 696.07,285.75 6.9175,-0.04 0.40897,3.2548 0.65265,-1.4e-4 0.0865,0.66031 0.041,0.319 -0.25673,0.701 -0.29774,0.379 -1.1089,0.15 -0.77912,0.394 0.14441,1.624 -0.6757,0.08 -3.9615,0.305 -0.95562,0.09 -0.62579,-6.117 -0.06,-1.058 0.47008,-0.73997" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2455">Washington, IN</title>
+    </path>
+    <path id="c18117" d="m 695.66,287.55 0.62579,6.117 0.0642,0.666 -2.5548,0.2 -4.0828,0.448 -0.31379,-3.028 -0.37618,-3.696 6.6376,-0.707" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2458">Orange, IN</title>
+    </path>
+    <path id="c18101" d="m 684.62,283.61 3.9134,-0.39 0.49029,5.036 0.37618,3.696 -3.205,0.30475 -1.0454,0.61325 -0.52951,-9.26" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2461">Martin, IN</title>
+    </path>
+    <path id="c18027" d="m 681.18,283.94 3.4392,-0.332 0.52951,9.26 -2.6583,0.01 -3.079,-0.417 -0.80229,-3.522 0.24068,-1.886 0.31379,-0.62 1.503,-2.088 0.51346,-0.41" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2464">Daviess, IN</title>
+    </path>
+    <path id="c18083" d="m 678.66,284.09 2.5228,-0.144 -0.51346,0.41 -1.503,2.088 -0.31379,0.62 -0.24068,1.886 0.80229,3.522 -0.2086,0.329 -0.23355,0.234 -0.30666,0.273 -0.22999,0.06 -0.97345,-0.656 -0.11945,-0.03 -1.182,0.186 -0.65075,0.233 -4.7014,3.172 1.2783,-3.68 0.34588,-0.941 1.4067,-1.799 0.14263,-0.12 0.17651,-0.322 0.25138,-1.462 0.007,-0.562 -0.68462,-1.471 -0.0392,-0.06 -0.0731,0 -0.14441,-1.146 5.1846,-0.605" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2467">Knox, IN</title>
+    </path>
+    <path id="c18153" d="m 677.91,275.99 0.17829,2.009 0.56338,6.09 -5.1846,0.605 0.10519,-0.145 0.12836,-0.363 0.0481,-0.733 -1.2765,-2.28 -0.83617,-0.983 -0.36192,-1.235 0.23355,-2.395 6.4023,-0.57" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2470">Sullivan, IN</title>
+    </path>
+    <path id="c18055" d="m 681.38,277.78 6.5574,-0.577 0.40115,3.993 0.19255,2.026 -3.9134,0.39 -3.4392,0.332 -2.5228,0.144 -0.56338,-6.09 3.2876,-0.218" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2473">Greene, IN</title>
+    </path>
+    <path id="c18093" d="m 688.34,281.19 6.4433,-0.611 0.85565,-0.093 0.43158,5.261 -0.47008,0.73997 0.06,1.058 -6.6376,0.707 -0.49029,-5.036 -0.19255,-2.026" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2476">Lawrence, IN</title>
+    </path>
+    <path id="c18071" d="m 698.83,278.78 4.0052,-0.4894 0.90484,-0.4486 0.71493,6.002 -0.42879,1.2853 -1.0421,0.57768 -6.9175,0.04 -0.43158,-5.261 -0.85565,0.093 -0.14441,-1.334 4.1951,-0.467" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2479">Jackson, IN</title>
+    </path>
+    <path id="c18079" d="m 709.75,274.22 0.63292,6.516 -1.6385,0.2 -0.32092,0.728 -0.17828,0.543 -0.56161,0.901 -1.2694,0.344 -1.9522,0.396 -0.71493,-6.002 -0.17,-1.2563 1.9921,-0.39966 2.6701,-0.62827 1.5107,-1.3417" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2482">Jennings, IN</title>
+    </path>
+    <path id="c18137" d="m 716.03,270.9 -0.22464,8.405 -0.005,0.433 -1.2216,0.0721 0.0716,0.42886 -4.2682,0.495 -0.63292,-6.516 2.3302,-1.961 1.2174,-0.85686 2.7335,-0.50014" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2485">Ripley, IN</title>
+    </path>
+    <path id="c18029" d="m 716.03,270.9 4.3252,-0.458 0.52951,4.598 -0.81833,1.847 -4.2611,2.418 0.22464,-8.405" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2488">Dearborn, IN</title>
+    </path>
+    <path id="c18047" d="m 719.84,265.44 0.51346,4.999 -4.3252,0.458 -2.7335,0.50014 -1.2174,0.85686 -0.4992,-4.258 -0.20147,-1.654 4.5873,-0.547 3.876,-0.355" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2491">Franklin, IN</title>
+    </path>
+    <path id="c18031" d="m 705.76,268.66 5.8175,-0.66 0.4992,4.258 -2.3302,1.961 -1.5107,1.3417 -2.6701,0.62827 -0.51347,-5.054 0.9548,-0.20147 -0.247,-2.2735" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2494">Decatur, IN</title>
+    </path>
+    <path id="c18005" d="m 705.05,271.13 0.51347,5.054 -1.9921,0.39966 0.17,1.2563 -0.90484,0.4486 -4.0052,0.4894 -0.80229,-6.766 2.3373,-0.312 4.6836,-0.57" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2497">Bartholomew, IN</title>
+    </path>
+    <path id="c18013" d="m 695.11,272.38 2.9186,-0.364 0.80229,6.766 -4.1951,0.467 -1.0855,0.14722 -0.71342,-6.7362 2.2732,-0.28" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2500">Brown, IN</title>
+    </path>
+    <path id="c18105" d="m 688.44,272.91 4.3948,-0.248 0.71342,6.7362 1.0855,-0.14722 0.14441,1.334 -6.4433,0.611 -0.40115,-3.993 -0.35086,-4.2374 0.8572,-0.0556" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2503">Monroe, IN</title>
+    </path>
+    <path id="c18119" d="m 682.73,270.55 4.4429,-0.36 1.1235,-0.0789 0.14773,2.8019 -0.8572,0.0556 0.35086,4.2374 -6.5574,0.577 -0.36192,-4.032 1.9505,-0.17 -0.23891,-3.031" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2506">Owen, IN</title>
+    </path>
+    <path id="c18021" d="m 677.89,267.89 3.268,-0.258 0.24934,3.0634 1.3196,-0.14735 0.23891,3.031 -1.9505,0.17 0.36192,4.032 -3.2876,0.218 -0.17829,-2.009 -0.52773,-6.044 0.67392,-0.04 -0.16759,-2.017" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2509">Clay, IN</title>
+    </path>
+    <path id="c18167" d="m 677.89,267.89 0.16759,2.017 -0.67392,0.04 0.52773,6.044 -6.4023,0.57 0.82012,-5.143 -0.27456,-3.004 2.6208,-0.25 3.2145,-0.273" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2512">Vigo, IN</title>
+    </path>
+    <path id="c18165" d="m 673.17,256.21 0.12836,4.06 0.80408,1.052 0.22642,0.298 0.31914,0.634 -0.15155,4.113 0.18542,1.794 -2.6208,0.25 -0.58656,-6.364 -0.51347,-6.115 2.209,0.278" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2515">Vermillion, IN</title>
+    </path>
+    <path id="c18121" d="m 679.04,259.73 0.20016,1.951 1.408,-0.093 0.51169,6.041 -3.268,0.258 -3.2145,0.273 -0.18542,-1.794 0.15155,-4.113 -0.31914,-0.634 -0.22642,-0.298 -0.80408,-1.052 5.7462,-0.539" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2518">Parke, IN</title>
+    </path>
+    <path id="c18133" d="m 680.65,261.59 5.4877,-0.492 0.14441,-0.02 0.30487,3.158 0.22092,2.245 0.30324,-0.019 0.29596,0.651 0.0548,1.0145 -0.43915,0.60285 0.15078,1.4527 -4.4429,0.36 -1.3196,0.14735 -0.24934,-3.0634 -0.51169,-6.041" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2521">Putnam, IN</title>
+    </path>
+    <path id="c18109" d="m 694.45,265.64 0.65788,6.736 -2.2732,0.28 -4.3948,0.248 -0.14773,-2.8019 -1.1235,0.0789 -0.15078,-1.4527 0.43915,-0.60285 -0.0548,-1.0145 3.3518,-0.33 -0.0731,-0.674 2.266,-0.272 0.16938,-0.02 1.3336,-0.179" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2524">Morgan, IN</title>
+    </path>
+    <path id="c18081" d="m 699.65,265 0.71493,6.709 -2.3373,0.312 -2.9186,0.364 -0.65788,-6.736 5.1988,-0.649" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2527">Johnson, IN</title>
+    </path>
+    <path id="c18145" d="m 699.52,263.64 5.5608,-0.633 0.68284,5.657 0.247,2.2735 -0.9548,0.20147 -4.6836,0.57 -0.71493,-6.709 -0.13728,-1.36" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2530">Shelby, IN</title>
+    </path>
+    <path id="c18139" d="m 705.49,260.9 5.1525,-0.596 0.93958,7.691 -5.8175,0.66 -0.68284,-5.657 -0.26146,-2.0112 0.66974,-0.0868" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2533">Rush, IN</title>
+    </path>
+    <path id="c18041" d="m 710.64,260.31 1.3978,-0.176 0.65967,-0.07 0.16759,1.68 2.628,-0.28 0.47246,4.338 -4.5873,0.547 -0.73811,-6.037" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2536">Fayette, IN</title>
+    </path>
+    <path id="c18161" d="m 715.49,261.46 3.8082,-0.726 0.41897,3.666 0.12124,1.043 -3.876,0.355 -0.47246,-4.338" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2539">Union, IN</title>
+    </path>
+    <path id="c18177" d="m 718.6,254.31 0.2086,2.034 0.48851,4.386 -3.8082,0.726 -2.628,0.28 -0.16759,-1.68 -0.65967,0.07 -0.26284,-2.1916 0.27096,-0.0342 -0.23454,-2.7882 6.7927,-0.804" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2542">Wayne, IN</title>
+    </path>
+    <path id="c18065" d="m 705.11,254.18 6.2935,-0.701 0.13652,1.643 0.26997,-0.003 0.23454,2.7882 -0.27096,0.0342 0.26284,2.1916 -1.3978,0.176 -5.1525,0.596 -0.27541,-2.1058 0.46954,-0.0571 -0.24043,-1.5421 -0.32984,-3.02" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2545">Henry, IN</title>
+    </path>
+    <path id="c18059" d="m 705.44,257.2 0.24038,1.5421 -0.46957,0.0571 0.27539,2.1058 -0.66974,0.0868 0.26146,2.0112 -5.5608,0.633 -0.32092,-5.325 1.3176,-0.1028 -0.0482,-0.4132 4.9742,-0.595" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2548">Hancock, IN</title>
+    </path>
+    <path id="c18097" d="m 699.2,258.31 0.32092,5.325 0.13728,1.36 -5.1988,0.649 -1.3336,0.179 -0.68463,-6.736 1.4887,-0.191 5.2702,-0.586" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2551">Marion, IN</title>
+    </path>
+    <path id="c18063" d="m 692.44,259.09 0.68463,6.736 -0.16938,0.02 -2.266,0.272 0.0731,0.674 -3.3518,0.33 -0.29596,-0.651 -0.30324,0.019 -0.22092,-2.245 -0.30487,-3.158 -0.14441,0.02 -0.12837,-1.333 6.4272,-0.676" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2554">Hendricks, IN</title>
+    </path>
+    <path id="c18011" d="m 693.29,253.02 0.63648,5.874 -1.4887,0.191 -6.4272,0.676 -0.59548,-5.898 7.8749,-0.843" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2557">Boone, IN</title>
+    </path>
+    <path id="c18057" d="m 693.2,252.21 6.5984,-0.762 0.6668,6.347 0.0482,0.4132 -1.3176,0.1028 -5.2702,0.586 -0.63648,-5.874 -0.0892,-0.813" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2560">Hamilton, IN</title>
+    </path>
+    <path id="c18135" d="m 710.72,248.19 7.1743,-0.908 0.70958,7.032 -6.7927,0.804 -0.26997,0.003 -0.13652,-1.643 -0.68463,-5.288" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2563">Randolph, IN</title>
+    </path>
+    <path id="c18035" d="m 710.51,246.53 0.20859,1.662 0.68463,5.288 -6.2935,0.701 -0.80229,-6.961 2.3213,-0.248 3.8813,-0.442" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2566">Delaware, IN</title>
+    </path>
+    <path id="c18095" d="m 704.31,247.22 0.80229,6.961 0.32984,3.02 -4.9742,0.595 -0.6668,-6.347 -0.40292,-3.674 4.9118,-0.555" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2569">Madison, IN</title>
+    </path>
+    <path id="c18159" d="m 699.39,247.77 0.40292,3.674 -6.5984,0.762 -0.3851,-3.641 -0.0534,-0.61047 6.5698,-0.83553 0.0642,0.651" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2572">Tipton, IN</title>
+    </path>
+    <path id="c18023" d="m 684.86,248.01 5.5198,-0.545 1.15,-0.112 0.10519,0.996 0.52952,0.289 0.65074,-0.07 0.3851,3.641 0.0892,0.813 -7.8749,0.843 -0.0802,-0.827 -0.47424,-5.025" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2575">Clinton, IN</title>
+    </path>
+    <path id="c18107" d="m 685.33,253.04 0.0802,0.827 0.59548,5.898 0.12837,1.333 -5.4877,0.492 -1.408,0.093 -0.20016,-1.951 -0.59548,-6.042 6.8872,-0.65" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2578">Montgomery, IN</title>
+    </path>
+    <path id="c18045" d="m 678.45,253.69 0.59548,6.042 -5.7462,0.539 -0.12836,-4.06 -0.54556,-0.586 -0.0891,-0.216 0.016,-0.121 0.23534,-0.448 2.7706,-2.909 0.42611,-0.353 2.1448,-1.384 0.32091,3.496" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2581">Fountain, IN</title>
+    </path>
+    <path id="c18075" d="m 717.2,241.25 0.56874,5.056 0.11945,0.977 -7.1743,0.908 -0.20859,-1.662 0.30501,-0.0387 -0.47439,-4.3253 2.2839,-0.289 4.5802,-0.626" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2584">Jay, IN</title>
+    </path>
+    <path id="c18009" d="m 706.1,242.66 4.2432,-0.492 0.47439,4.3253 -0.30501,0.0387 -3.8813,0.442 -0.5313,-4.314" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2587">Blackford, IN</title>
+    </path>
+    <path id="c18053" d="m 702.58,241.03 3.268,-0.376 0.2496,2 0.5313,4.314 -2.3213,0.248 -4.9118,0.555 -0.0642,-0.651 -0.4261,-3.655 -0.22286,-1.986 3.8974,-0.449" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2590">Grant, IN</title>
+    </path>
+    <path id="c18067" d="m 693.71,244.08 5.1899,-0.61 0.4261,3.655 -6.5698,0.83553 0.0534,0.61047 -0.65074,0.07 -0.52952,-0.289 -0.10519,-0.996 -1.15,0.112 -0.27278,-2.981 3.6085,-0.41" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2593">Howard, IN</title>
+    </path>
+    <path id="c18015" d="m 690.11,244.49 0.27278,2.981 -5.5198,0.545 -0.35408,-2.98 -1.2594,0.112 -0.21751,-1.919 0.0874,-1.904 0.066,-0.162 0.0713,-0.09 2.8686,-0.245 0.9788,-0.09 0.10461,0.87649 2.6036,-0.15249 0.29774,3.029" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2596">Carroll, IN</title>
+    </path>
+    <path id="c18157" d="m 677.64,245.67 5.6036,-0.524 1.2605,-0.112 0.35297,2.98 0.47424,5.025 -6.8872,0.65 -0.32091,-3.496 -0.26565,-2.515 -0.21751,-2.008" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2599">Tippecanoe, IN</title>
+    </path>
+    <path id="c18171" d="m 670.36,248.33 7.4952,-0.65 0.26565,2.515 -2.1448,1.384 -0.42611,0.353 -2.7706,2.909 -0.23534,0.448 -0.016,0.121 0.0891,0.216 0.54556,0.586 -2.209,-0.278 -0.59369,-7.604" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2602">Warren, IN</title>
+    </path>
+    <path id="c18007" d="m 674.3,241.94 2.9096,-0.271 0.65075,6.009 -7.4952,0.65 -0.0267,-0.328 -0.50455,-5.666 4.4661,-0.394" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2605">Benton, IN</title>
+    </path>
+    <path id="c18001" d="m 716.24,233.2 0.542,4.468 0.42075,3.583 -4.5802,0.626 -1.0216,-8.026 4.639,-0.651" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2608">Adams, IN</title>
+    </path>
+    <path id="c18179" d="m 707.11,234.38 4.4928,-0.529 1.0216,8.026 -2.2839,0.289 -4.2432,0.492 -0.2496,-2 1.9701,-0.236 -0.7078,-6.042" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2611">Wells, IN</title>
+    </path>
+    <path id="c18069" d="m 701.61,233.01 5.2862,-0.661 0.21751,2.034 0.7078,6.042 -1.9701,0.236 -3.268,0.376 -0.97344,-8.027" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2614">Huntington, IN</title>
+    </path>
+    <path id="c18169" d="m 700.8,232.06 0.10753,0.98938 0.69655,-0.0414 0.97344,8.027 -3.8974,0.449 -1.2962,0.153 -0.96275,-8.001 -0.0963,-1.004 4.475,-0.572" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2617">Wabash, IN</title>
+    </path>
+    <path id="c18103" d="m 696.42,233.63 0.96275,8.001 1.2962,-0.153 0.22286,1.986 -5.1899,0.61 -0.90035,-7.978 -0.20789,-1.9794 3.8164,-0.48656" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2620">Miami, IN</title>
+    </path>
+    <path id="c18017" d="m 687.67,236.62 5.1436,-0.522 0.90035,7.978 -3.6085,0.41 -0.29774,-3.029 -2.6036,0.15249 -0.10461,-0.87649 -0.9788,0.09 -0.40293,-4.032 1.9522,-0.168" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2623">Cass, IN</title>
+    </path>
+    <path id="c18181" d="m 685.72,236.79 0.40293,4.032 -2.8686,0.245 -0.0713,0.09 -0.066,0.162 -0.0874,1.904 0.21751,1.919 -5.6036,0.524 -0.43324,-4.001 -0.19053,-2.3088 1.7503,-0.21471 -0.13945,-1.6959 1.0864,-0.11256 6.0029,-0.547" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2626">White, IN</title>
+    </path>
+    <path id="c18003" d="m 715.33,225.6 0.72384,6.06 0.1872,1.535 -4.639,0.651 -4.4928,0.529 -0.21751,-2.034 -0.36122,-3.7888 0.39368,-0.0404 -0.23214,-2.1788 1.9683,-0.227 6.6198,-0.931 0.0499,0.425" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2629">Allen, IN</title>
+    </path>
+    <path id="c18183" d="m 700.73,226.29 1.9772,-0.226 0.057,0.667 3.9294,-0.392 0.23214,2.1788 -0.39368,0.0404 0.36122,3.7888 -5.2862,0.661 -0.69655,0.0414 -0.10753,-0.98938 -0.37084,-3.029 0.58122,-0.07 -0.16224,-1.735 -0.12124,-0.94" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2632">Whitley, IN</title>
+    </path>
+    <path id="c18049" d="m 687.08,230.59 6.6697,-0.715 0.26995,2.0363 0.82167,-0.13808 0.17258,1.0303 1.3085,-0.17053 0.0963,1.004 -3.8164,0.48656 0.20789,1.9794 -5.1436,0.522 -0.58656,-6.035" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2635">Fulton, IN</title>
+    </path>
+    <path id="c18131" d="m 687.08,230.59 0.58656,6.035 -1.9522,0.168 -6.0029,0.547 -0.56874,-5.987 7.9373,-0.763" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2638">Pulaski, IN</title>
+    </path>
+    <path id="c18033" d="m 707.94,220.08 6.6144,-0.852 0.28882,2.394 0.43324,3.56 -6.6198,0.931 -0.71671,-6.033" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2641">DeKalb, IN</title>
+    </path>
+    <path id="c18113" d="m 707.94,220.08 0.71671,6.033 -1.9683,0.227 -3.9294,0.392 -0.057,-0.667 -1.9772,0.226 -0.38331,-3.271 -0.24069,-1.984 7.8393,-0.956" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2644">Noble, IN</title>
+    </path>
+    <path id="c18085" d="m 693.43,223.78 6.9104,-0.763 0.38331,3.271 0.12124,0.94 0.16224,1.735 -0.58122,0.07 0.37084,3.029 -4.475,0.572 -1.3085,0.17053 -0.17258,-1.0303 -0.82167,0.13808 -0.26995,-2.0363 0.4246,-0.0602 -0.74374,-6.0318" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2647">Kosciusko, IN</title>
+    </path>
+    <path id="c18099" d="m 693.43,223.78 0.74374,6.0318 -0.4246,0.0602 -6.6697,0.715 -0.60261,-6.028 -0.10162,-0.995 3.0665,-0.362 3.876,-0.41 0.11232,0.988" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2650">Marshall, IN</title>
+    </path>
+    <path id="c18149" d="m 686.48,224.56 0.60261,6.028 -7.9373,0.763 -0.1355,-1.494 1.8863,-1.029 0.50634,-0.33 0.39223,-0.618 0.29952,-0.564 0.1141,-0.305 0.35123,-1.351 0.92353,-0.795 2.0075,-0.2 0.98949,-0.105" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2653">Starke, IN</title>
+    </path>
+    <path id="c18073" d="m 679.01,229.86 0.1355,1.494 0.56874,5.987 -1.0864,0.11256 0.13945,1.6959 -1.7503,0.21471 0.19053,2.3088 -2.9096,0.271 -0.39936,-4.033 -0.0963,-0.04 -0.0499,-0.1 -0.62757,-6.933 0.92531,-0.628 0.40293,-0.578 0.97166,-0.563 0.19255,-0.04 0.34588,0.09 0.93066,0.323 1.3264,0.841 0.15155,0.04 0.49207,-0.274 0.14619,-0.193" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2656">Jasper, IN</title>
+    </path>
+    <path id="c18111" d="m 668.94,232.43 2.2528,-0.31939 1.9334,-1.2776 0.62757,6.933 0.0499,0.1 0.0963,0.04 0.39936,4.033 -4.4661,0.394 -0.56339,-6.308 -0.32983,-3.592" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2659">Newton, IN</title>
+    </path>
+    <path id="c18151" d="m 713.59,213.99 0.49742,1.428 0.47425,3.81 -6.6144,0.852 -0.65788,-5.35 6.3007,-0.74" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2662">Steuben, IN</title>
+    </path>
+    <path id="c18087" d="m 705.66,214.9 1.6224,-0.174 0.65788,5.35 -7.8393,0.956 -0.67749,-5.415 6.2365,-0.717" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2665">LaGrange, IN</title>
+    </path>
+    <path id="c18039" d="m 699.43,215.62 0.67749,5.415 0.24069,1.984 -6.9104,0.763 -0.84508,-7.456 4.6034,-0.467 2.2339,-0.239" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2668">Elkhart, IN</title>
+    </path>
+    <path id="c18141" d="m 692.59,216.32 0.73276,6.468 -3.876,0.41 -3.0665,0.362 0.10162,0.995 -0.98949,0.105 -0.73811,-7.522 5.0634,-0.522 2.7724,-0.296" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2671">St. Joseph, IN</title>
+    </path>
+    <path id="c18091" d="m 679.64,217.63 5.1097,-0.491 0.73811,7.522 -2.0075,0.2 -0.92353,0.795 -0.35123,1.351 -0.1141,0.305 -0.29952,0.564 -0.39223,0.618 -0.50634,0.33 -1.8863,1.029 -1.0965,-10.913 1.7294,-1.31" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title2674">LaPorte, IN</title>
+    </path>
+    </g>
+  </svg>

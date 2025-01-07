@@ -1,0 +1,309 @@
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="64.85795000000007" height="112.68400000000008" version="1.0" id="svg2" inkscape:version="0.91 r13725" sodipodi:docname="USA counties.svg">
+  <defs id="defs9439"/>
+  <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-width="798" inkscape:window-height="828" id="namedview9437" showgrid="false" showguides="true" inkscape:zoom="0.64950808" inkscape:cx="494.98999" inkscape:cy="313.535" inkscape:window-x="-7" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:current-layer="svg2"/>
+  <metadata id="metadata4">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title/>
+        <cc:license rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/"/>
+        <dc:date>2019-10-06</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>U.S. Census Bureau, Abe.suleiman, Lokal_Profil</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://commons.wikimedia.org/wiki/File:Usa_counties_large.svg</dc:source>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <style id="style6">
+  /*
+   * Below are Cascading Style Sheet (CSS) definitions in use in this file,
+   * which allow easily changing how counties are displayed.
+   *
+   *
+   * For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
+   * https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
+   *
+   * The county codes used in this file combine the 2-digit state code, which is in the second column of the file
+   * linked above, and the 3-digit county code, which is in the third column of the file linked above. Each value
+   * for the "id" attribute for each county is in the following form: "c[state_code][county-code]". For example,
+   * for Loving Country in Texas, the state code is "48" and the county code is "301", so the id name for the
+   * county is "c48301".
+   *
+   * County codes used in this file can also be found on Wikimedia Commons at this link:
+   * https://commons.wikimedia.org/wiki/File_talk:Usa_counties_large.svg/county_codes
+   *
+   * Examples:
+   *
+   * To color two counties red (in this case Loving County and Dallas County in Texas) simply
+   * go to the CSS insertion point and add:
+   *
+   * #c48301, #c48113 {fill:red}
+   *
+   * To color an entire state's counties (in the case New Mexico, with "35" being the state code) a green,
+   * go to the CSS insertion point and add:
+   *
+   * path[id*='c35'] {fill:#34A853}
+   *
+   */
+  #counties {fill:#d0d0d0;stroke:#000;stroke-width:.17829;} 
+  #borders {fill:none;stroke:#221e1f;stroke-width:.89143;} 
+  #separator {fill:none;stroke:#a9a9a9;stroke-width:2.3177309;}
+ </style>
+  <g id="counties" transform="translate(-609.1412499999999,-375.899)" style="fill:#d0d0d0;stroke:#ffffff;stroke-width:0.17828999">
+    <path id="c28047" d="m 663.79,476.24 1.2373,6.18 -1.4958,0.378 -3.1503,0.816 -3.8653,1.113 -1.2373,-0.852 -0.45819,-6.301 2.0004,-0.137 0.0909,-0.69 6.8783,-0.507" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4564">Harrison, MS</title>
+    </path>
+    <path id="c28059" d="m 663.68,474.91 9.2994,-0.72 1.0198,8.363 -0.016,0.337 -1.4156,0.909 -0.15868,0.06 -4.9671,-0.176 -0.37084,-0.08 -1.3407,-0.756 -0.70601,-0.417 -1.2373,-6.18 -0.10697,-1.335" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4567">Jackson, MS</title>
+    </path>
+    <path id="c28043" d="m 638.5,403.58 2.972,-0.165 0.0481,0.681 4.9653,-0.328 0.30487,4.371 -5.3183,0.376 -6.4932,0.41 -0.21573,-1.019 -0.12123,-2.026 2.0503,-0.146 1.9202,-0.44 -0.0481,-0.667 -0.0642,-1.047" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4570">Grenada, MS</title>
+    </path>
+    <path id="c28161" d="m 645.97,396.98 0.51347,6.791 -4.9653,0.328 -0.0481,-0.681 -2.972,0.165 -0.48851,-6.129 3.9635,-0.30945 -0.0358,-0.59855 3.9679,-0.21666 0.065,0.65066" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4573">Yalobusha, MS</title>
+    </path>
+    <path id="c28025" d="m 661.5,403.98 0.24069,3.004 4.1648,-0.312 0.11411,0.138 -0.31557,0.57 0.73822,0.75136 -0.0634,1.8809 -3.4062,0.91972 -0.1141,-1.357 -5.9441,0.472 -0.65075,0.09 -0.59547,-4.058 0.22951,-0.66344 2.2901,-0.1483 -0.0875,-1.1786 3.3996,-0.10867" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4576">Clay, MS</title>
+    </path>
+    <path id="c28155" d="m 652.68,406.32 2.9881,-0.233 0.59547,4.058 -1.2712,0.764 -3.3244,0.51751 -2.1312,1.5615 -2.3855,0.178 -0.42789,-6.043 5.9566,-0.803" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4579">Webster, MS</title>
+    </path>
+    <path id="c28017" d="m 659.06,398.06 1.9932,-0.146 0.44215,6.074 -3.3996,0.10867 0.0875,1.1786 -2.2901,0.1483 -0.22951,0.66344 -2.9881,0.233 -0.0909,-1.688 0.98949,-0.08 -0.4582,-6.033 5.9441,-0.457" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4582">Chickasaw, MS</title>
+    </path>
+    <path id="c28013" d="m 645.97,396.98 4.9903,-0.328 0.13726,1.9916 2.0164,-0.12855 0.4582,6.033 -0.98949,0.08 0.0909,1.688 -5.9566,0.803 -0.23356,-3.35 -0.51347,-6.791" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4585">Calhoun, MS</title>
+    </path>
+    <path id="c28115" d="m 658.55,391.37 0.51168,6.686 -5.9441,0.457 -2.0164,0.12855 -0.13726,-1.9916 -0.37084,-5.041 7.957,-0.239" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4588">Pontotoc, MS</title>
+    </path>
+    <path id="c28081" d="m 659.96,387.92 3.6731,-0.20848 0.0549,0.93148 0.66145,8.671 -3.3317,0.23831 0.0423,0.35669 -1.9932,0.146 -0.51168,-6.686 1.4049,-3.449" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4591">Lee, MS</title>
+    </path>
+    <path id="c28145" d="m 653.2,386.36 6.6216,-0.46 0.1355,2.026 -1.4049,3.449 -7.957,0.239 -0.19255,-2.674 -0.12658,-2.018 2.9239,-0.562" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4594">Union, MS</title>
+    </path>
+    <path id="c28071" d="m 641.39,388.19 0.98949,-0.06 1.9469,-0.162 1.6599,-0.08 0.48856,0.60478 1.9558,-0.0408 1.9754,0.481 0.19255,2.674 0.37084,5.041 -4.9903,0.328 -0.065,-0.65066 -3.9679,0.21666 -0.55625,-8.351" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4597">Lafayette, MS</title>
+    </path>
+    <path id="c28137" d="m 632.14,384.84 1.831,-0.303 3.5105,-1.15 3.5283,-0.226 0.15155,2 1.0127,0.163 0.20146,2.804 -0.98949,0.06 -8.9661,0.573 -0.94512,-1.9615 0.66521,-1.9615" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4600">Tate, MS</title>
+    </path>
+    <path id="c28107" d="m 632.42,388.77 8.9661,-0.573 0.55625,8.351 0.0358,0.59855 -3.9635,0.30945 -3.851,0.337 -0.13728,-2.443 -1.1981,-1.308 -0.35301,-4.269 -0.0553,-1.003" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4603">Panola, MS</title>
+    </path>
+    <path id="c28119" d="m 632.47,389.77 0.35301,4.269 1.1981,1.308 0.13728,2.443 0.12124,2.009 -1.0216,0.06 -4.9421,0.296 -0.24961,-4.37 0.98237,-0.04 -0.23534,-3.746 1.8435,-0.128 -0.17115,-1.961 1.9843,-0.144" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4606">Quitman, MS</title>
+    </path>
+    <path id="c28135" d="m 634.16,397.79 3.851,-0.337 0.48851,6.129 0.0642,1.047 0.0481,0.667 -1.9202,0.44 -2.0503,0.146 0.12123,2.026 -0.72239,0.0981 -0.007,-0.39803 -0.57956,-0.1368 -0.74964,0.9383 -1.197,0.1926 -0.0576,-1.1311 0.26556,-0.41022 2.3051,-0.24889 -0.007,-0.39803 -0.0241,-0.475 -5.3334,0.255 -0.21929,-4.025 -0.11945,-2.01 4.9421,-0.296 1.0216,-0.06 -0.12124,-2.009" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4609">Tallahatchie, MS</title>
+    </path>
+    <path id="c28083" d="m 628.66,406.19 5.3334,-0.255 0.0241,0.475 0.007,0.39803 -2.3051,0.24889 -0.26556,0.41022 0.0576,1.1311 1.197,-0.1926 0.74964,-0.9383 0.57956,0.1368 0.007,0.39803 0.72239,-0.0981 0.21573,1.019 0.50099,0.314 0.0463,0.241 0.27991,4.436 -0.63292,1.019 -0.6971,0.03 0.11945,1.928 -2.0515,-0.67655 -0.90808,1.5606 -0.34752,-0.53593 -0.36642,0.50267 0.009,1.3472 -0.98138,0.008 -0.5898,-0.69362 -0.0778,-1.1018 -0.62579,-11.115" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4612">Leflore, MS</title>
+    </path>
+    <path id="c28133" d="m 628.44,402.17 0.21929,4.025 0.62579,11.115 -1.9629,0.121 0.0909,1.35 -3.0772,0.183 -0.97094,0.0522 -0.26102,-5.9822 -0.11054,-2 1.9932,-0.111 -0.45107,-8.566 3.9045,-0.187" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4615">Sunflower, MS</title>
+    </path>
+    <path id="c28053" d="m 629.29,417.31 0.0778,1.1018 0.58979,0.69362 0.98139,-0.008 -0.009,-1.3472 0.36642,-0.50267 0.34752,0.53593 0.25851,3.865 -0.61865,1.141 -0.11232,0.08 -0.21751,-0.04 -0.51347,-0.319 -0.24069,-0.322 -0.082,0.02 -0.0464,0.08 -0.0677,0.383 0.0891,0.763 0.0428,0.121 0.93066,0.772 0.36192,0.23 -1.6313,0.13 0.10519,1.979 -3.9704,0.248 -1.0911,-3.952 -0.49921,-3.996 3.0772,-0.183 -0.0909,-1.35 1.9629,-0.121" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4618">Humphreys, MS</title>
+    </path>
+    <path id="c28051" d="m 631.64,417.78 0.90808,-1.5606 2.0515,0.67655 8.2904,2.225 -3.6478,7.982 -7.8179,-2.552 -0.36192,-0.23 -0.93066,-0.772 -0.0428,-0.121 -0.0891,-0.763 0.0677,-0.383 0.0464,-0.08 0.082,-0.02 0.24069,0.322 0.51347,0.319 0.21751,0.04 0.11232,-0.08 0.61865,-1.141 -0.25851,-3.865" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4621">Holmes, MS</title>
+    </path>
+    <path id="c28015" d="m 634.98,408.93 6.4932,-0.41 0.42611,6.003 1.3514,0.241 1.3158,-0.103 0.20146,2.699 -1.3345,0.0954 -0.54643,1.6716 -8.2904,-2.225 -0.11945,-1.928 0.6971,-0.03 0.63292,-1.019 -0.27991,-4.436 -0.0463,-0.241 -0.50099,-0.314" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4624">Carroll, MS</title>
+    </path>
+    <path id="c28097" d="m 646.79,408.14 0.35658,5.022 2.3855,-0.178 -0.30209,0.30741 -0.3021,0.28255 -0.55066,-0.21459 0.0459,3.7376 -3.6567,0.259 -0.20146,-2.699 -1.3158,0.103 -1.3514,-0.241 -0.42611,-6.003 5.3183,-0.376" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4627">Montgomery, MS</title>
+    </path>
+    <path id="c28019" d="m 654.99,410.91 0.41184,5.695 -0.3958,0.03 0.14409,2.0454 -1.9894,0.12963 0.1355,2.027 -1.9861,0.152 -0.2274,-4.0142 -2.6573,0.12318 -0.0459,-3.7376 0.55066,0.21459 0.30209,-0.28255 0.3021,-0.30741 2.1312,-1.5615 3.3244,-0.51751" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4630">Choctaw, MS</title>
+    </path>
+    <path id="c28105" d="m 656.26,410.14 0.65075,-0.09 5.9441,-0.472 0.1141,1.357 0.43681,5.038 -2.7528,0.223 -5.2523,0.403 -0.41184,-5.695 1.2712,-0.765" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4633">Oktibbeha, MS</title>
+    </path>
+    <path id="c28087" d="m 665.7,407.38 4.8601,-2.589 -0.10162,4.894 -0.10519,5.704 -6.9478,0.581 -0.43681,-5.038 3.4062,-0.91972 0.0634,-1.8809 -0.73822,-0.75136" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4636">Lowndes, MS</title>
+    </path>
+    <path id="c28095" d="m 670.77,396.86 -0.0178,0.658 -0.18542,7.279 -4.8601,2.589 0.31557,-0.57 -0.11411,-0.138 -4.1648,0.312 -0.24069,-3.004 -0.44215,-6.074 -0.0423,-0.35669 3.3317,-0.23831 6.4201,-0.457" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4639">Monroe, MS</title>
+    </path>
+    <path id="c28057" d="m 670.96,388.11 -0.19255,8.75 -6.4201,0.457 -0.66145,-8.671 4.0115,-0.281 3.2626,-0.255" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4642">Itawamba, MS</title>
+    </path>
+    <path id="c28117" d="m 666.46,381.69 0.96912,0.4997 0.26819,6.1773 -4.0115,0.281 -0.0549,-0.93148 -3.6731,0.20848 -0.1355,-2.026 0.5047,-0.0449 -0.0971,-3.6741 6.23,-0.49" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4645">Prentiss, MS</title>
+    </path>
+    <path id="c28141" d="m 666.06,376.15 3.0523,-0.251 2.1074,2.225 -0.19255,7.226 -0.0642,2.756 -3.2626,0.255 -0.26819,-6.1773 -0.96912,-0.4997 -0.40293,-5.534" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4648">Tishomingo, MS</title>
+    </path>
+    <path id="c28003" d="m 665.74,376.17 0.31379,-0.02 0.40293,5.534 -6.23,0.49 -0.39258,0.007 -0.0115,-2.3057 -1.9802,0.1276 -0.3608,-3.1714 0.68284,-0.06 7.5754,-0.603" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4651">Alcorn, MS</title>
+    </path>
+    <path id="c28139" d="m 653.86,377.12 3.6264,-0.282 0.3608,3.1714 1.9802,-0.1276 0.0115,2.3057 0.39258,-0.007 0.0971,3.6741 -0.5047,0.0449 -6.6216,0.46 -0.36192,-5.006 0.98771,-0.07 0.25852,-1.031 -0.22643,-3.132" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4654">Tippah, MS</title>
+    </path>
+    <path id="c28009" d="m 650.48,377.36 3.3732,-0.247 0.22643,3.132 -0.25852,1.031 -0.98771,0.07 0.36192,5.006 -2.9239,0.562 -0.9895,0.07 -0.44928,-6.035 -0.74702,-1.1 -0.49029,-2.289 2.8847,-0.204" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4657">Benton, MS</title>
+    </path>
+    <path id="c28093" d="m 642.15,377.92 5.4484,-0.353 0.49029,2.289 0.74702,1.1 0.44928,6.035 0.9895,-0.07 0.12658,2.018 -1.9754,-0.481 -1.9558,0.0408 -0.48856,-0.60478 -1.6599,0.08 -1.9469,0.162 -0.20146,-2.804 -1.0127,-0.163 -0.15155,-2 -0.35301,-5.135 1.494,-0.11" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4660">Marshall, MS</title>
+    </path>
+    <path id="c28033" d="m 640.66,378.03 0.35301,5.135 -3.5283,0.226 -3.5105,1.15 -1.831,0.303 -0.22828,-3.0894 -1.7115,0.0464 -0.47246,-3.102 10.929,-0.669" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4663">DeSoto, MS</title>
+    </path>
+    <path id="c28143" d="m 630.2,381.8 1.7115,-0.0464 0.22828,3.0894 -0.66521,1.9615 0.94512,1.9615 0.0553,1.003 -1.9843,0.145 0.17115,1.961 -1.8435,0.128 -3.35,-2.153 -0.25673,-2.676 2.8918,-4.606 2.0966,-0.768" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4666">Tunica, MS</title>
+    </path>
+    <path id="c28027" d="m 625.47,389.85 3.35,2.153 0.23534,3.746 -0.98237,0.04 0.24961,4.37 0.11945,2.01 -3.9045,0.187 -0.21572,-3.031 -3.022,0.119 -2.1305,0.129 -0.0642,-0.225 0.27278,-0.569 0.85399,-1.759 1.8007,-3.231 0.98593,-0.193 0.98949,-0.203 0.81834,-0.392 0.65075,-0.571 0.041,-0.03 0.0178,-0.04 0.1355,-0.442 -0.20147,-2.064" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4669">Coahoma, MS</title>
+    </path>
+    <path id="c28011" d="m 619.17,399.57 2.1305,-0.129 3.022,-0.119 0.21572,3.031 0.45107,8.566 -1.9932,0.111 0.11054,2 -8.613,0.459 -0.26386,-0.73 1.4049,-0.565 0.33696,-0.289 0.0499,-0.247 0,-0.02 -0.53842,-0.435 -0.56874,-0.426 -0.1141,-0.203 -0.025,-0.05 0.10519,-0.523 1.5261,-6.573 3.7137,-1.87 0.11232,-0.772 -0.20146,-0.5 -0.85221,-0.682 -0.009,-0.03" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4672">Bolivar, MS</title>
+    </path>
+    <path id="c28151" d="m 614.49,413.49 8.613,-0.459 0.26102,5.9822 0.97094,-0.0522 0.49921,3.996 -3.652,0.29426 -0.31308,1.9637 -4.6658,0.159 0.56161,-0.635 0.016,-0.02 0.60261,-2.501 0,-0.02 -0.0553,-1.747 -0.4992,-0.529 -0.65075,-1.181 -0.96453,-2.758 0.98949,-0.289 0.23178,-0.458 -0.15155,-0.536 -0.79516,-0.537 -0.97345,-0.663 -0.025,-0.01" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4675">Washington, MS</title>
+    </path>
+    <path id="c28125" d="m 624.84,422.96 1.0911,3.952 -1.872,2.113 0.0321,0.499 0.36192,0.09 0.52238,0.416 0.5206,0.522 0.60261,1.817 -0.0232,0.297 -0.18541,0.193 -0.89857,0.121 -4.6604,0.241 -0.19255,-4.044 0.11232,-0.337 0.0963,-0.01 0.1355,-0.103 0.0891,-0.148 0.32804,-1.79 -0.025,-1.566 0.31308,-1.9637 3.652,-0.29426" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4678">Sharkey, MS</title>
+    </path>
+    <path id="c28055" d="m 620.87,425.22 0.025,1.566 -0.32804,1.79 -0.0891,0.148 -0.1355,0.103 -0.0963,0.01 -0.11232,0.336 0.19255,4.044 4.6604,-0.241 0.11054,0.995 0.0157,0.97218 -2.5818,0.26973 0.0594,2.9761 -1.9433,0.605 -0.20146,-3.568 -2.5548,0.104 -0.61153,-0.191 -0.0481,-0.04 -0.18364,-0.16 -0.041,-0.03 -0.0214,-0.04 -0.0606,-0.07 -0.0214,-0.04 -0.11411,-0.274 -1.5422,-6.989 -0.0321,-0.186 0.20146,-0.731 0.63292,-1.021 0.15511,-0.177 4.6658,-0.158" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4681">Issaquena, MS</title>
+    </path>
+    <path id="c28163" d="m 631.42,424.55 7.8179,2.552 -1.2213,3.132 -0.19255,0.305 -1.1,0.788 -5.6499,3.207 -0.71493,0.168 -1.9112,1.647 -3.3536,-2.38 -0.11054,-0.995 0.89857,-0.121 0.18541,-0.192 0.0232,-0.298 -0.60261,-1.817 -0.5206,-0.522 -0.52238,-0.416 -0.36192,-0.09 -0.0321,-0.499 1.872,-2.113 3.9704,-0.248 -0.10519,-1.979 1.6313,-0.13" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4684">Yazoo, MS</title>
+    </path>
+    <path id="c28007" d="m 648.43,417.1 2.6573,-0.12318 0.2274,4.0142 0.25674,4.082 -4.6034,0.346 -3.2716,0.232 0.0713,1.045 -4.5232,0.412 3.6478,-7.982 0.54643,-1.6716 1.3345,-0.0954 3.6567,-0.259" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4687">Attala, MS</title>
+    </path>
+    <path id="c28159" d="m 655.4,416.6 5.2523,-0.403 0.63648,8.296 -1.9522,0.135 -7.7715,0.442 -0.25674,-4.082 1.9861,-0.152 -0.1355,-2.027 1.9894,-0.12963 -0.14409,-2.0454 0.3958,-0.03" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4690">Winston, MS</title>
+    </path>
+    <path id="c28103" d="m 663.41,415.97 6.9478,-0.581 -0.1355,6.896 -0.0267,1.439 -8.9019,0.765 -0.63648,-8.296 2.7528,-0.223" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4693">Noxubee, MS</title>
+    </path>
+    <path id="c28069" d="m 661.29,424.49 8.9019,-0.765 -0.1355,8.131 -10.118,0.812 -0.60082,-8.043 1.9522,-0.135" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4696">Kemper, MS</title>
+    </path>
+    <path id="c28099" d="m 651.57,425.07 7.7715,-0.442 0.60082,8.043 -7.7608,0.57 -0.61152,-8.171" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4699">Neshoba, MS</title>
+    </path>
+    <path id="c28079" d="m 651.57,425.07 0.61152,8.171 -0.0981,0.01 -7.85,0.52 -0.0963,-1.317 -0.37083,-5.762 -0.0713,-1.045 3.2716,-0.232 4.6034,-0.346" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4702">Leake, MS</title>
+    </path>
+    <path id="c28089" d="m 639.24,427.11 4.5232,-0.412 0.37083,5.762 -0.96453,1.166 -0.42611,0.02 -1.0038,0.119 -2.701,2.484 -1.0519,1.171 -0.0713,0.171 -0.009,0.296 0.11232,0.394 -2.4514,0.138 -0.99484,-0.1 -0.11232,-1.847 -0.70958,0.04 -3.268,0.185 -0.12124,-1.984 0.71493,-0.168 5.6499,-3.207 1.1,-0.788 0.19255,-0.305 1.2213,-3.133" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4705">Madison, MS</title>
+    </path>
+    <path id="c28121" d="m 643.17,433.62 1.3563,4.9463 0.23583,3.3777 0.27278,4.017 -9.7077,0.556 -0.49743,-1.423 0.69889,-3.255 1.1731,-1.696 1.3175,-1.872 -0.11232,-0.394 0.009,-0.296 0.0713,-0.171 1.0519,-1.171 2.701,-2.484 1.0038,-0.119 0.42611,-0.02" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4708">Rankin, MS</title>
+    </path>
+    <path id="c28049" d="m 628.45,436.35 1.9112,-1.647 0.12124,1.984 3.268,-0.185 0.70958,-0.04 0.11232,1.847 0.99484,0.1 2.4514,-0.137 -1.3175,1.872 -1.1731,1.695 -0.69889,3.256 0.49743,1.422 -9.4653,0.585 -0.42254,-4.056 3.0113,-6.695" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4711">Hinds, MS</title>
+    </path>
+    <path id="c28149" d="m 617.89,435.33 2.5548,-0.104 0.20146,3.568 1.9433,-0.605 -0.0594,-2.9761 2.5818,-0.26973 -0.0157,-0.97218 3.3536,2.38 -3.0113,6.695 -0.4689,0.562 -0.95561,1.132 -2.0182,1.783 -0.5313,-0.07 -1.6866,-0.524 -1.9612,-2.291 2.2411,-0.278 -0.1355,-3.318 -2.1448,-2.282 -0.016,-0.04 -0.082,-0.128 -0.0553,-0.08 0,-0.03 -0.0339,-0.369 0.4368,-1.471 -0.13728,-0.313" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4714">Warren, MS</title>
+    </path>
+    <path id="c28063" d="m 615.79,451.76 4.5713,-0.06 3.3768,0.635 0.0481,0.271 0.007,0.258 0.15333,0.401 1.9041,-0.112 0.10341,2.016 0.0981,2.01 -8.1228,0.46 -1.9279,-0.0125 -0.94604,-1.046 -0.49685,-1.8336 -0.99371,-0.0499 2.225,-2.942" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4717">Jefferson, MS</title>
+    </path>
+    <path id="c28021" d="m 625.44,443.05 0.42254,4.056 -0.0161,6.051 -1.9041,0.112 -0.15333,-0.401 -0.007,-0.258 -0.0481,-0.271 -3.3768,-0.635 -4.5713,0.06 3.9936,-5.828 1.6866,0.524 0.5313,0.07 2.0182,-1.783 0.95561,-1.132 0.4689,-0.562" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4720">Claiborne, MS</title>
+    </path>
+    <path id="c28029" d="m 635.33,446.52 2.0521,2.656 0.46352,4.046 -2.3391,0.956 -9.5544,0.994 -0.10341,-2.016 0.0161,-6.051 9.4653,-0.585" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4723">Copiah, MS</title>
+    </path>
+    <path id="c28127" d="m 645.04,445.96 1.2373,-0.0954 0.66679,6.1234 -1.9772,0.273 -4.2504,0.57 -2.8686,0.387 -0.46352,-4.046 -2.0521,-2.656 9.7077,-0.556" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4726">Simpson, MS</title>
+    </path>
+    <path id="c28129" d="m 644.76,441.95 7.891,-0.569 0.79516,9.672 -1.6402,0.234 -4.869,0.708 -0.66679,-6.1234 -1.2373,0.0954 -0.27278,-4.017" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4729">Smith, MS</title>
+    </path>
+    <path id="c28123" d="m 644.13,432.46 0.0963,1.317 7.85,-0.52 0.57231,8.124 -7.891,0.569 -0.23583,-3.3777 -1.3563,-4.9463 0.96453,-1.166" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4732">Scott, MS</title>
+    </path>
+    <path id="c28101" d="m 652.18,433.24 7.7608,-0.57 0.61866,8.11 -7.9052,0.595 -0.57231,-8.124 0.0981,-0.01" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4735">Newton, MS</title>
+    </path>
+    <path id="c28075" d="m 659.94,432.67 10.118,-0.812 -0.13728,6.246 -0.0464,1.879 -9.3155,0.797 -0.61866,-8.11" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4738">Lauderdale, MS</title>
+    </path>
+    <path id="c28023" d="m 669.87,439.98 -0.13015,7.707 -8.4365,2.218 -0.74881,-9.128 9.3155,-0.797" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4741">Clarke, MS</title>
+    </path>
+    <path id="c28061" d="m 660.56,440.78 0.74881,9.128 -0.63649,0.09 -7.2224,1.044 -0.79516,-9.672 7.9052,-0.595" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4744">Jasper, MS</title>
+    </path>
+    <path id="c28067" d="m 660.67,450 0.66145,8.982 -3.9526,0.276 -4.9457,0.353 -0.62578,-8.333 1.6402,-0.234 7.2224,-1.044" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4747">Jones, MS</title>
+    </path>
+    <path id="c28031" d="m 651.81,451.28 0.62578,8.333 -1.0287,0.07 -2.6422,0.188 -0.11945,-1.833 -0.35479,-0.563 -0.69889,-0.411 -0.70601,-0.09 -0.52417,-0.256 -1.1571,-0.667 -0.24069,-3.792 1.9772,-0.273 4.869,-0.708" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4750">Covington, MS</title>
+    </path>
+    <path id="c28065" d="m 640.71,452.83 4.2504,-0.57 0.24069,3.792 1.1571,0.667 0.52417,0.256 0.70601,0.09 0.69889,0.41 0.35479,0.563 0.11945,1.833 -1.3175,0.09 -3.325,0.212 0.0874,1.011 -2.6529,0.161 -0.19255,-3.027 -0.46533,-2.406 -0.18542,-3.077" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4753">Jefferson Davis, MS</title>
+    </path>
+    <path id="c28077" d="m 637.84,453.22 2.8686,-0.387 0.18542,3.077 0.46533,2.405 0.19255,3.028 -1.6309,0.1452 0.11906,1.2058 -4.0008,-0.08 -0.53843,-8.438 2.3391,-0.956" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4756">Lawrence, MS</title>
+    </path>
+    <path id="c28085" d="m 635.5,454.18 0.53843,8.438 -0.32805,0.02 -5.6267,0.348 -1.6706,0.103 -0.33696,-6.027 -2.0325,0.121 -0.0981,-2.01 9.5544,-0.994" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4759">Lincoln, MS</title>
+    </path>
+    <path id="c28037" d="m 617.92,457.64 8.1228,-0.46 2.0325,-0.121 0.33696,6.027 -6.8462,0.387 -2.159,0.747 -1.2641,-0.524 -0.22286,-6.056" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4762">Franklin, MS</title>
+    </path>
+    <path id="c28001" d="m 613.56,454.7 0.99371,0.0499 0.49685,1.8336 0.94604,1.046 1.9279,0.0125 0.22286,6.056 -0.0963,-0.09 -1.3817,-0.463 -0.80229,0.144 -0.63648,0.225 -2.6351,1.085 -2.5067,2.331 -0.18542,0.408 -0.28882,1.198 0.47424,-2.476 0.73098,-5.993 0.007,-0.02 0.0731,-0.155 0.0481,-0.09 2.0967,-4.211 0.0143,-0.02 0.30844,-0.528 0.19255,-0.346" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4765">Adams, MS</title>
+    </path>
+    <path id="c28157" d="m 618.15,463.7 1.2641,0.524 0.77232,0.66999 0.29383,6.699 -2.2838,0.112 -9.0552,0.426 0.47603,-3.592 0.28882,-1.198 0.18542,-0.408 2.5067,-2.331 2.6351,-1.085 0.63648,-0.225 0.80229,-0.145 1.3817,0.464 0.0963,0.09" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4768">Wilkinson, MS</title>
+    </path>
+    <path id="c28005" d="m 630.09,462.98 0.46711,8.037 -0.37618,0.01 -5.0954,0.297 -4.6052,0.259 -0.29383,-6.699 -0.77232,-0.66999 2.159,-0.747 6.8462,-0.387 1.6706,-0.103" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4771">Amite, MS</title>
+    </path>
+    <path id="c28113" d="m 630.09,462.98 5.6267,-0.348 0.50633,8.029 -1.7276,0.105 -3.9384,0.251 -0.46711,-8.037" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4774">Pike, MS</title>
+    </path>
+    <path id="c28147" d="m 636.04,462.61 4.0008,0.08 0.14619,2.345 0.33875,1.326 0.76307,0.941 1.437,0.908 1.4388,0.232 0.37797,1.665 -8.3242,0.553 -0.50633,-8.029 0.32805,-0.02" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4777">Walthall, MS</title>
+    </path>
+    <path id="c28091" d="m 647.45,459.96 0.6668,9.901 -1.4548,0.107 -2.1127,0.144 -0.37797,-1.665 -1.4388,-0.232 -1.437,-0.908 -0.76307,-0.941 -0.33875,-1.326 -0.14619,-2.345 -0.11906,-1.2058 1.6309,-0.1452 2.6529,-0.161 -0.0874,-1.011 3.325,-0.212" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4780">Marion, MS</title>
+    </path>
+    <path id="c28073" d="m 651.41,459.69 0.15511,2.01 2.0164,-0.145 0.51525,7.715 -5.9797,0.594 -0.6668,-9.901 1.3175,-0.09 2.6422,-0.188" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4783">Lamar, MS</title>
+    </path>
+    <path id="c28035" d="m 657.38,459.26 0.5206,7.087 0.3441,2.853 0.16224,2.08 -3.9936,0.278 -0.32092,-2.294 -0.51525,-7.715 -2.0164,0.145 -0.15511,-2.01 1.0287,-0.07 4.9457,-0.353" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4786">Forrest, MS</title>
+    </path>
+    <path id="c28153" d="m 669.74,447.69 0.46533,4.507 0.76485,5.994 -7.6485,0.644 -1.9932,0.15 -0.66145,-8.982 0.63649,-0.09 8.4365,-2.218" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4789">Wayne, MS</title>
+    </path>
+    <path id="c28041" d="m 663.33,458.84 7.6485,-0.644 0.93065,7.342 0.34053,2.655 -8.0211,0.628 -0.89857,-9.981" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4792">Greene, MS</title>
+    </path>
+    <path id="c28111" d="m 661.33,458.99 1.9932,-0.15 0.89857,9.981 0.14955,1.9552 -1.0018,0.11583 -4.9653,0.394 -0.16224,-2.08 -0.3441,-2.853 -0.5206,-7.087 3.9526,-0.276" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4795">Perry, MS</title>
+    </path>
+    <path id="c28131" d="m 663.37,470.89 0.312,4.017 0.10697,1.335 -6.8783,0.507 -0.0909,0.69 -2.0004,0.137 -0.40828,-6.014 3.9936,-0.278 4.9653,-0.394" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4798">Stone, MS</title>
+    </path>
+    <path id="c28109" d="m 654.09,469.27 0.32092,2.294 0.40828,6.014 -2.7314,0.185 -1.2141,0.764 0.15155,2.339 -1.9433,1.453 -0.86826,0.06 -3.3019,-4.548 0.21929,-1.642 0.2389,-1.213 0.29774,-1.469 0.25852,-1.075 0.0463,-0.05 0.16046,-0.02 0.12302,-0.02 0.1979,-0.442 0.24247,-1.214 -0.041,-0.713 1.4548,-0.107 5.9797,-0.594" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4801">Pearl River, MS</title>
+    </path>
+    <path id="c28045" d="m 648.22,482.37 0.86826,-0.06 1.9433,-1.453 -0.15155,-2.34 1.2141,-0.763 2.7314,-0.185 0.45819,6.301 -0.36269,2.069 -2.9713,2.584 -0.91818,0.06 -0.0374,0 -0.0481,-0.03 -0.0713,-0.05 -0.0499,-0.03 -0.1462,-0.169 -0.43145,-0.505 -0.19255,-0.371 -0.62936,-1.194 -0.016,-0.123 0.0499,-0.193 0.18363,-0.465 -0.0303,-0.426 -1.2302,-2.5 -0.12836,-0.13 -0.0339,-0.03" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4804">Hancock, MS</title>
+    </path>
+    <path id="c28039" d="m 664.22,468.82 8.0211,-0.628 0.73811,5.996 -9.2994,0.72 -0.312,-4.017 1.0018,-0.11583 -0.14955,-1.9552" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title4807">George, MS</title>
+    </path>
+    </g>
+  </svg>
