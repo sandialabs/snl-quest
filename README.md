@@ -111,7 +111,64 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 3. Extract the downloaded file.
 4. Navigate inside the directory and double click on start.bat. This will setup QuESt and launch it when it is finished. This will also launch QuESt in the future.
 
-### For Unix Users (Linux and macOS):
+### For Mac Users
+
+
+#### Prerequisites
+
+1. **GitHub**: You need Git installed on your system to clone the repository. If you don’t have Git installed, you can follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install it.
+
+2. **GLPK (GNU Linear Programming Kit)**: You need to install GLPK. You can do this using either Homebrew or Conda. If you don’t have either installed, follow the instructions below:
+
+   - **Installing Homebrew**:
+     1. Open the Terminal.
+     2. Run the following command to install Homebrew:
+        ```bash
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ```
+     3. After installation, you can install GLPK using:
+        ```bash
+        brew install glpk
+        ```
+
+   - **Installing Conda**:
+     1. If you prefer Conda, you can install Miniconda by following [these instructions](https://docs.conda.io/en/latest/miniconda.html).
+     2. After installing Conda, you can install GLPK using:
+        ```bash
+        conda install -c conda-forge glpk
+        ```
+
+3. **Apple Silicon (M1/M2) Users**: If you have an M-type architecture (Apple Silicon), you need to install Rosetta 2. To do this, open the Terminal and run:
+   ```bash
+   softwareupdate --install-rosetta
+
+### Installing QuESt
+
+1. Click on the releases located on the right side.
+   <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
+   
+2. Download the `quest_mac.zip` file found in the assets of the QuESt 2.0.b pre-release.
+   <img src="quest/images/read/quest_mac_zip.png" alt="Download zip" width=600px margin="auto" />
+   
+3. Extract the downloaded file.
+
+4. **Activate Rosetta 2** (for Apple Silicon users):
+   - Navigate to **Finder** > **Applications** > **Utilities** and locate **Terminal**.
+   - Right-click on **Terminal** and select **Get Info**.
+   - Check the box that says **Open using Rosetta**.
+
+5. Open the Terminal after Rosetta has been activated. 
+
+6. Navigate to the directory where QuESt is located. You can do this using the `cd` command. For example:
+   ```bash
+   cd /path/to/quest_directory
+
+7.  Make the start.sh script executable and launch QuESt by running: 
+    ```bash
+    chmod +x start.sh && ./start.sh
+    ```
+
+### For Linux Users:
 
 1. Click on the code button at the top of the page and then select "Download ZIP" from the dropdown.
    <img src="quest/images/read/git_extract.png" alt="Download zip" width=600px margin="auto" />

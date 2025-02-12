@@ -538,13 +538,14 @@ class home_page(QWidget, Ui_home_page):
         data_gpt = self.gpt_obj.front.app_search
         data_manager = self.data_man_obj.front.app_search
         energy_equity = self.equity_obj.front.app_search
+        analysis_for_regulators = self.afr_obj.front.app_search
 
 
 #           list of apps to search
 
         self.widget_names = [
             "tech_selection", "evaluation", "behind_the_meter",
-            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager", "progress",
+            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager", "progress", "analysis_for_regulators"
             ]
 
         for widget in self.widget_names:
