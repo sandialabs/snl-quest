@@ -410,7 +410,7 @@ class home_page(QWidget, Ui_home_page):
         equity_page = self.add_info_page.add_page("QuESt Energy Equity", "David Rosewater dmrose@sandia.gov", "An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.")
         self.add_info_page.connect_about(equity_about_button, equity_page)
 
-        self.gridLayout.addWidget(equity_front, 1, 3)
+        #self.gridLayout.addWidget(equity_front, 1, 3)
 
         #Planning app
         plan_front = form_apps()
@@ -481,7 +481,7 @@ class home_page(QWidget, Ui_home_page):
         afr_page = self.add_info_page.add_page("QuESt Analysis for Regulators", "Walker Olis wolis@sandia.gov", "QuESt Analysis for Regulators is a python-based tool for analyzing the impact of energy storage, PV, and wind deployment on capacity goals.")
         self.add_info_page.connect_about(afr_about_button, afr_page)
 
-        self.gridLayout.addWidget(afr_front, 2, 2)
+        self.gridLayout.addWidget(afr_front, 1, 3)
 ##      place holder formats
         # #Planning app place holder
         # self.plan_front = form_apps()
