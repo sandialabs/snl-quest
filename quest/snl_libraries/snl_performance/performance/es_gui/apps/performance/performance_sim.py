@@ -145,9 +145,10 @@ class PerformanceSimRunScreen(Screen):
     def check_eplus(self):
         """Ensure EnergyPlus and necessary python modules are installed."""
         try:
+
             from performance.es_gui.apps.performance.performance_sim_handler import PerformanceSimHandler
-            data_manager = App.get_running_app().data_manager
-            self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root, 'output'))
+            # data_manager = App.get_running_app().data_manager
+            # self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root, 'output'))
         except ModuleNotFoundError as e:
             logging.warning('Performance: {}'.format(e))
             logging.warning('Performance: {}'.format(os.getcwd()+'\\energyplus'))
@@ -161,6 +162,9 @@ class PerformanceSimRunScreen(Screen):
                 popup.popup_text.text = "There is a required python module missing." \
                     + " Please visit your console window to determine which module you need to install."
                 popup.open()
+        finally:
+            data_manager = App.get_running_app().data_manager
+            self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root, 'output'))
         # else:
             # self.get_valuation_ops()
             # self.get_btm_ops()
@@ -603,20 +607,28 @@ class EnergyPlusPopup(MyPopup):
             # osys = self.platform[0] + self.platform[1]
             machine = self.platform[2] + '.tar.gz'
         elif self.sys == 'Windows':
-            if self.machine in ['x86', 'x64']:
+            print('first spot')
+            # if self.machine in ['x86', 'x64']:
+            if ('64' in self.machine) or ('86' in self.machine):
                 machine = 'x86_64.zip'
+                print('2 spot')
             else:
                 machine = self.machine + '.zip'
+                print('3.. spot')
+                print(self.machine)
 
         for asset in assets_ls:
             name_ls = asset['name'].split('-')
             if (self.sys in name_ls) and (machine in name_ls):
                 self.download = (asset['browser_download_url'], asset['name'])
+                print('4 spot')
             elif (self.sys in name_ls) and (machine in name_ls):
                 potential_download_url.append((asset['browser_download_url'], asset['name']))
+                print('5 spot')
 
         if (self.download == None) and (potential_download_url):
             self.download = potential_download_url[-1]
+            print('6 spot')
 
     def _download(self):
         if self.sys == 'Darwin':
@@ -638,8 +650,12 @@ class EnergyPlusPopup(MyPopup):
                 target_path = 'energyplus.zip'
                 with open(target_path, 'wb') as f:
                     f.write(download_response.raw.read())
-                with zipfile.open(target_path) as zip:
-                    zip.extractall()
+                with zipfile.ZipFile(target_path, 'r') as z:
+
+                    # Extract a specific file
+                    z.extractall()
+                # with zipfile.open(target_path) as zip:
+                #     zip.extractall()
 
             os.rename('-'.join([x if (('tar' not in x) and ('zip' not in x)) else x.split('.')[0] for x in self.download[1].split('-')]), 'energyplus')
             os.remove(target_path)
