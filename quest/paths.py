@@ -14,7 +14,7 @@ def get_path():
     """
     if getattr(sys, 'frozen', False):
         exe_path = os.path.dirname(sys.executable)
-        base_path = os.path.join(exe_path, 'quest')
+        base_path = os.path.join(exe_path, 'lib', 'quest')
     else:
         base_path = os.path.dirname(os.path.abspath(__file__))
 

@@ -27,7 +27,6 @@ options = {
         'include_files': [
             ("README.md", "README.md"),
             ("LICENSE", "LICENSE"),
-            ("quest", "quest")
         ],
     },
 }

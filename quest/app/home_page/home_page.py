@@ -410,7 +410,7 @@ class home_page(QWidget, Ui_home_page):
         equity_page = self.add_info_page.add_page("QuESt Energy Equity", "David Rosewater dmrose@sandia.gov", "An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.")
         self.add_info_page.connect_about(equity_about_button, equity_page)
 
-        self.gridLayout.addWidget(equity_front, 1, 3)
+        #self.gridLayout.addWidget(equity_front, 1, 3)
 
         #Planning app
         plan_front = form_apps()
@@ -457,31 +457,31 @@ class home_page(QWidget, Ui_home_page):
         progress_page = self.add_info_page.add_page("QuESt Progress", "Atri Bera abera@sandia.gov", "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.")
         self.add_info_page.connect_about(progress_about_button, progress_page)
 
-        self.gridLayout.addWidget(progress_front, 2, 1)
+        self.gridLayout.addWidget(progress_front, 1, 3)
 
 
-        #AFR app
-        afr_front = form_apps()
-        afr_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_AFR.png")
-        afr_image = afr_image.replace("\\", "/")
-        afr_front.app_image.setStyleSheet(f"image: url({afr_image});")
+        # #AFR app
+        # afr_front = form_apps()
+        # afr_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_AFR.png")
+        # afr_image = afr_image.replace("\\", "/")
+        # afr_front.app_image.setStyleSheet(f"image: url({afr_image});")
 
-        afr_env_path = os.path.join(base_dir, "app_envs", "env_afr")
-        afr_env_act = os.path.join(base_dir, "app_envs", "env_afr", "Scripts", "python.exe")
+        # afr_env_path = os.path.join(base_dir, "app_envs", "env_afr")
+        # afr_env_act = os.path.join(base_dir, "app_envs", "env_afr", "Scripts", "python.exe")
 
-        afr_env_cmd = "afr"
-        afr_script_path = os.path.join(base_dir, "app", "tools", "script_files", "afr.bat")
-        afr_del_path = os.path.join(base_dir, "app_envs", "env_afr")
-        afr_solve = os.path.join(base_dir,"app_envs", "env_afr", "glpk", "GLPK-4.65", "w64" )
+        # afr_env_cmd = "afr"
+        # afr_script_path = os.path.join(base_dir, "app", "tools", "script_files", "afr.bat")
+        # afr_del_path = os.path.join(base_dir, "app_envs", "env_afr")
+        # afr_solve = os.path.join(base_dir,"app_envs", "env_afr", "glpk", "GLPK-4.65", "w64" )
 
-        afr_back = app_manager(afr_env_path, afr_env_act, afr_env_cmd, afr_script_path, del_path, afr_del_path, afr_solve, mod)
-        self.afr_obj = gui_connector(afr_front, afr_back, afr_env_path)
+        # afr_back = app_manager(afr_env_path, afr_env_act, afr_env_cmd, afr_script_path, del_path, afr_del_path, afr_solve, mod)
+        # self.afr_obj = gui_connector(afr_front, afr_back, afr_env_path)
 
-        afr_about_button = afr_front.about_button
-        afr_page = self.add_info_page.add_page("QuESt Analysis for Regulators", "Walker Olis wolis@sandia.gov", "QuESt Analysis for Regulators is a python-based tool for analyzing the impact of energy storage, PV, and wind deployment on capacity goals.")
-        self.add_info_page.connect_about(afr_about_button, afr_page)
+        # afr_about_button = afr_front.about_button
+        # afr_page = self.add_info_page.add_page("QuESt Analysis for Regulators", "Walker Olis wolis@sandia.gov", "QuESt Analysis for Regulators is a python-based tool for analyzing the impact of energy storage, PV, and wind deployment on capacity goals.")
+        # self.add_info_page.connect_about(afr_about_button, afr_page)
 
-        self.gridLayout.addWidget(afr_front, 2, 2)
+        # self.gridLayout.addWidget(afr_front, 1, 3)
 ##      place holder formats
         # #Planning app place holder
         # self.plan_front = form_apps()
