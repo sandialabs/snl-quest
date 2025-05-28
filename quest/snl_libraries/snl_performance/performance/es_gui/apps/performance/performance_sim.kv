@@ -368,3 +368,38 @@
             text: 'Got it'
             font_size: stnd_font
             on_release: root.dismiss()
+
+<ChooseFilePopup>:
+    size_hint: (0.8, 0.8)
+    title: 'Choose File'
+    select_button: select_button
+    done_button: done_button
+    file_chooser: file_chooser
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+
+        FileChooserListView:
+            id: file_chooser
+
+        BoxLayout:
+            orientation: 'horizontal'
+            padding: 10
+            size_hint: (1.0, 0.20)
+
+            Button:
+                id: select_button
+                halign: 'center'
+                size_hint: (0.50, 1.0)
+                text: 'Select'
+                font_size: stnd_font
+                on_release: root.enter_name()
+
+            Button:
+                id: done_button
+                halign: 'center'
+                size_hint: (0.50, 1.0)
+                text: 'Done'
+                font_size: stnd_font
+                on_release: root.run_dismiss()

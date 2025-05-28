@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import logging
 from functools import partial
 import os
+import shutil
 import pandas as pd
 import requests
 import platform
@@ -13,6 +14,10 @@ from kivy.uix.screenmanager import Screen, ScreenManager
 from kivy.properties import StringProperty
 from kivy.clock import Clock
 from kivy.app import App
+from kivy.uix.textinput import TextInput
+from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.button import Button
+from kivy.uix.boxlayout import BoxLayout
 
 from performance.es_gui.resources.widgets.common import MyPopup, WarningPopup, InputError, fade_in_animation, RecycleViewRow, ValuationRunCompletePopup # PopupLabel
 
@@ -140,12 +145,13 @@ class PerformanceSimRunScreen(Screen):
     def check_eplus(self):
         """Ensure EnergyPlus and necessary python modules are installed."""
         try:
+
             from performance.es_gui.apps.performance.performance_sim_handler import PerformanceSimHandler
-            data_manager = App.get_running_app().data_manager
-            self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root, 'output'))
+            # data_manager = App.get_running_app().data_manager
+            # self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root, 'output'))
         except ModuleNotFoundError as e:
             logging.warning('Performance: {}'.format(e))
-
+            logging.warning('Performance: {}'.format(os.getcwd()+'\\energyplus'))
             popup = EnergyPlusPopup()
             if str(e) == "No module named 'pyenergyplus'":
                 popup.open()
@@ -156,9 +162,12 @@ class PerformanceSimRunScreen(Screen):
                 popup.popup_text.text = "There is a required python module missing." \
                     + " Please visit your console window to determine which module you need to install."
                 popup.open()
-        else:
-            self.get_valuation_ops()
-            self.get_btm_ops()
+        finally:
+            data_manager = App.get_running_app().data_manager
+            self.manager.handler = PerformanceSimHandler(os.path.join(data_manager.data_bank_root, 'output'))
+        # else:
+            # self.get_valuation_ops()
+            # self.get_btm_ops()
 #            self.get_rates()
 
 
@@ -182,13 +191,15 @@ class PerformanceSimDataScreen(Screen):
 
     def _get_hvac_options(self):
         """Get input files from data bank."""
-        try:
-            data_manager = App.get_running_app().data_manager
+        data_manager = App.get_running_app().data_manager
+
+        try:   
             hvac_options = data_manager.data_bank['idf files'].keys()
         except AttributeError:
             pass
         except KeyError:
             if not os.path.exists(os.path.join(data_manager.data_bank_root, 'idf')):
+                print(os.path.join(data_manager.data_bank_root, 'idf'))
                 popup = WarningPopup()
                 popup.popup_text.text = "Looks like there are no EnergyPlus input files! Please visit the help tab to learn more."
                 popup.open()
@@ -207,12 +218,13 @@ class PerformanceSimDataScreen(Screen):
                     popup.popup_text.text = "Looks like there are no EnergyPlus input files! Please visit the help tab to learn more."
                     popup.open()
         else:
-            self.hvac_select.values = [hvac_option for hvac_option in hvac_options]
+            self.hvac_select.values = [hvac_option for hvac_option in hvac_options] + ["Custom"]
 
     def _get_location_options(self):
         """Get weather data from data bank."""
+        data_manager = App.get_running_app().data_manager
+
         try:
-            data_manager = App.get_running_app().data_manager
             location_options = data_manager.data_bank['weather files'].keys()
         except AttributeError:
             pass
@@ -238,68 +250,72 @@ class PerformanceSimDataScreen(Screen):
                         + " Please visit the Data Manager to download data or the help tab to learn more."
                     popup.open()
         else:
-            self.location_select.values = [location_option for location_option in location_options]
+            self.location_select.values = [location_option for location_option in location_options] + ["Custom"]
 
     def _get_profile_options(self):
         """Get profile options from data bank and btm/valuation runs."""
-        try:
-            data_manager = App.get_running_app().data_manager
-            profile_options = [key for key in data_manager.data_bank['profiles'].keys()] + [col for col in self.valuation_ops.columns] + \
-                [col for col in self.btm_ops.columns]
-        except AttributeError as e:
-            logging.warning("Performance: {} A1".format(e))
-            popup = WarningPopup()
-            popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-            popup.open()
-        except KeyError as e:
-            logging.warning("Performance: {} Key1".format(e))
-            if not os.path.exists(os.path.join(data_manager.data_bank_root, 'profile')):
-                try:
-                    profile_options = [col for col in self.valuation_ops.columns] + [col for col in self.btm_ops.columns]
-                except AttributeError as e:
-                    logging.warning("Performance: {} A2".format(e))
-                    popup = WarningPopup()
-                    popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-                    popup.open()
-                else:
-                    if profile_options:
-                        self.profile_select.values = profile_options
-                    else:
-                        popup = WarningPopup()
-                        popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-                        popup.open()
-            else:
-                data_root = os.path.join(data_manager.data_bank_root, 'profile')
-                ls = [os.path.join(data_root, item) for item in os.listdir(data_root)]
-                bool_ls = [True if os.path.isfile(item) else False for item in ls]
+        data_manager = App.get_running_app().data_manager
 
-                if any(bool_ls):
-                    bad_dir_popup = WarningPopup()
-                    bad_dir_popup.popup_text.text = "There was an error processing the weather files." \
-                        + " Please place your weather files in their own folder in the weather directory."
-                    bad_dir_popup.open()
-                else:
-                    try:
-                        profile_options = [col for col in self.valuation_ops.columns] + [col for col in self.btm_ops.columns]
-                    except AttributeError as e:
-                        logging.warning("Performance: {} A2".format(e))
-                        popup = WarningPopup()
-                        popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-                        popup.open()
-                    else:
-                        if profile_options:
-                            self.profile_select.values = profile_options
-                        else:
-                            popup = WarningPopup()
-                            popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-                            popup.open()
+        try:
+            profile_options = [key for key in data_manager.data_bank['profiles'].keys()]
+        except Exception as e:
+            logging.warning(f"Performance: {e}")
+            self.profile_select.values = ["Custom"]
+        # except AttributeError as e:
+        #     logging.warning("Performance: {} A1".format(e))
+        #     popup = WarningPopup()
+        #     popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+        #     popup.open()
+        # except KeyError as e:
+        #     logging.warning("Performance: {} Key1".format(e))
+        #     if not os.path.exists(os.path.join(data_manager.data_bank_root, 'profile')):
+        #         try:
+        #             profile_options = [col for col in self.valuation_ops.columns] + [col for col in self.btm_ops.columns]
+        #         except AttributeError as e:
+        #             logging.warning("Performance: {} A2".format(e))
+        #             popup = WarningPopup()
+        #             popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+        #             popup.open()
+        #         else:
+        #             if profile_options:
+        #                 self.profile_select.values = profile_options
+        #             else:
+        #                 popup = WarningPopup()
+        #                 popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+        #                 popup.open()
+        #     else:
+        #         data_root = os.path.join(data_manager.data_bank_root, 'profile')
+        #         ls = [os.path.join(data_root, item) for item in os.listdir(data_root)]
+        #         bool_ls = [True if os.path.isfile(item) else False for item in ls]
+
+        #         if any(bool_ls):
+        #             bad_dir_popup = WarningPopup()
+        #             bad_dir_popup.popup_text.text = "There was an error processing the weather files." \
+        #                 + " Please place your weather files in their own folder in the weather directory."
+        #             bad_dir_popup.open()
+        #         else:
+        #             try:
+        #                 profile_options = [col for col in self.valuation_ops.columns] + [col for col in self.btm_ops.columns]
+        #             except AttributeError as e:
+        #                 logging.warning("Performance: {} A2".format(e))
+        #                 popup = WarningPopup()
+        #                 popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+        #                 popup.open()
+        #             else:
+        #                 if profile_options:
+        #                     self.profile_select.values = profile_options
+        #                 else:
+        #                     popup = WarningPopup()
+        #                     popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+        #                     popup.open()
         else:
             if profile_options:
-                self.profile_select.values = profile_options
+                self.profile_select.values = profile_options + ["Custom"]
             else:
-                popup = WarningPopup()
-                popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
-                popup.open()
+                # popup = WarningPopup()
+                # popup.popup_text.text = "Looks like there are no battery charge/discharge profiles! Please visit the help tab for more info."
+                # popup.open()
+                self.profile_select.values = ["Custom"]
 
     def _reset_screen(self):
 
@@ -319,13 +335,25 @@ class PerformanceSimDataScreen(Screen):
     def _hvac_selected(self):
         """Show input files."""
         self.hvac = self.hvac_select.text
+        data_manager = App.get_running_app().data_manager
+        hvac_root = os.path.join(data_manager.data_bank_root, 'idf')
+
+        if self.hvac == 'Custom':
+            popup = ChooseFilePopup(save_dir = hvac_root)
+            popup.open()
+            popup.on_dismiss = self._show_hvac_options
+        else:
+            self._show_hvac_options()
+
+
+    def _show_hvac_options(self):
+        """Show available HVAC idf files"""
+        data_manager = App.get_running_app().data_manager
+        data_manager.scan_performance_data_bank()
 
         try:
-            data_manager = App.get_running_app().data_manager
-
             self.hvac_rv.data = [{'name': idf_files[0], 'path':idf_files[1]}
                                  for idf_files in data_manager.data_bank['idf files'][self.hvac]]
-
         except AttributeError:
             pass
         else:
@@ -334,10 +362,22 @@ class PerformanceSimDataScreen(Screen):
     def _location_selected(self):
         """Show weather files."""
         self.location = self.location_select.text
+        data_manager = App.get_running_app().data_manager
+        loc_root = os.path.join(data_manager.data_bank_root, 'weather')
+
+        if self.location == 'Custom':
+            popup = ChooseFilePopup(save_dir = loc_root)
+            popup.open()
+            popup.on_dismiss = self._show_loc_options
+        else:
+            self._show_loc_options()
+
+    def _show_loc_options(self):
+        """Show available weather files"""
+        data_manager = App.get_running_app().data_manager
+        data_manager.scan_performance_data_bank()
 
         try:
-            data_manager = App.get_running_app().data_manager
-
             self.location_rv.data = [{'name': location_files[0], 'path':location_files[1]}
                                      for location_files in data_manager.data_bank['weather files'][self.location] if '.epw' in location_files[0]]
 
@@ -349,31 +389,31 @@ class PerformanceSimDataScreen(Screen):
     def _profile_selected(self):
         """Show selectable charge/discharge profiles."""
         self.profile = self.profile_select.text
+        data_manager = App.get_running_app().data_manager
+        profile_root = os.path.join(data_manager.data_bank_root, 'profile')
+        if not os.path.exists(profile_root):
+            os.mkdir(profile_root)
+
+        if self.profile == 'Custom':
+            popup = ChooseFilePopup(save_dir = profile_root)
+            popup.open()
+            popup.on_dismiss = self._show_profile_options
+        else:
+            self._show_profile_options()
+
+
+    def _show_profile_options(self):
+        """Show available profiles"""
+        data_manager = App.get_running_app().data_manager
+        data_manager.scan_performance_data_bank()
+        print(data_manager.data_bank)
 
         try:
-            data_manager = App.get_running_app().data_manager
-            profiles = data_manager.data_bank['profiles']
+            self.profile_rv.data = [{'name': profile_files[0], 'path':profile_files[1], 'op':None}
+                                        for profile_files in data_manager.data_bank['profiles'][self.profile]]
         except AttributeError:
             pass
-        except KeyError:
-            if self.profile in self.btm_ops.columns:
-                self.profile_rv.data = [{'name': op['month'], 'path':None, 'op':op} for op in self.btm_ops[self.profile]]
-            elif self.profile in self.valuation_ops.columns:
-                self.profile_rv.data = [{'name': op['month'], 'path':None, 'op':op} for op in self.valuation_ops[self.profile]]
-            else:
-                print('The selected profile does not exist')
-
-            Clock.schedule_once(partial(fade_in_animation, self.profile_select_bx), 0)
         else:
-            if self.profile in profiles:
-                self.profile_rv.data = [{'name': profile_files[0], 'path':profile_files[1], 'op':None}
-                                        for profile_files in data_manager.data_bank['profiles'][self.profile]]
-            elif self.profile in self.btm_ops.columns:
-                self.profile_rv.data = [{'name': op['month'], 'path':None, 'op':op} for op in self.btm_ops[self.profile]]
-            elif self.profile in self.valuation_ops.columns:
-                self.profile_rv.data = [{'name': op['month'], 'path':None, 'op':op} for op in self.valuation_ops[self.profile]]
-            else:
-                print('The selected profile does not exist')
 
             Clock.schedule_once(partial(fade_in_animation, self.profile_select_bx), 0)
 
@@ -543,7 +583,7 @@ class EnergyPlusPopup(MyPopup):
         self.eplus_url = "http://api.github.com/repos/NREL/Energyplus/releases/latest"
         self.sys = platform.system()
         self.machine = platform.machine()
-        self.platform = platform.platform()
+        self.platform = platform.platform().split("-")
         self.download = None
         self.target_path = None
         self.popup_text.text = 'EnergyPlus not found. Please visit the help tab to configure Energyplus on your machine.'
@@ -551,38 +591,44 @@ class EnergyPlusPopup(MyPopup):
     def download_energyplus(self):
         eplus_url = "http://api.github.com/repos/NREL/Energyplus/releases/latest"
 
-        response = requests.get(eplus_url, stream=True)
-        assets_ls = response.json()['assets']
-        sys = platform.system()
-        mac = platform.machine()
-        plat = platform.platform().split('-')
-        download = None
-        potential_download_url = []
-
-        self._asset_loop(assets_ls)
-        self._download()
+        try:
+            response = requests.get(eplus_url, stream=True)
+            assets_ls = response.json()['assets']
+        except Exception as e:
+            logging.warning(f"Performance: Energyplus request failed - {e}")
+        else:
+            self._asset_loop(assets_ls)
+            self._download()
 
     def _asset_loop(self, assets_ls):
         potential_download_url = []
         osys = None
         if self.sys == 'Darwin':
-            osys = self.platform[0] + self.platform[1]
+            # osys = self.platform[0] + self.platform[1]
             machine = self.platform[2] + '.tar.gz'
         elif self.sys == 'Windows':
-            if self.machine in ['x86', 'x64']:
+            print('first spot')
+            # if self.machine in ['x86', 'x64']:
+            if ('64' in self.machine) or ('86' in self.machine):
                 machine = 'x86_64.zip'
+                print('2 spot')
             else:
                 machine = self.machine + '.zip'
+                print('3.. spot')
+                print(self.machine)
 
         for asset in assets_ls:
             name_ls = asset['name'].split('-')
-            if (osys in name_ls) and (machine in name_ls):
+            if (self.sys in name_ls) and (machine in name_ls):
                 self.download = (asset['browser_download_url'], asset['name'])
+                print('4 spot')
             elif (self.sys in name_ls) and (machine in name_ls):
                 potential_download_url.append((asset['browser_download_url'], asset['name']))
+                print('5 spot')
 
         if (self.download == None) and (potential_download_url):
             self.download = potential_download_url[-1]
+            print('6 spot')
 
     def _download(self):
         if self.sys == 'Darwin':
@@ -594,7 +640,6 @@ class EnergyPlusPopup(MyPopup):
 
         try:
             download_response = requests.get(self.download[0], stream=True)
-
             if self.sys == 'Darwin':
                 target_path = 'energyplus.tar'
                 with open(target_path, 'wb') as f:
@@ -605,15 +650,79 @@ class EnergyPlusPopup(MyPopup):
                 target_path = 'energyplus.zip'
                 with open(target_path, 'wb') as f:
                     f.write(download_response.raw.read())
-                with zipfile.open(target_path) as zip:
-                    zip.extractall()
+                with zipfile.ZipFile(target_path, 'r') as z:
+
+                    # Extract a specific file
+                    z.extractall()
+                # with zipfile.open(target_path) as zip:
+                #     zip.extractall()
 
             os.rename('-'.join([x if (('tar' not in x) and ('zip' not in x)) else x.split('.')[0] for x in self.download[1].split('-')]), 'energyplus')
             os.remove(target_path)
         except Exception as e:
-            print(e)
+            logging.warning(f"Performance: Download failed - {e}")
 
-        
+class ChooseFilePopup(MyPopup):
+    def __init__(self, save_dir, **kwargs):
+        super(ChooseFilePopup, self).__init__(**kwargs)
+        # file_load= FileChooserListView()
+        # self.content = file_load
+        self.selection = None
+        self.save_dir = save_dir
+        self.file_name_popup = FileNamePopup()
+
+    def run_open(self):
+        """Open popup from main thread."""
+        Clock.schedule_once(self.open)
+
+    def run_dismiss(self):
+        """Close popup from main thread."""
+        Clock.schedule_once(self.dismiss)
+
+    def enter_name(self):
+        """Ask user for entry name"""
+        self.selection = self.file_chooser.selection[0]
+        self.file_name_popup.open()
+        self.file_name_popup.button.on_press = lambda: self.file_name_popup.move_selection(self.selection, self.save_dir)
+
+class FileNamePopup(MyPopup):
+    def __init__(self, **kwargs):
+        super(FileNamePopup, self).__init__(**kwargs)
+
+        layout = BoxLayout(orientation="vertical")
+        self.name = TextInput()
+        self.button = Button(text="Enter")
+        layout.add_widget(self.name)
+        layout.add_widget(self.button)
+
+        self.title = "Enter source name"
+        self.content = layout
+
+    def run_open(self):
+        """Open popup from main thread."""
+        Clock.schedule_once(self.open)
+
+    def run_dismiss(self):
+        """Close popup from main thread."""
+        Clock.schedule_once(self.dismiss)
+
+    def move_selection(self, selection, data_dir):
+        """Return entered name"""
+        src_file = selection
+        file_name = os.path.basename(src_file)
+        data_dir_base = os.path.basename(data_dir)
+
+        if data_dir_base == "profiles":
+            dst_file = os.path.join(data_dir, file_name)
+        else:
+            dst_dir = os.path.join(data_dir, self.name.text)
+            dst_file = os.path.join(dst_dir, file_name)
+
+            if not os.path.exists(dst_dir):
+                os.mkdir(dst_dir)
+
+        shutil.copyfile(src_file, dst_file)
+        self.run_dismiss()
 
 class HVACEntry(RecycleViewRow):
     """HVAC entry for recycle view."""
