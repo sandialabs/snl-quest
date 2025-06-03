@@ -1,0 +1,30 @@
+include quest/*.py
+include quest/*.log
+include quest/*.qrc
+include quest/*.rc
+include quest/*.json
+include quest/*.jpg
+include quest/*.png
+include quest/*.svg
+include quest/*.csv
+include quest/*.md
+include quest/*.yml
+include quest/*.ini
+include quest/*.bat
+include quest/*.sh
+include quest/*.html
+include quest/*.js
+include quest/*.css
+include quest/*.ttf
+include quest/*.pdf
+include quest/*.xlsx
+include quest/*.gif
+include quest/*.mplstyle
+recursive-include quest .streamlit *
+recursive-include quest app *
+recursive-include quest app_envs *
+recursive-include quest data *
+recursive-include quest images *
+recursive-include quest licenses *
+recursive-include quest snl_libraries *
+recursive-include quest themes *

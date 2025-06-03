@@ -78,9 +78,18 @@ attempt_install_via_package_manager() {
     esac
 }
 
-# Set the path to the virtual environment and setup.py
+# Set the repository URL and branch name
+REPO_URL="https://github.com/sandialabs/snl-quest.git"
+BRANCH_NAME="snl_libraries"
+
+# Set the sparse checkout directory
+SPARSE_DIR="snl_libraries/snl_valuation"
+
+# Set the path to the virtual environment
 VENV_PATH="$(dirname "$0")/../../../app_envs/env_eval"
-SETUP_PATH="$(dirname "$0")/../../../snl_libraries/snl_valuation"
+
+# Set the path to the sparse checkout directory within the virtual environment
+CHECKOUT_PATH="$VENV_PATH/snl-quest/$SPARSE_DIR"
 
 echo "Checking for virtual environment..."
 # Create the virtual environment if it doesn't exist
@@ -95,9 +104,33 @@ echo "Activating virtual environment..."
 # Activate the virtual environment
 source "$VENV_PATH/bin/activate"
 
+echo "Cloning repository with sparse checkout..."
+# Clone the repository without checking out files
+if [ ! -d "$VENV_PATH/snl-quest" ]; then
+    git clone --no-checkout -b "$BRANCH_NAME" "$REPO_URL" "$VENV_PATH/snl-quest"
+fi
+
+# Navigate to the cloned repository
+cd "$VENV_PATH/snl-quest"
+
+# Enable sparse checkout
+git sparse-checkout init
+
+# Set sparse checkout path to include only the desired directory
+git sparse-checkout set "$SPARSE_DIR"
+
+# Check out the branch
+git checkout "$BRANCH_NAME"
+
+# Ensure the sparse checkout directory exists
+if [ ! -d "$CHECKOUT_PATH" ]; then
+    echo "Sparse checkout failed. Directory $SPARSE_DIR does not exist."
+    exit 1
+fi
+
 echo "Installing Python package..."
 # Install the Python package within the virtual environment
-pip install "$SETUP_PATH"
+pip install "$CHECKOUT_PATH"
 pip install kivy-garden==0.1.5
 
 # Check if GLPK is already installed
@@ -122,7 +155,7 @@ else
     fi
 fi
 
-GARDEN_PATH="$(dirname "$0")/../../../app_envs/env_eval/bin/garden"
+GARDEN_PATH="$VENV_PATH/bin/garden"
 echo "Garden Path: $GARDEN_PATH"
 chmod +x "$GARDEN_PATH"
 "$GARDEN_PATH" install matplotlib

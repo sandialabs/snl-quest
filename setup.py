@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
-DISTNAME = "Quest"
-VERSION = "2.0"
+DISTNAME = "quest-snl"
+VERSION = "2.0.dev2"
 PYTHON_REQUIRES = ">=3.6, <3.11"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
 LONG_DESCRIPTION = open("README.md").read()
@@ -33,7 +33,7 @@ setup(
         "geopandas==0.14.3",
         "psutil==5.9.0",
         "GitPython==3.1.43",
-        'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git'
+    #    'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git'
     ],
 
     package_data={

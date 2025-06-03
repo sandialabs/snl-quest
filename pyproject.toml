@@ -3,49 +3,68 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Quest"
-version = "2.0"
+name = "quest-snl"
+version = "2.0.dev2"
 description = "Sandia National Laboratories Energy Storage Application Platform"
 readme = "README.md"
-license = { file = "LICENSE" }
-authors = [
-    { name = "Sandia National Laboratories", email = "tunguy@sandia.gov" }
-]
-keywords = ["energy storage", "application platform", "Sandia National Laboratories"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.6",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-]
-
-[project.dependencies]
-PySide6 = "==6.5.2"
-pandas = "==2.2.1"
-streamlit = "==1.33.0"
-openai = "==0.28.1"
-configparser = "==6.0.1"
-matplotlib = "==3.8.3"
-geopandas = "==0.14.3"
-psutil = "==5.9.0"
-GitPython = "==3.1.43"
-NodeGraphQt = { git = "https://github.com/cancom84/NodeGraphQt-PySide6.git" }
-
-[tool.setuptools]
-packages = ["quest"]
-include_package_data = true
-
-[tool.setuptools.package-data]
-"*" = [
-    "*.txt", "*.rst", "*.json", "*.jpg", "*.qss", "*.sh", "*.svg", "*.png",
-    "*.kv", "*.bat", "*.csv", "*.md", "*.yml", "*.dll", "*.idf", "*.doctree",
-    ".*info", "*.html", "*.js", "*.inv", "*.gif", "*.css", "*.eps", "*.pickle",
-    "*.xlsx", "*.ttf", "*.pdf", "*.mplstyle", "*.ini", "**/license*"
+license = "BSD-3-Clause"
+authors = [{name = "Sandia National Laboratories"}]
+maintainers = [{name = "Sandia National Laboratories", email = "tunguy@sandia.gov"}]
+requires-python = ">=3.6, <3.11"
+dependencies = [
+    "PySide6==6.5.2",
+    "pandas==2.2.1",
+    "streamlit==1.33.0",
+    "openai==0.28.1",
+    "configparser==6.0.1",
+    "matplotlib==3.8.3",
+    "geopandas==0.14.3",
+    "psutil==5.9.0",
+    "GitPython==3.1.43"
 ]
 
 [project.scripts]
 quest = "quest.__main__:main"
+
+[tool.setuptools]
+packages = ["quest"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+"quest" = [
+    "*.log",
+    "*.py",
+    "*.qrc",
+    "*.rc",
+    "*.json",
+    "*.jpg",
+    "*.png",
+    "*.svg",
+    "*.csv",
+    "*.md",
+    "*.yml",
+    "*.ini",
+    "*.bat",
+    "*.sh",
+    "*.html",
+    "*.js",
+    "*.css",
+    "*.ttf",
+    "*.pdf",
+    "*.xlsx",
+    "*.gif",
+    "*.mplstyle",
+    "**/license*",
+    "**/*.ui",
+    "**/*.eot",
+    "**/*.woff",
+    "**/*.woff2",
+    ".streamlit/*",
+    "app/*",
+    "app_envs/*",
+    "data/*",
+    "images/*",
+    "licenses/*",
+    "snl_libraries/*",
+    "themes/*"
+]
