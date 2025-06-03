@@ -1,0 +1,49 @@
+<BtmCostSavingsGenerateReportMenu>:
+    size_hint: (0.95, 0.95)
+    auto_dismiss: False
+    sm: sm
+    generate_report_button: generate_report_button
+
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: 10
+        spacing: 5
+
+        canvas.before:
+            Color:
+                rgba: C(hex_white)
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_x: 0.8
+            size_hint_y: 1.0
+            padding: 0
+
+            ReportScreenManager:
+                id: sm
+
+                Screen:
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.2
+            padding: 10
+            spacing: 5
+
+            ReportBodyText:
+                #size_hint_y: 0.90
+                text: "Click 'Start' to generate a pro forma report for you to view and print. \n\nWe'll need to draw and save some figures from the wizard report so pardon us as we flip through some screens!"
+
+            TileButton:
+                id: generate_report_button
+                size_hint_y: 0.05
+                text: 'Start'
+                on_release: root.generate_report_screens()
+
+            TileButton:
+                size_hint_y: 0.05
+                text: 'Return'
+                on_release: root.dismiss()

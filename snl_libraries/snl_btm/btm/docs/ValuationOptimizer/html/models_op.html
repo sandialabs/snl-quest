@@ -1,0 +1,407 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Optimization models &#8212; Valuation Optimizer  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Optimizer" href="optimizer.html" />
+    <link rel="prev" title="Energy storage model" href="model_storage.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="optimization-models">
+<span id="op-model-desc"></span><h1>Optimization models<a class="headerlink" href="#optimization-models" title="Permalink to this headline">¶</a></h1>
+<p>The optimization models are discrete-time, energy-based linear programs. The discrete time steps are assumed to be one hour. Without loss of generality, the time horizon for optimization is assumed to be one month. The energy storage model is based on tracking the ESS state of charge based on the energy charged and/or discharged at each time step.</p>
+<p>Here we will describe the expressions that comprise the objective functions and constraints for each model implemented.</p>
+<p>The following are the decision variables:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="16%" />
+<col width="81%" />
+<col width="3%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Decision variables</th>
+<th class="head">Description</th>
+<th class="head">Units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(q_i^\text{d}\)</span></td>
+<td>energy sold (discharged) from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(q_i^\text{r}\)</span></td>
+<td>energy purchased (charged) from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>MWh</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(q_i^\text{reg}\)</span></td>
+<td>energy bid for regulation up/down at time <span class="math">\(t\)</span> in a one product frequency regulation market</td>
+<td>MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(q_i^\text{ru}\)</span></td>
+<td>energy bid for regulation up from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span>  in a two product frequency regulation market</td>
+<td>MWh</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(q_i^\text{rd}\)</span></td>
+<td>energy bid for regulation down from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span>  in a two product frequency regulation market</td>
+<td>MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(s_i\)</span></td>
+<td>device state of charge at time period <span class="math">\(i\)</span></td>
+<td>MWh</td>
+</tr>
+</tbody>
+</table>
+<p>While not explicitly appearing as a decision variable in the mathematical model, <span class="math">\(s_i\)</span> is defined as one for the Pyomo formulation. The following are the energy storage device parameters:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="38%" />
+<col width="57%" />
+<col width="5%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Storage parameters</th>
+<th class="head">Description</th>
+<th class="head">Units</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\bar{S}\)</span></td>
+<td>energy capacity</td>
+<td>MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\bar{Q}\)</span></td>
+<td>energy charge/discharge rating</td>
+<td>MWh</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(S_0\)</span></td>
+<td>initial state of charge</td>
+<td>MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\delta_\text{s}^\text{min}\)</span></td>
+<td>fraction of energy capacity to reserve for discharging</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\delta_\text{s}^\text{max}\)</span></td>
+<td>fraction of energy capacity to reserve for charging</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\delta_\text{reg}^\text{min}\)</span></td>
+<td>fraction of regulation bid to reserve for discharging</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\delta_\text{reg}^\text{max}\)</span></td>
+<td>fraction of regulation bid to reserve for charging</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\eta_\text{s}\)</span></td>
+<td>self-discharge efficiency</td>
+<td>%/h</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\eta_\text{c}\)</span></td>
+<td>round trip efficiency</td>
+<td>%</td>
+</tr>
+</tbody>
+</table>
+<p>The following are market-related parameters, typically derived from market data:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="76%" />
+<col width="3%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Market parameters</th>
+<th class="head">Description</th>
+<th class="head">&#160;</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><span class="math">\(\delta_i^\text{ru}\)</span></td>
+<td>fraction of regulation up bid actually deployed from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\delta_i^\text{rd}\)</span></td>
+<td>fraction of regulation down bid actually deployed from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\lambda_i\)</span></td>
+<td>price of electricity from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\lambda_i^\text{c}\)</span></td>
+<td>frequency regulation capacity price from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span> in a one product market</td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\lambda_i^\text{c,ru}\)</span></td>
+<td>frequency regulation up capacity price from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span> in a two product market</td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\lambda_i^\text{c,rd}\)</span></td>
+<td>frequency regulation down capacity price from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span> in a two product market</td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\lambda_i^\text{p}\)</span></td>
+<td>frequency regulation performance price from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span> in a one product market</td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\lambda_i^\text{p,ru}\)</span></td>
+<td>frequency regulation up performance price from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span> in a two product market</td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\lambda_i^\text{p,rd}\)</span></td>
+<td>frequency regulation down performance price from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span> in a two product market</td>
+<td>$/MWh</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(\beta_i\)</span></td>
+<td>mileage ratio from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\alpha\)</span></td>
+<td>make whole parameter for adjusting regulation credit</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><span class="math">\(R\)</span></td>
+<td>interest/discount rate</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-even"><td><span class="math">\(\gamma_i\)</span></td>
+<td>performance score from time period <span class="math">\(i\)</span> to <span class="math">\(i+1\)</span></td>
+<td>&#160;</td>
+</tr>
+</tbody>
+</table>
+<p>The time-indexed variables are defined for all time periods (hours) <span class="math">\(i \in \mathcal{T}\)</span> where <span class="math">\(\mathcal{T} = \{0, 1, ..., N-1\}\)</span> and <span class="math">\(N\)</span> equals the number of time periods in the time horizon, which is assumed to be one month. The state of charge <span class="math">\(s_i\)</span> is defined for <span class="math">\(i = \{0, 1, ..., N\}\)</span> (one additional time step) to ensure that the final state of charge is still properly constrained.</p>
+<p>Furthermore, the final state of charge is constrained to be equal to the initial state of charge, <span class="math">\(S_0\)</span>, which is by default equal to <span class="math">\(\delta_\text{s}^\text{min} \bar{S}\)</span>, the minimum state of charge (reserved for discharging).</p>
+<div class="section" id="arbitrage-only">
+<h2>Arbitrage only<a class="headerlink" href="#arbitrage-only" title="Permalink to this headline">¶</a></h2>
+<p>Arbitrage, in this context, refers to the managing state of charge by buying and selling energy. A storage device engaging in arbitrage is trying to maximize profit from buying energy at low prices and selling energy at higher prices, subject to the constraints of the storage facility. Valuation with this particular revenue stream only has the same formulation among all market areas.</p>
+<p>For a storage device that participates in arbitrage only, the decision variables are <span class="math">\(q_i^\text{d}\)</span>, <span class="math">\(q_i^\text{r}\)</span>, and <span class="math">\(s_i\)</span>.</p>
+<p>The recursion relation describing the state of charge <span class="math">\(s_i\)</span> for <span class="math">\(i &gt; 0\)</span> is given by:</p>
+<div class="math">
+\[s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} - q_i^\text{d}\]</div>
+<p>with:</p>
+<div class="math">
+\[s_0 = S_0\]</div>
+<p>The constraints on the state of charge <span class="math">\(s_i\)</span>, the quantity purchased <span class="math">\(q_i^\text{r}\)</span>, and the quantity sold <span class="math">\(q_i^\text{d}\)</span> at each time step <span class="math">\(i\)</span> are given by:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\delta_\text{s}^\text{min} \bar{S} \leq s_i\\s_i \leq (1 - \delta_\text{s}^\text{max}) \bar{S}\\q_i^\text{r} + q_i^\text{d} \leq \bar{Q}\\s_N = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(i \in \mathcal{T}\)</span>. The first two sets of constraints limits the state of charge between its minimum and maximum values as specified at each time step. The next set of constraints limits the total energy charged over the time step (both charging and discharging) to the energy charge limit (derived from the power limit) at each time step. This constraint permits charging and discharging during the same time step but restricts the throughput based on the power rating.</p>
+<p>The objective is to maximize the total revenue over the time horizon. We do not include costs associated with, e.g., charging or discharging. If data is available, it may be included in the objective function, changing the objective to profit maximization. Otherwise, the objective function for the arbitrage only model is:</p>
+<div class="math">
+\[J = \sum_{i \in \mathcal{T}} \left [q_i^\text{d} - q_i^\text{r} \right ] \lambda_i e^{-Ri}\]</div>
+<p>Revenue is solely generated by buying and selling energy. The arbitrage only model can therefore be summarized as:</p>
+<div class="math">
+\[\max_{q^\text{d}, q^\text{r}, s} J\]</div>
+<p>subject to:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} - q_i^\text{d}\\\delta_\text{s}^\text{min} \bar{S} \leq s_i \leq (1 - \delta_\text{s}^\text{max}) \bar{S}\\q_i^\text{r} + q_i^\text{d} \leq \bar{Q}\\s_0 = S_0\\s_N = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(i \in \mathcal{T}\)</span>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">In many areas, the net energy for regulation is settled at the real-time price. This provides an additional arbitrage opportunity between the day ahead price and the real-time price. These models are primarily concerned with arbitrage and regulation revenue from the day ahead market; therefore, the price <span class="math">\(\lambda_i\)</span> typically represents the day ahead LMP. While this does not reflect the actual settlement process, it keeps the optimization from incorporating any arbitrage between the day ahead and the real-time market.</p>
+</div>
+</div>
+<div class="section" id="arbitrage-and-regulation-ercot">
+<h2>Arbitrage and regulation (ERCOT)<a class="headerlink" href="#arbitrage-and-regulation-ercot" title="Permalink to this headline">¶</a></h2>
+<p>ERCOT has a frequency regulation market that does not explicitly provide credits based on frequency regulation performance, only for capacity offered. It offers different prices for regulation up and regulation down is thus considered a <em>two product frequency regulation</em> market.</p>
+<p>For a storage device that participates in both arbitrage and frequency regulation, the decision variables are <span class="math">\(q_i^\text{d}\)</span>, <span class="math">\(q_i^\text{r}\)</span>, <span class="math">\(q_i^\text{ru}\)</span>, <span class="math">\(q_i^\text{rd}\)</span>, and <span class="math">\(s_i\)</span>.</p>
+<p>The recursion relation describing the state of charge <span class="math">\(s_i\)</span> for <span class="math">\(i &gt; 0\)</span> is given by:</p>
+<div class="math">
+\[s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} - q_i^\text{d} + \eta_\text{c} \delta_i^\text{rd} q_i^\text{rd} - \delta_i^\text{ru} q_i^\text{ru}\]</div>
+<p>with:</p>
+<div class="math">
+\[s_0 = S_0\]</div>
+<p>The constraints on the decision variables are given by:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\delta_\text{reg}^\text{min} q_i^\text{ru} + \delta_\text{s}^\text{min} \bar{S} \leq s_{i+1}\\s_{i+1} \leq (1 - \delta_\text{s}^\text{max}) \bar{S} - \eta_\text{c} \delta_\text{reg}^\text{max} q_i^\text{rd}\\q_i^\text{r} + q_i^\text{d} + q_i^\text{ru} + q_i^\text{rd} \leq \bar{Q}\\s_N = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(t \in \mathcal{T}\)</span>. The first two sets of constraints limits the state of charge between its minimum and maximum values as specified at each time step. The <span class="math">\(\delta_\text{reg}\)</span> factors are safety factors used to reserve energy capacity headroom and/or legroom to avoid penalties due to not meeting regulation obligations; they are defined as fractions of the capacity bid. The next set of constraints limits the total energy charged over the time step (both charging and discharging) to the energy charge limit (derived from the power limit) at each time step. This constraint permits charging and discharging during the same time step but restricts the throughput based on the power rating. Bids for regulation up/down are constrained together with arbitrage-related actions.</p>
+<p>The objective function for the model is:</p>
+<div class="math">
+\[J = \sum_\mathcal{i \in T} \left [ \left(q_i^\text{d} - q_i^\text{r} \right) \lambda_i + \lambda_i^{c,ru} q_i^\text{ru} + \lambda_i^{c,rd} q_i^\text{rd} + \left( \delta_i^\text{ru} q_i^\text{ru} - \delta_i^\text{rd} q_i^\text{rd} \right) \lambda_i \right ] e^{-Ri}\]</div>
+<p>In addition to the arbitrage revenue stream, electricity prices are accounted for depending on the actual amount of the regulation bid that is called upon. Additionally, the revenue from regulation up/down bids are included. The ERCOT arbitrage and regulation model can therefore be summarized as:</p>
+<div class="math">
+\[\max_{q^\text{d}, q^\text{r}, q^\text{ru}, q^\text{rd}, s} J\]</div>
+<p>subject to:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}s_{i+1} = \eta_\text{s} s_i + \eta_\text{c} q_i^\text{r} - q_i^\text{d} + \eta_\text{c} \delta_i^\text{rd} q_i^\text{rd} - \delta_i^\text{ru} q_i^\text{ru}\\\delta_\text{reg}^\text{min} q_i^\text{ru} + \delta_\text{s}^\text{min} \bar{S} \leq s_{i+1} \leq (1 - \delta_\text{s}^\text{max}) \bar{S} - \eta_\text{c} \delta_\text{reg}^\text{max} q_i^\text{rd}\\q_i^\text{r} + q_i^\text{d} + q_i^\text{ru} + q_i^\text{rd} \leq \bar{Q}\\s_0 = S_0\\s_N = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(i \in \mathcal{T}\)</span>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The <span class="math">\(\delta_i^\text{ru}\)</span> and <span class="math">\(\delta_i^\text{rd}\)</span> terms are assumed to be fixed for all time in the absence of additional information.</p>
+</div>
+</div>
+<div class="section" id="arbitrage-and-regulation-pjm">
+<h2>Arbitrage and regulation (PJM)<a class="headerlink" href="#arbitrage-and-regulation-pjm" title="Permalink to this headline">¶</a></h2>
+<p>PJM has a <em>single product</em> frequency regulation market that provides payment for performance.</p>
+<p>For a storage device that participates in both arbitrage and frequency regulation, the decision variables are <span class="math">\(q_d(t)\)</span>, <span class="math">\(q_r(t)\)</span>, <span class="math">\(q_{reg}(t)\)</span>, and <span class="math">\(s(t)\)</span>.</p>
+<p>The recursion relation describing the state of charge <span class="math">\(s(t)\)</span> for time <span class="math">\(t &gt; 0\)</span> is given by:</p>
+<div class="math">
+\[s(t+1) = \eta_s s(t) + \eta_c q_r(t) - q_d(t) + \eta_c \gamma_{rd}(t) q_{reg}(t) - \gamma_{ru}(t) q_{reg}(t)\]</div>
+<p>with:</p>
+<div class="math">
+\[s(0) = S_0\]</div>
+<p>The constraints on the decision variables are given by:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\gamma_{reg}^{min} q_{reg}(t) + \gamma_{s}^{min} \bar{S} \leq s(t+1)\\s(t+1) \leq (1 - \gamma_{s}^{max}) \bar{S} - \eta_c \gamma_{reg}^{max} q_{reg}(t)\\q_r(t) + q_d(t) + q_{reg}(t) \leq \bar{Q}\\S(N) = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(t \in \mathcal{T}\)</span>. The first two sets of constraints limits the state of charge between its minimum and maximum values as specified at each time step. The <span class="math">\(\gamma_{reg}\)</span> factors are safety factors used to reserve energy capacity headroom and/or legroom to avoid penalties due to not meeting regulation obligations; they are defined as fractions of the capacity bid. The next set of constraints limits the total energy charged over the time step (both charging and discharging) to the energy charge limit (derived from the power limit) at each time step. This constraint permits charging and discharging during the same time step but restricts the throughput based on the power rating. Bids for regulation capacity are constrained together with arbitrage-related actions.</p>
+<p>The objective function for the model is:</p>
+<div class="math">
+\[J = \sum_\mathcal{T} \left [ \left(q_d(t) - q_r(t) \right) \lambda(t) + \left( \beta(t) \lambda_p(t) + \lambda_c(t) \right) \Gamma q_{reg}(t) \right ] e^{-Rt}\]</div>
+<p>In addition to the arbitrage revenue stream, terms for revenue based on the regulation bid are included. A performance score term, <span class="math">\(\Gamma \in [0, 1]\)</span>, scales the total credit based on historical demonstrated ability for the device to follow regulation signals; in general, it is computed hourly based on delay, correlation, and precision scores. The total regulation credit consists of two different prices. The performance price, <span class="math">\(\lambda_p(t)\)</span>, is scaled by the mileage ratio, <span class="math">\(\beta\)</span>, defined as:</p>
+<div class="math">
+\[\beta(t) := \frac{\text{RegD mileage}}{\text{RegA mileage}}\]</div>
+<p>where RegD is a high pass filtered ACE signal designed for faster responding resources and RegA is the low pass filtered equivalent designed for traditional regulating resources. Mileage is the amount of movement requested by the regulation control signal. By design, a larger ratio of RegD mileage to RegA mileage will increase <span class="math">\(\beta(t)\)</span> and lead to larger credits from <span class="math">\(\lambda_p(t)\)</span>.</p>
+<p>The PJM arbitrage and regulation model can be summarized as:</p>
+<div class="math">
+\[\max_{q_d(t), q_r(t), q_{reg}(t), s(t)} J\]</div>
+<p>subject to:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\gamma_{reg}^{min} q_{ru}(t) + \gamma_{s}^{min} \bar{S} \leq s(t+1)\\s(t+1) \leq (1 - \gamma_{s}^{max}) \bar{S} - \eta_c \gamma_{reg}^{max} q_{rd}(t)\\q_r(t) + q_d(t) + q_{reg}(t) \leq \bar{Q}\\S(N) = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(t \in \mathcal{T}\)</span>.</p>
+</div>
+<div class="section" id="arbitrage-and-regulation-miso">
+<h2>Arbitrage and regulation (MISO)<a class="headerlink" href="#arbitrage-and-regulation-miso" title="Permalink to this headline">¶</a></h2>
+<p>MISO has a <em>single product</em> frequency regulation market that provides payment for performance.</p>
+<p>For a storage device that participates in both arbitrage and frequency regulation, the decision variables are <span class="math">\(q_d(t)\)</span>, <span class="math">\(q_r(t)\)</span>, <span class="math">\(q_{reg}(t)\)</span>, and <span class="math">\(s(t)\)</span>.</p>
+<p>The recursion relation describing the state of charge <span class="math">\(s(t)\)</span> for time <span class="math">\(t &gt; 0\)</span> is given by:</p>
+<div class="math">
+\[s(t+1) = \eta_s s(t) + \eta_c q_r(t) - q_d(t) + \eta_c \gamma_{rd}(t) q_{reg}(t) - \gamma_{ru}(t) q_{reg}(t)\]</div>
+<p>with:</p>
+<div class="math">
+\[s(0) = S_0\]</div>
+<p>The constraints on the decision variables are given by:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\gamma_{reg}^{min} q_{reg}(t) + \gamma_{s}^{min} \bar{S} \leq s(t+1)\\s(t+1) \leq (1 - \gamma_{s}^{max}) \bar{S} - \eta_c \gamma_{reg}^{max} q_{reg}(t)\\q_r(t) + q_d(t) + q_{reg}(t) \leq \bar{Q}\\S(N) = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(t \in \mathcal{T}\)</span>. These equations are the same as in the PJM model.</p>
+<p>The objective function for the model is:</p>
+<div class="math">
+\[J = \sum_\mathcal{T} \left [ \left(q_d(t) - q_r(t) \right) \lambda(t) + \left( 1 + \alpha \right) \Gamma \lambda_c(t) q_{reg}(t) \right ] e^{-Rt}\]</div>
+<p>In this model, only one price for regulation services is used: RegMCP and is associated with the <span class="math">\(\lambda_c(t)\)</span> interface. Like in the PJM model, the credit is scaled by a performance score parameter. The &#8220;make whole&#8221; parameter, <span class="math">\(\alpha\)</span>, is a system-wide parameter used to adjust the regulation service credit such that the market payout is &#8220;balanced&#8221; in an ensemble and temporal sense.</p>
+<p>The MISO arbitrage and regulation model can be summarized as:</p>
+<div class="math">
+\[\max_{q_d(t), q_r(t), q_{reg}(t), s(t)} J\]</div>
+<p>subject to:</p>
+<div class="math">
+\[ \begin{align}\begin{aligned}\gamma_{reg}^{min} q_{ru}(t) + \gamma_{s}^{min} \bar{S} \leq s(t+1)\\s(t+1) \leq (1 - \gamma_{s}^{max}) \bar{S} - \eta_c \gamma_{reg}^{max} q_{rd}(t)\\q_r(t) + q_d(t) + q_{reg}(t) \leq \bar{Q}\\S(N) = S_0\end{aligned}\end{align} \]</div>
+<p>for all <span class="math">\(t \in \mathcal{T}\)</span>.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Valuation Optimizer</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">A framework for building optimization models for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="model_storage.html">Energy storage model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Optimization models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#arbitrage-only">Arbitrage only</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arbitrage-and-regulation-ercot">Arbitrage and regulation (ERCOT)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arbitrage-and-regulation-pjm">Arbitrage and regulation (PJM)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arbitrage-and-regulation-miso">Arbitrage and regulation (MISO)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html">Constraints</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="model_storage.html" title="previous chapter">Energy storage model</a></li>
+      <li>Next: <a href="optimizer.html" title="next chapter">Optimizer</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ricky Concepcion.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/models_op.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

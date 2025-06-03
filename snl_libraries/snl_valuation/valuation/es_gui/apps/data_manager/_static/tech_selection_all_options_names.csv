@@ -1,0 +1,3 @@
+grid_location,Transmission/central,Distribution,BTM: commercial/industrial,BTM: residential
+system_size,Wholesale (100 MW),Utility (10 MW),Distribution & microgrid (1 MW),Commercial & industrial (100 kW),Residential (10 kW)
+discharge_duration,Up to 0.5 hr,1 hr,2 hrs,3 hrs,4 hrs,5 hrs,6 hrs,7 hrs,8 hrs,9 hrs,10 hrs

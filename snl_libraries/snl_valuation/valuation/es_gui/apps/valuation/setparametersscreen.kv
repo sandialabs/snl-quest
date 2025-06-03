@@ -1,0 +1,57 @@
+<SetParametersScreen>:
+    param_widget: param_widget
+    title: title
+    go_button: go_button
+    select_data_button: select_data_button
+
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+        padding: 10
+
+        TitleTextBase:
+            id: title
+            size_hint_y: 0.05
+
+        BoxLayout:
+            orientation: 'vertical'
+            padding: 40, 75
+            size_hint_y: 0.85
+
+            ValuationParameterWidget:
+                id: param_widget
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.1
+
+            FloatLayout:
+                AnchorLayout:
+                    anchor_y: 'center'
+                    anchor_x: 'left'
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_x: 0.15
+                        padding: 10
+
+                        TileButton:
+                            id: select_data_button
+                            background_color: C(hex_secondary)
+                            text: 'Select data'
+                            on_release: root.manager.current = 'load_data'
+
+                AnchorLayout:
+                    anchor_y: 'center'
+                    anchor_x: 'right'
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        size_hint_x: 0.15
+                        padding: 10
+
+                        TileButton:
+                            id: go_button
+                            background_color: C(hex_secondary)
+                            text: 'Go!'
+                            on_release: root.execute_single_run()

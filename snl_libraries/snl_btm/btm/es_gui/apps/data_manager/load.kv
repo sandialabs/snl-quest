@@ -1,0 +1,208 @@
+<DataManagerLoadHomeScreen>:
+    GridLayout:
+        rows: 1
+        padding: 250, 200
+        spacing: 10
+
+        MenuTileButton:
+            background_color: C(hex_primary)
+            text: '[font=Modern Pictograms][size=80],[/size][/font]\nCommercial'
+            on_release: root.manager.current = 'data_manager_commercial_load'
+
+        MenuTileButton:
+            id: advanced_button
+            background_color: C(hex_secondary)
+            text: '[font=Modern Pictograms][size=80]p[/size][/font]\nResidential'
+            on_release: root.manager.current = 'data_manager_residential_load'
+
+<DataManagerCommercialLoadScreen>:
+    state_rv_filter: state_rv_filter
+    state_rv: state_rv
+    location_rv_filter: location_rv_filter
+    location_rv: location_rv
+    building_rv_filter: building_rv_filter
+    building_rv: building_rv
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Download hourly load data by location and building type.'
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (200, 150)
+            size_hint_y: 0.95
+
+            GridLayout:
+                rows: 1
+                size_hint_y: 0.9
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.15
+                    spacing: 10
+
+                    TextInput:
+                        id: state_rv_filter
+                        size_hint_y: 0.1
+                        on_text: state_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: state_rv
+                        viewclass: 'StateRVEntry'
+                        size_hint_y: 0.8
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.4
+                    spacing: 10
+
+                    TextInput:
+                        id: location_rv_filter
+                        size_hint_y: 0.1
+                        on_text: location_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: location_rv
+                        viewclass: 'LocationRVEntry'
+                        size_hint_y: 0.8
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.45
+                    spacing: 10
+
+                    TextInput:
+                        id: building_rv_filter
+                        size_hint_y: 0.1
+                        on_text: building_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: building_rv
+                        viewclass: 'BuildingRVEntry'
+                        size_hint_y: 0.8
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+            
+            TileButton:
+                text: 'Save'
+                size_hint_y: 0.1
+                on_release: root.save_load_data()
+        
+<DataManagerResidentialLoadScreen>:
+    load_type_rv_filter: load_type_rv_filter
+    load_type_rv: load_type_rv
+    state_rv_filter: state_rv_filter
+    state_rv: state_rv
+    location_rv_filter: location_rv_filter
+    location_rv: location_rv
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 10
+        spacing: 5
+
+        DataManagerTitle:
+            size_hint_y: 0.05
+            text: 'Download hourly load data by location and load type.'
+        
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: 10
+            padding: (200, 150)
+            size_hint_y: 0.95
+
+            GridLayout:
+                rows: 1
+                size_hint_y: 0.9
+                spacing: 10
+
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.25
+                    spacing: 10
+
+                    TextInput:
+                        id: load_type_rv_filter
+                        size_hint_y: 0.1
+                        on_text: load_type_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: load_type_rv
+                        viewclass: 'LoadTypeRVEntry'
+                        size_hint_y: 0.8
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.25
+                    spacing: 10
+
+                    TextInput:
+                        id: state_rv_filter
+                        size_hint_y: 0.1
+                        on_text: state_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: state_rv
+                        viewclass: 'StateRVEntry'
+                        size_hint_y: 0.8
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+                
+                BoxLayout:
+                    orientation: 'vertical'
+                    size_hint_x: 0.5
+                    spacing: 10
+
+                    TextInput:
+                        id: location_rv_filter
+                        size_hint_y: 0.1
+                        on_text: location_rv.filter_rv_data(self.text)
+                        hint_text: 'Filter by name'
+                        multiline: False
+
+                    MyRecycleView:
+                        id: location_rv
+                        viewclass: 'LocationRVEntry'
+                        size_hint_y: 0.8
+
+                        SelectableRecycleBoxLayout:
+                            multiselect: False
+                            touch_multiselect: False
+            
+            TileButton:
+                text: 'Save'
+                size_hint_y: 0.1
+                on_release: root.save_load_data()

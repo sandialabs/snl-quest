@@ -1,0 +1,86 @@
+<HelpCarouselSlide>:
+    orientation: 'horizontal'
+    spacing: 20
+    img: img
+    img_caption: img_caption
+
+    Image:
+        allow_stretch: True
+        size_hint_x: 0.8
+        id: img
+    
+    BodyTextBase:
+        id: img_caption
+        size_hint_x: 0.2
+        text_size: self.size
+        height: self.texture_size[1]
+        # halign: 'justify'
+        valign: 'top'
+        markup: True
+
+<HelpCarouselModalView>:
+    size_hint: (0.85, 0.85)
+    auto_dismiss: True
+    carousel: carousel
+    title: title
+    slide_progress_bx: slide_progress_bx
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        canvas.before:
+            Color:
+                rgb: C(hex_white)
+
+            Rectangle:
+                pos: self.pos
+                size: self.size
+
+        TitleTextBase:
+            size_hint_y: 0.1
+            id: title
+        
+        Carousel:
+            id: carousel
+            direction: 'right'
+            anim_type: 'out_circ'
+
+        AnchorLayout:
+            anchor_x: 'center'
+            anchor_y: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.15
+                spacing: 5
+                id: slide_progress_bx
+
+        AnchorLayout:
+            anchor_y: 'center'
+            anchor_x: 'center'
+            size_hint_y: 0.05
+
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_x: 0.30
+                spacing: 5
+
+                TileButton:
+                    id: select_data_button
+                    text: '<<'
+                    on_release: root.change_slide('previous')
+
+                TileButton:
+                    id: set_parameters_button
+                    text: '>>'
+                    on_release: root.change_slide('next')
+
+<SlideProgressRadioButton>:
+    group: 'slides'
+    disabled: True
+    color: C(hex_secondary)
+    background_radio_disabled_down: self.background_radio_down
+    background_radio_disabled_normal: self.background_radio_normal

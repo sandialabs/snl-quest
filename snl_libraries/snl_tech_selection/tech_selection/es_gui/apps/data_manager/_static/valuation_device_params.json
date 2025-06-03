@@ -1,0 +1,30 @@
+[
+    {
+     "name": "self-discharge efficiency (%/h)",
+     "attr name": "Self_discharge_efficiency",
+     "max": 100,
+     "default": 100,
+     "step": 1
+    },
+    {
+     "name": "round trip efficiency (%)",
+     "attr name": "Round_trip_efficiency",
+     "max": 100,
+     "default": 85,
+     "step": 1
+    },
+    {
+     "name": "energy capacity (MWh)",
+     "attr name": "Energy_capacity",
+     "max": 100,
+     "default": 10,
+     "step": 1
+    },
+    {
+     "name": "power rating (MW)",
+     "attr name": "Power_rating",
+     "max": 100,
+     "default": 10,
+     "step": 1
+    }
+]

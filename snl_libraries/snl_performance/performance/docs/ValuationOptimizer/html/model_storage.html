@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Energy storage model &#8212; Valuation Optimizer  documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Optimization models" href="models_op.html" />
+    <link rel="prev" title="Requirements" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="energy-storage-model">
+<span id="storage-model-desc"></span><h1>Energy storage model<a class="headerlink" href="#energy-storage-model" title="Permalink to this headline">¶</a></h1>
+<p>The key parameters that characterize an energy storage device are:</p>
+<dl class="docutils">
+<dt><strong>power rating</strong> (MW)</dt>
+<dd>The maximum power of the storage device (charge and discharge). This model uses a single power rating for both charging and discharging. Because of the hourly timestep in the discrete time model, this can be represented as an energy charge rating (MWh).</dd>
+<dt><strong>energy capacity</strong> (MWh)</dt>
+<dd>The amount of energy that can be stored.</dd>
+<dt><strong>round trip efficiency</strong> (%)</dt>
+<dd>Describes the losses encountered when input power is stored in the system.</dd>
+<dt><strong>storage efficiency</strong> (%/h)</dt>
+<dd>Describes the amount of charge retained per timestep</dd>
+</dl>
+<p>Additional parameters can be used to describe the device to account for reserves in order to meet obligations not simulated in this analysis:</p>
+<dl class="docutils">
+<dt><strong>minimum reserve charge</strong> (MWh)</dt>
+<dd>The amount of energy to reserve for discharging for, e.g., resilience applications. Usually specified as a percentage of energy capacity, effectively increasing the minimum state of charge available for market participation.</dd>
+<dt><strong>maximum reserve charge</strong> (MWh)</dt>
+<dd>The amount of energy to reserve for charging for, e.g., primary frequency response applications. Usually specified as a percentage of energy capacity, effectively decreasing the maximum state of charge available for market participation.</dd>
+<dt><strong>minimum regulation reserve charge</strong> (MWh)</dt>
+<dd>The amount of energy to reserve to ensure that enough energy is available to discharge to meet the actual regulation capacity called upon. Usually specified as a percentage of the regulation bid, effectively increasing the minimum state of charge available for market participation.</dd>
+<dt><strong>maximum regulation reserve charge</strong> (MWh)</dt>
+<dd>The amount of energy capacity to reserve to ensure that enough energy is available to charge to meet the actual regulation capacity called upon. Usually specified as a percentage of the regulation bid, effectively decreasing the maximum state of charge available for market participation.</dd>
+</dl>
+<p>For this optimization model, we are concerned with the quantity of energy charged or discharged during each time period for each potential activity (e.g. arbitrage or regulation). For arbitrage, the device will maintain a constant output power over each time period. For regulation, it is assumed that the device is capable of tracking the regulation signal. Since the ramping time is negligible compared to the time period (e.g. one hour), it is safe to ignore the effects of ramp rate. If the ramp rate is slow compared to the time period this approximation does not hold and a model that incorporates ramp rate must be employed.</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="_static/Quest_Logo_RGB.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Valuation Optimizer</h1>
+    
+  </a>
+</p>
+
+
+
+<p class="blurb">A framework for building optimization models for energy storage valuation.</p>
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Energy storage model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models_op.html">Optimization models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimizer.html">Optimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="valuation_optimizer.html">ValuationOptimizer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="constraints.html">Constraints</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Requirements</a></li>
+      <li>Next: <a href="models_op.html" title="next chapter">Optimization models</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Ricky Concepcion.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/model_storage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

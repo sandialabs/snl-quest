@@ -1,0 +1,3262 @@
+{
+ "PJM": {
+  "1": {
+   "name": "PJM",
+   "ID": 1
+  },
+  "51291": {
+   "name": "AECO",
+   "ID": 51291
+  },
+  "8445784": {
+   "name": "AEP",
+   "ID": 8445784
+  },
+  "8394954": {
+   "name": "APS",
+   "ID": 8394954
+  },
+  "116013753": {
+   "name": "ATSI",
+   "ID": 116013753
+  },
+  "51292": {
+   "name": "BGE",
+   "ID": 51292
+  },
+  "33092371": {
+   "name": "COMED",
+   "ID": 33092371
+  },
+  "34508503": {
+   "name": "DAY",
+   "ID": 34508503
+  },
+  "124076095": {
+   "name": "DEOK",
+   "ID": 124076095
+  },
+  "34964545": {
+   "name": "DOM",
+   "ID": 34964545
+  },
+  "51293": {
+   "name": "DPL",
+   "ID": 51293
+  },
+  "37737283": {
+   "name": "DUQ",
+   "ID": 37737283
+  },
+  "970242670": {
+   "name": "EKPC",
+   "ID": 970242670
+  },
+  "51295": {
+   "name": "JCPL",
+   "ID": 51295
+  },
+  "51296": {
+   "name": "METED",
+   "ID": 51296
+  },
+  "51297": {
+   "name": "PECO",
+   "ID": 51297
+  },
+  "51300": {
+   "name": "PENELEC",
+   "ID": 51300
+  },
+  "51298": {
+   "name": "PEPCO",
+   "ID": 51298
+  },
+  "51299": {
+   "name": "PPL",
+   "ID": 51299
+  },
+  "51301": {
+   "name": "PSEG",
+   "ID": 51301
+  },
+  "7633629": {
+   "name": "RECO",
+   "ID": 7633629
+  },
+  "34497125": {
+   "name": "AEP GEN HUB",
+   "ID": 34497125
+  },
+  "34497127": {
+   "name": "AEP-DAYTON HUB",
+   "ID": 34497127
+  },
+  "116013751": {
+   "name": "ATSI GEN HUB",
+   "ID": 116013751
+  },
+  "33092311": {
+   "name": "CHICAGO GEN HUB",
+   "ID": 33092311
+  },
+  "33092313": {
+   "name": "CHICAGO HUB",
+   "ID": 33092313
+  },
+  "35010337": {
+   "name": "DOMINION HUB",
+   "ID": 35010337
+  },
+  "51217": {
+   "name": "EASTERN HUB",
+   "ID": 51217
+  },
+  "33092315": {
+   "name": "N ILLINOIS HUB",
+   "ID": 33092315
+  },
+  "4669664": {
+   "name": "NEW JERSEY HUB",
+   "ID": 4669664
+  },
+  "34497151": {
+   "name": "OHIO HUB",
+   "ID": 34497151
+  },
+  "51287": {
+   "name": "WEST INT HUB",
+   "ID": 51287
+  },
+  "51288": {
+   "name": "WESTERN HUB",
+   "ID": 51288
+  }
+ },
+ "ERCOT": {
+  "HB_BUSAVG": {
+   "name": "HB_BUSAVG",
+   "ID": "HB_BUSAVG"
+  },
+  "HB_HOUSTON": {
+   "name": "HB_HOUSTON",
+   "ID": "HB_HOUSTON"
+  },
+  "HB_HUBAVG": {
+   "name": "HB_HUBAVG",
+   "ID": "HB_HUBAVG"
+  },
+  "HB_NORTH": {
+   "name": "HB_NORTH",
+   "ID": "HB_NORTH"
+  },
+  "HB_SOUTH": {
+   "name": "HB_SOUTH",
+   "ID": "HB_SOUTH"
+  },
+  "HB_WEST": {
+   "name": "HB_WEST",
+   "ID": "HB_WEST"
+  },
+  "LZ_AEN": {
+   "name": "LZ_AEN",
+   "ID": "LZ_AEN"
+  },
+  "LZ_CPS": {
+   "name": "LZ_CPS",
+   "ID": "LZ_CPS"
+  },
+  "LZ_HOUSTON": {
+   "name": "LZ_HOUSTON",
+   "ID": "LZ_HOUSTON"
+  },
+  "LZ_LCRA": {
+   "name": "LZ_LCRA",
+   "ID": "LZ_LCRA"
+  },
+  "LZ_NORTH": {
+   "name": "LZ_NORTH",
+   "ID": "LZ_NORTH"
+  },
+  "LZ_RAYBN": {
+   "name": "LZ_RAYBN",
+   "ID": "LZ_RAYBN"
+  },
+  "LZ_SOUTH": {
+   "name": "LZ_SOUTH",
+   "ID": "LZ_SOUTH"
+  },
+  "LZ_WEST": {
+   "name": "LZ_WEST",
+   "ID": "LZ_WEST"
+  }
+ },
+ "MISO": {
+  "AECI.ALTW": {
+   "name": "AECI.ALTW",
+   "ID": "AECI.ALTW"
+  },
+  "AECI.AMMO": {
+   "name": "AECI.AMMO",
+   "ID": "AECI.AMMO"
+  },
+  "AECI.APM_1.AZ": {
+   "name": "AECI.APM_1.AZ",
+   "ID": "AECI.APM_1.AZ"
+  },
+  "AECI.APM_2.AZ": {
+   "name": "AECI.APM_2.AZ",
+   "ID": "AECI.APM_2.AZ"
+  },
+  "AECI.CWLD": {
+   "name": "AECI.CWLD",
+   "ID": "AECI.CWLD"
+  },
+  "ALTE.1QUIN.MVP": {
+   "name": "ALTE.1QUIN.MVP",
+   "ID": "ALTE.1QUIN.MVP"
+  },
+  "ALTE.ALTE": {
+   "name": "ALTE.ALTE",
+   "ID": "ALTE.ALTE"
+  },
+  "ALTE.AZ": {
+   "name": "ALTE.AZ",
+   "ID": "ALTE.AZ"
+  },
+  "ALTE.MCKNA.MVP": {
+   "name": "ALTE.MCKNA.MVP",
+   "ID": "ALTE.MCKNA.MVP"
+  },
+  "ALTE.PAR_1.AZ": {
+   "name": "ALTE.PAR_1.AZ",
+   "ID": "ALTE.PAR_1.AZ"
+  },
+  "ALTE.WPPI_1.AZ": {
+   "name": "ALTE.WPPI_1.AZ",
+   "ID": "ALTE.WPPI_1.AZ"
+  },
+  "ALTW.AEPE0001": {
+   "name": "ALTW.AEPE0001",
+   "ID": "ALTW.AEPE0001"
+  },
+  "ALTW.ALTW": {
+   "name": "ALTW.ALTW",
+   "ID": "ALTW.ALTW"
+  },
+  "ALTW.ARMST.ARR": {
+   "name": "ALTW.ARMST.ARR",
+   "ID": "ALTW.ARMST.ARR"
+  },
+  "ALTW.AZ": {
+   "name": "ALTW.AZ",
+   "ID": "ALTW.AZ"
+  },
+  "ALTW.BEPM.CBLD": {
+   "name": "ALTW.BEPM.CBLD",
+   "ID": "ALTW.BEPM.CBLD"
+  },
+  "ALTW.CMMPA.MTL": {
+   "name": "ALTW.CMMPA.MTL",
+   "ID": "ALTW.CMMPA.MTL"
+  },
+  "ALTW.CMMPA.SPR": {
+   "name": "ALTW.CMMPA.SPR",
+   "ID": "ALTW.CMMPA.SPR"
+  },
+  "ALTW.CMMPA.WIN": {
+   "name": "ALTW.CMMPA.WIN",
+   "ID": "ALTW.CMMPA.WIN"
+  },
+  "ALTW.FAIR1.ARR": {
+   "name": "ALTW.FAIR1.ARR",
+   "ID": "ALTW.FAIR1.ARR"
+  },
+  "ALTW.FAIR2.ARR": {
+   "name": "ALTW.FAIR2.ARR",
+   "ID": "ALTW.FAIR2.ARR"
+  },
+  "ALTW.HAHN.ARR": {
+   "name": "ALTW.HAHN.ARR",
+   "ID": "ALTW.HAHN.ARR"
+  },
+  "ALTW.HCPD.STHP": {
+   "name": "ALTW.HCPD.STHP",
+   "ID": "ALTW.HCPD.STHP"
+  },
+  "ALTW.HCPD.TRU": {
+   "name": "ALTW.HCPD.TRU",
+   "ID": "ALTW.HCPD.TRU"
+  },
+  "ALTW.HZLT1.MVP": {
+   "name": "ALTW.HZLT1.MVP",
+   "ID": "ALTW.HZLT1.MVP"
+  },
+  "ALTW.HZLT3.MVP": {
+   "name": "ALTW.HZLT3.MVP",
+   "ID": "ALTW.HZLT3.MVP"
+  },
+  "ALTW.LANS3.ARR": {
+   "name": "ALTW.LANS3.ARR",
+   "ID": "ALTW.LANS3.ARR"
+  },
+  "ALTW.MECB": {
+   "name": "ALTW.MECB",
+   "ID": "ALTW.MECB"
+  },
+  "ALTW.MECB_1.AZ": {
+   "name": "ALTW.MECB_1.AZ",
+   "ID": "ALTW.MECB_1.AZ"
+  },
+  "ALTW.MONTA.ARR": {
+   "name": "ALTW.MONTA.ARR",
+   "ID": "ALTW.MONTA.ARR"
+  },
+  "ALTW.MQOKT.ARR": {
+   "name": "ALTW.MQOKT.ARR",
+   "ID": "ALTW.MQOKT.ARR"
+  },
+  "ALTW.MRES": {
+   "name": "ALTW.MRES",
+   "ID": "ALTW.MRES"
+  },
+  "ALTW.MRES_1.AZ": {
+   "name": "ALTW.MRES_1.AZ",
+   "ID": "ALTW.MRES_1.AZ"
+  },
+  "ALTW.NSP": {
+   "name": "ALTW.NSP",
+   "ID": "ALTW.NSP"
+  },
+  "ALTW.NSPP_1.AZ": {
+   "name": "ALTW.NSPP_1.AZ",
+   "ID": "ALTW.NSPP_1.AZ"
+  },
+  "ALTW.SMP": {
+   "name": "ALTW.SMP",
+   "ID": "ALTW.SMP"
+  },
+  "ALTW.TEA_1.AZ": {
+   "name": "ALTW.TEA_1.AZ",
+   "ID": "ALTW.TEA_1.AZ"
+  },
+  "ALTW.UPLS_1.AZ": {
+   "name": "ALTW.UPLS_1.AZ",
+   "ID": "ALTW.UPLS_1.AZ"
+  },
+  "ALTW.UPLS_2.AZ": {
+   "name": "ALTW.UPLS_2.AZ",
+   "ID": "ALTW.UPLS_2.AZ"
+  },
+  "ALTW.WPPI": {
+   "name": "ALTW.WPPI",
+   "ID": "ALTW.WPPI"
+  },
+  "ALTW.WPPI_1.AZ": {
+   "name": "ALTW.WPPI_1.AZ",
+   "ID": "ALTW.WPPI_1.AZ"
+  },
+  "ALTW.WRTHNGT": {
+   "name": "ALTW.WRTHNGT",
+   "ID": "ALTW.WRTHNGT"
+  },
+  "AMIL.ACL9": {
+   "name": "AMIL.ACL9",
+   "ID": "AMIL.ACL9"
+  },
+  "AMIL.ACP9": {
+   "name": "AMIL.ACP9",
+   "ID": "AMIL.ACP9"
+  },
+  "AMIL.AEM.CAT": {
+   "name": "AMIL.AEM.CAT",
+   "ID": "AMIL.AEM.CAT"
+  },
+  "AMIL.AEM.IL": {
+   "name": "AMIL.AEM.IL",
+   "ID": "AMIL.AEM.IL"
+  },
+  "AMIL.AEM.NWTN": {
+   "name": "AMIL.AEM.NWTN",
+   "ID": "AMIL.AEM.NWTN"
+  },
+  "AMIL.AEM.RPGI": {
+   "name": "AMIL.AEM.RPGI",
+   "ID": "AMIL.AEM.RPGI"
+  },
+  "AMIL.AEM.SYLND": {
+   "name": "AMIL.AEM.SYLND",
+   "ID": "AMIL.AEM.SYLND"
+  },
+  "AMIL.AGE": {
+   "name": "AMIL.AGE",
+   "ID": "AMIL.AGE"
+  },
+  "AMIL.AIP9": {
+   "name": "AMIL.AIP9",
+   "ID": "AMIL.AIP9"
+  },
+  "AMIL.AIU1": {
+   "name": "AMIL.AIU1",
+   "ID": "AMIL.AIU1"
+  },
+  "AMIL.AMBT": {
+   "name": "AMIL.AMBT",
+   "ID": "AMIL.AMBT"
+  },
+  "AMIL.AMER": {
+   "name": "AMIL.AMER",
+   "ID": "AMIL.AMER"
+  },
+  "AMIL.AMILSES": {
+   "name": "AMIL.AMILSES",
+   "ID": "AMIL.AMILSES"
+  },
+  "AMIL.APN5": {
+   "name": "AMIL.APN5",
+   "ID": "AMIL.APN5"
+  },
+  "AMIL.AVTN": {
+   "name": "AMIL.AVTN",
+   "ID": "AMIL.AVTN"
+  },
+  "AMIL.BALDSSAUX": {
+   "name": "AMIL.BALDSSAUX",
+   "ID": "AMIL.BALDSSAUX"
+  },
+  "AMIL.BALDT1.NU": {
+   "name": "AMIL.BALDT1.NU",
+   "ID": "AMIL.BALDT1.NU"
+  },
+  "AMIL.BFESLD": {
+   "name": "AMIL.BFESLD",
+   "ID": "AMIL.BFESLD"
+  },
+  "AMIL.BGS5": {
+   "name": "AMIL.BGS5",
+   "ID": "AMIL.BGS5"
+  },
+  "AMIL.BGS6": {
+   "name": "AMIL.BGS6",
+   "ID": "AMIL.BGS6"
+  },
+  "AMIL.BRICKYARD": {
+   "name": "AMIL.BRICKYARD",
+   "ID": "AMIL.BRICKYARD"
+  },
+  "AMIL.BSEAMIL": {
+   "name": "AMIL.BSEAMIL",
+   "ID": "AMIL.BSEAMIL"
+  },
+  "AMIL.BSEINDC1": {
+   "name": "AMIL.BSEINDC1",
+   "ID": "AMIL.BSEINDC1"
+  },
+  "AMIL.BSEINDCP1": {
+   "name": "AMIL.BSEINDCP1",
+   "ID": "AMIL.BSEINDCP1"
+  },
+  "AMIL.BSEINDIP1": {
+   "name": "AMIL.BSEINDIP1",
+   "ID": "AMIL.BSEINDIP1"
+  },
+  "AMIL.CCG_1.AZ": {
+   "name": "AMIL.CCG_1.AZ",
+   "ID": "AMIL.CCG_1.AZ"
+  },
+  "AMIL.CCG_2.AZ": {
+   "name": "AMIL.CCG_2.AZ",
+   "ID": "AMIL.CCG_2.AZ"
+  },
+  "AMIL.CCG_5.AZ": {
+   "name": "AMIL.CCG_5.AZ",
+   "ID": "AMIL.CCG_5.AZ"
+  },
+  "AMIL.CEEA": {
+   "name": "AMIL.CEEA",
+   "ID": "AMIL.CEEA"
+  },
+  "AMIL.CEEA2": {
+   "name": "AMIL.CEEA2",
+   "ID": "AMIL.CEEA2"
+  },
+  "AMIL.CHEL": {
+   "name": "AMIL.CHEL",
+   "ID": "AMIL.CHEL"
+  },
+  "AMIL.CILC.AZ": {
+   "name": "AMIL.CILC.AZ",
+   "ID": "AMIL.CILC.AZ"
+  },
+  "AMIL.CILC.BOC": {
+   "name": "AMIL.CILC.BOC",
+   "ID": "AMIL.CILC.BOC"
+  },
+  "AMIL.CIPS": {
+   "name": "AMIL.CIPS",
+   "ID": "AMIL.CIPS"
+  },
+  "AMIL.CIPS.AZ": {
+   "name": "AMIL.CIPS.AZ",
+   "ID": "AMIL.CIPS.AZ"
+  },
+  "AMIL.CIPS.BOC": {
+   "name": "AMIL.CIPS.BOC",
+   "ID": "AMIL.CIPS.BOC"
+  },
+  "AMIL.CIPS.ROB": {
+   "name": "AMIL.CIPS.ROB",
+   "ID": "AMIL.CIPS.ROB"
+  },
+  "AMIL.CLAY_1.AZ": {
+   "name": "AMIL.CLAY_1.AZ",
+   "ID": "AMIL.CLAY_1.AZ"
+  },
+  "AMIL.CLVW": {
+   "name": "AMIL.CLVW",
+   "ID": "AMIL.CLVW"
+  },
+  "AMIL.CNE": {
+   "name": "AMIL.CNE",
+   "ID": "AMIL.CNE"
+  },
+  "AMIL.CONC": {
+   "name": "AMIL.CONC",
+   "ID": "AMIL.CONC"
+  },
+  "AMIL.DAYTON": {
+   "name": "AMIL.DAYTON",
+   "ID": "AMIL.DAYTON"
+  },
+  "AMIL.DER": {
+   "name": "AMIL.DER",
+   "ID": "AMIL.DER"
+  },
+  "AMIL.DESL": {
+   "name": "AMIL.DESL",
+   "ID": "AMIL.DESL"
+  },
+  "AMIL.DESY1": {
+   "name": "AMIL.DESY1",
+   "ID": "AMIL.DESY1"
+  },
+  "AMIL.DP": {
+   "name": "AMIL.DP",
+   "ID": "AMIL.DP"
+  },
+  "AMIL.DPLER": {
+   "name": "AMIL.DPLER",
+   "ID": "AMIL.DPLER"
+  },
+  "AMIL.EEI": {
+   "name": "AMIL.EEI",
+   "ID": "AMIL.EEI"
+  },
+  "AMIL.EIPS": {
+   "name": "AMIL.EIPS",
+   "ID": "AMIL.EIPS"
+  },
+  "AMIL.EIPS1": {
+   "name": "AMIL.EIPS1",
+   "ID": "AMIL.EIPS1"
+  },
+  "AMIL.EIPS2": {
+   "name": "AMIL.EIPS2",
+   "ID": "AMIL.EIPS2"
+  },
+  "AMIL.EIPS3": {
+   "name": "AMIL.EIPS3",
+   "ID": "AMIL.EIPS3"
+  },
+  "AMIL.EIPS4": {
+   "name": "AMIL.EIPS4",
+   "ID": "AMIL.EIPS4"
+  },
+  "AMIL.EIPS5": {
+   "name": "AMIL.EIPS5",
+   "ID": "AMIL.EIPS5"
+  },
+  "AMIL.ELIG": {
+   "name": "AMIL.ELIG",
+   "ID": "AMIL.ELIG"
+  },
+  "AMIL.ENFIELD": {
+   "name": "AMIL.ENFIELD",
+   "ID": "AMIL.ENFIELD"
+  },
+  "AMIL.EPH1": {
+   "name": "AMIL.EPH1",
+   "ID": "AMIL.EPH1"
+  },
+  "AMIL.ESPI": {
+   "name": "AMIL.ESPI",
+   "ID": "AMIL.ESPI"
+  },
+  "AMIL.EXOL": {
+   "name": "AMIL.EXOL",
+   "ID": "AMIL.EXOL"
+  },
+  "AMIL.FESC": {
+   "name": "AMIL.FESC",
+   "ID": "AMIL.FESC"
+  },
+  "AMIL.FTR": {
+   "name": "AMIL.FTR",
+   "ID": "AMIL.FTR"
+  },
+  "AMIL.GBCM": {
+   "name": "AMIL.GBCM",
+   "ID": "AMIL.GBCM"
+  },
+  "AMIL.GCWE": {
+   "name": "AMIL.GCWE",
+   "ID": "AMIL.GCWE"
+  },
+  "AMIL.GEXA": {
+   "name": "AMIL.GEXA",
+   "ID": "AMIL.GEXA"
+  },
+  "AMIL.GEXAIEC": {
+   "name": "AMIL.GEXAIEC",
+   "ID": "AMIL.GEXAIEC"
+  },
+  "AMIL.GLACIAL": {
+   "name": "AMIL.GLACIAL",
+   "ID": "AMIL.GLACIAL"
+  },
+  "AMIL.HES": {
+   "name": "AMIL.HES",
+   "ID": "AMIL.HES"
+  },
+  "AMIL.HIKO": {
+   "name": "AMIL.HIKO",
+   "ID": "AMIL.HIKO"
+  },
+  "AMIL.HSNVL.ARR": {
+   "name": "AMIL.HSNVL.ARR",
+   "ID": "AMIL.HSNVL.ARR"
+  },
+  "AMIL.IGS": {
+   "name": "AMIL.IGS",
+   "ID": "AMIL.IGS"
+  },
+  "AMIL.ILCE": {
+   "name": "AMIL.ILCE",
+   "ID": "AMIL.ILCE"
+  },
+  "AMIL.IMEA1": {
+   "name": "AMIL.IMEA1",
+   "ID": "AMIL.IMEA1"
+  },
+  "AMIL.IMEA_1.AZ": {
+   "name": "AMIL.IMEA_1.AZ",
+   "ID": "AMIL.IMEA_1.AZ"
+  },
+  "AMIL.IP": {
+   "name": "AMIL.IP",
+   "ID": "AMIL.IP"
+  },
+  "AMIL.IP.AZ": {
+   "name": "AMIL.IP.AZ",
+   "ID": "AMIL.IP.AZ"
+  },
+  "AMIL.IP.IMEA": {
+   "name": "AMIL.IP.IMEA",
+   "ID": "AMIL.IP.IMEA"
+  },
+  "AMIL.IPRETL": {
+   "name": "AMIL.IPRETL",
+   "ID": "AMIL.IPRETL"
+  },
+  "AMIL.IRON": {
+   "name": "AMIL.IRON",
+   "ID": "AMIL.IRON"
+  },
+  "AMIL.KYST": {
+   "name": "AMIL.KYST",
+   "ID": "AMIL.KYST"
+  },
+  "AMIL.LPC1": {
+   "name": "AMIL.LPC1",
+   "ID": "AMIL.LPC1"
+  },
+  "AMIL.MCEC": {
+   "name": "AMIL.MCEC",
+   "ID": "AMIL.MCEC"
+  },
+  "AMIL.MCPU_1.AZ": {
+   "name": "AMIL.MCPU_1.AZ",
+   "ID": "AMIL.MCPU_1.AZ"
+  },
+  "AMIL.MECR": {
+   "name": "AMIL.MECR",
+   "ID": "AMIL.MECR"
+  },
+  "AMIL.MES": {
+   "name": "AMIL.MES",
+   "ID": "AMIL.MES"
+  },
+  "AMIL.MRDSA.ARR": {
+   "name": "AMIL.MRDSA.ARR",
+   "ID": "AMIL.MRDSA.ARR"
+  },
+  "AMIL.MTCML": {
+   "name": "AMIL.MTCML",
+   "ID": "AMIL.MTCML"
+  },
+  "AMIL.NEC1_1.AZ": {
+   "name": "AMIL.NEC1_1.AZ",
+   "ID": "AMIL.NEC1_1.AZ"
+  },
+  "AMIL.NESL": {
+   "name": "AMIL.NESL",
+   "ID": "AMIL.NESL"
+  },
+  "AMIL.NEWT_1.AZ": {
+   "name": "AMIL.NEWT_1.AZ",
+   "ID": "AMIL.NEWT_1.AZ"
+  },
+  "AMIL.OGLES.ARR": {
+   "name": "AMIL.OGLES.ARR",
+   "ID": "AMIL.OGLES.ARR"
+  },
+  "AMIL.PALMCOIL": {
+   "name": "AMIL.PALMCOIL",
+   "ID": "AMIL.PALMCOIL"
+  },
+  "AMIL.PEIC": {
+   "name": "AMIL.PEIC",
+   "ID": "AMIL.PEIC"
+  },
+  "AMIL.PEIH": {
+   "name": "AMIL.PEIH",
+   "ID": "AMIL.PEIH"
+  },
+  "AMIL.PPI": {
+   "name": "AMIL.PPI",
+   "ID": "AMIL.PPI"
+  },
+  "AMIL.PRE": {
+   "name": "AMIL.PRE",
+   "ID": "AMIL.PRE"
+  },
+  "AMIL.PUBPOWIL": {
+   "name": "AMIL.PUBPOWIL",
+   "ID": "AMIL.PUBPOWIL"
+  },
+  "AMIL.RES.CNE": {
+   "name": "AMIL.RES.CNE",
+   "ID": "AMIL.RES.CNE"
+  },
+  "AMIL.RISING.H": {
+   "name": "AMIL.RISING.H",
+   "ID": "AMIL.RISING.H"
+  },
+  "AMIL.RISING.L": {
+   "name": "AMIL.RISING.L",
+   "ID": "AMIL.RISING.L"
+  },
+  "AMIL.RLGY01": {
+   "name": "AMIL.RLGY01",
+   "ID": "AMIL.RLGY01"
+  },
+  "AMIL.ROXANNAR": {
+   "name": "AMIL.ROXANNAR",
+   "ID": "AMIL.ROXANNAR"
+  },
+  "AMIL.RPGI_1.AZ": {
+   "name": "AMIL.RPGI_1.AZ",
+   "ID": "AMIL.RPGI_1.AZ"
+  },
+  "AMIL.SANTANNA": {
+   "name": "AMIL.SANTANNA",
+   "ID": "AMIL.SANTANNA"
+  },
+  "AMIL.SELC": {
+   "name": "AMIL.SELC",
+   "ID": "AMIL.SELC"
+  },
+  "AMIL.SESRETAIL": {
+   "name": "AMIL.SESRETAIL",
+   "ID": "AMIL.SESRETAIL"
+  },
+  "AMIL.SIPC": {
+   "name": "AMIL.SIPC",
+   "ID": "AMIL.SIPC"
+  },
+  "AMIL.SIPC.NEC1": {
+   "name": "AMIL.SIPC.NEC1",
+   "ID": "AMIL.SIPC.NEC1"
+  },
+  "AMIL.SIPM_1.AZ": {
+   "name": "AMIL.SIPM_1.AZ",
+   "ID": "AMIL.SIPM_1.AZ"
+  },
+  "AMIL.SMTE": {
+   "name": "AMIL.SMTE",
+   "ID": "AMIL.SMTE"
+  },
+  "AMIL.SOY_2.AZ": {
+   "name": "AMIL.SOY_2.AZ",
+   "ID": "AMIL.SOY_2.AZ"
+  },
+  "AMIL.SPRK": {
+   "name": "AMIL.SPRK",
+   "ID": "AMIL.SPRK"
+  },
+  "AMIL.STLNG.ARR": {
+   "name": "AMIL.STLNG.ARR",
+   "ID": "AMIL.STLNG.ARR"
+  },
+  "AMIL.SWECC": {
+   "name": "AMIL.SWECC",
+   "ID": "AMIL.SWECC"
+  },
+  "AMIL.SZE": {
+   "name": "AMIL.SZE",
+   "ID": "AMIL.SZE"
+  },
+  "AMIL.SZE_SCI": {
+   "name": "AMIL.SZE_SCI",
+   "ID": "AMIL.SZE_SCI"
+  },
+  "AMIL.TREX_IL": {
+   "name": "AMIL.TREX_IL",
+   "ID": "AMIL.TREX_IL"
+  },
+  "AMIL.VRD": {
+   "name": "AMIL.VRD",
+   "ID": "AMIL.VRD"
+  },
+  "AMIL.WPSE": {
+   "name": "AMIL.WPSE",
+   "ID": "AMIL.WPSE"
+  },
+  "AMIL.WPSE.DM": {
+   "name": "AMIL.WPSE.DM",
+   "ID": "AMIL.WPSE.DM"
+  },
+  "AMIL.WPSE.GBC": {
+   "name": "AMIL.WPSE.GBC",
+   "ID": "AMIL.WPSE.GBC"
+  },
+  "AMIL.WPSE.OLIN": {
+   "name": "AMIL.WPSE.OLIN",
+   "ID": "AMIL.WPSE.OLIN"
+  },
+  "AMIL.WVPA": {
+   "name": "AMIL.WVPA",
+   "ID": "AMIL.WVPA"
+  },
+  "AMIL.WVPA_2.AZ": {
+   "name": "AMIL.WVPA_2.AZ",
+   "ID": "AMIL.WVPA_2.AZ"
+  },
+  "AMIL.WVPA_4.AZ": {
+   "name": "AMIL.WVPA_4.AZ",
+   "ID": "AMIL.WVPA_4.AZ"
+  },
+  "AMIL.WWEC": {
+   "name": "AMIL.WWEC",
+   "ID": "AMIL.WWEC"
+  },
+  "AMIL.XLON": {
+   "name": "AMIL.XLON",
+   "ID": "AMIL.XLON"
+  },
+  "AMIL.XOEN": {
+   "name": "AMIL.XOEN",
+   "ID": "AMIL.XOEN"
+  },
+  "AMMO.AEM.MO": {
+   "name": "AMMO.AEM.MO",
+   "ID": "AMMO.AEM.MO"
+  },
+  "AMMO.CALF_1.AZ": {
+   "name": "AMMO.CALF_1.AZ",
+   "ID": "AMMO.CALF_1.AZ"
+  },
+  "AMMO.CCG_1.AZ": {
+   "name": "AMMO.CCG_1.AZ",
+   "ID": "AMMO.CCG_1.AZ"
+  },
+  "AMMO.HANN_1.AZ": {
+   "name": "AMMO.HANN_1.AZ",
+   "ID": "AMMO.HANN_1.AZ"
+  },
+  "AMMO.HDBD3.ARR": {
+   "name": "AMMO.HDBD3.ARR",
+   "ID": "AMMO.HDBD3.ARR"
+  },
+  "AMMO.KAHO_1.AZ": {
+   "name": "AMMO.KAHO_1.AZ",
+   "ID": "AMMO.KAHO_1.AZ"
+  },
+  "AMMO.KIRK": {
+   "name": "AMMO.KIRK",
+   "ID": "AMMO.KIRK"
+  },
+  "AMMO.KIRK_1.AZ": {
+   "name": "AMMO.KIRK_1.AZ",
+   "ID": "AMMO.KIRK_1.AZ"
+  },
+  "AMMO.LINN_1.AZ": {
+   "name": "AMMO.LINN_1.AZ",
+   "ID": "AMMO.LINN_1.AZ"
+  },
+  "AMMO.MARC_1.AZ": {
+   "name": "AMMO.MARC_1.AZ",
+   "ID": "AMMO.MARC_1.AZ"
+  },
+  "AMMO.MOCE_1.AZ": {
+   "name": "AMMO.MOCE_1.AZ",
+   "ID": "AMMO.MOCE_1.AZ"
+  },
+  "AMMO.PERR": {
+   "name": "AMMO.PERR",
+   "ID": "AMMO.PERR"
+  },
+  "AMMO.PERR_1.AZ": {
+   "name": "AMMO.PERR_1.AZ",
+   "ID": "AMMO.PERR_1.AZ"
+  },
+  "AMMO.UA.AZ": {
+   "name": "AMMO.UA.AZ",
+   "ID": "AMMO.UA.AZ"
+  },
+  "AMMO.UE": {
+   "name": "AMMO.UE",
+   "ID": "AMMO.UE"
+  },
+  "AMMO.UE.AZ": {
+   "name": "AMMO.UE.AZ",
+   "ID": "AMMO.UE.AZ"
+  },
+  "AMMO.WVPA": {
+   "name": "AMMO.WVPA",
+   "ID": "AMMO.WVPA"
+  },
+  "AMMO.WVPA.CZHI": {
+   "name": "AMMO.WVPA.CZHI",
+   "ID": "AMMO.WVPA.CZHI"
+  },
+  "AMMO.WVPA.CZPG": {
+   "name": "AMMO.WVPA.CZPG",
+   "ID": "AMMO.WVPA.CZPG"
+  },
+  "AMMO.WVPA_3.AZ": {
+   "name": "AMMO.WVPA_3.AZ",
+   "ID": "AMMO.WVPA_3.AZ"
+  },
+  "ARKANSAS.HUB": {
+   "name": "ARKANSAS.HUB",
+   "ID": "ARKANSAS.HUB"
+  },
+  "BREC.AZ": {
+   "name": "BREC.AZ",
+   "ID": "BREC.AZ"
+  },
+  "BREC.BREC": {
+   "name": "BREC.BREC",
+   "ID": "BREC.BREC"
+  },
+  "BREC.CENTURY": {
+   "name": "BREC.CENTURY",
+   "ID": "BREC.CENTURY"
+  },
+  "BREC.SEBREE": {
+   "name": "BREC.SEBREE",
+   "ID": "BREC.SEBREE"
+  },
+  "CE.CRETE.NU": {
+   "name": "CE.CRETE.NU",
+   "ID": "CE.CRETE.NU"
+  },
+  "CIN.CPP.AGG": {
+   "name": "CIN.CPP.AGG",
+   "ID": "CIN.CPP.AGG"
+  },
+  "CIN.DEI.AZ": {
+   "name": "CIN.DEI.AZ",
+   "ID": "CIN.DEI.AZ"
+  },
+  "CIN.GRNTWN.MVP": {
+   "name": "CIN.GRNTWN.MVP",
+   "ID": "CIN.GRNTWN.MVP"
+  },
+  "CIN.HAG.AEPM": {
+   "name": "CIN.HAG.AEPM",
+   "ID": "CIN.HAG.AEPM"
+  },
+  "CIN.HE.PSI": {
+   "name": "CIN.HE.PSI",
+   "ID": "CIN.HE.PSI"
+  },
+  "CIN.HEPM_1.AZ": {
+   "name": "CIN.HEPM_1.AZ",
+   "ID": "CIN.HEPM_1.AZ"
+  },
+  "CIN.HEPM_2.AZ": {
+   "name": "CIN.HEPM_2.AZ",
+   "ID": "CIN.HEPM_2.AZ"
+  },
+  "CIN.JAC.PSI": {
+   "name": "CIN.JAC.PSI",
+   "ID": "CIN.JAC.PSI"
+  },
+  "CIN.MAPLEA.MVP": {
+   "name": "CIN.MAPLEA.MVP",
+   "ID": "CIN.MAPLEA.MVP"
+  },
+  "CIN.PSI": {
+   "name": "CIN.PSI",
+   "ID": "CIN.PSI"
+  },
+  "CIN.PSI.IMPA": {
+   "name": "CIN.PSI.IMPA",
+   "ID": "CIN.PSI.IMPA"
+  },
+  "CIN.PSI_2.AZ": {
+   "name": "CIN.PSI_2.AZ",
+   "ID": "CIN.PSI_2.AZ"
+  },
+  "CIN.PSI_3.AZ": {
+   "name": "CIN.PSI_3.AZ",
+   "ID": "CIN.PSI_3.AZ"
+  },
+  "CIN.SIGE": {
+   "name": "CIN.SIGE",
+   "ID": "CIN.SIGE"
+  },
+  "CIN.SIGW_1.AZ": {
+   "name": "CIN.SIGW_1.AZ",
+   "ID": "CIN.SIGW_1.AZ"
+  },
+  "CIN.WVPA.PSI": {
+   "name": "CIN.WVPA.PSI",
+   "ID": "CIN.WVPA.PSI"
+  },
+  "CIN.WVPA_1.AZ": {
+   "name": "CIN.WVPA_1.AZ",
+   "ID": "CIN.WVPA_1.AZ"
+  },
+  "CLEC.AXLA": {
+   "name": "CLEC.AXLA",
+   "ID": "CLEC.AXLA"
+  },
+  "CLEC.AXLA_1.AZ": {
+   "name": "CLEC.AXLA_1.AZ",
+   "ID": "CLEC.AXLA_1.AZ"
+  },
+  "CLEC.CLEC": {
+   "name": "CLEC.CLEC",
+   "ID": "CLEC.CLEC"
+  },
+  "CLEC.CPWR_1.AZ": {
+   "name": "CLEC.CPWR_1.AZ",
+   "ID": "CLEC.CPWR_1.AZ"
+  },
+  "CLEC.CPWR_2.AZ": {
+   "name": "CLEC.CPWR_2.AZ",
+   "ID": "CLEC.CPWR_2.AZ"
+  },
+  "CLEC.CPWR_3.AZ": {
+   "name": "CLEC.CPWR_3.AZ",
+   "ID": "CLEC.CPWR_3.AZ"
+  },
+  "CLEC.CPWR_4.AZ": {
+   "name": "CLEC.CPWR_4.AZ",
+   "ID": "CLEC.CPWR_4.AZ"
+  },
+  "CLEC.CPWR_5.AZ": {
+   "name": "CLEC.CPWR_5.AZ",
+   "ID": "CLEC.CPWR_5.AZ"
+  },
+  "CLEC.CPWR_6.AZ": {
+   "name": "CLEC.CPWR_6.AZ",
+   "ID": "CLEC.CPWR_6.AZ"
+  },
+  "CLEC.CPWR_7.AZ": {
+   "name": "CLEC.CPWR_7.AZ",
+   "ID": "CLEC.CPWR_7.AZ"
+  },
+  "CLEC.DEMCO": {
+   "name": "CLEC.DEMCO",
+   "ID": "CLEC.DEMCO"
+  },
+  "CLEC.HOPK1.ARR": {
+   "name": "CLEC.HOPK1.ARR",
+   "ID": "CLEC.HOPK1.ARR"
+  },
+  "CLEC.MDEA": {
+   "name": "CLEC.MDEA",
+   "ID": "CLEC.MDEA"
+  },
+  "CLEC.NATCH": {
+   "name": "CLEC.NATCH",
+   "ID": "CLEC.NATCH"
+  },
+  "CLEC.STM": {
+   "name": "CLEC.STM",
+   "ID": "CLEC.STM"
+  },
+  "CLEC.VIGN1.ARR": {
+   "name": "CLEC.VIGN1.ARR",
+   "ID": "CLEC.VIGN1.ARR"
+  },
+  "CLEC.VIGN2.ARR": {
+   "name": "CLEC.VIGN2.ARR",
+   "ID": "CLEC.VIGN2.ARR"
+  },
+  "CONS.AZ": {
+   "name": "CONS.AZ",
+   "ID": "CONS.AZ"
+  },
+  "CONS.BSE.CEC": {
+   "name": "CONS.BSE.CEC",
+   "ID": "CONS.BSE.CEC"
+  },
+  "CONS.CCG_1.AZ": {
+   "name": "CONS.CCG_1.AZ",
+   "ID": "CONS.CCG_1.AZ"
+  },
+  "CONS.CCG_2.AZ": {
+   "name": "CONS.CCG_2.AZ",
+   "ID": "CONS.CCG_2.AZ"
+  },
+  "CONS.CCG_3.AZ": {
+   "name": "CONS.CCG_3.AZ",
+   "ID": "CONS.CCG_3.AZ"
+  },
+  "CONS.CCG_4.AZ": {
+   "name": "CONS.CCG_4.AZ",
+   "ID": "CONS.CCG_4.AZ"
+  },
+  "CONS.CCG_5.AZ": {
+   "name": "CONS.CCG_5.AZ",
+   "ID": "CONS.CCG_5.AZ"
+  },
+  "CONS.CCG_6.AZ": {
+   "name": "CONS.CCG_6.AZ",
+   "ID": "CONS.CCG_6.AZ"
+  },
+  "CONS.CETR": {
+   "name": "CONS.CETR",
+   "ID": "CONS.CETR"
+  },
+  "CONS.CNE": {
+   "name": "CONS.CNE",
+   "ID": "CONS.CNE"
+  },
+  "CONS.FESC": {
+   "name": "CONS.FESC",
+   "ID": "CONS.FESC"
+  },
+  "CONS.GLE": {
+   "name": "CONS.GLE",
+   "ID": "CONS.GLE"
+  },
+  "CONS.HOLL": {
+   "name": "CONS.HOLL",
+   "ID": "CONS.HOLL"
+  },
+  "CONS.HOLL_1.AZ": {
+   "name": "CONS.HOLL_1.AZ",
+   "ID": "CONS.HOLL_1.AZ"
+  },
+  "CONS.IGSI": {
+   "name": "CONS.IGSI",
+   "ID": "CONS.IGSI"
+  },
+  "CONS.LANS": {
+   "name": "CONS.LANS",
+   "ID": "CONS.LANS"
+  },
+  "CONS.LANS.ARR": {
+   "name": "CONS.LANS.ARR",
+   "ID": "CONS.LANS.ARR"
+  },
+  "CONS.MPPA": {
+   "name": "CONS.MPPA",
+   "ID": "CONS.MPPA"
+  },
+  "CONS.MPPA_2.AZ": {
+   "name": "CONS.MPPA_2.AZ",
+   "ID": "CONS.MPPA_2.AZ"
+  },
+  "CONS.MPPA_3.AZ": {
+   "name": "CONS.MPPA_3.AZ",
+   "ID": "CONS.MPPA_3.AZ"
+  },
+  "CONS.MSCPA": {
+   "name": "CONS.MSCPA",
+   "ID": "CONS.MSCPA"
+  },
+  "CONS.MWEC": {
+   "name": "CONS.MWEC",
+   "ID": "CONS.MWEC"
+  },
+  "CONS.NESL": {
+   "name": "CONS.NESL",
+   "ID": "CONS.NESL"
+  },
+  "CONS.PRE": {
+   "name": "CONS.PRE",
+   "ID": "CONS.PRE"
+  },
+  "CONS.SANTANNA": {
+   "name": "CONS.SANTANNA",
+   "ID": "CONS.SANTANNA"
+  },
+  "CONS.SCIT": {
+   "name": "CONS.SCIT",
+   "ID": "CONS.SCIT"
+  },
+  "CONS.SELC": {
+   "name": "CONS.SELC",
+   "ID": "CONS.SELC"
+  },
+  "CONS.SESB": {
+   "name": "CONS.SESB",
+   "ID": "CONS.SESB"
+  },
+  "CONS.SPRTN": {
+   "name": "CONS.SPRTN",
+   "ID": "CONS.SPRTN"
+  },
+  "CONS.TC": {
+   "name": "CONS.TC",
+   "ID": "CONS.TC"
+  },
+  "CONS.WOLV": {
+   "name": "CONS.WOLV",
+   "ID": "CONS.WOLV"
+  },
+  "CONS.WPMC": {
+   "name": "CONS.WPMC",
+   "ID": "CONS.WPMC"
+  },
+  "CONS.WPSC_1.AZ": {
+   "name": "CONS.WPSC_1.AZ",
+   "ID": "CONS.WPSC_1.AZ"
+  },
+  "CONS.WPSC_2.AZ": {
+   "name": "CONS.WPSC_2.AZ",
+   "ID": "CONS.WPSC_2.AZ"
+  },
+  "CONS.WPSE": {
+   "name": "CONS.WPSE",
+   "ID": "CONS.WPSE"
+  },
+  "CONS.WPSE.IES": {
+   "name": "CONS.WPSE.IES",
+   "ID": "CONS.WPSE.IES"
+  },
+  "CONS.WVPA": {
+   "name": "CONS.WVPA",
+   "ID": "CONS.WVPA"
+  },
+  "CONS.WVPA_1.AZ": {
+   "name": "CONS.WVPA_1.AZ",
+   "ID": "CONS.WVPA_1.AZ"
+  },
+  "CSWS.AEPM_1.AZ": {
+   "name": "CSWS.AEPM_1.AZ",
+   "ID": "CSWS.AEPM_1.AZ"
+  },
+  "CSWS.AEPM_2.AZ": {
+   "name": "CSWS.AEPM_2.AZ",
+   "ID": "CSWS.AEPM_2.AZ"
+  },
+  "CSWS.AEPM_3.AZ": {
+   "name": "CSWS.AEPM_3.AZ",
+   "ID": "CSWS.AEPM_3.AZ"
+  },
+  "CSWS.HOPE": {
+   "name": "CSWS.HOPE",
+   "ID": "CSWS.HOPE"
+  },
+  "CSWS.MINDEN": {
+   "name": "CSWS.MINDEN",
+   "ID": "CSWS.MINDEN"
+  },
+  "CSWS.PRESCOTT": {
+   "name": "CSWS.PRESCOTT",
+   "ID": "CSWS.PRESCOTT"
+  },
+  "CSWS.SWERETAIL": {
+   "name": "CSWS.SWERETAIL",
+   "ID": "CSWS.SWERETAIL"
+  },
+  "CSWS.VEMCO": {
+   "name": "CSWS.VEMCO",
+   "ID": "CSWS.VEMCO"
+  },
+  "CWLD.AZ": {
+   "name": "CWLD.AZ",
+   "ID": "CWLD.AZ"
+  },
+  "CWLD.CWLD": {
+   "name": "CWLD.CWLD",
+   "ID": "CWLD.CWLD"
+  },
+  "CWLD.FULT": {
+   "name": "CWLD.FULT",
+   "ID": "CWLD.FULT"
+  },
+  "CWLD.UMC": {
+   "name": "CWLD.UMC",
+   "ID": "CWLD.UMC"
+  },
+  "CWLP.AZ": {
+   "name": "CWLP.AZ",
+   "ID": "CWLP.AZ"
+  },
+  "CWLP.CWLP": {
+   "name": "CWLP.CWLP",
+   "ID": "CWLP.CWLP"
+  },
+  "CWLP.GST": {
+   "name": "CWLP.GST",
+   "ID": "CWLP.GST"
+  },
+  "CWLP.TEA_1.AZ": {
+   "name": "CWLP.TEA_1.AZ",
+   "ID": "CWLP.TEA_1.AZ"
+  },
+  "DECO.AGE": {
+   "name": "DECO.AGE",
+   "ID": "DECO.AGE"
+  },
+  "DECO.AZ": {
+   "name": "DECO.AZ",
+   "ID": "DECO.AZ"
+  },
+  "DECO.BAUER.MVP": {
+   "name": "DECO.BAUER.MVP",
+   "ID": "DECO.BAUER.MVP"
+  },
+  "DECO.BELRV.MVP": {
+   "name": "DECO.BELRV.MVP",
+   "ID": "DECO.BELRV.MVP"
+  },
+  "DECO.BSEDTE1": {
+   "name": "DECO.BSEDTE1",
+   "ID": "DECO.BSEDTE1"
+  },
+  "DECO.CMSM_1.AZ": {
+   "name": "DECO.CMSM_1.AZ",
+   "ID": "DECO.CMSM_1.AZ"
+  },
+  "DECO.CMS_THMB": {
+   "name": "DECO.CMS_THMB",
+   "ID": "DECO.CMS_THMB"
+  },
+  "DECO.CNE": {
+   "name": "DECO.CNE",
+   "ID": "DECO.CNE"
+  },
+  "DECO.CROS": {
+   "name": "DECO.CROS",
+   "ID": "DECO.CROS"
+  },
+  "DECO.DAYTN.ARR": {
+   "name": "DECO.DAYTN.ARR",
+   "ID": "DECO.DAYTN.ARR"
+  },
+  "DECO.DBLE": {
+   "name": "DECO.DBLE",
+   "ID": "DECO.DBLE"
+  },
+  "DECO.DPLER": {
+   "name": "DECO.DPLER",
+   "ID": "DECO.DPLER"
+  },
+  "DECO.ESSEX.ARR": {
+   "name": "DECO.ESSEX.ARR",
+   "ID": "DECO.ESSEX.ARR"
+  },
+  "DECO.ET.COMMC": {
+   "name": "DECO.ET.COMMC",
+   "ID": "DECO.ET.COMMC"
+  },
+  "DECO.FESC": {
+   "name": "DECO.FESC",
+   "ID": "DECO.FESC"
+  },
+  "DECO.GDRRF.ARR": {
+   "name": "DECO.GDRRF.ARR",
+   "ID": "DECO.GDRRF.ARR"
+  },
+  "DECO.GLE": {
+   "name": "DECO.GLE",
+   "ID": "DECO.GLE"
+  },
+  "DECO.GRNWD.MVP": {
+   "name": "DECO.GRNWD.MVP",
+   "ID": "DECO.GRNWD.MVP"
+  },
+  "DECO.HRBRB.ARR": {
+   "name": "DECO.HRBRB.ARR",
+   "ID": "DECO.HRBRB.ARR"
+  },
+  "DECO.IGSI": {
+   "name": "DECO.IGSI",
+   "ID": "DECO.IGSI"
+  },
+  "DECO.MECR": {
+   "name": "DECO.MECR",
+   "ID": "DECO.MECR"
+  },
+  "DECO.MES": {
+   "name": "DECO.MES",
+   "ID": "DECO.MES"
+  },
+  "DECO.MSCPA": {
+   "name": "DECO.MSCPA",
+   "ID": "DECO.MSCPA"
+  },
+  "DECO.NEC": {
+   "name": "DECO.NEC",
+   "ID": "DECO.NEC"
+  },
+  "DECO.NESL1": {
+   "name": "DECO.NESL1",
+   "ID": "DECO.NESL1"
+  },
+  "DECO.PONTC.MVP": {
+   "name": "DECO.PONTC.MVP",
+   "ID": "DECO.PONTC.MVP"
+  },
+  "DECO.PRE": {
+   "name": "DECO.PRE",
+   "ID": "DECO.PRE"
+  },
+  "DECO.RES.CNE": {
+   "name": "DECO.RES.CNE",
+   "ID": "DECO.RES.CNE"
+  },
+  "DECO.RPSN3.MVP": {
+   "name": "DECO.RPSN3.MVP",
+   "ID": "DECO.RPSN3.MVP"
+  },
+  "DECO.RPSON.MVP": {
+   "name": "DECO.RPSON.MVP",
+   "ID": "DECO.RPSON.MVP"
+  },
+  "DECO.SANDU.MVP": {
+   "name": "DECO.SANDU.MVP",
+   "ID": "DECO.SANDU.MVP"
+  },
+  "DECO.SANTANNA": {
+   "name": "DECO.SANTANNA",
+   "ID": "DECO.SANTANNA"
+  },
+  "DECO.SEBE": {
+   "name": "DECO.SEBE",
+   "ID": "DECO.SEBE"
+  },
+  "DECO.SELC": {
+   "name": "DECO.SELC",
+   "ID": "DECO.SELC"
+  },
+  "DECO.SESA": {
+   "name": "DECO.SESA",
+   "ID": "DECO.SESA"
+  },
+  "DECO.WPSA": {
+   "name": "DECO.WPSA",
+   "ID": "DECO.WPSA"
+  },
+  "DECO.WPSZ": {
+   "name": "DECO.WPSZ",
+   "ID": "DECO.WPSZ"
+  },
+  "DECO.WPSZ.IES": {
+   "name": "DECO.WPSZ.IES",
+   "ID": "DECO.WPSZ.IES"
+  },
+  "DMGEN1.AGG": {
+   "name": "DMGEN1.AGG",
+   "ID": "DMGEN1.AGG"
+  },
+  "DMGEN2.AGG": {
+   "name": "DMGEN2.AGG",
+   "ID": "DMGEN2.AGG"
+  },
+  "DMGEN3.AGG": {
+   "name": "DMGEN3.AGG",
+   "ID": "DMGEN3.AGG"
+  },
+  "DPC.AEPM13": {
+   "name": "DPC.AEPM13",
+   "ID": "DPC.AEPM13"
+  },
+  "DPC.AZ": {
+   "name": "DPC.AZ",
+   "ID": "DPC.AZ"
+  },
+  "DPC.DPC": {
+   "name": "DPC.DPC",
+   "ID": "DPC.DPC"
+  },
+  "DPC.MCGR_1.AZ": {
+   "name": "DPC.MCGR_1.AZ",
+   "ID": "DPC.MCGR_1.AZ"
+  },
+  "DPC.NSPLOAD": {
+   "name": "DPC.NSPLOAD",
+   "ID": "DPC.NSPLOAD"
+  },
+  "DPC.NSPP_1.AZ": {
+   "name": "DPC.NSPP_1.AZ",
+   "ID": "DPC.NSPP_1.AZ"
+  },
+  "DPC.NWEC.AZ": {
+   "name": "DPC.NWEC.AZ",
+   "ID": "DPC.NWEC.AZ"
+  },
+  "DPC.NWELOAD": {
+   "name": "DPC.NWELOAD",
+   "ID": "DPC.NWELOAD"
+  },
+  "EAI.AECCLD": {
+   "name": "EAI.AECCLD",
+   "ID": "EAI.AECCLD"
+  },
+  "EAI.AECC_1.AZ": {
+   "name": "EAI.AECC_1.AZ",
+   "ID": "EAI.AECC_1.AZ"
+  },
+  "EAI.ARSNC1.ARR": {
+   "name": "EAI.ARSNC1.ARR",
+   "ID": "EAI.ARSNC1.ARR"
+  },
+  "EAI.BUBALD": {
+   "name": "EAI.BUBALD",
+   "ID": "EAI.BUBALD"
+  },
+  "EAI.COUCH2.ARR": {
+   "name": "EAI.COUCH2.ARR",
+   "ID": "EAI.COUCH2.ARR"
+  },
+  "EAI.CWAYLD": {
+   "name": "EAI.CWAYLD",
+   "ID": "EAI.CWAYLD"
+  },
+  "EAI.CWAYLD1.AZ": {
+   "name": "EAI.CWAYLD1.AZ",
+   "ID": "EAI.CWAYLD1.AZ"
+  },
+  "EAI.CWL_1.AZ": {
+   "name": "EAI.CWL_1.AZ",
+   "ID": "EAI.CWL_1.AZ"
+  },
+  "EAI.EAILD": {
+   "name": "EAI.EAILD",
+   "ID": "EAI.EAILD"
+  },
+  "EAI.EAILD.RLA": {
+   "name": "EAI.EAILD.RLA",
+   "ID": "EAI.EAILD.RLA"
+  },
+  "EAI.EAMP_1.AZ": {
+   "name": "EAI.EAMP_1.AZ",
+   "ID": "EAI.EAMP_1.AZ"
+  },
+  "EAI.ELDORA.ARR": {
+   "name": "EAI.ELDORA.ARR",
+   "ID": "EAI.ELDORA.ARR"
+  },
+  "EAI.HASKL1.ARR": {
+   "name": "EAI.HASKL1.ARR",
+   "ID": "EAI.HASKL1.ARR"
+  },
+  "EAI.JONSCWL": {
+   "name": "EAI.JONSCWL",
+   "ID": "EAI.JONSCWL"
+  },
+  "EAI.LKCTH1.ARR": {
+   "name": "EAI.LKCTH1.ARR",
+   "ID": "EAI.LKCTH1.ARR"
+  },
+  "EAI.LKCTH3.ARR": {
+   "name": "EAI.LKCTH3.ARR",
+   "ID": "EAI.LKCTH3.ARR"
+  },
+  "EAI.LYNCH2.ARR": {
+   "name": "EAI.LYNCH2.ARR",
+   "ID": "EAI.LYNCH2.ARR"
+  },
+  "EAI.LYNCH3.ARR": {
+   "name": "EAI.LYNCH3.ARR",
+   "ID": "EAI.LYNCH3.ARR"
+  },
+  "EAI.MABELV.ARR": {
+   "name": "EAI.MABELV.ARR",
+   "ID": "EAI.MABELV.ARR"
+  },
+  "EAI.NLRLD": {
+   "name": "EAI.NLRLD",
+   "ID": "EAI.NLRLD"
+  },
+  "EAI.NLR_1.AZ": {
+   "name": "EAI.NLR_1.AZ",
+   "ID": "EAI.NLR_1.AZ"
+  },
+  "EAI.OMLP_1.AZ": {
+   "name": "EAI.OMLP_1.AZ",
+   "ID": "EAI.OMLP_1.AZ"
+  },
+  "EAI.RITCH3.ARR": {
+   "name": "EAI.RITCH3.ARR",
+   "ID": "EAI.RITCH3.ARR"
+  },
+  "EAI.SHRDN1.ARR": {
+   "name": "EAI.SHRDN1.ARR",
+   "ID": "EAI.SHRDN1.ARR"
+  },
+  "EAI.SHRDN2.ARR": {
+   "name": "EAI.SHRDN2.ARR",
+   "ID": "EAI.SHRDN2.ARR"
+  },
+  "EAI.SHRDN3.ARR": {
+   "name": "EAI.SHRDN3.ARR",
+   "ID": "EAI.SHRDN3.ARR"
+  },
+  "EAI.WHBLF.ARR": {
+   "name": "EAI.WHBLF.ARR",
+   "ID": "EAI.WHBLF.ARR"
+  },
+  "EAI.WMULDLD": {
+   "name": "EAI.WMULDLD",
+   "ID": "EAI.WMULDLD"
+  },
+  "EAI.WMULD_1.AZ": {
+   "name": "EAI.WMULD_1.AZ",
+   "ID": "EAI.WMULD_1.AZ"
+  },
+  "EAI.WODLN1.ARR": {
+   "name": "EAI.WODLN1.ARR",
+   "ID": "EAI.WODLN1.ARR"
+  },
+  "EAI.WSTMMP.ARR": {
+   "name": "EAI.WSTMMP.ARR",
+   "ID": "EAI.WSTMMP.ARR"
+  },
+  "EAI.WTBLF5.ARR": {
+   "name": "EAI.WTBLF5.ARR",
+   "ID": "EAI.WTBLF5.ARR"
+  },
+  "EES.ABBEVILLE": {
+   "name": "EES.ABBEVILLE",
+   "ID": "EES.ABBEVILLE"
+  },
+  "EES.ACADA1.ARR": {
+   "name": "EES.ACADA1.ARR",
+   "ID": "EES.ACADA1.ARR"
+  },
+  "EES.ACADA2.ARR": {
+   "name": "EES.ACADA2.ARR",
+   "ID": "EES.ACADA2.ARR"
+  },
+  "EES.AIRLIN.ARR": {
+   "name": "EES.AIRLIN.ARR",
+   "ID": "EES.AIRLIN.ARR"
+  },
+  "EES.BASTAP.ARR": {
+   "name": "EES.BASTAP.ARR",
+   "ID": "EES.BASTAP.ARR"
+  },
+  "EES.BASTP1.ARR": {
+   "name": "EES.BASTP1.ARR",
+   "ID": "EES.BASTP1.ARR"
+  },
+  "EES.BASTR1.ARR": {
+   "name": "EES.BASTR1.ARR",
+   "ID": "EES.BASTR1.ARR"
+  },
+  "EES.BASTR2.ARR": {
+   "name": "EES.BASTR2.ARR",
+   "ID": "EES.BASTR2.ARR"
+  },
+  "EES.BELHEL_LD": {
+   "name": "EES.BELHEL_LD",
+   "ID": "EES.BELHEL_LD"
+  },
+  "EES.BGTEL1.ARR": {
+   "name": "EES.BGTEL1.ARR",
+   "ID": "EES.BGTEL1.ARR"
+  },
+  "EES.BRAZLD": {
+   "name": "EES.BRAZLD",
+   "ID": "EES.BRAZLD"
+  },
+  "EES.BRAZ_1.AZ": {
+   "name": "EES.BRAZ_1.AZ",
+   "ID": "EES.BRAZ_1.AZ"
+  },
+  "EES.BRTNY1.ARR": {
+   "name": "EES.BRTNY1.ARR",
+   "ID": "EES.BRTNY1.ARR"
+  },
+  "EES.BRTNY2.ARR": {
+   "name": "EES.BRTNY2.ARR",
+   "ID": "EES.BRTNY2.ARR"
+  },
+  "EES.BXTRW5.ARR": {
+   "name": "EES.BXTRW5.ARR",
+   "ID": "EES.BXTRW5.ARR"
+  },
+  "EES.BXTRWL.ARR": {
+   "name": "EES.BXTRWL.ARR",
+   "ID": "EES.BXTRWL.ARR"
+  },
+  "EES.BXWSN2.ARR": {
+   "name": "EES.BXWSN2.ARR",
+   "ID": "EES.BXWSN2.ARR"
+  },
+  "EES.CALDWEL.AZ": {
+   "name": "EES.CALDWEL.AZ",
+   "ID": "EES.CALDWEL.AZ"
+  },
+  "EES.CALDWELL": {
+   "name": "EES.CALDWELL",
+   "ID": "EES.CALDWELL"
+  },
+  "EES.CNWAY2.ARR": {
+   "name": "EES.CNWAY2.ARR",
+   "ID": "EES.CNWAY2.ARR"
+  },
+  "EES.COLY1.ARR": {
+   "name": "EES.COLY1.ARR",
+   "ID": "EES.COLY1.ARR"
+  },
+  "EES.CONWAY.ARR": {
+   "name": "EES.CONWAY.ARR",
+   "ID": "EES.CONWAY.ARR"
+  },
+  "EES.CTEAU2.ARR": {
+   "name": "EES.CTEAU2.ARR",
+   "ID": "EES.CTEAU2.ARR"
+  },
+  "EES.DBAYO1.ARR": {
+   "name": "EES.DBAYO1.ARR",
+   "ID": "EES.DBAYO1.ARR"
+  },
+  "EES.DERSLD": {
+   "name": "EES.DERSLD",
+   "ID": "EES.DERSLD"
+  },
+  "EES.EGMP_1.AZ": {
+   "name": "EES.EGMP_1.AZ",
+   "ID": "EES.EGMP_1.AZ"
+  },
+  "EES.EGMP_2.AZ": {
+   "name": "EES.EGMP_2.AZ",
+   "ID": "EES.EGMP_2.AZ"
+  },
+  "EES.ELILD": {
+   "name": "EES.ELILD",
+   "ID": "EES.ELILD"
+  },
+  "EES.ELILD.RLA": {
+   "name": "EES.ELILD.RLA",
+   "ID": "EES.ELILD.RLA"
+  },
+  "EES.ELMP_1.AZ": {
+   "name": "EES.ELMP_1.AZ",
+   "ID": "EES.ELMP_1.AZ"
+  },
+  "EES.EMMP_1.AZ": {
+   "name": "EES.EMMP_1.AZ",
+   "ID": "EES.EMMP_1.AZ"
+  },
+  "EES.EMMP_2.AZ": {
+   "name": "EES.EMMP_2.AZ",
+   "ID": "EES.EMMP_2.AZ"
+  },
+  "EES.ENMP_1.AZ": {
+   "name": "EES.ENMP_1.AZ",
+   "ID": "EES.ENMP_1.AZ"
+  },
+  "EES.ETEC": {
+   "name": "EES.ETEC",
+   "ID": "EES.ETEC"
+  },
+  "EES.ETEC_1.AZ": {
+   "name": "EES.ETEC_1.AZ",
+   "ID": "EES.ETEC_1.AZ"
+  },
+  "EES.ETILD": {
+   "name": "EES.ETILD",
+   "ID": "EES.ETILD"
+  },
+  "EES.ETMP_1.AZ": {
+   "name": "EES.ETMP_1.AZ",
+   "ID": "EES.ETMP_1.AZ"
+  },
+  "EES.EVRGRN_LD": {
+   "name": "EES.EVRGRN_LD",
+   "ID": "EES.EVRGRN_LD"
+  },
+  "EES.FLRNCE.ARR": {
+   "name": "EES.FLRNCE.ARR",
+   "ID": "EES.FLRNCE.ARR"
+  },
+  "EES.FORMOS_LD": {
+   "name": "EES.FORMOS_LD",
+   "ID": "EES.FORMOS_LD"
+  },
+  "EES.FRSKR1.ARR": {
+   "name": "EES.FRSKR1.ARR",
+   "ID": "EES.FRSKR1.ARR"
+  },
+  "EES.GLFWAY_LD": {
+   "name": "EES.GLFWAY_LD",
+   "ID": "EES.GLFWAY_LD"
+  },
+  "EES.HOUMA.ARR": {
+   "name": "EES.HOUMA.ARR",
+   "ID": "EES.HOUMA.ARR"
+  },
+  "EES.HRTBRG.ARR": {
+   "name": "EES.HRTBRG.ARR",
+   "ID": "EES.HRTBRG.ARR"
+  },
+  "EES.HUNTS1_LD": {
+   "name": "EES.HUNTS1_LD",
+   "ID": "EES.HUNTS1_LD"
+  },
+  "EES.INLND1.ARR": {
+   "name": "EES.INLND1.ARR",
+   "ID": "EES.INLND1.ARR"
+  },
+  "EES.INLND2.ARR": {
+   "name": "EES.INLND2.ARR",
+   "ID": "EES.INLND2.ARR"
+  },
+  "EES.JAXSNS.ARR": {
+   "name": "EES.JAXSNS.ARR",
+   "ID": "EES.JAXSNS.ARR"
+  },
+  "EES.KAISR4_LD": {
+   "name": "EES.KAISR4_LD",
+   "ID": "EES.KAISR4_LD"
+  },
+  "EES.KIRBYVILLE": {
+   "name": "EES.KIRBYVILLE",
+   "ID": "EES.KIRBYVILLE"
+  },
+  "EES.KRBYVLE.AZ": {
+   "name": "EES.KRBYVLE.AZ",
+   "ID": "EES.KRBYVLE.AZ"
+  },
+  "EES.MAGNOL_LD": {
+   "name": "EES.MAGNOL_LD",
+   "ID": "EES.MAGNOL_LD"
+  },
+  "EES.MCLWS1.ARR": {
+   "name": "EES.MCLWS1.ARR",
+   "ID": "EES.MCLWS1.ARR"
+  },
+  "EES.MORIL1.ARR": {
+   "name": "EES.MORIL1.ARR",
+   "ID": "EES.MORIL1.ARR"
+  },
+  "EES.MORTN1.ARR": {
+   "name": "EES.MORTN1.ARR",
+   "ID": "EES.MORTN1.ARR"
+  },
+  "EES.MORTN2.ARR": {
+   "name": "EES.MORTN2.ARR",
+   "ID": "EES.MORTN2.ARR"
+  },
+  "EES.NELSN3.ARR": {
+   "name": "EES.NELSN3.ARR",
+   "ID": "EES.NELSN3.ARR"
+  },
+  "EES.NEWTON": {
+   "name": "EES.NEWTON",
+   "ID": "EES.NEWTON"
+  },
+  "EES.NEWTON1.AZ": {
+   "name": "EES.NEWTON1.AZ",
+   "ID": "EES.NEWTON1.AZ"
+  },
+  "EES.NINEM1.ARR": {
+   "name": "EES.NINEM1.ARR",
+   "ID": "EES.NINEM1.ARR"
+  },
+  "EES.NINEM2.ARR": {
+   "name": "EES.NINEM2.ARR",
+   "ID": "EES.NINEM2.ARR"
+  },
+  "EES.NOPLD": {
+   "name": "EES.NOPLD",
+   "ID": "EES.NOPLD"
+  },
+  "EES.NSIDE1.ARR": {
+   "name": "EES.NSIDE1.ARR",
+   "ID": "EES.NSIDE1.ARR"
+  },
+  "EES.NSIDE2.ARR": {
+   "name": "EES.NSIDE2.ARR",
+   "ID": "EES.NSIDE2.ARR"
+  },
+  "EES.PANAM1.ARR": {
+   "name": "EES.PANAM1.ARR",
+   "ID": "EES.PANAM1.ARR"
+  },
+  "EES.PERVL1.ARR": {
+   "name": "EES.PERVL1.ARR",
+   "ID": "EES.PERVL1.ARR"
+  },
+  "EES.PERVL2.ARR": {
+   "name": "EES.PERVL2.ARR",
+   "ID": "EES.PERVL2.ARR"
+  },
+  "EES.PLAHTC.ARR": {
+   "name": "EES.PLAHTC.ARR",
+   "ID": "EES.PLAHTC.ARR"
+  },
+  "EES.RBEH1.ARR": {
+   "name": "EES.RBEH1.ARR",
+   "ID": "EES.RBEH1.ARR"
+  },
+  "EES.RBEH2.ARR": {
+   "name": "EES.RBEH2.ARR",
+   "ID": "EES.RBEH2.ARR"
+  },
+  "EES.RBRSW2.ARR": {
+   "name": "EES.RBRSW2.ARR",
+   "ID": "EES.RBRSW2.ARR"
+  },
+  "EES.RBRSW5.ARR": {
+   "name": "EES.RBRSW5.ARR",
+   "ID": "EES.RBRSW5.ARR"
+  },
+  "EES.REP_LD": {
+   "name": "EES.REP_LD",
+   "ID": "EES.REP_LD"
+  },
+  "EES.REXBRW.ARR": {
+   "name": "EES.REXBRW.ARR",
+   "ID": "EES.REXBRW.ARR"
+  },
+  "EES.RICHD1.ARR": {
+   "name": "EES.RICHD1.ARR",
+   "ID": "EES.RICHD1.ARR"
+  },
+  "EES.RICHD2.ARR": {
+   "name": "EES.RICHD2.ARR",
+   "ID": "EES.RICHD2.ARR"
+  },
+  "EES.RILLA.ARR": {
+   "name": "EES.RILLA.ARR",
+   "ID": "EES.RILLA.ARR"
+  },
+  "EES.SALTGR": {
+   "name": "EES.SALTGR",
+   "ID": "EES.SALTGR"
+  },
+  "EES.SCY_LD": {
+   "name": "EES.SCY_LD",
+   "ID": "EES.SCY_LD"
+  },
+  "EES.SOWOOD_LD": {
+   "name": "EES.SOWOOD_LD",
+   "ID": "EES.SOWOOD_LD"
+  },
+  "EES.SPORT1.ARR": {
+   "name": "EES.SPORT1.ARR",
+   "ID": "EES.SPORT1.ARR"
+  },
+  "EES.SPORT2.ARR": {
+   "name": "EES.SPORT2.ARR",
+   "ID": "EES.SPORT2.ARR"
+  },
+  "EES.SRMPA": {
+   "name": "EES.SRMPA",
+   "ID": "EES.SRMPA"
+  },
+  "EES.SRMPA_1.AZ": {
+   "name": "EES.SRMPA_1.AZ",
+   "ID": "EES.SRMPA_1.AZ"
+  },
+  "EES.SRMPA_IPLD": {
+   "name": "EES.SRMPA_IPLD",
+   "ID": "EES.SRMPA_IPLD"
+  },
+  "EES.STHSID_LD": {
+   "name": "EES.STHSID_LD",
+   "ID": "EES.STHSID_LD"
+  },
+  "EES.STL115.ARR": {
+   "name": "EES.STL115.ARR",
+   "ID": "EES.STL115.ARR"
+  },
+  "EES.STLNG1.ARR": {
+   "name": "EES.STLNG1.ARR",
+   "ID": "EES.STLNG1.ARR"
+  },
+  "EES.STLNG2.ARR": {
+   "name": "EES.STLNG2.ARR",
+   "ID": "EES.STLNG2.ARR"
+  },
+  "EES.STLNG3.ARR": {
+   "name": "EES.STLNG3.ARR",
+   "ID": "EES.STLNG3.ARR"
+  },
+  "EES.STLNG5.ARR": {
+   "name": "EES.STLNG5.ARR",
+   "ID": "EES.STLNG5.ARR"
+  },
+  "EES.SWTZ1.ARR": {
+   "name": "EES.SWTZ1.ARR",
+   "ID": "EES.SWTZ1.ARR"
+  },
+  "EES.VFWPRK_LD": {
+   "name": "EES.VFWPRK_LD",
+   "ID": "EES.VFWPRK_LD"
+  },
+  "EES.WLGLN2.ARR": {
+   "name": "EES.WLGLN2.ARR",
+   "ID": "EES.WLGLN2.ARR"
+  },
+  "EES.WLTGR1.ARR": {
+   "name": "EES.WLTGR1.ARR",
+   "ID": "EES.WLTGR1.ARR"
+  },
+  "EES.WLWGN1.ARR": {
+   "name": "EES.WLWGN1.ARR",
+   "ID": "EES.WLWGN1.ARR"
+  },
+  "EES.WLWGN3.ARR": {
+   "name": "EES.WLWGN3.ARR",
+   "ID": "EES.WLWGN3.ARR"
+  },
+  "EES.WODSTK_LD": {
+   "name": "EES.WODSTK_LD",
+   "ID": "EES.WODSTK_LD"
+  },
+  "EMBA.EMILD": {
+   "name": "EMBA.EMILD",
+   "ID": "EMBA.EMILD"
+  },
+  "EMBA.EMILD.RLA": {
+   "name": "EMBA.EMILD.RLA",
+   "ID": "EMBA.EMILD.RLA"
+  },
+  "EMBA.MEAM": {
+   "name": "EMBA.MEAM",
+   "ID": "EMBA.MEAM"
+  },
+  "GIBSON1234.AGG": {
+   "name": "GIBSON1234.AGG",
+   "ID": "GIBSON1234.AGG"
+  },
+  "GRE.ALTW": {
+   "name": "GRE.ALTW",
+   "ID": "GRE.ALTW"
+  },
+  "GRE.AZ": {
+   "name": "GRE.AZ",
+   "ID": "GRE.AZ"
+  },
+  "GRE.DCLINELOSS": {
+   "name": "GRE.DCLINELOSS",
+   "ID": "GRE.DCLINELOSS"
+  },
+  "GRE.GRE": {
+   "name": "GRE.GRE",
+   "ID": "GRE.GRE"
+  },
+  "GRE.HUC": {
+   "name": "GRE.HUC",
+   "ID": "GRE.HUC"
+  },
+  "GRE.MP.GRE": {
+   "name": "GRE.MP.GRE",
+   "ID": "GRE.MP.GRE"
+  },
+  "GRE.NSP": {
+   "name": "GRE.NSP",
+   "ID": "GRE.NSP"
+  },
+  "GRE.NSP.GREC": {
+   "name": "GRE.NSP.GREC",
+   "ID": "GRE.NSP.GREC"
+  },
+  "GRE.NSPP_1.AZ": {
+   "name": "GRE.NSPP_1.AZ",
+   "ID": "GRE.NSPP_1.AZ"
+  },
+  "GRE.SMP": {
+   "name": "GRE.SMP",
+   "ID": "GRE.SMP"
+  },
+  "GRE.SMP.GRE": {
+   "name": "GRE.SMP.GRE",
+   "ID": "GRE.SMP.GRE"
+  },
+  "GRE.TEA_1.AZ": {
+   "name": "GRE.TEA_1.AZ",
+   "ID": "GRE.TEA_1.AZ"
+  },
+  "GRE.WILM": {
+   "name": "GRE.WILM",
+   "ID": "GRE.WILM"
+  },
+  "HE.CIN": {
+   "name": "HE.CIN",
+   "ID": "HE.CIN"
+  },
+  "HE.HE": {
+   "name": "HE.HE",
+   "ID": "HE.HE"
+  },
+  "HE.SIGW": {
+   "name": "HE.SIGW",
+   "ID": "HE.SIGW"
+  },
+  "ILGEN1.AGG": {
+   "name": "ILGEN1.AGG",
+   "ID": "ILGEN1.AGG"
+  },
+  "ILGEN2.AGG": {
+   "name": "ILGEN2.AGG",
+   "ID": "ILGEN2.AGG"
+  },
+  "ILGEN3.AGG": {
+   "name": "ILGEN3.AGG",
+   "ID": "ILGEN3.AGG"
+  },
+  "ILGEN4.AGG": {
+   "name": "ILGEN4.AGG",
+   "ID": "ILGEN4.AGG"
+  },
+  "ILGEN5.AGG": {
+   "name": "ILGEN5.AGG",
+   "ID": "ILGEN5.AGG"
+  },
+  "ILGEN7.AGG": {
+   "name": "ILGEN7.AGG",
+   "ID": "ILGEN7.AGG"
+  },
+  "ILLINOIS.HUB": {
+   "name": "ILLINOIS.HUB",
+   "ID": "ILLINOIS.HUB"
+  },
+  "INDIANA.HUB": {
+   "name": "INDIANA.HUB",
+   "ID": "INDIANA.HUB"
+  },
+  "IPL.16PETE.AGG": {
+   "name": "IPL.16PETE.AGG",
+   "ID": "IPL.16PETE.AGG"
+  },
+  "IPL.16PRIT.AGG": {
+   "name": "IPL.16PRIT.AGG",
+   "ID": "IPL.16PRIT.AGG"
+  },
+  "IPL.16STOT.AGG": {
+   "name": "IPL.16STOT.AGG",
+   "ID": "IPL.16STOT.AGG"
+  },
+  "IPL.16SYST.AGG": {
+   "name": "IPL.16SYST.AGG",
+   "ID": "IPL.16SYST.AGG"
+  },
+  "IPL.AZ": {
+   "name": "IPL.AZ",
+   "ID": "IPL.AZ"
+  },
+  "IPL.HE": {
+   "name": "IPL.HE",
+   "ID": "IPL.HE"
+  },
+  "IPL.HEPM_1.AZ": {
+   "name": "IPL.HEPM_1.AZ",
+   "ID": "IPL.HEPM_1.AZ"
+  },
+  "IPL.IPL": {
+   "name": "IPL.IPL",
+   "ID": "IPL.IPL"
+  },
+  "IPL.PRIT1.ARR": {
+   "name": "IPL.PRIT1.ARR",
+   "ID": "IPL.PRIT1.ARR"
+  },
+  "IPL.STOU3.ARR": {
+   "name": "IPL.STOU3.ARR",
+   "ID": "IPL.STOU3.ARR"
+  },
+  "IPL.WVPA": {
+   "name": "IPL.WVPA",
+   "ID": "IPL.WVPA"
+  },
+  "LAFA.AZ": {
+   "name": "LAFA.AZ",
+   "ID": "LAFA.AZ"
+  },
+  "LAFA.LAFA": {
+   "name": "LAFA.LAFA",
+   "ID": "LAFA.LAFA"
+  },
+  "LAGN.DEMCO1.AZ": {
+   "name": "LAGN.DEMCO1.AZ",
+   "ID": "LAGN.DEMCO1.AZ"
+  },
+  "LAGN.LAGN": {
+   "name": "LAGN.LAGN",
+   "ID": "LAGN.LAGN"
+  },
+  "LAGN.LAGN_1.AZ": {
+   "name": "LAGN.LAGN_1.AZ",
+   "ID": "LAGN.LAGN_1.AZ"
+  },
+  "LAGN.LOGC.ARR": {
+   "name": "LAGN.LOGC.ARR",
+   "ID": "LAGN.LOGC.ARR"
+  },
+  "LEPA.AZ": {
+   "name": "LEPA.AZ",
+   "ID": "LEPA.AZ"
+  },
+  "LEPA.CPLAQ.ARR": {
+   "name": "LEPA.CPLAQ.ARR",
+   "ID": "LEPA.CPLAQ.ARR"
+  },
+  "LEPA.LEPA": {
+   "name": "LEPA.LEPA",
+   "ID": "LEPA.LEPA"
+  },
+  "LEPA.MRCTY.ARR": {
+   "name": "LEPA.MRCTY.ARR",
+   "ID": "LEPA.MRCTY.ARR"
+  },
+  "LOUISIANA.HUB": {
+   "name": "LOUISIANA.HUB",
+   "ID": "LOUISIANA.HUB"
+  },
+  "MDU.AZ": {
+   "name": "MDU.AZ",
+   "ID": "MDU.AZ"
+  },
+  "MDU.MDU": {
+   "name": "MDU.MDU",
+   "ID": "MDU.MDU"
+  },
+  "MDU.MPC": {
+   "name": "MDU.MPC",
+   "ID": "MDU.MPC"
+  },
+  "MDU.NWPS": {
+   "name": "MDU.NWPS",
+   "ID": "MDU.NWPS"
+  },
+  "MDU.OTP": {
+   "name": "MDU.OTP",
+   "ID": "MDU.OTP"
+  },
+  "MDU.OTPW_1.AZ": {
+   "name": "MDU.OTPW_1.AZ",
+   "ID": "MDU.OTPW_1.AZ"
+  },
+  "MEC.ALTM_1.AZ": {
+   "name": "MEC.ALTM_1.AZ",
+   "ID": "MEC.ALTM_1.AZ"
+  },
+  "MEC.ALTW": {
+   "name": "MEC.ALTW",
+   "ID": "MEC.ALTW"
+  },
+  "MEC.AMES": {
+   "name": "MEC.AMES",
+   "ID": "MEC.AMES"
+  },
+  "MEC.AMES_1.AZ": {
+   "name": "MEC.AMES_1.AZ",
+   "ID": "MEC.AMES_1.AZ"
+  },
+  "MEC.ATLN": {
+   "name": "MEC.ATLN",
+   "ID": "MEC.ATLN"
+  },
+  "MEC.AZ": {
+   "name": "MEC.AZ",
+   "ID": "MEC.AZ"
+  },
+  "MEC.BEPM.CPZD": {
+   "name": "MEC.BEPM.CPZD",
+   "ID": "MEC.BEPM.CPZD"
+  },
+  "MEC.BEPM_1.AZ": {
+   "name": "MEC.BEPM_1.AZ",
+   "ID": "MEC.BEPM_1.AZ"
+  },
+  "MEC.BLKHK.MVP": {
+   "name": "MEC.BLKHK.MVP",
+   "ID": "MEC.BLKHK.MVP"
+  },
+  "MEC.CFU": {
+   "name": "MEC.CFU",
+   "ID": "MEC.CFU"
+  },
+  "MEC.CFU_1.AZ": {
+   "name": "MEC.CFU_1.AZ",
+   "ID": "MEC.CFU_1.AZ"
+  },
+  "MEC.CMMPA.ELD": {
+   "name": "MEC.CMMPA.ELD",
+   "ID": "MEC.CMMPA.ELD"
+  },
+  "MEC.CMMPA.MONT": {
+   "name": "MEC.CMMPA.MONT",
+   "ID": "MEC.CMMPA.MONT"
+  },
+  "MEC.GENESEO": {
+   "name": "MEC.GENESEO",
+   "ID": "MEC.GENESEO"
+  },
+  "MEC.HCPD.ABRN": {
+   "name": "MEC.HCPD.ABRN",
+   "ID": "MEC.HCPD.ABRN"
+  },
+  "MEC.LAKEVIEW": {
+   "name": "MEC.LAKEVIEW",
+   "ID": "MEC.LAKEVIEW"
+  },
+  "MEC.LVED_1.AZ": {
+   "name": "MEC.LVED_1.AZ",
+   "ID": "MEC.LVED_1.AZ"
+  },
+  "MEC.MEAN.LD": {
+   "name": "MEC.MEAN.LD",
+   "ID": "MEC.MEAN.LD"
+  },
+  "MEC.MEAN_1.AZ": {
+   "name": "MEC.MEAN_1.AZ",
+   "ID": "MEC.MEAN_1.AZ"
+  },
+  "MEC.MEAN_10.AZ": {
+   "name": "MEC.MEAN_10.AZ",
+   "ID": "MEC.MEAN_10.AZ"
+  },
+  "MEC.MEAN_2.AZ": {
+   "name": "MEC.MEAN_2.AZ",
+   "ID": "MEC.MEAN_2.AZ"
+  },
+  "MEC.MEAN_3.AZ": {
+   "name": "MEC.MEAN_3.AZ",
+   "ID": "MEC.MEAN_3.AZ"
+  },
+  "MEC.MEAN_4.AZ": {
+   "name": "MEC.MEAN_4.AZ",
+   "ID": "MEC.MEAN_4.AZ"
+  },
+  "MEC.MEAN_5.AZ": {
+   "name": "MEC.MEAN_5.AZ",
+   "ID": "MEC.MEAN_5.AZ"
+  },
+  "MEC.MEAN_6.AZ": {
+   "name": "MEC.MEAN_6.AZ",
+   "ID": "MEC.MEAN_6.AZ"
+  },
+  "MEC.MEAN_7.AZ": {
+   "name": "MEC.MEAN_7.AZ",
+   "ID": "MEC.MEAN_7.AZ"
+  },
+  "MEC.MEAN_8.AZ": {
+   "name": "MEC.MEAN_8.AZ",
+   "ID": "MEC.MEAN_8.AZ"
+  },
+  "MEC.MECB": {
+   "name": "MEC.MECB",
+   "ID": "MEC.MECB"
+  },
+  "MEC.MRES_1.AZ": {
+   "name": "MEC.MRES_1.AZ",
+   "ID": "MEC.MRES_1.AZ"
+  },
+  "MEC.PELLA": {
+   "name": "MEC.PELLA",
+   "ID": "MEC.PELLA"
+  },
+  "MEC.PMEU_1.AZ": {
+   "name": "MEC.PMEU_1.AZ",
+   "ID": "MEC.PMEU_1.AZ"
+  },
+  "MEC.RLGY01": {
+   "name": "MEC.RLGY01",
+   "ID": "MEC.RLGY01"
+  },
+  "MEC.UPLS_1.AZ": {
+   "name": "MEC.UPLS_1.AZ",
+   "ID": "MEC.UPLS_1.AZ"
+  },
+  "MEC.UPLS_2.AZ": {
+   "name": "MEC.UPLS_2.AZ",
+   "ID": "MEC.UPLS_2.AZ"
+  },
+  "MEC.UROCK": {
+   "name": "MEC.UROCK",
+   "ID": "MEC.UROCK"
+  },
+  "MGE.AZ": {
+   "name": "MGE.AZ",
+   "ID": "MGE.AZ"
+  },
+  "MGE.MGE": {
+   "name": "MGE.MGE",
+   "ID": "MGE.MGE"
+  },
+  "MICHIGAN.HUB": {
+   "name": "MICHIGAN.HUB",
+   "ID": "MICHIGAN.HUB"
+  },
+  "MINN.HUB": {
+   "name": "MINN.HUB",
+   "ID": "MINN.HUB"
+  },
+  "MIUP.CLOV": {
+   "name": "MIUP.CLOV",
+   "ID": "MIUP.CLOV"
+  },
+  "MIUP.DERS1": {
+   "name": "MIUP.DERS1",
+   "ID": "MIUP.DERS1"
+  },
+  "MIUP.MARQ": {
+   "name": "MIUP.MARQ",
+   "ID": "MIUP.MARQ"
+  },
+  "MIUP.NWLB": {
+   "name": "MIUP.NWLB",
+   "ID": "MIUP.NWLB"
+  },
+  "MIUP.UPPM": {
+   "name": "MIUP.UPPM",
+   "ID": "MIUP.UPPM"
+  },
+  "MIUP.WEPM": {
+   "name": "MIUP.WEPM",
+   "ID": "MIUP.WEPM"
+  },
+  "MIUP.WPPI": {
+   "name": "MIUP.WPPI",
+   "ID": "MIUP.WPPI"
+  },
+  "MIUP.WPSE": {
+   "name": "MIUP.WPSE",
+   "ID": "MIUP.WPSE"
+  },
+  "MOGEN1.AGG": {
+   "name": "MOGEN1.AGG",
+   "ID": "MOGEN1.AGG"
+  },
+  "MOGEN2.AGG": {
+   "name": "MOGEN2.AGG",
+   "ID": "MOGEN2.AGG"
+  },
+  "MP.AZ": {
+   "name": "MP.AZ",
+   "ID": "MP.AZ"
+  },
+  "MP.DLPLOAD": {
+   "name": "MP.DLPLOAD",
+   "ID": "MP.DLPLOAD"
+  },
+  "MP.HVDCW": {
+   "name": "MP.HVDCW",
+   "ID": "MP.HVDCW"
+  },
+  "MP.MP": {
+   "name": "MP.MP",
+   "ID": "MP.MP"
+  },
+  "MP.MPM_1.AZ": {
+   "name": "MP.MPM_1.AZ",
+   "ID": "MP.MPM_1.AZ"
+  },
+  "MP.MPM_2.AZ": {
+   "name": "MP.MPM_2.AZ",
+   "ID": "MP.MPM_2.AZ"
+  },
+  "MP.MRES": {
+   "name": "MP.MRES",
+   "ID": "MP.MRES"
+  },
+  "MP.NSP1": {
+   "name": "MP.NSP1",
+   "ID": "MP.NSP1"
+  },
+  "MP.NSPP_1.AZ": {
+   "name": "MP.NSPP_1.AZ",
+   "ID": "MP.NSPP_1.AZ"
+  },
+  "MPW.AZ": {
+   "name": "MPW.AZ",
+   "ID": "MPW.AZ"
+  },
+  "MPW.MPW": {
+   "name": "MPW.MPW",
+   "ID": "MPW.MPW"
+  },
+  "NIPS.AZ": {
+   "name": "NIPS.AZ",
+   "ID": "NIPS.AZ"
+  },
+  "NIPS.BURROAK.H": {
+   "name": "NIPS.BURROAK.H",
+   "ID": "NIPS.BURROAK.H"
+  },
+  "NIPS.BURROAK.L": {
+   "name": "NIPS.BURROAK.L",
+   "ID": "NIPS.BURROAK.L"
+  },
+  "NIPS.IMPA": {
+   "name": "NIPS.IMPA",
+   "ID": "NIPS.IMPA"
+  },
+  "NIPS.IMPA_1.AZ": {
+   "name": "NIPS.IMPA_1.AZ",
+   "ID": "NIPS.IMPA_1.AZ"
+  },
+  "NIPS.MCHCP.ARR": {
+   "name": "NIPS.MCHCP.ARR",
+   "ID": "NIPS.MCHCP.ARR"
+  },
+  "NIPS.MITCH.ARR": {
+   "name": "NIPS.MITCH.ARR",
+   "ID": "NIPS.MITCH.ARR"
+  },
+  "NIPS.MUNSTR.LN": {
+   "name": "NIPS.MUNSTR.LN",
+   "ID": "NIPS.MUNSTR.LN"
+  },
+  "NIPS.NIPS": {
+   "name": "NIPS.NIPS",
+   "ID": "NIPS.NIPS"
+  },
+  "NIPS.STJOHN.LN": {
+   "name": "NIPS.STJOHN.LN",
+   "ID": "NIPS.STJOHN.LN"
+  },
+  "NIPS.WVPA": {
+   "name": "NIPS.WVPA",
+   "ID": "NIPS.WVPA"
+  },
+  "NIPS.WVPA_1.AZ": {
+   "name": "NIPS.WVPA_1.AZ",
+   "ID": "NIPS.WVPA_1.AZ"
+  },
+  "NSP.AEPM10": {
+   "name": "NSP.AEPM10",
+   "ID": "NSP.AEPM10"
+  },
+  "NSP.AEPM11": {
+   "name": "NSP.AEPM11",
+   "ID": "NSP.AEPM11"
+  },
+  "NSP.AEPM12": {
+   "name": "NSP.AEPM12",
+   "ID": "NSP.AEPM12"
+  },
+  "NSP.AEPM4": {
+   "name": "NSP.AEPM4",
+   "ID": "NSP.AEPM4"
+  },
+  "NSP.AEPM5": {
+   "name": "NSP.AEPM5",
+   "ID": "NSP.AEPM5"
+  },
+  "NSP.AEPM6": {
+   "name": "NSP.AEPM6",
+   "ID": "NSP.AEPM6"
+  },
+  "NSP.AEPM7": {
+   "name": "NSP.AEPM7",
+   "ID": "NSP.AEPM7"
+  },
+  "NSP.AEPM8": {
+   "name": "NSP.AEPM8",
+   "ID": "NSP.AEPM8"
+  },
+  "NSP.AEPM9": {
+   "name": "NSP.AEPM9",
+   "ID": "NSP.AEPM9"
+  },
+  "NSP.ALTM_1.AZ": {
+   "name": "NSP.ALTM_1.AZ",
+   "ID": "NSP.ALTM_1.AZ"
+  },
+  "NSP.ALTW": {
+   "name": "NSP.ALTW",
+   "ID": "NSP.ALTW"
+  },
+  "NSP.AZ": {
+   "name": "NSP.AZ",
+   "ID": "NSP.AZ"
+  },
+  "NSP.BE": {
+   "name": "NSP.BE",
+   "ID": "NSP.BE"
+  },
+  "NSP.BELW_1.AZ": {
+   "name": "NSP.BELW_1.AZ",
+   "ID": "NSP.BELW_1.AZ"
+  },
+  "NSP.BLKBROOK": {
+   "name": "NSP.BLKBROOK",
+   "ID": "NSP.BLKBROOK"
+  },
+  "NSP.BLUELK.MVP": {
+   "name": "NSP.BLUELK.MVP",
+   "ID": "NSP.BLUELK.MVP"
+  },
+  "NSP.BRKNG.MVP": {
+   "name": "NSP.BRKNG.MVP",
+   "ID": "NSP.BRKNG.MVP"
+  },
+  "NSP.BURNV.MVP": {
+   "name": "NSP.BURNV.MVP",
+   "ID": "NSP.BURNV.MVP"
+  },
+  "NSP.CHUBLK.MVP": {
+   "name": "NSP.CHUBLK.MVP",
+   "ID": "NSP.CHUBLK.MVP"
+  },
+  "NSP.CMMPA.DEL": {
+   "name": "NSP.CMMPA.DEL",
+   "ID": "NSP.CMMPA.DEL"
+  },
+  "NSP.CMMPA.FAIR": {
+   "name": "NSP.CMMPA.FAIR",
+   "ID": "NSP.CMMPA.FAIR"
+  },
+  "NSP.CMMPA.GF": {
+   "name": "NSP.CMMPA.GF",
+   "ID": "NSP.CMMPA.GF"
+  },
+  "NSP.CMMPA.GLEN": {
+   "name": "NSP.CMMPA.GLEN",
+   "ID": "NSP.CMMPA.GLEN"
+  },
+  "NSP.CMMPA.JANE": {
+   "name": "NSP.CMMPA.JANE",
+   "ID": "NSP.CMMPA.JANE"
+  },
+  "NSP.CMMPA.KASS": {
+   "name": "NSP.CMMPA.KASS",
+   "ID": "NSP.CMMPA.KASS"
+  },
+  "NSP.CMMPA.KEN": {
+   "name": "NSP.CMMPA.KEN",
+   "ID": "NSP.CMMPA.KEN"
+  },
+  "NSP.CMMPA.SE": {
+   "name": "NSP.CMMPA.SE",
+   "ID": "NSP.CMMPA.SE"
+  },
+  "NSP.EREPC": {
+   "name": "NSP.EREPC",
+   "ID": "NSP.EREPC"
+  },
+  "NSP.HCPD.GRVCT": {
+   "name": "NSP.HCPD.GRVCT",
+   "ID": "NSP.HCPD.GRVCT"
+  },
+  "NSP.HCPD.LKCR": {
+   "name": "NSP.HCPD.LKCR",
+   "ID": "NSP.HCPD.LKCR"
+  },
+  "NSP.HCPD.MAD": {
+   "name": "NSP.HCPD.MAD",
+   "ID": "NSP.HCPD.MAD"
+  },
+  "NSP.HCPD.NU": {
+   "name": "NSP.HCPD.NU",
+   "ID": "NSP.HCPD.NU"
+  },
+  "NSP.HCPD.SXFLS": {
+   "name": "NSP.HCPD.SXFLS",
+   "ID": "NSP.HCPD.SXFLS"
+  },
+  "NSP.HCPD_1.AZ": {
+   "name": "NSP.HCPD_1.AZ",
+   "ID": "NSP.HCPD_1.AZ"
+  },
+  "NSP.KASOTA": {
+   "name": "NSP.KASOTA",
+   "ID": "NSP.KASOTA"
+  },
+  "NSP.LYONC.MVP": {
+   "name": "NSP.LYONC.MVP",
+   "ID": "NSP.LYONC.MVP"
+  },
+  "NSP.LYONCO.MVP": {
+   "name": "NSP.LYONCO.MVP",
+   "ID": "NSP.LYONCO.MVP"
+  },
+  "NSP.MINVLY.MVP": {
+   "name": "NSP.MINVLY.MVP",
+   "ID": "NSP.MINVLY.MVP"
+  },
+  "NSP.MMPA": {
+   "name": "NSP.MMPA",
+   "ID": "NSP.MMPA"
+  },
+  "NSP.MMPA_1.AZ": {
+   "name": "NSP.MMPA_1.AZ",
+   "ID": "NSP.MMPA_1.AZ"
+  },
+  "NSP.MMU_1.AZ": {
+   "name": "NSP.MMU_1.AZ",
+   "ID": "NSP.MMU_1.AZ"
+  },
+  "NSP.MRES.MLRS": {
+   "name": "NSP.MRES.MLRS",
+   "ID": "NSP.MRES.MLRS"
+  },
+  "NSP.MRES.MMU": {
+   "name": "NSP.MRES.MMU",
+   "ID": "NSP.MRES.MMU"
+  },
+  "NSP.MRES.SAUK": {
+   "name": "NSP.MRES.SAUK",
+   "ID": "NSP.MRES.SAUK"
+  },
+  "NSP.MRES.STJM": {
+   "name": "NSP.MRES.STJM",
+   "ID": "NSP.MRES.STJM"
+  },
+  "NSP.MRES_5.AZ": {
+   "name": "NSP.MRES_5.AZ",
+   "ID": "NSP.MRES_5.AZ"
+  },
+  "NSP.MRES_6.AZ": {
+   "name": "NSP.MRES_6.AZ",
+   "ID": "NSP.MRES_6.AZ"
+  },
+  "NSP.NCP.AZ": {
+   "name": "NSP.NCP.AZ",
+   "ID": "NSP.NCP.AZ"
+  },
+  "NSP.NCPLOAD": {
+   "name": "NSP.NCPLOAD",
+   "ID": "NSP.NCPLOAD"
+  },
+  "NSP.NSP": {
+   "name": "NSP.NSP",
+   "ID": "NSP.NSP"
+  },
+  "NSP.NSPG_1.AZ": {
+   "name": "NSP.NSPG_1.AZ",
+   "ID": "NSP.NSPG_1.AZ"
+  },
+  "NSP.NSPG_2.AZ": {
+   "name": "NSP.NSPG_2.AZ",
+   "ID": "NSP.NSPG_2.AZ"
+  },
+  "NSP.NU": {
+   "name": "NSP.NU",
+   "ID": "NSP.NU"
+  },
+  "NSP.NU.AZ": {
+   "name": "NSP.NU.AZ",
+   "ID": "NSP.NU.AZ"
+  },
+  "NSP.NWEC.AZ": {
+   "name": "NSP.NWEC.AZ",
+   "ID": "NSP.NWEC.AZ"
+  },
+  "NSP.NWELOAD": {
+   "name": "NSP.NWELOAD",
+   "ID": "NSP.NWELOAD"
+  },
+  "NSP.OTP": {
+   "name": "NSP.OTP",
+   "ID": "NSP.OTP"
+  },
+  "NSP.OTPW_1.AZ": {
+   "name": "NSP.OTPW_1.AZ",
+   "ID": "NSP.OTPW_1.AZ"
+  },
+  "NSP.PRISL1_LD": {
+   "name": "NSP.PRISL1_LD",
+   "ID": "NSP.PRISL1_LD"
+  },
+  "NSP.PRISL2_LD": {
+   "name": "NSP.PRISL2_LD",
+   "ID": "NSP.PRISL2_LD"
+  },
+  "NSP.PRISLD.MVP": {
+   "name": "NSP.PRISLD.MVP",
+   "ID": "NSP.PRISLD.MVP"
+  },
+  "NSP.SMP": {
+   "name": "NSP.SMP",
+   "ID": "NSP.SMP"
+  },
+  "NSP.STJM_1.AZ": {
+   "name": "NSP.STJM_1.AZ",
+   "ID": "NSP.STJM_1.AZ"
+  },
+  "NSP.TEA_1.AZ": {
+   "name": "NSP.TEA_1.AZ",
+   "ID": "NSP.TEA_1.AZ"
+  },
+  "NSP.UPLS_1.AZ": {
+   "name": "NSP.UPLS_1.AZ",
+   "ID": "NSP.UPLS_1.AZ"
+  },
+  "NSP.UPLS_2.AZ": {
+   "name": "NSP.UPLS_2.AZ",
+   "ID": "NSP.UPLS_2.AZ"
+  },
+  "NSP.UPLS_3.AZ": {
+   "name": "NSP.UPLS_3.AZ",
+   "ID": "NSP.UPLS_3.AZ"
+  },
+  "NSP.WIMUNI.AZ": {
+   "name": "NSP.WIMUNI.AZ",
+   "ID": "NSP.WIMUNI.AZ"
+  },
+  "NSP.WPPI": {
+   "name": "NSP.WPPI",
+   "ID": "NSP.WPPI"
+  },
+  "NSP.WPPI_1.AZ": {
+   "name": "NSP.WPPI_1.AZ",
+   "ID": "NSP.WPPI_1.AZ"
+  },
+  "OTP.AZ": {
+   "name": "OTP.AZ",
+   "ID": "OTP.AZ"
+  },
+  "OTP.BEPC.CPEC": {
+   "name": "OTP.BEPC.CPEC",
+   "ID": "OTP.BEPC.CPEC"
+  },
+  "OTP.BEPC.EREC": {
+   "name": "OTP.BEPC.EREC",
+   "ID": "OTP.BEPC.EREC"
+  },
+  "OTP.GRE": {
+   "name": "OTP.GRE",
+   "ID": "OTP.GRE"
+  },
+  "OTP.GRE.DSA": {
+   "name": "OTP.GRE.DSA",
+   "ID": "OTP.GRE.DSA"
+  },
+  "OTP.GREM_2.AZ": {
+   "name": "OTP.GREM_2.AZ",
+   "ID": "OTP.GREM_2.AZ"
+  },
+  "OTP.HILS_1.AZ": {
+   "name": "OTP.HILS_1.AZ",
+   "ID": "OTP.HILS_1.AZ"
+  },
+  "OTP.MDU": {
+   "name": "OTP.MDU",
+   "ID": "OTP.MDU"
+  },
+  "OTP.MDUM_1.AZ": {
+   "name": "OTP.MDUM_1.AZ",
+   "ID": "OTP.MDUM_1.AZ"
+  },
+  "OTP.MMPA": {
+   "name": "OTP.MMPA",
+   "ID": "OTP.MMPA"
+  },
+  "OTP.MPC": {
+   "name": "OTP.MPC",
+   "ID": "OTP.MPC"
+  },
+  "OTP.MPC.BUTLER": {
+   "name": "OTP.MPC.BUTLER",
+   "ID": "OTP.MPC.BUTLER"
+  },
+  "OTP.MPC.HARD": {
+   "name": "OTP.MPC.HARD",
+   "ID": "OTP.MPC.HARD"
+  },
+  "OTP.MPC.OXBOW": {
+   "name": "OTP.MPC.OXBOW",
+   "ID": "OTP.MPC.OXBOW"
+  },
+  "OTP.MRES": {
+   "name": "OTP.MRES",
+   "ID": "OTP.MRES"
+  },
+  "OTP.MRES.CVLR": {
+   "name": "OTP.MRES.CVLR",
+   "ID": "OTP.MRES.CVLR"
+  },
+  "OTP.MRES.HILS": {
+   "name": "OTP.MRES.HILS",
+   "ID": "OTP.MRES.HILS"
+  },
+  "OTP.MRES.NTWD": {
+   "name": "OTP.MRES.NTWD",
+   "ID": "OTP.MRES.NTWD"
+  },
+  "OTP.MRES_8.AZ": {
+   "name": "OTP.MRES_8.AZ",
+   "ID": "OTP.MRES_8.AZ"
+  },
+  "OTP.MUAG": {
+   "name": "OTP.MUAG",
+   "ID": "OTP.MUAG"
+  },
+  "OTP.NSP": {
+   "name": "OTP.NSP",
+   "ID": "OTP.NSP"
+  },
+  "OTP.NSPG_1.AZ": {
+   "name": "OTP.NSPG_1.AZ",
+   "ID": "OTP.NSPG_1.AZ"
+  },
+  "OTP.NSPP_1.AZ": {
+   "name": "OTP.NSPP_1.AZ",
+   "ID": "OTP.NSPP_1.AZ"
+  },
+  "OTP.NSPX.ADA": {
+   "name": "OTP.NSPX.ADA",
+   "ID": "OTP.NSPX.ADA"
+  },
+  "OTP.NWPS": {
+   "name": "OTP.NWPS",
+   "ID": "OTP.NWPS"
+  },
+  "OTP.OTP": {
+   "name": "OTP.OTP",
+   "ID": "OTP.OTP"
+  },
+  "OTP.OTPW_1.AZ": {
+   "name": "OTP.OTPW_1.AZ",
+   "ID": "OTP.OTPW_1.AZ"
+  },
+  "OTP.OTPW_10.AZ": {
+   "name": "OTP.OTPW_10.AZ",
+   "ID": "OTP.OTPW_10.AZ"
+  },
+  "OTP.OTPW_11.AZ": {
+   "name": "OTP.OTPW_11.AZ",
+   "ID": "OTP.OTPW_11.AZ"
+  },
+  "OTP.OTPW_12.AZ": {
+   "name": "OTP.OTPW_12.AZ",
+   "ID": "OTP.OTPW_12.AZ"
+  },
+  "OTP.OTPW_14.AZ": {
+   "name": "OTP.OTPW_14.AZ",
+   "ID": "OTP.OTPW_14.AZ"
+  },
+  "OTP.OTPW_2.AZ": {
+   "name": "OTP.OTPW_2.AZ",
+   "ID": "OTP.OTPW_2.AZ"
+  },
+  "OTP.OTPW_8.AZ": {
+   "name": "OTP.OTPW_8.AZ",
+   "ID": "OTP.OTPW_8.AZ"
+  },
+  "OTP.OTPW_9.AZ": {
+   "name": "OTP.OTPW_9.AZ",
+   "ID": "OTP.OTPW_9.AZ"
+  },
+  "PSI_GEN.AGG": {
+   "name": "PSI_GEN.AGG",
+   "ID": "PSI_GEN.AGG"
+  },
+  "SIGE.APGI": {
+   "name": "SIGE.APGI",
+   "ID": "SIGE.APGI"
+  },
+  "SIGE.AZ": {
+   "name": "SIGE.AZ",
+   "ID": "SIGE.AZ"
+  },
+  "SIGE.CANN_MUNI": {
+   "name": "SIGE.CANN_MUNI",
+   "ID": "SIGE.CANN_MUNI"
+  },
+  "SIGE.CIN": {
+   "name": "SIGE.CIN",
+   "ID": "SIGE.CIN"
+  },
+  "SIGE.FPL_FERD": {
+   "name": "SIGE.FPL_FERD",
+   "ID": "SIGE.FPL_FERD"
+  },
+  "SIGE.HE": {
+   "name": "SIGE.HE",
+   "ID": "SIGE.HE"
+  },
+  "SIGE.HEPM_1.AZ": {
+   "name": "SIGE.HEPM_1.AZ",
+   "ID": "SIGE.HEPM_1.AZ"
+  },
+  "SIGE.IMPA": {
+   "name": "SIGE.IMPA",
+   "ID": "SIGE.IMPA"
+  },
+  "SIGE.SIGW": {
+   "name": "SIGE.SIGW",
+   "ID": "SIGE.SIGW"
+  },
+  "SIGE.WARRDRR1": {
+   "name": "SIGE.WARRDRR1",
+   "ID": "SIGE.WARRDRR1"
+  },
+  "SIPC.AZ": {
+   "name": "SIPC.AZ",
+   "ID": "SIPC.AZ"
+  },
+  "SIPC.SIPC": {
+   "name": "SIPC.SIPC",
+   "ID": "SIPC.SIPC"
+  },
+  "SME.AZ": {
+   "name": "SME.AZ",
+   "ID": "SME.AZ"
+  },
+  "SME.LEAFRIVER": {
+   "name": "SME.LEAFRIVER",
+   "ID": "SME.LEAFRIVER"
+  },
+  "SME.SME_LOAD": {
+   "name": "SME.SME_LOAD",
+   "ID": "SME.SME_LOAD"
+  },
+  "SMP.AZ": {
+   "name": "SMP.AZ",
+   "ID": "SMP.AZ"
+  },
+  "SMP.RPU": {
+   "name": "SMP.RPU",
+   "ID": "SMP.RPU"
+  },
+  "SMP.SMP": {
+   "name": "SMP.SMP",
+   "ID": "SMP.SMP"
+  },
+  "SMP.TEA_1.AZ": {
+   "name": "SMP.TEA_1.AZ",
+   "ID": "SMP.TEA_1.AZ"
+  },
+  "SOCO.FORIN.ARR": {
+   "name": "SOCO.FORIN.ARR",
+   "ID": "SOCO.FORIN.ARR"
+  },
+  "TEXAS.HUB": {
+   "name": "TEXAS.HUB",
+   "ID": "TEXAS.HUB"
+  },
+  "TVA.BRMNH1.ARR": {
+   "name": "TVA.BRMNH1.ARR",
+   "ID": "TVA.BRMNH1.ARR"
+  },
+  "TVA.TVA": {
+   "name": "TVA.TVA",
+   "ID": "TVA.TVA"
+  },
+  "TVA.TVAM_1.AZ": {
+   "name": "TVA.TVAM_1.AZ",
+   "ID": "TVA.TVAM_1.AZ"
+  },
+  "UPPC.AZ": {
+   "name": "UPPC.AZ",
+   "ID": "UPPC.AZ"
+  },
+  "UPPC.ESC": {
+   "name": "UPPC.ESC",
+   "ID": "UPPC.ESC"
+  },
+  "UPPC.ESC.AZ": {
+   "name": "UPPC.ESC.AZ",
+   "ID": "UPPC.ESC.AZ"
+  },
+  "UPPC.INTEGRATD": {
+   "name": "UPPC.INTEGRATD",
+   "ID": "UPPC.INTEGRATD"
+  },
+  "UPPC.LWEC": {
+   "name": "UPPC.LWEC",
+   "ID": "UPPC.LWEC"
+  },
+  "UPPC.ONTONAGON": {
+   "name": "UPPC.ONTONAGON",
+   "ID": "UPPC.ONTONAGON"
+  },
+  "UPPC.UPPM": {
+   "name": "UPPC.UPPM",
+   "ID": "UPPC.UPPM"
+  },
+  "UPPC.WPMC": {
+   "name": "UPPC.WPMC",
+   "ID": "UPPC.WPMC"
+  },
+  "UPPC.WPPI": {
+   "name": "UPPC.WPPI",
+   "ID": "UPPC.WPPI"
+  },
+  "UPPC.WPSE": {
+   "name": "UPPC.WPSE",
+   "ID": "UPPC.WPSE"
+  },
+  "WAUE.ANTLP.ARR": {
+   "name": "WAUE.ANTLP.ARR",
+   "ID": "WAUE.ANTLP.ARR"
+  },
+  "WEC.AZ": {
+   "name": "WEC.AZ",
+   "ID": "WEC.AZ"
+  },
+  "WEC.ERGS_LD": {
+   "name": "WEC.ERGS_LD",
+   "ID": "WEC.ERGS_LD"
+  },
+  "WEC.KCBL_AP": {
+   "name": "WEC.KCBL_AP",
+   "ID": "WEC.KCBL_AP"
+  },
+  "WEC.OCONTFL": {
+   "name": "WEC.OCONTFL",
+   "ID": "WEC.OCONTFL"
+  },
+  "WEC.PB1AUX": {
+   "name": "WEC.PB1AUX",
+   "ID": "WEC.PB1AUX"
+  },
+  "WEC.PB2AUX": {
+   "name": "WEC.PB2AUX",
+   "ID": "WEC.PB2AUX"
+  },
+  "WEC.PLSNT1.MVP": {
+   "name": "WEC.PLSNT1.MVP",
+   "ID": "WEC.PLSNT1.MVP"
+  },
+  "WEC.PLSNT2.MVP": {
+   "name": "WEC.PLSNT2.MVP",
+   "ID": "WEC.PLSNT2.MVP"
+  },
+  "WEC.S": {
+   "name": "WEC.S",
+   "ID": "WEC.S"
+  },
+  "WEC.WEPM_1.AZ": {
+   "name": "WEC.WEPM_1.AZ",
+   "ID": "WEC.WEPM_1.AZ"
+  },
+  "WEC.WEPM_2.AZ": {
+   "name": "WEC.WEPM_2.AZ",
+   "ID": "WEC.WEPM_2.AZ"
+  },
+  "WEC.WPPI": {
+   "name": "WEC.WPPI",
+   "ID": "WEC.WPPI"
+  },
+  "WEC.WPPI_1.AZ": {
+   "name": "WEC.WPPI_1.AZ",
+   "ID": "WEC.WPPI_1.AZ"
+  },
+  "WEC.WPPI_3.AZ": {
+   "name": "WEC.WPPI_3.AZ",
+   "ID": "WEC.WPPI_3.AZ"
+  },
+  "WPS.AZ": {
+   "name": "WPS.AZ",
+   "ID": "WPS.AZ"
+  },
+  "WPS.GLU": {
+   "name": "WPS.GLU",
+   "ID": "WPS.GLU"
+  },
+  "WPS.GRFTR.ARR": {
+   "name": "WPS.GRFTR.ARR",
+   "ID": "WPS.GRFTR.ARR"
+  },
+  "WPS.KEWANE.ARR": {
+   "name": "WPS.KEWANE.ARR",
+   "ID": "WPS.KEWANE.ARR"
+  },
+  "WPS.MENOMPK": {
+   "name": "WPS.MENOMPK",
+   "ID": "WPS.MENOMPK"
+  },
+  "WPS.MPU": {
+   "name": "WPS.MPU",
+   "ID": "WPS.MPU"
+  },
+  "WPS.MPUG_1.AZ": {
+   "name": "WPS.MPUG_1.AZ",
+   "ID": "WPS.MPUG_1.AZ"
+  },
+  "WPS.UPPM": {
+   "name": "WPS.UPPM",
+   "ID": "WPS.UPPM"
+  },
+  "WPS.WPSE": {
+   "name": "WPS.WPSE",
+   "ID": "WPS.WPSE"
+  },
+  "WPS.WPSM": {
+   "name": "WPS.WPSM",
+   "ID": "WPS.WPSM"
+  },
+  "WR.MEUC_1.AZ": {
+   "name": "WR.MEUC_1.AZ",
+   "ID": "WR.MEUC_1.AZ"
+  },
+  "WR.MOWR": {
+   "name": "WR.MOWR",
+   "ID": "WR.MOWR"
+  },
+  "WR.MOWR_1.AZ": {
+   "name": "WR.MOWR_1.AZ",
+   "ID": "WR.MOWR_1.AZ"
+  },
+  "WR.THAYERLD": {
+   "name": "WR.THAYERLD",
+   "ID": "WR.THAYERLD"
+  }
+ },
+ "ISO-NE": {
+  "4001": {
+   "name": ".Z.MAINE",
+   "ID": 4001
+  },
+  "4002": {
+   "name": ".Z.NEWHAMPSHIRE",
+   "ID": 4002
+  },
+  "4003": {
+   "name": ".Z.VERMONT",
+   "ID": 4003
+  },
+  "4004": {
+   "name": ".Z.CONNECTICUT",
+   "ID": 4004
+  },
+  "4005": {
+   "name": ".Z.RHODEISLAND",
+   "ID": 4005
+  },
+  "4006": {
+   "name": ".Z.SEMASS",
+   "ID": 4006
+  },
+  "4007": {
+   "name": ".Z.WCMASS",
+   "ID": 4007
+  },
+  "4008": {
+   "name": ".Z.NEMASSBOST",
+   "ID": 4008
+  }
+ }
+}

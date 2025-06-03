@@ -1,0 +1,56 @@
+[
+    {
+    "name": "latitude",
+    "attr name": "lat",
+    "notes": "The latitude of the site in the range (-90, 90).",
+    "max": 90,
+    "default": 35.08,
+    "step": 1,
+    "units": "deg"
+    },
+    {
+    "name": "longitude",
+    "attr name": "lon",
+    "notes": "The longitude of the site in the range (-180, 180).",
+    "max": 180,
+    "default": -106.65,
+    "step": 1,
+    "units": "deg"
+    },
+    {
+    "name": "system capacity",
+    "attr name": "system_capacity",
+    "notes": "The nameplate capacity of the photovoltaic system.",
+    "max": 1000000000,
+    "default": 1000,
+    "step": 1,
+    "units": "kW"
+    },
+    {
+    "name": "losses",
+    "attr name": "losses",
+    "notes": "The total system losses, including all sources, in the range (-5, 99).",
+    "max": 99,
+    "default": 14,
+    "step": 1,
+    "units": "%"
+    },
+    {
+    "name": "tilt angle",
+    "attr name": "tilt",
+    "notes": "The tilt angle of the PV surface. Defaults to site latitude.",
+    "max": 90,
+    "default": "",
+    "step": 1,
+    "units": "deg"
+    },
+    {
+    "name": "azimuth angle",
+    "attr name": "azimuth",
+    "notes": "The azimuth angle of the PV surface.",
+    "max": 360,
+    "default": 180,
+    "step": 1,
+    "units": "deg"
+    }
+]

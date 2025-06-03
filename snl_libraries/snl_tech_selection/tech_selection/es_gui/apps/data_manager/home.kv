@@ -1,0 +1,69 @@
+<DataManagerHomeScreen>:
+    GridLayout:
+        cols: 1
+        padding: 400, 150
+        spacing: 5
+
+        DataManagerTitle:
+            text: 'Download data for QuESt applications.'
+            size_hint_y: 0.1
+        
+        BodyTextBase:
+            markup: True
+            text: '[font=Modern Pictograms][size=48]w[/size][/font] Internet connectivity is required to download data.'
+            size_hint_y: 0.1
+
+        GridLayout:
+            cols: 1
+            spacing: 5
+            row_force_default: True
+            row_default_height: self.height/5
+            padding: (0, 50)
+
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'ISO/RTO Market and Operations'
+                on_release: root.manager.current = 'data_manager_rto_mo_data'
+            
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'Utility Rate Structures'
+                on_release: root.manager.current = 'data_manager_rate_structure_data'
+            
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'Commercial/Residential Building Load Profiles'
+                on_release: root.manager.current = 'data_manager_load_home'
+            
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'Photovoltaic Power Profiles'
+                on_release: root.manager.current = 'data_manager_pvwatts'
+                
+            DataManagerMenuTileButton:
+                background_color: C(hex_primary)
+                text: 'NSRDB Weather Data'
+                on_release: root.manager.current = 'data_manager_nsrdb'
+
+<DataManagerMenuTileButton@MenuTileButton>:
+    font: huge_font
+
+<DataManagerTitle@TitleTextBase>:
+    color: C(hex_primary)
+
+<DataManagerContentTitle@TitleTextBase>:
+    color: C(hex_secondary)
+    font_size: large_font
+    size_hint_y: 0.2
+
+<DataManagerContentSubtitle@TitleTextBase>:
+    color: C(hex_pms178)
+    font_size: stnd_font
+    size_hint_y: 0.1
+
+<DataManagerBodyText@BodyTextBase>:
+    font_name: 'Exo 2'
+
+<DataManagerCheckbox>:
+    color: (0.1, 0.1, 0.1, 1)
+    size_hint_x: 0.05

@@ -1,0 +1,87 @@
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="31.59496999999999" height="31.03648000000007" version="1.0" id="svg2" inkscape:version="0.91 r13725" sodipodi:docname="USA counties.svg">
+  <defs id="defs9439"/>
+  <sodipodi:namedview pagecolor="#ffffff" bordercolor="#666666" borderopacity="1" objecttolerance="10" gridtolerance="10" guidetolerance="10" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-width="798" inkscape:window-height="828" id="namedview9437" showgrid="false" showguides="true" inkscape:zoom="0.64950808" inkscape:cx="494.98999" inkscape:cy="313.535" inkscape:window-x="-7" inkscape:window-y="0" inkscape:window-maximized="0" inkscape:current-layer="svg2"/>
+  <metadata id="metadata4">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+        <dc:title/>
+        <cc:license rdf:resource="http://creativecommons.org/publicdomain/zero/1.0/"/>
+        <dc:date>2019-10-06</dc:date>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>U.S. Census Bureau, Abe.suleiman, Lokal_Profil</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:source>https://commons.wikimedia.org/wiki/File:Usa_counties_large.svg</dc:source>
+      </cc:Work>
+      <cc:License rdf:about="http://creativecommons.org/publicdomain/zero/1.0/">
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Reproduction"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#Distribution"/>
+        <cc:permits rdf:resource="http://creativecommons.org/ns#DerivativeWorks"/>
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <style id="style6">
+  /*
+   * Below are Cascading Style Sheet (CSS) definitions in use in this file,
+   * which allow easily changing how counties are displayed.
+   *
+   *
+   * For the U.S. Census county codes (FIPS codes) used in this file to identify individual counties, see this link:
+   * https://www2.census.gov/geo/docs/reference/codes/files/national_county.txt
+   *
+   * The county codes used in this file combine the 2-digit state code, which is in the second column of the file
+   * linked above, and the 3-digit county code, which is in the third column of the file linked above. Each value
+   * for the "id" attribute for each county is in the following form: "c[state_code][county-code]". For example,
+   * for Loving Country in Texas, the state code is "48" and the county code is "301", so the id name for the
+   * county is "c48301".
+   *
+   * County codes used in this file can also be found on Wikimedia Commons at this link:
+   * https://commons.wikimedia.org/wiki/File_talk:Usa_counties_large.svg/county_codes
+   *
+   * Examples:
+   *
+   * To color two counties red (in this case Loving County and Dallas County in Texas) simply
+   * go to the CSS insertion point and add:
+   *
+   * #c48301, #c48113 {fill:red}
+   *
+   * To color an entire state's counties (in the case New Mexico, with "35" being the state code) a green,
+   * go to the CSS insertion point and add:
+   *
+   * path[id*='c35'] {fill:#34A853}
+   *
+   */
+  #counties {fill:#d0d0d0;stroke:#000;stroke-width:.17829;} 
+  #borders {fill:none;stroke:#221e1f;stroke-width:.89143;} 
+  #separator {fill:none;stroke:#a9a9a9;stroke-width:2.3177309;}
+ </style>
+  <g id="counties" transform="translate(-902.41584,-166.97251999999997)" style="fill:#d0d0d0;stroke:#ffffff;stroke-width:0.17828999">
+    <path id="c09003" d="m 910.38,171.67 3.1779,-0.74731 0.22757,0.87968 0.82688,-0.25166 0.049,-0.89993 3.9788,-0.93278 0.77198,1.888 -0.50103,0.13505 0.48085,1.91 0.3197,-0.0698 0.14846,1.1444 0.48574,-0.2036 1.3114,2.9161 0.35685,0.16748 0.56266,0.75038 0.0571,0.127 0.0963,0.531 -0.82725,0.643 -1.0038,-1.253 -1.995,0.66 -1.3568,0.642 -0.36192,1.253 -2.9268,1.0966 -0.5598,-1.7687 -0.68358,0.26216 -1.4388,-3.43 1.0786,-0.459 0.0945,-4.002 -2.3142,0.731 -0.0553,-1.719" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title940">Hartford, CT</title>
+    </path>
+    <path id="c09005" d="m 909.64,171.84 0.73989,-0.168 0.0553,1.719 2.3142,-0.731 -0.0945,4.002 -1.0786,0.459 1.4388,3.43 -1.7757,2.218 -0.65852,0.34006 0.3381,0.96295 -2.7497,0.86699 -0.0553,0.306 0.0374,0.191 0.1462,0.146 0.21751,0.136 -0.0321,0.05 -0.24069,0 -0.77515,-0.246 -0.35728,-0.42266 -0.73867,0.5944 -0.39671,-0.63874 -0.14976,-0.264 -0.3227,-0.531 -0.90035,-1.89 -0.14441,-0.168 -0.46712,-0.1 -1.5743,-8.743 7.2242,-1.528" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title943">Litchfield, CT</title>
+    </path>
+    <path id="c09001" d="m 904.53,185.29 -0.54556,-3.182 0.46712,0.1 0.14441,0.168 0.90035,1.89 0.3227,0.531 0.14976,0.264 0.39671,0.63874 0.73867,-0.5944 0.35728,0.42266 0.77515,0.246 0.24069,0 0.0321,-0.05 0.62579,0.233 1.3514,0.442 2.9881,2.115 -0.0571,1.116 -0.2086,0.481 -0.041,0.186 0.0499,1.094 0.0481,0.109 0.27456,0.171 -1.1589,0.314 -2.9096,2.2 -3.9918,3.389 -0.0981,0.188 -0.0499,0.247 -1.7971,-2.312 1.2516,-1.278 2.264,-2.3339 -1.6114,-1.4831 -0.2817,-1.623 -0.62757,-3.68" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title946">Fairfield, CT</title>
+    </path>
+    <path id="c09009" d="m 917.18,180.96 0.58656,1.792 0.2953,1.5488 0.92597,-0.28684 0.62043,-0.307 0.24069,0.154 0.74702,0.843 2.0075,2.492 -0.88431,-0.05 -0.5616,0.136 -2.3142,0.7 -1.4459,0.608 -0.78803,0.115 -0.37084,-0.459 -0.1355,0.06 -1.9612,2.283 -0.26564,0.371 -0.31379,0.594 -0.0214,0.09 0,0.02 -0.27456,-0.171 -0.0481,-0.109 -0.0499,-1.094 0.041,-0.186 0.2086,-0.481 0.0571,-1.116 -2.9881,-2.115 -1.3514,-0.442 -0.62579,-0.233 -0.21751,-0.136 -0.1462,-0.146 -0.0374,-0.191 0.0553,-0.306 2.7497,-0.86699 -0.3381,-0.96295 0.65852,-0.34006 1.7757,-2.218 0.68358,-0.26216 0.5598,1.7687 2.9268,-1.0966" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title949">New Haven, CT</title>
+    </path>
+    <path id="c09007" d="m 921.9,179.66 0.9834,0.86094 1.686,-0.52982 0.78267,2.0366 -1.8698,0.78925 2.2991,3.071 -3.1753,1.31 -2.0075,-2.492 -0.74702,-0.843 -0.24069,-0.154 -0.62043,0.307 -0.92597,0.28662 -0.2956,-1.5486 -0.58626,-1.792 0.36192,-1.253 1.3568,-0.642 1.995,-0.66 1.0038,1.253" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title952">Middlesex, CT</title>
+    </path>
+    <path id="c09011" d="m 933.05,176.48 0.96081,3.9425 -0.0783,0.0701 -0.26579,-0.003 -0.274,0.35605 0.0488,0.31509 0.20975,0.25828 0.0393,0.44768 0.20028,0.26774 0.0406,0.21847 -0.23405,0.3037 -0.11093,0.0764 -0.10146,0.19952 -0.5057,-0.20947 -0.99405,0.29866 -0.629,0.50681 -0.3464,0.27884 -1.286,0.14348 -0.33613,0.62381 -0.44615,0.1009 -0.46959,-0.0718 -0.29481,-0.22121 -0.3019,0.11786 0.0195,0.63166 -0.871,0.4035 -0.90748,0.355 -0.16937,0.02 -0.16759,-0.03 -2.2991,-3.071 1.8698,-0.78925 -0.78267,-2.0366 -1.686,0.52982 -0.9834,-0.86094 0.82725,-0.643 1.2615,-0.60147 0.93146,-2.6365 1.0929,0.626 0.58656,0.291 3.5354,-0.355 1.503,-0.617 1.1589,-0.202 0.25495,0.965 m -2.1582,8.8071 0.18785,-0.60504 0.18662,-0.0129 0.10743,0.0977 0.12855,-0.36953 0.58387,-0.31957 0.2143,-0.16388 0.2563,-0.10113 -0.0594,0.29583 -0.32804,0.24894 -0.45893,0.33465 -0.21661,0.4029 -0.23153,-0.002 z" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title955">New London, CT</title>
+    </path>
+    <path id="c09013" d="m 925.38,168.14 0.4475,1.549 -1.5868,0.401 -0.34587,0.112 0.68997,2.766 0.78803,-0.18352 0.68997,1.7505 -0.62433,-0.002 0.13582,0.5795 -1.0033,0.2528 0.35075,0.4072 -0.93146,2.6365 -1.2615,0.60147 -0.0963,-0.531 -0.0571,-0.127 -0.56266,-0.75038 -0.35685,-0.16748 -1.3114,-2.9161 -0.48574,0.2036 -0.14846,-1.1444 -0.3197,0.0698 -0.48085,-1.91 0.50103,-0.13505 -0.77198,-1.888 6.1794,-1.464 0.56161,-0.11" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title958">Tolland, CT</title>
+    </path>
+    <path id="c09015" d="m 930.49,167.31 1.8096,6.307 0.4992,1.897 -1.1589,0.202 -1.503,0.617 -3.5354,0.355 -0.58656,-0.291 -1.0929,-0.626 -0.35075,-0.4072 1.0033,-0.2528 -0.13582,-0.5795 0.62433,0.002 -0.68997,-1.7505 -0.78803,0.18352 -0.68997,-2.766 0.34587,-0.112 1.5868,-0.401 -0.4475,-1.549 0.7078,-0.147 4.2896,-1.019 0.11232,0.337" inkscape:connector-curvature="0" style="stroke:#ffffff">
+      <title id="title961">Windham, CT</title>
+    </path>
+    </g>
+  </svg>
