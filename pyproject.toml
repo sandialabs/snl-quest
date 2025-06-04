@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quest-snl"
-version = "2.0.dev2"
+version = "2.0.c"
 description = "Sandia National Laboratories Energy Storage Application Platform"
 readme = "README.md"
 license = "BSD-3-Clause"
@@ -20,7 +20,8 @@ dependencies = [
     "matplotlib==3.8.3",
     "geopandas==0.14.3",
     "psutil==5.9.0",
-    "GitPython==3.1.43"
+    "GitPython==3.1.43",
+    "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
 ]
 
 [project.scripts]
