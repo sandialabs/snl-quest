@@ -104,12 +104,17 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 ## Easy Installation (Recommended)
 
 ### For Windows Users:
-1. Click on the releases located on the right side.
+
+#### Prerequisites
+
+ **GitHub**: You need Git installed on your system to clone the repository. If you don’t have Git installed, you can follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install it.
+
+1. Click on the releases located at the top of this page on the right side as shown in the picture below. (Opening this page in a new tab may be helpful to follow along with the instructions)
    <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
-2. Download the quest_win.zip file found in the assets of QuESt2.0.b pre-release.
+2. On the releases page, download the quest_win.zip file found in the assets of QuESt2.0.b pre-release.
    <img src="quest/images/read/quest_win_zip.png" alt="Download zip" width=600px margin="auto" />
 3. Extract the downloaded file.
-4. Navigate inside the directory and double click on start.bat. This will setup QuESt and launch it when it is finished. This will also launch QuESt in the future.
+4. Navigate inside the extracted directory and double click on start.bat. This will setup QuESt and launch it when it is finished. For future uses of QuESt users can double click the start.bat file to launch QuESt.
 
 ### For Mac Users
 
@@ -120,7 +125,7 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 2. **GLPK (GNU Linear Programming Kit)**: You need to install GLPK. You can do this using either Homebrew or Conda. If you don’t have either installed, follow the instructions below:
 
-   - **Installing Homebrew**:
+   - **Installing GLPK using Homebrew**:
      1. Open the Terminal.
      2. Run the following command to install Homebrew:
         ```bash
@@ -131,20 +136,140 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
         brew install glpk
         ```
 
-   - **Installing Conda**:
-     1. If you prefer Conda, you can install Miniconda by following [these instructions](https://docs.conda.io/en/latest/miniconda.html).
-     2. After installing Conda, you can install GLPK using:
+   - **Installing GLPK using Conda**:
+
+     1. After installing Conda (Instructions below), you can install GLPK using:
         ```bash
         conda install -c conda-forge glpk
         ```
 
-3. **Apple Silicon (M1/M2) Users**: If you have an M-type architecture (Apple Silicon), you need to install Rosetta 2. To do this, open the Terminal and run:
+3. **Conda**:
+     1. You can install Miniconda by following [these instructions](https://docs.conda.io/en/latest/miniconda.html).
+
+
+3. **Apple Silicon (M1/M2/Mxx) Setup Instructions**
+
+If you have an M-type architecture (Apple Silicon), follow these steps to set up your environment.
+
+---
+
+## 1. Install Rosetta 2
+
+Rosetta 2 allows you to run Intel-based applications on Apple Silicon. To install Rosetta 2:
+
+1. Open the **Terminal**.
+2. Run the following command:
    ```bash
-   softwareupdate --install-rosetta
+   softwareupdate --install-rosetta --agree-to-license
+   ```
+    Close the Terminal completely by using Command + Q or selecting Quit Terminal from the menu.
 
-### Installing QuESt
+2. Configure the Terminal to Open Using Rosetta
 
-1. Click on the releases located on the right side.
+To ensure that the Terminal runs in Rosetta mode:
+
+    Open Finder and navigate to Applications > Utilities.
+    Locate the Terminal application.
+    Right-click on Terminal and select Get Info.
+    In the Get Info window, check the box that says Open using Rosetta.
+    Close the Get Info window.
+
+3. Open a Terminal with Rosetta Active
+
+After configuring the Terminal to open using Rosetta:
+
+    Open the Terminal again.
+    Verify that Rosetta is active by running the following command:
+
+      ```bash
+       arch
+      ```
+
+    You should see i386 as the output, indicating that the Terminal is running in Rosetta mode.
+
+4. Install Intel Homebrew
+
+With Rosetta active, install Intel Homebrew:
+
+    Run the following command:
+
+      ```bash
+      arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+      ```
+
+
+    Follow the on-screen instructions to complete the installation.
+
+5. Install Python 3.9 (Intel Version)
+
+After installing Intel Homebrew, use it to install Python 3.9:
+
+    Run the following command:
+      ```bash
+      arch -x86_64 /usr/local/bin/brew install python@3.9
+      ```
+    Verify the installation by checking the Python version and architecture:
+
+   ```bash
+       arch -x86_64 /usr/local/opt/python@3.9/bin/python3.9 -c "import platform; print('Python Version:', platform.python_version()); print('Architecture:', platform.machine())"
+   ```
+
+
+    You should see output similar to:
+
+    Python Version: 3.9.x
+    Architecture: x86_64
+
+6. Create a folder on the Desktop called quest_folder
+
+7. Open a terminal at the folder by right clicking on the folder and selecting open terminal at folder.
+
+8. Clone the QuESt repository using the following command:
+   ```bash
+   git clone -b QuESt_2.0.c https://github.com/sandialabs/snl-quest.git
+   ```
+
+9. Navigate inside the cloned repository from the terminal using the command:
+   ```bash
+      cd snl-quest
+   ```
+
+10. Set up the environment for QuESt by running the following command:
+   ```bash
+      conda create -n quest python=3.9
+   ```
+   When prompted type y and enter.
+
+11. Activate the environment that has just been created using the command:
+   ```bash
+      conda activate quest
+   ```
+
+12. With the environment active and from inside the snl-quest directory set up the dependencies for QuESt using the command:
+   ```bash
+   pip install -e .
+   ```
+
+13. Now QuESt is set up and can be run using the command:
+   ```bash
+   python -m quest
+   ```
+
+### Future runs of QuESt
+1. After the environment has been set up open a terminal inside the snl-quest folder and activate the environment using the command:
+   ```bash
+   conda activate quest
+   ```
+2. Run QuESt with the command:
+   ```
+   python -m quest
+   ```
+
+
+
+### Installing QuESt using the executable
+
+1. Click on the releases located at the top of this page on the right side.
    <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
    
 2. Download the `quest_mac.zip` file found in the assets of the QuESt 2.0.b pre-release.
@@ -156,6 +281,10 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
    - Navigate to **Finder** > **Applications** > **Utilities** and locate **Terminal**.
    - Right-click on **Terminal** and select **Get Info**.
    - Check the box that says **Open using Rosetta**.
+   - If you need to install Rosetta you can run this line from the terminal:
+   ```bash
+   softwareupdate --install-rosetta --agree-to-license
+   ```
 
 5. Open the Terminal after Rosetta has been activated. 
 
