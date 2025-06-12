@@ -23,6 +23,26 @@ class PythonEditor(QTextEdit):
             return
         super().keyPressEvent(event)
 
+class PopOutPythonEditor(QWidget):
+    editorClosed = Signal()
+
+    def __init__(self, editor, update_button, parent=None):
+        super().__init__(parent)
+        self.editor = editor
+        self.update_button = update_button
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.editor)
+        layout.addWidget(self.update_button)
+        self.setLayout(layout)
+        self.setWindowTitle("Python Editor")
+        self.setGeometry(200, 200, 500, 400)
+
+    def closeEvent(self, event):
+        self.editorClosed.emit()
+        event.accept()
+
+
 class PythonSyntaxHighlighter(QSyntaxHighlighter):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -118,6 +138,7 @@ class DataNode(BaseNode):
         text_node_widget = TextNodeWidgetWrapper(self.view)
         self.add_custom_widget(text_node_widget, tab='Custom')
         self.node_type='data_node'
+        self.node_value_display=False
         self.node_input_variable=''
         self.node_input_value=''
         self.node_function_wrapper=''
@@ -176,13 +197,18 @@ class BackNode(BackdropNode):
 
     def __init__(self):
         super(BackNode, self).__init__()
-        
         self.set_backdrop_font_size(12)
-        self.node_type='back_node'
-        self.node_input_variable=''
-        self.node_input_value=''
-        self.node_function_wrapper=''
-        self.node_imports=''
+        self.node_type = 'back_node'
+        self.node_input_variable = ''
+        self.node_input_value = ''
+        self.node_value_display = True
+        self.node_function_wrapper = ''
+        self.node_imports = ''
+
+    def can_be_deleted(self):
+        return True  # Override to make this node deletable
+
+
 
 class PyNode(BaseNode):
     __identifier__ = 'QuESt.Workspace'
@@ -199,6 +225,7 @@ class PyNode(BaseNode):
         self.node_type='python_node'
         self.node_input_variable=''
         self.node_input_value=''
+        self.node_value_display=False
         self.node_function_wrapper=''
         self.node_imports=''
 
@@ -277,12 +304,12 @@ class quest_workspace(QWidget):
         self.flow_save_widget.setFixedWidth(300) 
         self.flow_save_layout = QVBoxLayout(self.flow_save_widget)
         self.flow_save_label = QLabel("Save to json file:")
-        self.flow_save_input = QLineEdit()
+        self.flow_save_path = QLabel()
         self.flow_save_button = QPushButton("Save")
         self.flow_save_button.clicked.connect(self.save_flow)
 
         self.flow_save_layout.addWidget(self.flow_save_label)
-        self.flow_save_layout.addWidget(self.flow_save_input)
+        self.flow_save_layout.addWidget(self.flow_save_path)
         self.flow_save_layout.addWidget(self.flow_save_button)
 
         # Create the flow load widget
@@ -290,12 +317,12 @@ class quest_workspace(QWidget):
         self.flow_load_widget.setFixedWidth(300) 
         self.flow_load_layout = QVBoxLayout(self.flow_load_widget)
         self.flow_load_label = QLabel("Load from json file:")
-        self.flow_load_input = QLineEdit()
+        self.flow_load_path = QLabel()
         self.flow_load_button = QPushButton("Load")
         self.flow_load_button.clicked.connect(self.load_flow)
 
         self.flow_load_layout.addWidget(self.flow_load_label)
-        self.flow_load_layout.addWidget(self.flow_load_input)
+        self.flow_load_layout.addWidget(self.flow_load_path)
         self.flow_load_layout.addWidget(self.flow_load_button)
 
         # Create the flow result widget
@@ -371,32 +398,48 @@ class quest_workspace(QWidget):
         self.value_layout = QVBoxLayout(self.value_widget)
         self.value_label = QLabel("Output value:")
         self.value_input = QLineEdit()
+        self.value_checkbox = QCheckBox("Display Value")
+        self.value_checkbox.clicked.connect(self.update_data_value)
         self.value_button = QPushButton("Update")
-        self.value_button.clicked.connect(self.update_value)
+        self.value_button.clicked.connect(self.update_data_value)
+
         self.value_layout.addWidget(self.value_label)
         self.value_layout.addWidget(self.value_input)
+        self.value_layout.addWidget(self.value_checkbox)
         self.value_layout.addWidget(self.value_button)
         self.value_widget.hide()
 
-        # Create python function widget
+        # Python function widget setup with pop-out button
         self.py_widget = QWidget()
         self.py_widget.setFixedWidth(300)
         
         self.py_layout = QVBoxLayout(self.py_widget)
         self.py_label = QLabel("Python Wrapper Function:")
-        self.py_input = PythonEditor()  # Use QTextEdit for multi-line and text wrapping
+        
+        self.py_input = PythonEditor()
         self.python_syntax_highlighter = PythonSyntaxHighlighter(self.py_input.document())
-
-        # self.py_input.setFixedSize(200, 200)  # Set the fixed size to 200x200
         self.py_input.setFixedHeight(200)
+        
         self.py_button = QPushButton("Update Python Function")
         self.py_button.clicked.connect(self.update_ports)
-        self.py_widget.hide()
+        
+        # Pop-out button at top-right corner
+        self.pop_out_btn = QPushButton("↗")
+        self.pop_out_btn.setFixedSize(30, 30)
+        self.pop_out_btn.clicked.connect(self.toggle_pop_out)
 
-        # Add widgets to the python layout
-        self.py_layout.addWidget(self.py_label)
+        # Layout for the label and pop-out button horizontally
+        top_layout = QHBoxLayout()
+        top_layout.addWidget(self.py_label)
+        top_layout.addStretch()
+        top_layout.addWidget(self.pop_out_btn)
+
+        self.py_layout.addLayout(top_layout)
         self.py_layout.addWidget(self.py_input)
         self.py_layout.addWidget(self.py_button)
+
+        self.py_editor_window = None
+        self.is_popped_out = False
 
         # Create text widget
         self.text_widget = QWidget()
@@ -407,7 +450,7 @@ class quest_workspace(QWidget):
 
         self.text_input.setFixedHeight(200)
         self.text_button = QPushButton("Update Caption")
-        self.text_button.clicked.connect(self.update_value)
+        self.text_button.clicked.connect(self.update_caption_value)
         self.text_widget.hide()
 
         # Add widgets to the python layout
@@ -447,7 +490,38 @@ class quest_workspace(QWidget):
         self.graph.node_selected.connect(self.on_node_selected)
         self.graph.node_selection_changed.connect(self.on_node_selected)
         self.node_counters = {"DataNode": 0, "PyNode": 0, "TextNode":0}
-        
+    
+    def toggle_pop_out(self):
+        if not self.is_popped_out:
+            # Pop out editor and update button
+            self.py_layout.removeWidget(self.py_input)
+            self.py_layout.removeWidget(self.py_button)
+            self.py_input.setParent(None)
+            self.py_button.setParent(None)
+
+            self.py_editor_window = PopOutPythonEditor(self.py_input, self.py_button)
+            self.py_editor_window.editorClosed.connect(self.auto_dock_back_in)
+            self.py_editor_window.show()
+
+            self.pop_out_btn.setText("↙")
+            self.is_popped_out = True
+        else:
+            self.re_embed_editor()
+
+    def auto_dock_back_in(self):
+        # Automatically called when the pop-out window is closed directly
+        self.re_embed_editor()
+
+    def re_embed_editor(self):
+        if self.py_editor_window:
+            self.py_editor_window.editorClosed.disconnect(self.auto_dock_back_in)
+            self.py_editor_window.close()
+
+        self.py_layout.insertWidget(1, self.py_input)
+        self.py_layout.insertWidget(2, self.py_button)
+        self.pop_out_btn.setText("↗")
+        self.is_popped_out = False
+
     def update_flow(self):
         nodes_data=[]
         self.flow_result_label.setText('')
@@ -458,7 +532,8 @@ class quest_workspace(QWidget):
             node.name(), 
             node.node_type, 
             node.node_input_variable, 
-            node.node_input_value, 
+            node.node_input_value,
+            node.node_value_display,  
             node.node_function_wrapper, 
             node.node_imports
             ]
@@ -468,7 +543,7 @@ class quest_workspace(QWidget):
         # Create a DataFrame from the data list
         print(nodes_data)
         if len(nodes_data)>0:
-            self.nodes_df = pd.DataFrame(nodes_data, columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_function_wrapper', 'node_imports'])
+            self.nodes_df = pd.DataFrame(nodes_data, columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_value_display','node_function_wrapper', 'node_imports'])
 
         connections_data = []
         if 'connections' in self.graph.serialize_session():
@@ -513,29 +588,45 @@ class quest_workspace(QWidget):
 
     def save_flow(self):
         self.update_flow()
-        nodes_df_json=self.nodes_df.to_json(orient='records')
-        connection_df_json=self.connections_df.to_json(orient='records')
-        layout_dict=self.graph.serialize_session()
-        flow_json_data={"flow_name":self.flow_run_input.text(), 'flow_layout':layout_dict,'nodes_df':json.loads(nodes_df_json), 'connections_df':json.loads(connection_df_json)}
-       
-        # Save the flow data to the specified file
-        path = self.flow_save_input.text()
+        nodes_df_json = self.nodes_df.to_json(orient='records')
+        connection_df_json = self.connections_df.to_json(orient='records')
+        layout_dict = self.graph.serialize_session()
+        flow_json_data = {
+            "flow_name": self.flow_run_input.text(),
+            "flow_layout": layout_dict,
+            "nodes_df": json.loads(nodes_df_json),
+            "connections_df": json.loads(connection_df_json)
+        }
+
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save Flow JSON", "", "JSON Files (*.json);;All Files (*)"
+        )
+        if not path:
+            return
+        self.flow_save_path.setText(path)
+
         try:
-            with open(path , 'w') as json_file:
+            with open(path, 'w') as json_file:
                 json.dump(flow_json_data, json_file, indent=4)
-        except:
-            raise ValueError('Enter your flow name and a path to save json and try again')
-        
+        except Exception as e:
+            raise ValueError(f'Failed to save file: {e}')
+
     def load_flow(self):
-        path = self.flow_load_input.text()
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Load Flow JSON", "", "JSON Files (*.json);;All Files (*)"
+        )
+        if not path:
+            return
+        self.flow_load_path.setText(path)
+
         try:
-            with open(path, 'r') as file:
+            with open(path, 'r') as file:  
                 flow_json_data = json.load(file)
         except FileNotFoundError:
             raise ValueError('The specified JSON file path does not exist. Please check the path and try again.')
         except Exception as e:
-            print(f"An error occurred: {e}")
-        
+            raise ValueError(f"An error occurred: {e}")
+
         # Load graph layout
         flow_name=flow_json_data['flow_name']
         self.flow_run_input.setText(flow_name)
@@ -557,6 +648,7 @@ class quest_workspace(QWidget):
                 node.node_type = node_data['node_type']
                 node.node_input_variable = node_data['node_input_variable']
                 node.node_input_value = node_data['node_input_value']
+                node.node_value_display = node_data['node_value_display']
                 node.node_function_wrapper = node_data['node_function_wrapper']
                 node.node_imports = node_data['node_imports']
                 if node.node_type=='back_node':
@@ -564,9 +656,10 @@ class quest_workspace(QWidget):
                     print(node.node_input_value)
                     node.set_text(text=node.node_input_value)
                 
-                print(node.id,node.node_type, node.node_input_variable,node.node_input_value, node.node_function_wrapper)
+                print(node.id,node.node_type, node.node_input_variable,node.node_input_value,node.node_value_display, node.node_function_wrapper)
         
     def on_node_selected(self):
+        self.update_flow
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1:
             # Show properties widget and update text input with node name
@@ -585,6 +678,7 @@ class quest_workspace(QWidget):
                 self.value_widget.show()
                 self.data_input.setText(selected_nodes[0].node_input_variable)
                 self.value_input.setText(selected_nodes[0].node_input_value)
+                self.value_checkbox.setChecked(selected_nodes[0].node_value_display)
             
             else:
                 self.py_widget.hide()
@@ -625,25 +719,34 @@ class quest_workspace(QWidget):
             selected_nodes[0].set_pos(old_pos[0],old_pos[1])
             selected_nodes[0].node_name1=selected_nodes[0].name()
     
-    def update_value(self):
+    def update_caption_value(self):
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1:
             old_pos=selected_nodes[0].pos()
-            # Show properties widget and update text input with node name
-            if isinstance(selected_nodes[0], DataNode):
-                text=self.value_input.text()
-                selected_nodes[0].node_input_value=text
-                widget=selected_nodes[0].get_widget('Text Caption')
+            document=self.text_input.document()
+            document_text= document.toPlainText()
+            docSize = document.size()
+            selected_nodes[0].set_size(document.idealWidth(), docSize.height())
+            selected_nodes[0].node_input_value=document_text
+            selected_nodes[0].set_text(text=selected_nodes[0].node_input_value)
+            selected_nodes[0].set_pos(old_pos[0],old_pos[1])
+    
+    def update_data_value(self):
+        selected_nodes = self.graph.selected_nodes()
+        if len(selected_nodes) == 1:
+            old_pos=selected_nodes[0].pos()
+            # Show properties widget and update value input with value
+            checked = self.value_checkbox.isChecked()
+            selected_nodes[0].node_value_display=checked
+            text=self.value_input.text()
+            selected_nodes[0].node_input_value=text
+            widget=selected_nodes[0].get_widget('Text Caption')
+            if checked:
                 widget.set_value(selected_nodes[0].node_input_value)
-                print(selected_nodes[0].properties())
-            elif isinstance(selected_nodes[0], BackNode):
-                document=self.text_input.document()
-                document_text= document.toPlainText()
-                docSize = document.size()
-                selected_nodes[0].set_size(document.idealWidth(), docSize.height())
-                selected_nodes[0].node_input_value=document_text
-                selected_nodes[0].set_text(text=selected_nodes[0].node_input_value)
-                
+            else:
+                widget.set_value("")
+            print(selected_nodes[0].properties())
+                         
             selected_nodes[0].set_pos(old_pos[0],old_pos[1])
 
     def update_ports(self):
@@ -744,6 +847,7 @@ class quest_workspace(QWidget):
         return position
     
     def create_data_node(self):
+        self.update_flow()
         self.node_counters["DataNode"] += 1
         node_name = f"DataNode{self.node_counters['DataNode']}"
         latest_pos = list(self.get_newest_node_position())
@@ -751,6 +855,7 @@ class quest_workspace(QWidget):
         self.graph.create_node('QuESt.Workspace.DataNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=True)
 
     def create_text_node(self):
+        self.update_flow()
         self.node_counters["TextNode"] = self.node_counters.get("TextNode", 0) + 1
         node_name = f"TextNode{self.node_counters['TextNode']}"
         latest_pos = self.get_newest_node_position()
@@ -758,6 +863,7 @@ class quest_workspace(QWidget):
         self.graph.create_node('QuESt.Workspace.BackNode', name=node_name, color=(255, 255, 155), text_color=(0,0,0), pos=new_pos, selected=True,push_undo=True)
                      
     def create_py_node(self):
+        self.update_flow()
         self.node_counters["PyNode"] += 1
         node_name = f"PyNode{self.node_counters['PyNode']}"
         latest_pos = list(self.get_newest_node_position())
@@ -767,12 +873,15 @@ class quest_workspace(QWidget):
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
             selected_nodes = self.graph.selected_nodes()
-            print(self.graph.selected_nodes())
             for node in selected_nodes:
-                node.view.scene().removeItem(node.view)
+                if hasattr(node, "can_be_deleted") and not node.can_be_deleted():
+                    continue
                 self.graph.delete_node(node)
+            self.update_flow()
         else:
             super().keyPressEvent(event)
+
+
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
