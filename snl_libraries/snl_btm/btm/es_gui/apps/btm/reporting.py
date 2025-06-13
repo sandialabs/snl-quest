@@ -764,8 +764,8 @@ class BtmCostSavingsGenerateReportMenu(ModalView):
                         pv_profile_summary=pv_profile_summary,
                         system_parameters_summary=system_parameters_summary,   
                         QuESt_Logo=os.path.join(dirname, 'es_gui', 'resources', 'logo', 'Quest_Logo_RGB.png'),
-			  		    #  SNL_image=os.path.join('..', 'images', 'static', 'SNL.png'),
-			  		    #  DOE_image=os.path.join('..', 'images', 'static', 'DOE.png'),
+			  		    SNL_image=os.path.join(dirname, 'es_gui', 'resources', 'images','SNL_Stacked_Black_Blue.jpg'),
+			  		    DOE_image=os.path.join(dirname, 'es_gui', 'resources', 'images', 'doe-logo.jpg'),
                         acknowledgement="Sandia National Laboratories is a multimission laboratory managed and operated by National Technology & Engineering Solutions of Sandia, LLC, a wholly owned subsidiary of Honeywell International Inc., for the U.S. Department of Energy's National Nuclear Security Administration under contract DE-NA0003525.",
                         executive_summary=executive_summary,					 
                         # FIGURES

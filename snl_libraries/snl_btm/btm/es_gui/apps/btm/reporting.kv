@@ -47,3 +47,28 @@
                 size_hint_y: 0.05
                 text: 'Return'
                 on_release: root.dismiss()
+<OpenGeneratedReportPopup>:
+    title: "Finish!"
+    size_hint: (0.5, 0.4)
+    auto_dismiss: False
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: 20
+        spacing: 10
+
+        Label:
+            text: "Report successfully generated!"
+            halign: 'center'
+            valign: 'middle'
+            text_size: self.size
+
+        TileButton:
+            text: "Open Report"
+            size_hint_y: 0.3
+            on_release: root.open_generated_report()
+
+        TileButton:
+            text: "Close"
+            size_hint_y: 0.3
+            on_release: root.dismiss()
