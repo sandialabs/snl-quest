@@ -1,6 +1,5 @@
 import streamlit as st
 import streamlit.components.v1 as stc
-# import pygwalker as pyg 
 import matplotlib
 import pandas as pd
 from openai import OpenAI
