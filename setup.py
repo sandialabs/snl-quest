@@ -27,7 +27,7 @@ setup(
         "PySide6==6.5.2",
         "pandas==2.2.1",
         "streamlit==1.32.0",
-        "openai==0.28.1",
+        "openai==1.86.0",
         "configparser==6.0.1",
         "matplotlib==3.8.3",
         "geopandas==0.14.3",
