@@ -3,7 +3,7 @@ import streamlit.components.v1 as stc
 # import pygwalker as pyg 
 import matplotlib
 import pandas as pd
-import openai
+from openai import OpenAI
 import configparser
 import contextlib
 import io
@@ -29,37 +29,36 @@ def load_css(css_file):
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
 
+
 def natural_question_to_pandas(df, question, openai_api_key):
-   
-    # Example columns to include in the prompt for better context understanding
     columns = ', '.join(df.columns)
-    # print(columns)
     
-    # Configure OpenAI API key
-    openai.api_key = openai_api_key
+    openai_client = OpenAI(api_key=openai_api_key)
     
-    # Crafting a prompt for the OpenAI API that includes the question and asks for Pandas code
-    prompt = f"Assuming 'df' is user's dataframe and is already loaded with columns {columns}, translate the following question into python program using Pandas : '{question}'. The program should print the final results with explanation text. The program should also save any plot in ./data/graphs/latest_graph.png file"
+    prompt = (
+        f"Assuming 'df' is user's dataframe and is already loaded with columns {columns}, "
+        f"translate the following question into python program using Pandas : '{question}'. "
+        "The program should print the final results with explanation text. "
+        "The program should also save any plot in ./Lib/site-packages/quest/snl_libraries/gpt/data/graphs/latest_graph.png file."
+        "The whole program should be in a single code block."
+    )
     
-    # Sending the question to the OpenAI API
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4-0125-preview",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant analyzing a dataset."},
-                {"role": "user", "content": prompt}
-            ],
+        response = openai_client.chat.completions.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.5
         )
-    
-    # Extracting and returning the suggested Pandas commands
-    
+
         if response.choices:
-            pandas_commands=response.choices[0].message['content'].strip()
+            pandas_commands = response.choices[0].message.content.strip()
         else:
-            pandas_commands= "No response from the model."
+            pandas_commands = "No response from the model."
     except Exception as e:
         return f"An error occurred: {str(e)}"
+
     return pandas_commands
+
 def extract_content(input_string):
     # Check if the string starts with 'begin' and ends with 'end'
     # if input_string.startswith("```python") and input_string.endswith("```"):
@@ -164,7 +163,7 @@ def main():
                         st.write(output[0])
                         df1=pd.DataFrame(st.session_state.results,columns=["Query History"])
                         st.dataframe(df1,width=800)
-                        image_path = './data/graphs/latest_graph.png'
+                        image_path = './Lib/site-packages/quest/snl_libraries/gpt/data/graphs/latest_graph.png'
                         st.image(image_path)
                         
                     else:
