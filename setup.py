@@ -34,9 +34,13 @@ setup(
         "psutil==5.9.0",
         "GitPython==3.1.43",
         ##comment out any git dependencies for pip
-        'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
+        #'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
     ],
-
+extras_require={
+    "dev": [
+        "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+    ]
+},
     package_data={
         '': ['*.txt', '*.rst', '*.json', '*.jpg', '*.qss', '*.sh', '*.svg', '*.png', '*.kv', '*.bat', '*.csv', '*.md', '*.yml', '*.dll', '*.idf', '*.doctree', '.*info', '*.html', '*.js', '*.inv', '*.gif', '*.css', '*.eps', '*.pickle', '*.xlsx', '*.ttf', '*.pdf', '**/license*', '*.yml', '*.ui', '*.eot', '*.woff', '*.woff2', 'LICENSE', '*.mplstyle', '*.ini' ],
     },
