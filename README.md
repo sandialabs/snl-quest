@@ -247,7 +247,7 @@ After installing Intel Homebrew, use it to install Python 3.9:
 
 12. With the environment active and from inside the snl-quest directory set up the dependencies for QuESt using the command:
    ```bash
-   pip install -e .
+   pip install -e .[dev]
    ```
 
 13. Now QuESt is set up and can be run using the command:
@@ -340,7 +340,7 @@ After installing Intel Homebrew, use it to install Python 3.9:
 
 7. With the virtual env activated we can now setup the environment for QuESt with the following command:
     ```bash
-    python3 -m pip install -e .
+    python3 -m pip install -e .[dev]
     ```
 8. Run QuESt with the following command:
 
@@ -400,7 +400,7 @@ After installing Intel Homebrew, use it to install Python 3.9:
 
 3. Install Dependencies:
     ```bash
-    pip install -e .
+    pip install -e .[dev]
     ```
 
 ## Running QuESt
