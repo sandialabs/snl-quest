@@ -20,14 +20,14 @@ dependencies = [
     "matplotlib==3.8.3",
     "geopandas==0.14.3",
     "psutil==5.9.0",
-    "GitPython==3.1.43",
+    "GitPython==3.1.43"
+]
 
-    ],
-    extras_require={
-        "dev": [
-            "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
-        ]
-    },
+[project.optional-dependencies]
+dev = [
+    "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+]
+
 [project.scripts]
 quest = "quest.__main__:main"
 

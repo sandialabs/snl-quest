@@ -4,12 +4,17 @@ DISTNAME = "quest-snl"
 VERSION = "2.0.c"
 PYTHON_REQUIRES = ">=3.6, <3.11"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
-LONG_DESCRIPTION = open("README.md").read()
+
+
+try:
+    LONG_DESCRIPTION = open("README.md").read()
+except FileNotFoundError:
+    LONG_DESCRIPTION = DESCRIPTION
+
 AUTHOR = "Sandia National Laboratories"
 MAINTAINER_EMAIL = "tunguy@sandia.gov"
 LICENSE = "BSD 3-clause"
 URL = "https://github.com/sandialabs/snl-quest.git"
-
 
 setup(
     name=DISTNAME,
@@ -33,21 +38,25 @@ setup(
         "geopandas==0.14.3",
         "psutil==5.9.0",
         "GitPython==3.1.43",
-        ##comment out any git dependencies for pip
-        #'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
+        # Note: Git dependencies are excluded from install_requires
+        # "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git",
     ],
-extras_require={
-    "dev": [
-        "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
-    ]
-},
-    package_data={
-        '': ['*.txt', '*.rst', '*.json', '*.jpg', '*.qss', '*.sh', '*.svg', '*.png', '*.kv', '*.bat', '*.csv', '*.md', '*.yml', '*.dll', '*.idf', '*.doctree', '.*info', '*.html', '*.js', '*.inv', '*.gif', '*.css', '*.eps', '*.pickle', '*.xlsx', '*.ttf', '*.pdf', '**/license*', '*.yml', '*.ui', '*.eot', '*.woff', '*.woff2', 'LICENSE', '*.mplstyle', '*.ini' ],
+    extras_require={
+        "dev": [
+            "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+        ]
     },
-
+    package_data={
+        "": [
+            "*.txt", "*.rst", "*.json", "*.jpg", "*.qss", "*.sh", "*.svg", "*.png", "*.kv", "*.bat",
+            "*.csv", "*.md", "*.yml", "*.dll", "*.idf", "*.doctree", ".*info", "*.html", "*.js",
+            "*.inv", "*.gif", "*.css", "*.eps", "*.pickle", "*.xlsx", "*.ttf", "*.pdf", "**/license*",
+            "*.yml", "*.ui", "*.eot", "*.woff", "*.woff2", "LICENSE", "*.mplstyle", "*.ini"
+        ],
+    },
     entry_points={
-        'console_scripts': [
-            'quest = quest.__main__:main'
+        "console_scripts": [
+            "quest = quest.__main__:main"
         ]
     }
 )
