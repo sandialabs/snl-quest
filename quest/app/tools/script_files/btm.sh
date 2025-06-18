@@ -3,6 +3,9 @@
 # Temporary file to indicate installation in progress
 INSTALL_FLAG="/tmp/glpk_install_in_progress.flag"
 
+# Path to Intel Python installed via Homebrew
+INTEL_PYTHON_PATH="/usr/local/opt/python@3.9/bin/python3.9"
+
 # Function to check if GLPK is installed
 check_glpk_installed() {
     command -v glpsol >/dev/null 2>&1
@@ -91,11 +94,19 @@ VENV_PATH="$(dirname "$0")/../../../app_envs/env_btm"
 # Set the path to the sparse checkout directory within the virtual environment
 CHECKOUT_PATH="$VENV_PATH/snl-quest/$SPARSE_DIR"
 
+# Check if Intel Python is installed
+if [ ! -x "$INTEL_PYTHON_PATH" ]; then
+    echo "Intel Python is not installed. Please install it using Homebrew for Intel."
+    echo "Run the following command in a terminal with Rosetta enabled:"
+    echo "arch -x86_64 /usr/local/bin/brew install python@3.9"
+    exit 1
+fi
+
 echo "Checking for virtual environment..."
 # Create the virtual environment if it doesn't exist
 if [ ! -d "$VENV_PATH" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv "$VENV_PATH"
+    echo "Creating virtual environment using Intel Python..."
+    arch -x86_64 "$INTEL_PYTHON_PATH" -m venv "$VENV_PATH"
 else
     echo "Virtual environment already exists."
 fi
@@ -103,6 +114,14 @@ fi
 echo "Activating virtual environment..."
 # Activate the virtual environment
 source "$VENV_PATH/bin/activate"
+
+echo "Downgrading pip to <24.1..."
+# Downgrade pip to a version below 24.1
+pip install "pip<24.1"
+
+echo "Checking Python architecture..."
+python -V
+uname -m
 
 echo "Cloning repository with sparse checkout..."
 # Clone the repository without checking out files
@@ -130,8 +149,30 @@ fi
 
 echo "Installing Python package..."
 # Install the Python package within the virtual environment
-pip install "$CHECKOUT_PATH"
-pip install kivy-garden==0.1.5
+pip install -e "$CHECKOUT_PATH" --trusted-host pypi.org --trusted-host files.pythonhosted.org
+pip install kivy-garden==0.1.5 --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# Check if GLPK is already installed
+if check_glpk_installed; then
+    echo "GLPK is already installed."
+else
+    # Check if installation is in progress
+    if [ -e "$INSTALL_FLAG" ]; then
+        echo "GLPK installation is already in progress. Skipping GLPK installation."
+    else
+        # Create the installation flag file
+        touch "$INSTALL_FLAG"
+
+        # Ensure the flag file is removed on exit
+        trap 'rm -f "$INSTALL_FLAG"' EXIT
+
+        echo "GLPK is not installed. Installing..."
+        # Try to install GLPK via package manager
+        if ! attempt_install_via_package_manager; then
+            echo "Failed to install GLPK. Please install it manually."
+        fi
+    fi
+fi
 
 GARDEN_PATH="$VENV_PATH/bin/garden"
 echo "Garden Path: $GARDEN_PATH"
