@@ -384,7 +384,7 @@ After installing Intel Homebrew, use it to install Python 3.9:
      source env/bin/activate
      ```
 
-## Installing QuESt
+## Installing QuESt with Git
 
 1. Clone the Repository:
     ```bash
@@ -403,6 +403,34 @@ After installing Intel Homebrew, use it to install Python 3.9:
     pip install -e .[dev]
     ```
 
+## Installing QuESt via Pip
+1. Create a Virutal environment:
+    ```bash
+    python -m venv venv
+    ```
+
+
+2. Activate the virual environment
+
+   Windows:
+    ```bash
+    venv\Scripts\activate
+    ```
+    Mac: 
+    ```bash
+    source venv/bin/activate
+    ```
+   
+
+3. Install QuESt:
+    ```bash
+    pip install quest-snl[dev]
+    ```
+    
+4. Run QuESt:
+    ```bash
+    quest
+    ```
 ## Running QuESt
 ## Easy Version:
 1. If you have followed the Easy Installation steps you can now double click on the start.bat if you are on windows or on the unix_entry if you are on mac or linux to launch quest. Some unix based systems may require users to always use the terminal to run the unix_entry.sh script to launch QuESt.
