@@ -2,6 +2,8 @@ name: release
 
 on:
   push:
+    branches:
+      - QuESt_2.0.c
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
       - "[0-9]+.[0-9]+.[0-9]+a[0-9]+"
