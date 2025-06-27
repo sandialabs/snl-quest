@@ -97,43 +97,63 @@ jobs:
           name: dist-${{matrix.os }}
           path: dist/*
 
-  pypi_publish:
-    name: Upload release to PyPI
-    needs: [setup_and_build, details]
-    runs-on: ubuntu-latest
-    environment:
-      name: release
-    permissions:
-      id-token: write
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
+pypi_publish:
+  name: Upload release to PyPI
+  needs: [setup_and_build, details]
+  runs-on: ubuntu-latest
+  environment:
+    name: release
+  permissions:
+    id-token: write
+  steps:
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
 
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Flatten dist files
+      run: |
+        mkdir -p final_dist
+        find dist -name "*.whl" -o -name "*.tar.gz" -exec cp {} final_dist/ \;
 
-  github_release:
-    name: Create GitHub Release
-    needs: [setup_and_build, details]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        packages-dir: final_dist
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist/
 
-      - name: Create GitHub Release
-        id: create_release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release create ${{ needs.details.outputs.tag_name }} dist/* --title ${{ needs.details.outputs.tag_name }} --generate-notes
+github_release:
+  name: Create GitHub Release
+  needs: [setup_and_build, details]
+  runs-on: ubuntu-latest
+  permissions:
+    contents: write
+  steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Download all build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: dist/
+
+    - name: Flatten dist files
+      run: |
+        mkdir -p final_dist
+        find dist -name "*.whl" -o -name "*.tar.gz" -exec cp {} final_dist/ \;
+
+    - name: Create GitHub Release
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release delete ${{ needs.details.outputs.tag_name }} --yes || true
+        gh release create ${{ needs.details.outputs.tag_name }} final_dist/* \
+          --title "${{ needs.details.outputs.tag_name }}" \
+          --generate-notes \
+          --prerelease
+
