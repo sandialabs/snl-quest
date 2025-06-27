@@ -24,9 +24,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = [
-    "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
-]
+# dev = [
+#     "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+# ]
 
 [project.scripts]
 quest = "quest.__main__:main"

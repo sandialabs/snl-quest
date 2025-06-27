@@ -42,9 +42,9 @@ setup(
         # "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git",
     ],
     extras_require={
-        "dev": [
-            "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
-        ]
+        # "dev": [
+        #     "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+        # ]
     },
     package_data={
         "": [
