@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quest-snl"
-version = "2.0rc2"
+version = "2.0.0rc3"
 description = "Sandia National Laboratories Energy Storage Application Platform"
 readme = "README.md"
 license = "BSD-3-Clause"

@@ -1,9 +1,22 @@
+import subprocess
 import sys
 import os
+
+try:
+    from NodeGraphQt import NodeGraph
+except ImportError:
+    print("NodeGraphQt not found. Installing from GitHub...")
+    subprocess.check_call([
+        sys.executable,
+        "-m", "pip", "install",
+        "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+    ])
+    print("Installation complete. Realaunching..")
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
 import ctypes
 import psutil
 import requests
-import subprocess
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess

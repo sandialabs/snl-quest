@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 DISTNAME = "quest-snl"
-VERSION = "2.0rc2"
+VERSION = "2.0.0rc3"
 PYTHON_REQUIRES = ">=3.6, <3.11"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
 

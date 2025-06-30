@@ -5,6 +5,10 @@
 Current release version: 2.0
 
 Release date: March, 2024
+[![PyPI version](https://img.shields.io/pypi/v/quest-snl)](https://pypi.org/project/quest-snl/) 
+[![PyPI downloads](https://img.shields.io/pypi/dm/quest-snl)](https://pypi.org/project/quest-snl/)
+[![License](https://img.shields.io/pypi/l/quest-snl)](https://github.com/sandialabs/snl-quest/blob/main/LICENSE)
+
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
