@@ -20,7 +20,7 @@ try:
 except ImportError:
     print("NodeGraphQt is missing because it is a Git dependency.")
     print("QuESt requires NodeGraphQt to run.")
-    print("You may install it manually with the command:")
+    print("You may install it manually with the command: ")
     print("pip install git+https://github.com/cancom84/NodeGraphQt-PySide6.git")
     user_input = input("Type 'y' to have it automatically installed in your current environment, or press 'n' or any other key to exit without installation: ").strip().lower()
     
