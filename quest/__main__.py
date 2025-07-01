@@ -2,17 +2,34 @@ import subprocess
 import sys
 import os
 
+def install_package():
+    try:
+        subprocess.check_call([
+            sys.executable,
+            "-m", "pip", "install",
+            "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
+        ])
+        print("Installation complete. Relaunching, please wait...")
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    except subprocess.CalledProcessError as e:
+        print(f"Installation failed with error: {e}")
+        sys.exit(1)
+
 try:
     from NodeGraphQt import NodeGraph
 except ImportError:
-    print("NodeGraphQt not found. Installing from GitHub...")
-    subprocess.check_call([
-        sys.executable,
-        "-m", "pip", "install",
-        "NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git"
-    ])
-    print("Installation complete. Realaunching..")
-    os.execv(sys.executable, [sys.executable] + sys.argv)
+    print("NodeGraphQt is missing because it is a Git dependency.")
+    print("QuESt requires NodeGraphQt to run.")
+    print("You may install it manually with the command:")
+    print("pip install git+https://github.com/cancom84/NodeGraphQt-PySide6.git")
+    user_input = input("Type 'y' to have it automatically installed in your current environment, or press 'n' or any other key to exit without installation: ").strip().lower()
+    
+    if user_input == 'y':
+        print("Installing NodeGraphQt from GitHub...")
+        install_package()
+    else:
+        print("Installation skipped. Exiting the program.")
+        sys.exit(0)
 
 import ctypes
 import psutil

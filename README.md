@@ -1,4 +1,4 @@
-<img src="quest/snl_libraries/snl_btm/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
+<img src="quest/images/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt 2.0.b: Open-source Platform for Energy Storage Analytics
 
@@ -6,7 +6,7 @@ Current release version: 2.0
 
 Release date: March, 2024
 [![PyPI version](https://img.shields.io/pypi/v/quest-snl)](https://pypi.org/project/quest-snl/) 
-[![PyPI downloads](https://img.shields.io/pypi/dm/quest-snl)](https://pypi.org/project/quest-snl/)
+[![PyPI downloads (monthly)](https://img.shields.io/pypi/dm/quest-snl)](https://pypi.org/project/quest-snl/)
 [![License](https://img.shields.io/pypi/l/quest-snl)](https://github.com/sandialabs/snl-quest/blob/main/LICENSE)
 
 
