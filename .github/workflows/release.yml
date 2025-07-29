@@ -95,11 +95,20 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: dist-${{matrix.os }}
-          path: dist/*
+          path: dist/
+
+  approval:
+    needs: [setup_and_build, check_pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request Approval
+        run: |
+          echo "Approval required to publish to PyPI and create GitHub release."
+          echo "Please approve this job in the GitHub Actions UI."
 
   pypi_publish:
     name: Upload release to PyPI
-    needs: [setup_and_build, details]
+    needs: [approval, setup_and_build, details]
     runs-on: ubuntu-latest
     environment:
       name: release
@@ -124,10 +133,9 @@ jobs:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
 
-
   github_release:
     name: Create GitHub Release
-    needs: [setup_and_build, details]
+    needs: [approval, setup_and_build, details]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -156,4 +164,3 @@ jobs:
             --title "${{ needs.details.outputs.tag_name }}" \
             --generate-notes \
             --prerelease
-
