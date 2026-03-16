@@ -1,9 +1,11 @@
 import sys
 import os
-import inspect, ast, json
+import inspect, ast, json, socket, shutil
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
+from PySide6.QtWebEngineWidgets import QWebEngineView
+import nbformat as nbf
 
 from NodeGraphQt import NodeGraph, BaseNode, NodeBaseWidget, BackdropNode
 from NodeGraphQt.constants import *
@@ -23,7 +25,7 @@ class PythonEditor(QTextEdit):
             return
         super().keyPressEvent(event)
 
-class PopOutPythonEditor(QWidget):
+class PopOutNotebookEditor(QWidget):
     editorClosed = Signal()
 
     def __init__(self, editor, update_button, parent=None):
@@ -32,11 +34,20 @@ class PopOutPythonEditor(QWidget):
         self.update_button = update_button
 
         layout = QVBoxLayout()
-        layout.addWidget(self.editor)
-        layout.addWidget(self.update_button)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(8)
+
+        self.editor.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.update_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        layout.addWidget(self.editor, 1)
+        layout.addWidget(self.update_button, 0)
+        layout.setStretch(0, 1)
+        layout.setStretch(1, 0)
+
         self.setLayout(layout)
-        self.setWindowTitle("Python Editor")
-        self.setGeometry(200, 200, 500, 400)
+        self.setWindowTitle("Jupyter Notebook")
+        self.resize(1200, 800)
 
     def closeEvent(self, event):
         self.editorClosed.emit()
@@ -83,6 +94,157 @@ class PythonSyntaxHighlighter(QSyntaxHighlighter):
             while match_iterator.hasNext():
                 match = match_iterator.next()
                 self.setFormat(match.capturedStart(), match.capturedLength(), format)
+
+
+
+class FlowRunNotebookWindow(QWidget):
+    def __init__(self, notebook_path, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Flow Runner Notebook")
+        self.setGeometry(220, 120, 1200, 800)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(8)
+        layout.setAlignment(Qt.AlignTop)
+
+        self.info_label = QLabel(
+            f"Flow execution notebook: {os.path.basename(notebook_path)}\n"
+            "Run the first code cell to execute the generated flow script using %run."
+        )
+        self.info_label.setWordWrap(True)
+        layout.addWidget(self.info_label, 0)
+
+        self.notebook_view = EmbeddedNotebook(self)
+        self.notebook_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        layout.addWidget(self.notebook_view, 1)
+        self.notebook_view.load_notebook(notebook_path)
+
+    def closeEvent(self, event):
+        try:
+            self.notebook_view.stop_server()
+        except Exception:
+            pass
+        super().closeEvent(event)
+
+class EmbeddedNotebook(QWidget):
+    editorClosed = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.server_process = None
+        self.server_port = None
+        self.current_notebook_path = ""
+        self.current_root_dir = ""
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(4)
+
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        self.status_label = QLabel("Notebook not loaded.")
+        self.status_label.setWordWrap(True)
+        self.status_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.status_label.setStyleSheet("QLabel { color: #666; font-size: 11px; }")
+        layout.addWidget(self.status_label, 0)
+
+        self.webview = QWebEngineView(self)
+        self.webview.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.webview.setMinimumHeight(280)
+        layout.addWidget(self.webview, 1)
+
+    def _find_free_port(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+        sock.close()
+        return port
+
+    def _build_url(self, notebook_path):
+        root_dir = os.path.abspath(self.current_root_dir or os.path.dirname(notebook_path))
+        nb_abs = os.path.abspath(notebook_path)
+        rel_path = os.path.relpath(nb_abs, root_dir).replace("\\", "/")
+        return f"http://127.0.0.1:{self.server_port}/notebooks/{rel_path}"
+
+    def _handle_server_output(self):
+        if not self.server_process:
+            return
+        try:
+            text = bytes(self.server_process.readAllStandardOutput()).decode("utf-8", errors="ignore")
+        except Exception:
+            text = ""
+        if not text:
+            return
+        print(text)
+        lower = text.lower()
+        if 'http://127.0.0.1:' in lower or 'http://localhost:' in lower:
+            self.status_label.setText(f'Loaded notebook: {os.path.basename(self.current_notebook_path)}')
+        elif 'no module named notebook' in lower or ('error' in lower and 'notebook' in lower):
+            self.status_label.setText('Failed to start Jupyter Notebook. Install the notebook package in this Python environment.')
+
+    def stop_server(self):
+        if self.server_process:
+            try:
+                if self.server_process.state() != QProcess.NotRunning:
+                    self.server_process.kill()
+                    self.server_process.waitForFinished(2000)
+            except Exception:
+                pass
+        self.server_process = None
+
+    def _start_process(self, program, arguments, root_dir):
+        self.server_process = QProcess(self)
+        self.server_process.setWorkingDirectory(root_dir)
+        self.server_process.setProcessChannelMode(QProcess.MergedChannels)
+        self.server_process.readyReadStandardOutput.connect(self._handle_server_output)
+        self.server_process.setProgram(program)
+        self.server_process.setArguments(arguments)
+        self.server_process.start()
+        return self.server_process.waitForStarted(5000)
+
+    def _start_jupyter_server(self, root_dir):
+        self.stop_server()
+        self.server_port = self._find_free_port()
+        self.current_root_dir = root_dir
+
+        args = [
+            '-m', 'notebook',
+            '--no-browser',
+            f'--NotebookApp.notebook_dir={root_dir}',
+            f'--NotebookApp.port={self.server_port}',
+            '--NotebookApp.token=',
+            '--NotebookApp.password=',
+            '--NotebookApp.allow_origin=*',
+        ]
+        return self._start_process(sys.executable, args, root_dir)
+
+    def load_notebook(self, notebook_path):
+        notebook_path = os.path.abspath(notebook_path)
+        root_dir = os.path.abspath(os.path.dirname(notebook_path))
+
+        if self.server_process and self.server_process.state() == QProcess.Running and os.path.abspath(self.current_root_dir) == root_dir:
+            self.current_notebook_path = notebook_path
+            self.status_label.setText(f'Loading notebook: {os.path.basename(notebook_path)}')
+            self.webview.setUrl(QUrl(self._build_url(notebook_path)))
+            self.webview.show()
+            return
+
+        self.current_notebook_path = notebook_path
+        self.status_label.setText(f'Starting Jupyter Notebook for: {os.path.basename(notebook_path)}')
+
+        if not self._start_jupyter_server(root_dir):
+            self.status_label.setText('Failed to start Jupyter Notebook. Install the notebook package in this Python environment.')
+            return
+
+        QTimer.singleShot(4000, lambda: self.webview.setUrl(QUrl(self._build_url(notebook_path))))
+        QTimer.singleShot(4000, self.webview.show)
+
+    def closeEvent(self, event):
+        self.stop_server()
+        self.editorClosed.emit()
+        super().closeEvent(event)
+
 class TextEditWidget(QWidget):
     """
     Custom widget for text input to be embedded inside a TextNode.
@@ -139,6 +301,7 @@ class DataNode(BaseNode):
         self.add_custom_widget(text_node_widget, tab='Custom')
         self.node_type='data_node'
         self.node_value_display=False
+        self.node_is_path = False
         self.node_input_variable=''
         self.node_input_value=''
         self.node_function_wrapper=''
@@ -228,6 +391,7 @@ class PyNode(BaseNode):
         self.node_value_display=False
         self.node_function_wrapper=''
         self.node_imports=''
+        self.node_notebook_path=''
 
     def add_dynamic_input(self, name, color=(100, 100, 100)):
         """
@@ -257,7 +421,7 @@ class quest_workspace(QWidget):
         }
         """)
         # Nodes and connections dataframes for QuESt Flow
-        self.nodes_df = pd.DataFrame(columns=['node_id', 'node_name', 'node_type', 'node_input_variable','node_input_value','node_function_wrapper', 'node_imports'])
+        self.nodes_df = pd.DataFrame(columns=['node_id', 'node_name', 'node_type', 'node_input_variable','node_input_value','node_function_wrapper', 'node_imports', 'node_notebook_path'])
         self.connections_df = pd.DataFrame(columns=['connection_id', 'from_node', 'to_node','mapping'])
 
         # Toolbar
@@ -288,7 +452,7 @@ class quest_workspace(QWidget):
         
         # Create the flow run widget
         self.flow_run_widget = QWidget()
-        self.flow_run_widget.setFixedWidth(300) 
+        self.flow_run_widget.setFixedWidth(380) 
         self.flow_run_layout = QHBoxLayout(self.flow_run_widget)
         self.flow_run_label = QLabel("Flow name:")
         self.flow_run_input = QLineEdit()
@@ -301,7 +465,7 @@ class quest_workspace(QWidget):
         
         # Create the flow save widget
         self.flow_save_widget = QWidget()
-        self.flow_save_widget.setFixedWidth(300) 
+        self.flow_save_widget.setFixedWidth(380) 
         self.flow_save_layout = QVBoxLayout(self.flow_save_widget)
         self.flow_save_label = QLabel("Save to json file:")
         self.flow_save_path = QLabel()
@@ -314,7 +478,7 @@ class quest_workspace(QWidget):
 
         # Create the flow load widget
         self.flow_load_widget = QWidget()
-        self.flow_load_widget.setFixedWidth(300) 
+        self.flow_load_widget.setFixedWidth(380) 
         self.flow_load_layout = QVBoxLayout(self.flow_load_widget)
         self.flow_load_label = QLabel("Load from json file:")
         self.flow_load_path = QLabel()
@@ -327,7 +491,7 @@ class quest_workspace(QWidget):
 
         # Create the flow result widget
         self.flow_result_widget = QWidget()
-        self.flow_result_widget.setFixedWidth(300) 
+        self.flow_result_widget.setFixedWidth(380) 
         self.flow_result_layout = QVBoxLayout(self.flow_result_widget)
         self.flow_result_label = QLabel()
         self.flow_result_label.setWordWrap(True) 
@@ -335,7 +499,7 @@ class quest_workspace(QWidget):
         
         self.flow_result_layout.addWidget(self.flow_result_label)
         self.flow_control_container = QWidget()
-        self.flow_control_container.setFixedWidth(320)
+        self.flow_control_container.setFixedWidth(400)
         self.flow_control_layout = QVBoxLayout(self.flow_control_container)
         self.flow_control_layout.addWidget(self.flow_run_widget)
         self.flow_control_layout.addWidget(self.flow_save_widget)
@@ -355,21 +519,21 @@ class quest_workspace(QWidget):
         
         # Create the id widget
         self.id_widget = QWidget()
-        self.id_widget.setFixedWidth(300) 
+        self.id_widget.setFixedWidth(380) 
         self.id_layout = QHBoxLayout(self.id_widget)
         self.id_label = QLabel("Node ID:")
         self.id_layout.addWidget(self.id_label)
 
         # Create the type widget
         self.type_widget = QWidget()
-        self.type_widget.setFixedWidth(300) 
+        self.type_widget.setFixedWidth(380) 
         self.type_layout = QHBoxLayout(self.type_widget)
         self.type_label = QLabel("Node Type:")
         self.type_layout.addWidget(self.type_label)
 
         # Create the name widget
         self.name_widget = QWidget()
-        self.name_widget.setFixedWidth(300) 
+        self.name_widget.setFixedWidth(380) 
         self.name_layout = QHBoxLayout(self.name_widget)
         self.name_label = QLabel("Node name:")
         self.name_input = QLineEdit()
@@ -381,7 +545,7 @@ class quest_workspace(QWidget):
 
         # Create the data widget
         self.data_widget = QWidget()
-        self.data_widget.setFixedWidth(300) 
+        self.data_widget.setFixedWidth(380) 
         self.data_layout = QHBoxLayout(self.data_widget)
         self.data_label = QLabel("Output name:")
         self.data_input = QLineEdit()
@@ -394,31 +558,40 @@ class quest_workspace(QWidget):
 
         # Create the value widget
         self.value_widget = QWidget()
-        self.value_widget.setFixedWidth(300) 
+        self.value_widget.setFixedWidth(380) 
         self.value_layout = QVBoxLayout(self.value_widget)
         self.value_label = QLabel("Output value:")
         self.value_input = QLineEdit()
         self.value_checkbox = QCheckBox("Display Value")
         self.value_checkbox.clicked.connect(self.update_data_value)
+                
+        self.value_path_checkbox=QCheckBox("Is File Path?")
+        self.value_path_checkbox.clicked.connect(self.update_data_value)
         self.value_button = QPushButton("Update")
         self.value_button.clicked.connect(self.update_data_value)
+
+        self.value_browse_button = QPushButton("Browse")
+        self.value_browse_button.setEnabled(False)
+        self.value_browse_button.clicked.connect(self.load_path)
+
 
         self.value_layout.addWidget(self.value_label)
         self.value_layout.addWidget(self.value_input)
         self.value_layout.addWidget(self.value_checkbox)
+        self.value_layout.addWidget(self.value_path_checkbox)
+        self.value_layout.addWidget(self.value_browse_button)
         self.value_layout.addWidget(self.value_button)
         self.value_widget.hide()
 
         # Python function widget setup with pop-out button
         self.py_widget = QWidget()
-        self.py_widget.setFixedWidth(300)
+        self.py_widget.setFixedWidth(380)
         
         self.py_layout = QVBoxLayout(self.py_widget)
-        self.py_label = QLabel("Python Wrapper Function:")
+        self.py_label = QLabel("Python Wrapper Notebook:")
         
-        self.py_input = PythonEditor()
-        self.python_syntax_highlighter = PythonSyntaxHighlighter(self.py_input.document())
-        self.py_input.setFixedHeight(200)
+        self.notebook_view = EmbeddedNotebook()
+        self.notebook_view.setMinimumHeight(320)
         
         self.py_button = QPushButton("Update Python Function")
         self.py_button.clicked.connect(self.update_ports)
@@ -435,15 +608,16 @@ class quest_workspace(QWidget):
         top_layout.addWidget(self.pop_out_btn)
 
         self.py_layout.addLayout(top_layout)
-        self.py_layout.addWidget(self.py_input)
+        self.py_layout.addWidget(self.notebook_view)
         self.py_layout.addWidget(self.py_button)
 
         self.py_editor_window = None
+        self.flow_runner_window = None
         self.is_popped_out = False
 
         # Create text widget
         self.text_widget = QWidget()
-        self.text_widget.setFixedWidth(300)
+        self.text_widget.setFixedWidth(380)
         self.text_layout = QVBoxLayout(self.text_widget)
         self.text_editor = QLabel("Caption:")
         self.text_input = QTextEdit()  
@@ -460,7 +634,7 @@ class quest_workspace(QWidget):
         
         # Create a container for name_widget and py_widget
         self.properties_container = QWidget()
-        self.properties_container.setFixedWidth(320)
+        self.properties_container.setFixedWidth(400)
         self.properties_layout = QVBoxLayout(self.properties_container)
         
         # Add the name and python widgets to the properties container
@@ -478,7 +652,7 @@ class quest_workspace(QWidget):
         # Ensure widgets are aligned from top to bottom
         self.properties_layout.setAlignment(Qt.AlignTop)
         self.tab_widget = QTabWidget()
-        self.tab_widget.setFixedWidth(320)
+        self.tab_widget.setFixedWidth(400)
         self.tab_layout = QHBoxLayout(self.tab_widget)
         # self.tab_layout.addWidget(self.properties_container)
         self.tab_widget.addTab(self.properties_container, "Node Settings")
@@ -490,17 +664,19 @@ class quest_workspace(QWidget):
         self.graph.node_selected.connect(self.on_node_selected)
         self.graph.node_selection_changed.connect(self.on_node_selected)
         self.node_counters = {"DataNode": 0, "PyNode": 0, "TextNode":0}
+        self.notebooks_dir = os.path.join(os.getcwd(), "node_notebooks")
+        os.makedirs(self.notebooks_dir, exist_ok=True)
     
     def toggle_pop_out(self):
         if not self.is_popped_out:
-            # Pop out editor and update button
-            self.py_layout.removeWidget(self.py_input)
+            self.py_layout.removeWidget(self.notebook_view)
             self.py_layout.removeWidget(self.py_button)
-            self.py_input.setParent(None)
+            self.notebook_view.setParent(None)
             self.py_button.setParent(None)
 
-            self.py_editor_window = PopOutPythonEditor(self.py_input, self.py_button)
+            self.py_editor_window = PopOutNotebookEditor(self.notebook_view, self.py_button)
             self.py_editor_window.editorClosed.connect(self.auto_dock_back_in)
+            self.py_editor_window.setWindowTitle("Jupyter Notebook")
             self.py_editor_window.show()
 
             self.pop_out_btn.setText("↙")
@@ -509,18 +685,168 @@ class quest_workspace(QWidget):
             self.re_embed_editor()
 
     def auto_dock_back_in(self):
-        # Automatically called when the pop-out window is closed directly
-        self.re_embed_editor()
+        if self.is_popped_out:
+            self.re_embed_editor()
 
     def re_embed_editor(self):
         if self.py_editor_window:
             self.py_editor_window.editorClosed.disconnect(self.auto_dock_back_in)
             self.py_editor_window.close()
 
-        self.py_layout.insertWidget(1, self.py_input)
+        self.py_layout.insertWidget(1, self.notebook_view)
         self.py_layout.insertWidget(2, self.py_button)
         self.pop_out_btn.setText("↗")
         self.is_popped_out = False
+
+    def _sanitize_node_name_for_file(self, name):
+        return "".join(ch if (ch.isalnum() or ch in ("_", "-", ".")) else "_" for ch in name)
+
+    def _default_notebook_code(self, node_name):
+        return (
+            "import pandas as pd\n"
+            "import numpy as np\n\n"
+            f"def {node_name}_function(x):\n"
+            "    return {'output': x}\n"
+        )
+
+    def _create_notebook_template(self, notebook_path, node_name):
+        os.makedirs(os.path.dirname(notebook_path), exist_ok=True)
+        nb = nbf.v4.new_notebook()
+        nb.cells = [
+            nbf.v4.new_markdown_cell(f"# {node_name}\n\nNotebook backing this PyNode."),
+            nbf.v4.new_code_cell(self._default_notebook_code(node_name)),
+        ]
+        with open(notebook_path, "w", encoding="utf-8") as f:
+            nbf.write(nb, f)
+
+    def _ensure_node_notebook(self, node):
+        path = getattr(node, "node_notebook_path", "") or ""
+        if path and os.path.exists(path):
+            return path
+        safe_name = self._sanitize_node_name_for_file(node.name())
+        notebook_path = os.path.join(self.notebooks_dir, f"{safe_name}.ipynb")
+        if not os.path.exists(notebook_path):
+            self._create_notebook_template(notebook_path, node.name())
+        node.node_notebook_path = notebook_path
+        return notebook_path
+
+    def _notebook_to_code(self, notebook_path):
+        with open(notebook_path, "r", encoding="utf-8") as f:
+            nb = nbf.read(f, as_version=4)
+        code_cells = []
+        for cell in nb.cells:
+            if cell.cell_type == "code":
+                src = (cell.source or "").strip()
+                if src:
+                    code_cells.append(src)
+        return "\n\n".join(code_cells)
+
+    def _write_notebook_from_legacy_python(self, node):
+        """Create or overwrite a node notebook from legacy JSON fields."""
+        notebook_path = self._ensure_node_notebook(node)
+
+        imports_text = getattr(node, "node_imports", "") or ""
+        wrapper_text = getattr(node, "node_function_wrapper", "") or ""
+
+        code_parts = []
+        if str(imports_text).strip():
+            code_parts.append(str(imports_text).strip())
+        if str(wrapper_text).strip():
+            code_parts.append(str(wrapper_text).strip())
+
+        code = "\n\n".join(code_parts).strip()
+        if not code:
+            code = self._default_notebook_code(node.name())
+
+        nb = nbf.v4.new_notebook()
+        nb.cells = [
+            nbf.v4.new_markdown_cell(f"# {node.name()}\n\nMigrated from legacy flow JSON."),
+            nbf.v4.new_code_cell(code),
+        ]
+
+        with open(notebook_path, "w", encoding="utf-8") as f:
+            nbf.write(nb, f)
+
+        node.node_notebook_path = notebook_path
+        return notebook_path
+
+    def _rename_pynode_notebook_and_wrapper(self, node, old_name, new_name):
+        """Rename the backing notebook file and update the wrapper function name."""
+        old_func = f"{old_name}_function"
+        new_func = f"{new_name}_function"
+
+        old_path = getattr(node, "node_notebook_path", "") or ""
+        safe_new_name = self._sanitize_node_name_for_file(new_name)
+        new_path = os.path.join(self.notebooks_dir, f"{safe_new_name}.ipynb")
+
+        if not old_path or not os.path.exists(old_path):
+            if getattr(node, "node_imports", "") or getattr(node, "node_function_wrapper", ""):
+                old_path = self._write_notebook_from_legacy_python(node)
+            else:
+                old_path = self._ensure_node_notebook(node)
+
+        if old_path and os.path.exists(old_path):
+            with open(old_path, "r", encoding="utf-8") as f:
+                nb = nbf.read(f, as_version=4)
+
+            changed = False
+            for cell in nb.cells:
+                if cell.cell_type == "code" and old_func in (cell.source or ""):
+                    cell.source = cell.source.replace(old_func, new_func)
+                    changed = True
+
+            for cell in nb.cells:
+                if cell.cell_type == "markdown" and old_name in (cell.source or ""):
+                    cell.source = cell.source.replace(old_name, new_name)
+                    changed = True
+
+            if getattr(node, "node_function_wrapper", ""):
+                node.node_function_wrapper = node.node_function_wrapper.replace(old_func, new_func)
+
+            if not changed:
+                for cell in nb.cells:
+                    if cell.cell_type != "code" or not (cell.source or "").strip():
+                        continue
+                    try:
+                        parsed = ast.parse(cell.source)
+                        func_defs = [n for n in ast.walk(parsed) if isinstance(n, ast.FunctionDef)]
+                        if func_defs:
+                            src = cell.source
+                            first_name = func_defs[0].name
+                            cell.source = src.replace(f"def {first_name}(", f"def {new_func}(", 1)
+                            changed = True
+                            break
+                    except Exception:
+                        pass
+
+            os.makedirs(os.path.dirname(new_path), exist_ok=True)
+            with open(new_path, "w", encoding="utf-8") as f:
+                nbf.write(nb, f)
+
+            try:
+                if os.path.abspath(old_path) != os.path.abspath(new_path) and os.path.exists(old_path):
+                    os.remove(old_path)
+            except Exception:
+                pass
+        else:
+            self._create_notebook_template(new_path, new_name)
+
+        node.node_notebook_path = new_path
+        return new_path
+
+    def normalize_layout_icons(self, layout_dict):
+        if not isinstance(layout_dict, dict):
+            return layout_dict
+        nodes = layout_dict.get("nodes", {})
+        if not isinstance(nodes, dict):
+            return layout_dict
+        for _, node_data in nodes.items():
+            if not isinstance(node_data, dict):
+                continue
+            icon_path = node_data.get("icon")
+            if isinstance(icon_path, str) and icon_path:
+                node_data["icon"] = icon_path.replace('\\', '/')
+        return layout_dict
 
     def update_flow(self):
         nodes_data=[]
@@ -530,12 +856,14 @@ class quest_workspace(QWidget):
             node_data = [
             node.id, 
             node.name(), 
-            node.node_type, 
-            node.node_input_variable, 
-            node.node_input_value,
-            node.node_value_display,  
-            node.node_function_wrapper, 
-            node.node_imports
+            getattr(node, 'node_type', ''), 
+            getattr(node, 'node_input_variable', ''), 
+            getattr(node, 'node_input_value', ''),
+            getattr(node, 'node_value_display', False),  
+            getattr(node, 'node_is_path', False),
+            getattr(node, 'node_function_wrapper', ''), 
+            getattr(node, 'node_imports', ''),
+            getattr(node, 'node_notebook_path', '')
             ]
             
             # Append the node data to the data list
@@ -543,7 +871,7 @@ class quest_workspace(QWidget):
         # Create a DataFrame from the data list
         print(nodes_data)
         if len(nodes_data)>0:
-            self.nodes_df = pd.DataFrame(nodes_data, columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_value_display','node_function_wrapper', 'node_imports'])
+            self.nodes_df = pd.DataFrame(nodes_data, columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_value_display','node_is_path', 'node_function_wrapper', 'node_imports', 'node_notebook_path'])
 
         connections_data = []
         if 'connections' in self.graph.serialize_session():
@@ -574,6 +902,48 @@ class quest_workspace(QWidget):
         # output_text=f'Outputs:\n {result.stdout} \nErrors:\n {result.stderr}'
         # self.flow_result_label.setText(output_text)
         
+    def _create_flow_runner_notebook(self, script_path, flow_name):
+        script_path = os.path.abspath(script_path)
+        flow_stub = self._sanitize_node_name_for_file(flow_name or 'flow_run')
+        notebook_path = os.path.join(os.path.dirname(script_path), f"{flow_stub}_runner.ipynb")
+
+        code = (
+            f'script_path = r"{script_path}"\n'
+            'print(f"Running: {script_path}")\n'
+            '%run "$script_path"\n'
+        )
+
+        nb = nbf.v4.new_notebook()
+        nb.cells = [
+            nbf.v4.new_markdown_cell(
+                f"# {flow_name or 'Flow'} runner\n\n"
+                "Run the first code cell below to execute the generated Python flow script using `%run`."
+            ),
+            nbf.v4.new_code_cell(code),
+        ]
+        with open(notebook_path, 'w', encoding='utf-8') as f:
+            nbf.write(nb, f)
+        return notebook_path
+    
+    def _open_flow_runner_notebook(self, notebook_path):
+        if not hasattr(self, "runner_notebook_window") or self.runner_notebook_window is None:
+            self.runner_notebook_view = EmbeddedNotebook()
+            self.runner_update_button = QPushButton("Close")
+            self.runner_update_button.clicked.connect(
+                lambda: self.runner_notebook_window.close() if self.runner_notebook_window else None
+            )
+
+            self.runner_notebook_window = PopOutNotebookEditor(
+                self.runner_notebook_view,
+                self.runner_update_button
+            )
+            self.runner_notebook_window.setWindowTitle("Flow Runner Notebook")
+
+        self.runner_notebook_view.load_notebook(notebook_path)
+        self.runner_notebook_window.show()
+        self.runner_notebook_window.raise_()
+        self.runner_notebook_window.activateWindow()
+
     def run_flow(self):
         self.update_flow()
         flow_name=self.flow_run_input.text()
@@ -582,9 +952,10 @@ class quest_workspace(QWidget):
         self.flow.get_outputs(key='Show')
         self.flow.make()
         self.flow.save('./')
-        result=self.flow.run()
-        output_text=f'Outputs:\n {result.stdout} \nErrors:\n {result.stderr}'
-        self.flow_result_label.setText(output_text)
+        script_path = self.flow.py_file_name
+        notebook_path = self._create_flow_runner_notebook(script_path, flow_name)
+        self._open_flow_runner_notebook(notebook_path)
+        self.flow_result_label.setText(f"Opened flow runner notebook:\n{notebook_path}")
 
     def save_flow(self):
         self.update_flow()
@@ -611,6 +982,20 @@ class quest_workspace(QWidget):
         except Exception as e:
             raise ValueError(f'Failed to save file: {e}')
 
+    def load_path(self):
+        dialog = QFileDialog(self)
+        dialog.setWindowTitle("Select File or Folder")
+        dialog.setFileMode(QFileDialog.AnyFile)
+        dialog.setOption(QFileDialog.ShowDirsOnly, False)
+
+        if dialog.exec():
+            selected = dialog.selectedFiles()
+            if selected:
+                raw_path = selected[0]
+                path_text = f'"{raw_path}"'   # ← add quotes here
+                self.value_input.setText(path_text)
+
+
     def load_flow(self):
         path, _ = QFileDialog.getOpenFileName(
             self, "Load Flow JSON", "", "JSON Files (*.json);;All Files (*)"
@@ -630,9 +1015,14 @@ class quest_workspace(QWidget):
         # Load graph layout
         flow_name=flow_json_data['flow_name']
         self.flow_run_input.setText(flow_name)
-        layout_dict=flow_json_data['flow_layout']
+        
+        layout_dict = flow_json_data['flow_layout']
+        if hasattr(self, 'normalize_layout_icons'):
+            layout_dict = self.normalize_layout_icons(layout_dict)
+
         self.graph.clear_session()
         self.graph.deserialize_session(layout_dict)
+
         nodesdf_list=flow_json_data['nodes_df']
         # self.nodes_df=pd.DataFrame.from_dict(nodesdf_dict,dtype=str)
         print(nodesdf_list)
@@ -641,32 +1031,60 @@ class quest_workspace(QWidget):
         # print(existing_nodes)
         for node_data in nodesdf_list:
             node_name = node_data['node_name']
-          
+            print("JSON node_name =", repr(node_name))
+            print("Available loaded node names =", [repr(n) for n in existing_nodes.keys()])
             if node_name in existing_nodes:
                 node = existing_nodes[node_name]
                 print(node.properties())
-                node.node_type = node_data['node_type']
-                node.node_input_variable = node_data['node_input_variable']
-                node.node_input_value = node_data['node_input_value']
-                node.node_value_display = node_data['node_value_display']
-                node.node_function_wrapper = node_data['node_function_wrapper']
-                node.node_imports = node_data['node_imports']
+                node.node_type = node_data.get('node_type', '')
+                node.node_input_variable = node_data.get('node_input_variable', '')
+                node.node_input_value = node_data.get('node_input_value', '')
+                node.node_value_display = node_data.get('node_value_display', False)
+                node.node_is_path = node_data.get('node_is_path', False)
+                node.node_function_wrapper = node_data.get('node_function_wrapper', '')
+                node.node_imports = node_data.get('node_imports', '')
+                if isinstance(node, PyNode):
+                    node.node_notebook_path = node_data.get('node_notebook_path', '')
+                    notebook_path = node.node_notebook_path
+                    has_legacy_code = bool(
+                        (node.node_imports and str(node.node_imports).strip()) or
+                        (node.node_function_wrapper and str(node.node_function_wrapper).strip())
+                    )
+                    if notebook_path and os.path.exists(notebook_path):
+                        pass
+                    elif has_legacy_code:
+                        self._write_notebook_from_legacy_python(node)
+                    else:
+                        self._ensure_node_notebook(node)
                 if node.node_type=='back_node':
                     node.set_text(text='')
                     print(node.node_input_value)
                     node.set_text(text=node.node_input_value)
                 
                 print(node.id,node.node_type, node.node_input_variable,node.node_input_value,node.node_value_display, node.node_function_wrapper)
+            else:
+                print(f"NO MATCH FOR NODE NAME: {repr(node_name)}")
         
     def on_node_selected(self):
-        self.update_flow
+        self.update_flow()
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1:
+            self.tab_widget.setCurrentIndex(0)
             # Show properties widget and update text input with node name
             if isinstance(selected_nodes[0], PyNode):
                 self.py_widget.show()
-                pycode=selected_nodes[0].node_imports+selected_nodes[0].node_function_wrapper
-                self.py_input.setText(pycode)
+                node = selected_nodes[0]
+                notebook_path = getattr(node, 'node_notebook_path', '')
+                has_legacy_code = bool(
+                    (getattr(node, 'node_imports', '') or '').strip() or
+                    (getattr(node, 'node_function_wrapper', '') or '').strip()
+                )
+                if not notebook_path or not os.path.exists(notebook_path):
+                    if has_legacy_code:
+                        notebook_path = self._write_notebook_from_legacy_python(node)
+                    else:
+                        notebook_path = self._ensure_node_notebook(node)
+                self.notebook_view.load_notebook(notebook_path)
                 self.data_widget.hide()
                 self.value_widget.hide()
                 self.text_widget.hide()
@@ -676,9 +1094,15 @@ class quest_workspace(QWidget):
                 self.text_widget.hide()
                 self.data_widget.show()
                 self.value_widget.show()
-                self.data_input.setText(selected_nodes[0].node_input_variable)
-                self.value_input.setText(selected_nodes[0].node_input_value)
-                self.value_checkbox.setChecked(selected_nodes[0].node_value_display)
+
+                node = selected_nodes[0]
+                self.data_input.setText(node.node_input_variable)
+                self.value_input.setText(node.node_input_value)
+                self.value_checkbox.setChecked(node.node_value_display)
+
+                # Restore the path checkbox + browse button state
+                self.value_path_checkbox.setChecked(getattr(node, "node_is_path", False))
+                self.value_browse_button.setEnabled(getattr(node, "node_is_path", False))
             
             else:
                 self.py_widget.hide()
@@ -700,25 +1124,43 @@ class quest_workspace(QWidget):
             self.type_label.setText(f"Node Type: {node_type}")
                    
         else:
+            self.py_widget.hide()
+            self.data_widget.hide()
+            self.value_widget.hide()
+            self.text_widget.hide()
             self.name_input.setText(None)
             self.id_label.setText("Node ID:")
             self.type_label.setText("Node Type:")
-            self.py_input.setText(None)
             self.data_input.setText(None)
             self.value_input.setText(None)
             self.text_input.setText(None)
+            self.value_path_checkbox.setChecked(False)
+            self.value_browse_button.setEnabled(False)
     
     def update_node_name(self):
         selected_nodes = self.graph.selected_nodes()
-        if len(selected_nodes) == 1:
-            new_name = self.name_input.text()
-            old_pos=selected_nodes[0].pos()
-            selected_nodes[0].set_name(new_name)
-            selected_nodes[0].set_selected(selected=False)
-            selected_nodes[0].set_selected(selected=True)
-            selected_nodes[0].set_pos(old_pos[0],old_pos[1])
-            selected_nodes[0].node_name1=selected_nodes[0].name()
-    
+        if len(selected_nodes) != 1:
+            return
+
+        node = selected_nodes[0]
+        old_name = node.name()
+        new_name = (self.name_input.text() or "").strip()
+
+        if not new_name or new_name == old_name:
+            return
+
+        old_pos = node.pos()
+        node.set_name(new_name)
+        node.set_selected(False)
+        node.set_selected(True)
+        node.set_pos(old_pos[0], old_pos[1])
+        node.node_name1 = node.name()
+
+        if isinstance(node, PyNode):
+            self._rename_pynode_notebook_and_wrapper(node, old_name, new_name)
+            if hasattr(self, "notebook_view"):
+                self.notebook_view.load_notebook(node.node_notebook_path)
+
     def update_caption_value(self):
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1:
@@ -736,15 +1178,20 @@ class quest_workspace(QWidget):
         if len(selected_nodes) == 1:
             old_pos=selected_nodes[0].pos()
             # Show properties widget and update value input with value
-            checked = self.value_checkbox.isChecked()
-            selected_nodes[0].node_value_display=checked
+            value_checked = self.value_checkbox.isChecked()
+            path_checked = self.value_path_checkbox.isChecked()
+            self.value_browse_button.setEnabled(path_checked)
+            selected_nodes[0].node_value_display=value_checked
+            selected_nodes[0].node_is_path=path_checked
+            
             text=self.value_input.text()
             selected_nodes[0].node_input_value=text
             widget=selected_nodes[0].get_widget('Text Caption')
-            if checked:
+            if value_checked:
                 widget.set_value(selected_nodes[0].node_input_value)
             else:
                 widget.set_value("")
+            
             print(selected_nodes[0].properties())
                          
             selected_nodes[0].set_pos(old_pos[0],old_pos[1])
@@ -758,17 +1205,11 @@ class quest_workspace(QWidget):
         old_pos=node.pos()
         if isinstance(node, PyNode):
             try:
-                python_code = self.py_input.toPlainText()
-
-                # Parse the Python code into an AST
+                notebook_path = self._ensure_node_notebook(node)
+                python_code = self._notebook_to_code(notebook_path)
                 parsed_ast = ast.parse(python_code)
 
-                # Initialize strings for imports
                 imports_text = ""
-                # Initialize an empty list to hold full function definitions
-                func_defs = []
-
-                # Extracting import statements
                 import_statements = [n for n in ast.walk(parsed_ast) if isinstance(n, (ast.Import, ast.ImportFrom))]
                 for imp in import_statements:
                     if isinstance(imp, ast.Import):
@@ -784,48 +1225,45 @@ class quest_workspace(QWidget):
                             else:
                                 imports_text += f"from {imp.module} import {alias.name}\n"
 
-                node.node_imports=imports_text
+                node.node_imports = imports_text
 
-                # Extracting all function definitions
                 func_defs = [n for n in ast.walk(parsed_ast) if isinstance(n, ast.FunctionDef)]
-                if len(func_defs)>0:
-                    func_def = func_defs[0]
+                if len(func_defs) > 0:
+                    expected_name = f"{node.name()}_function"
+                    matched = [fn for fn in func_defs if fn.name == expected_name]
+                    func_def = matched[0] if matched else func_defs[0]
                 else:
                     raise ValueError('Wrapper function not found!')
-                function_text = ast.unparse(func_def)
-                node.node_function_wrapper=function_text
 
-                # Initialize lists to hold the new input and output port names
-                input_ports = []
-                output_ports = []
-                
-                # Analyze the arguments of the function for input ports
+                node.node_function_wrapper = ast.unparse(func_def)
+                node.node_notebook_path = notebook_path
+
                 input_ports = [arg.arg for arg in func_def.args.args]
-                
-                for in_port_name in node.inputs().keys():
-                    for connected_port in  node.inputs()[in_port_name].connected_ports():
+                output_ports = []
+
+                for in_port_name in list(node.inputs().keys()):
+                    for connected_port in node.inputs()[in_port_name].connected_ports():
                         node.inputs()[in_port_name].disconnect_from(connected_port)
                     node.delete_input(in_port_name)
-                
+
                 for port_name in input_ports:
                     node.add_dynamic_input(port_name)
 
-                # Look for a return statement and analyze it for output ports
                 for fc in ast.walk(func_def):
                     if isinstance(fc, ast.Return):
-                        if isinstance(fc.value, ast.Dict):  # Direct return of a dictionary
+                        if isinstance(fc.value, ast.Dict):
                             output_ports = [key.s for key in fc.value.keys if isinstance(key, ast.Constant)]
-                        break  # Only consider the first return statement
-                
-                for out_port_name in node.outputs().keys():
-                    for connected_port in  node.outputs()[out_port_name].connected_ports():
+                        break
+
+                for out_port_name in list(node.outputs().keys()):
+                    for connected_port in node.outputs()[out_port_name].connected_ports():
                         node.outputs()[out_port_name].disconnect_from(connected_port)
                     node.delete_output(out_port_name)
 
                 for key in output_ports:
                     node.add_dynamic_output(key)
-            except SyntaxError as e:
-                print(f"Syntax error in Python function: {e}")
+            except Exception as e:
+                print(f"Failed to update Python node from notebook: {e}")
         elif isinstance(node, DataNode):
             for out_port_name in node.outputs().keys():
                     for connected_port in  node.outputs()[out_port_name].connected_ports():
@@ -868,7 +1306,11 @@ class quest_workspace(QWidget):
         node_name = f"PyNode{self.node_counters['PyNode']}"
         latest_pos = list(self.get_newest_node_position())
         new_pos=(latest_pos[0]+100,latest_pos[1]+100)
-        self.graph.create_node('QuESt.Workspace.PyNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=True)
+        node = self.graph.create_node('QuESt.Workspace.PyNode', name=node_name, color=(255, 255, 255), text_color=(0,0,0),pos=new_pos,selected=True,push_undo=True)
+        notebook_path = os.path.join(self.notebooks_dir, f"{self._sanitize_node_name_for_file(node_name)}.ipynb")
+        if not os.path.exists(notebook_path):
+            self._create_notebook_template(notebook_path, node_name)
+        node.node_notebook_path = notebook_path
         
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
