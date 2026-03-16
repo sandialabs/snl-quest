@@ -22,7 +22,9 @@ options = {
             "matplotlib",
             "geopandas",
             "psutil",
-            "NodeGraphQt"
+            "NodeGraphQt",
+            "notebook",
+            "nbformat"
         ],
         'include_files': [
             ("README.md", "README.md"),
