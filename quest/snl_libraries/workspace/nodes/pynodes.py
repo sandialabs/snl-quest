@@ -10,6 +10,8 @@ class python_node:
         self.output_values ={}
         self.from_node_list = []
         self.to_node_list=[]
+        self._dirty = True
+        self._last_input_snapshot = None
     
     def set_inputs(self, **kwargs):
         """Set the input values by providing keyword arguments."""
@@ -20,6 +22,13 @@ class python_node:
                 self.input_values[key] = value
             else:
                 raise ValueError(f"{key} is not a valid input for the function {self.function.__name__}")
+        self._dirty = True
+
+    def _make_input_snapshot(self):
+        try:
+            return repr(self.input_values)
+        except Exception:
+            return str(self.input_values)
 
     def get_outputs(self):
         """Executes the function with the provided inputs and updates outputs."""
@@ -29,6 +38,10 @@ class python_node:
             missing_inputs = [input_name for input_name in self.input_names if input_name not in self.input_values]
             raise ValueError(f"Missing inputs: {missing_inputs}")
 
+        snapshot = self._make_input_snapshot()
+        if (not self._dirty) and (self._last_input_snapshot == snapshot):
+            return self.output_values
+
         result = self.function(**self.input_values)
 
         if isinstance(result, dict):
@@ -36,6 +49,8 @@ class python_node:
         else:
             self.output_values = {"outputs":result}
         self.output_names = list(self.output_values.keys())
+        self._last_input_snapshot = snapshot
+        self._dirty = False
         return self.output_values
     
     def connect_to(self, to_node_list, mapping):
@@ -82,9 +97,14 @@ class data_node(python_node):
     def set_inputs(self, **kwargs):
         """Set the input values for any given keyword arguments."""
         self.input_values = kwargs  # Directly set input values without validation.
+        self._dirty = True
 
     def get_outputs(self):
         """Executes the function with the provided inputs and updates outputs."""
+        snapshot = self._make_input_snapshot()
+        if (not self._dirty) and (self._last_input_snapshot == snapshot):
+            return self.output_values
+
         result = self.function(**self.input_values)
 
         if isinstance(result, dict):
@@ -93,5 +113,7 @@ class data_node(python_node):
             # Assume the function returns a single output
             self.output_values = {"outputs": result}
         self.output_names = list(self.output_values.keys())
+        self._last_input_snapshot = snapshot
+        self._dirty = False
         return self.output_values
 
