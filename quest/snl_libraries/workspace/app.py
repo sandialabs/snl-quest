@@ -456,6 +456,7 @@ class quest_workflow(QWidget):
         self.flow_save_mode_combo = QComboBox()
         self.flow_save_mode_combo.addItem("Save as master flow", "master")
         self.flow_save_mode_combo.addItem("Save as independent flow", "independent")
+        self.flow_save_mode_combo.currentIndexChanged.connect(self._enforce_valid_save_mode_selection)
         self.flow_save_path = QLabel()
         self.flow_save_button = QPushButton("Save")
         self.flow_save_button.setFixedHeight(36)
@@ -754,6 +755,7 @@ class quest_workflow(QWidget):
         os.makedirs(self.notebooks_dir, exist_ok=True)
         self.populate_environment_settings_table()
         self._sync_flow_metadata_from_controls()
+        self._refresh_save_mode_options()
 
 
 
@@ -1676,6 +1678,58 @@ class quest_workflow(QWidget):
         if flow_type not in {"master-flow", "sub-flow"}:
             flow_type = "sub-flow"
         self.flow_type_label_value.setText(flow_type)
+        self._refresh_save_mode_options()
+
+    def _can_save_as_independent_flow(self):
+        if self.get_flow_type() != "master-flow":
+            return True
+        parent_workspace = self._find_workspace_parent()
+        if parent_workspace is None:
+            return True
+        try:
+            return len(parent_workspace._subflow_workflows()) == 0
+        except Exception:
+            return True
+
+    def _refresh_save_mode_options(self):
+        combo = getattr(self, "flow_save_mode_combo", None)
+        if combo is None:
+            return
+
+        independent_enabled = self._can_save_as_independent_flow()
+        try:
+            model = combo.model()
+            item = model.item(1) if model is not None else None
+            if item is not None:
+                item.setEnabled(independent_enabled)
+                tooltip = ""
+                if not independent_enabled:
+                    tooltip = "Remove all subflows before saving the master flow as an independent flow."
+                item.setToolTip(tooltip)
+        except Exception:
+            pass
+
+        tooltip = ""
+        if not independent_enabled:
+            tooltip = "Save as independent flow is disabled for the master flow while subflows exist."
+        try:
+            combo.setToolTip(tooltip)
+        except Exception:
+            pass
+
+        self._enforce_valid_save_mode_selection()
+
+    def _enforce_valid_save_mode_selection(self, *args):
+        combo = getattr(self, "flow_save_mode_combo", None)
+        if combo is None:
+            return
+
+        if combo.currentData() == "independent" and not self._can_save_as_independent_flow():
+            try:
+                combo.blockSignals(True)
+                combo.setCurrentIndex(0)
+            finally:
+                combo.blockSignals(False)
 
     def get_flow_type(self):
         flow_type = (self.flow_type_label_value.text() or "sub-flow").strip().lower()
@@ -1702,7 +1756,10 @@ class quest_workflow(QWidget):
         self._sync_flow_metadata_from_controls()
         return {
             "flow_name": self.get_flow_display_name(),
-            "flow_type": self.get_flow_type(),
+            # Independent files must always be portable into a sub-flow tab.
+            # A master workflow saved as an independent file should therefore
+            # serialize as a plain sub-flow, not as a master-flow.
+            "flow_type": "sub-flow",
             "flow_environment_name": self.flow_environment_name,
             "flow_environment_path": self.flow_environment_path,
             "flow_layout": layout_dict,
@@ -1918,6 +1975,13 @@ class quest_workflow(QWidget):
         if requested_flow_type not in {'master-flow', 'sub-flow'}:
             requested_flow_type = 'sub-flow'
         has_subflows = isinstance(flow_json_data.get('subflows_df'), list) and len(flow_json_data.get('subflows_df', [])) > 0
+
+        # Backward compatibility: older independent files saved from the master
+        # workflow were incorrectly tagged as ``master-flow`` even though they
+        # contained no subflows. Treat those files as plain independent flows.
+        if requested_flow_type == 'master-flow' and not has_subflows:
+            requested_flow_type = 'sub-flow'
+            flow_json_data['flow_type'] = 'sub-flow'
 
         parent_workspace = self._find_workspace_parent()
         is_master_context = parent_workspace is not None and getattr(parent_workspace, 'master_workflow', None) is self
@@ -2619,6 +2683,7 @@ class quest_workspace(QWidget):
         self.tab_widget.currentChanged.connect(self._on_workspace_tab_changed)
 
         self.layout.addWidget(self.tab_widget)
+        self._refresh_all_save_mode_options()
 
     def _on_workspace_tab_changed(self, index):
         try:
@@ -2657,6 +2722,7 @@ class quest_workspace(QWidget):
             workflow.set_flow_type("master-flow")
         else:
             workflow.set_flow_type("sub-flow")
+        self._refresh_all_save_mode_options()
         if current_active is not workflow and current_active is not None:
             self.activate_workflow(current_active)
 
@@ -3267,6 +3333,7 @@ class quest_workspace(QWidget):
             self.sync_workflow_ui(self.master_workflow)
         except Exception:
             pass
+        self._refresh_all_save_mode_options()
         return True
 
     def _remove_subflow_for_proxy_node(self, node):
@@ -3347,6 +3414,13 @@ class quest_workspace(QWidget):
         else:
             workflow.set_flow_type("sub-flow")
         self._sync_subworkflow_proxy_node_name(workflow, unique_name)
+
+    def _refresh_all_save_mode_options(self):
+        for workflow in getattr(self, "workflows", []):
+            try:
+                workflow._refresh_save_mode_options()
+            except Exception:
+                pass
 
     def _subflow_workflows(self):
         return [w for w in getattr(self, "workflows", []) if w is not self.master_workflow]
@@ -3441,6 +3515,7 @@ class quest_workspace(QWidget):
         if create_proxy:
             self._create_subworkflow_proxy_node(workflow, tab_title)
         self.sync_workflow_ui(workflow)
+        self._refresh_all_save_mode_options()
         self.tab_widget.setCurrentWidget(self.master_tab)
         return workflow
 
