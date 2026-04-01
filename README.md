@@ -7,7 +7,7 @@
 
 ---
 
-## 📌 Overview
+## Overview
 QuESt is an open-source Python platform for energy storage analytics. It evolves beyond a single tool into a modular ecosystem that integrates multiple applications, workflows, and AI-powered analytics.
 
 The platform consists of three core components:
@@ -17,7 +17,7 @@ The platform consists of three core components:
 
 ---
 
-## 📦 Installation
+## Installation
 
 There are two ways to install QuESt:
 
@@ -26,9 +26,9 @@ There are two ways to install QuESt:
 
 ---
 
-# 🚀 1. Quick Installation (Recommended)
+# 1. Quick Installation (Recommended)
 
-## 🪟 Windows
+## Windows
 1. Go to the GitHub repository:  
    https://github.com/sandialabs/snl-quest  
 
@@ -46,7 +46,7 @@ This will automatically install dependencies and launch QuESt.
 
 ---
 
-## 🍎 Linux / macOS
+## Linux / macOS
 
 ### Step 1 — Download
 Download ZIP from GitHub
@@ -124,12 +124,12 @@ quest
 
 ---
 
-## 📴 Deactivate Environment
+## Deactivate Environment
 deactivate
 
 ---
 
-# 🧠 Key Features
+# Key Features
 
 ## App Hub
 - Install energy storage tools  
@@ -146,7 +146,7 @@ deactivate
 
 ---
 
-# 📬 Contact & Feedback
+# Contact & Feedback
 
 Use GitHub Issues for bugs and discussions  
 Maintainer: Tu Nguyen (@sandia.gov)
