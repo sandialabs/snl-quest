@@ -367,47 +367,68 @@ class flow:
             py_file.write(self.main_py)
      
     def run(self, python_executable=None, stream_output=False):
-    
         if self.py_file_name == '':
             print('Please make the flow Python program by running flow.make() first')
             return
 
-        # 1. resolve python executable
-        if python_executable is None:
-            python_exe = sys.executable
-        else:
-            python_exe = python_executable
+        import platform
+
+        python_exe = python_executable or sys.executable
 
         if not os.path.isfile(python_exe):
             raise RuntimeError(f"Python executable not found: {python_exe}")
 
-        try:
-            print(f"Running with: {python_exe}")
+        env = os.environ.copy()
 
-            # 2. optional streaming (very useful for debugging flows)
+        if platform.system() == "Windows":
+            scripts_dir = os.path.dirname(python_exe)
+            venv_root = os.path.dirname(scripts_dir)
+            env["VIRTUAL_ENV"] = venv_root
+            env["PATH"] = scripts_dir + os.pathsep + env.get("PATH", "")
+            command = [python_exe, self.py_file_name]
+        else:
+            activate_script_path = python_exe.replace('bin/python', 'bin/activate')
+            if activate_script_path == python_exe:
+                activate_script_path = os.path.join(os.path.dirname(os.path.dirname(python_exe)), 'bin', 'activate')
+            venv_root = os.path.dirname(os.path.dirname(python_exe))
+            env["VIRTUAL_ENV"] = venv_root
+            env["PATH"] = os.path.join(venv_root, "bin") + os.pathsep + env.get("PATH", "")
+            command = ["/bin/bash", "-c", f"source '{activate_script_path}' && '{python_exe}' '{self.py_file_name}'"]
+
+        try:
+            print(f"Running with command: {command}")
+
             if stream_output:
                 proc = subprocess.Popen(
-                    [python_exe, self.py_file_name],
+                    command,
+                    cwd=QUEST_ROOT,
+                    bufsize=1,
                     stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT,
-                    text=True
+                    universal_newlines=True,
+                    env=env,
                 )
 
-                for line in proc.stdout:
-                    print(line, end="")
+                while proc.poll() is None:
+                    line = proc.stdout.readline()
+                    if line:
+                        print(line, end="")
 
-                proc.wait()
+                rest = proc.stdout.read()
+                if rest:
+                    print(rest, end="")
 
                 if proc.returncode != 0:
                     raise RuntimeError("Flow execution failed")
 
                 return proc
 
-            # 3. simple mode
             result = subprocess.run(
-                [python_exe, self.py_file_name],
+                command,
+                cwd=QUEST_ROOT,
                 capture_output=True,
-                text=True
+                text=True,
+                env=env,
             )
 
             print("Output:\n", result.stdout)
@@ -415,11 +436,10 @@ class flow:
                 print("Error:\n", result.stderr)
 
             if result.returncode != 0:
-                raise RuntimeError(result.stderr or "Flow execution failed")
+                raise RuntimeError(result.stderr or result.stdout or "Flow execution failed")
 
             return result
 
         except Exception as e:
             print(f"An error occurred while running the script: {e}")
             raise
-
