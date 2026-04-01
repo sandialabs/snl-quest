@@ -84,7 +84,7 @@ python3 -m quest
 
 ---
 
-# 🛠️ 2. Developer Installation
+# 2. Developer Installation
 
 ## Step 1 — Prerequisites
 - Python 3.9.x  
