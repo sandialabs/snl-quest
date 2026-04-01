@@ -78,61 +78,34 @@ attempt_install_via_package_manager() {
     esac
 }
 
-# Set the repository URL and branch name
-REPO_URL="https://github.com/sandialabs/snl-quest.git"
-BRANCH_NAME="snl_libraries"
+# Set the path to the virtual environment and requirements file using the updated paths
+VENV_PATH="$(dirname "$0")/../../../app_envs/env_progress"
+SETUP_PATH="$(dirname "$0")/../../../app_envs/env_progress/snl_quest_progress"
 
-# Set the sparse checkout directory
-SPARSE_DIR="snl_libraries/snl_tech_selection"
+# Set the equity directory name
+progress_dir="snl_quest_progress"
 
-# Set the path to the virtual environment
-VENV_PATH="$(dirname "$0")/../../../app_envs/env_tech"
-
-# Set the path to the sparse checkout directory within the virtual environment
-CHECKOUT_PATH="$VENV_PATH/snl-quest/$SPARSE_DIR"
-
-echo "Checking for virtual environment..."
 # Create the virtual environment if it doesn't exist
 if [ ! -d "$VENV_PATH" ]; then
-    echo "Creating virtual environment..."
     python3 -m venv "$VENV_PATH"
-else
-    echo "Virtual environment already exists."
 fi
 
-echo "Activating virtual environment..."
 # Activate the virtual environment
 source "$VENV_PATH/bin/activate"
 
-echo "Cloning repository with sparse checkout..."
-# Clone the repository without checking out files
-if [ ! -d "$VENV_PATH/snl-quest" ]; then
-    git clone --no-checkout -b "$BRANCH_NAME" "$REPO_URL" "$VENV_PATH/snl-quest"
-fi
+# Install system dependencies
+sudo apt-get install -y python3-dev libblas-dev liblapack-dev gfortran
 
-# Navigate to the cloned repository
-cd "$VENV_PATH/snl-quest"
 
-# Enable sparse checkout
-git sparse-checkout init
 
-# Set sparse checkout path to include only the desired directory
-git sparse-checkout set "$SPARSE_DIR"
+# Create a directory within the virtual environment
+mkdir -p "$VENV_PATH/$progress_dir"
 
-# Check out the branch
-git checkout "$BRANCH_NAME"
+# Clone the GitHub repository
+git clone https://github.com/sandialabs/quest_progress.git "$VENV_PATH/snl_quest_progress"
 
-# Ensure the sparse checkout directory exists
-if [ ! -d "$CHECKOUT_PATH" ]; then
-    echo "Sparse checkout failed. Directory $SPARSE_DIR does not exist."
-    exit 1
-fi
-
-echo "Installing Python package..."
-# Install the Python package within the virtual environment
-pip install "$CHECKOUT_PATH"
-pip install kivy-garden==0.1.5
-
+# Install using setup.py
+pip install -e "$SETUP_PATH"
 # Check if GLPK is already installed
 if check_glpk_installed; then
     echo "GLPK is already installed."
@@ -155,10 +128,6 @@ else
     fi
 fi
 
-GARDEN_PATH="$VENV_PATH/bin/garden"
-echo "Garden Path: $GARDEN_PATH"
-chmod +x "$GARDEN_PATH"
-"$GARDEN_PATH" install matplotlib
 
 # Deactivate the virtual environment
 echo "Deactivating virtual environment..."

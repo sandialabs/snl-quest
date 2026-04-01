@@ -1,0 +1,1990 @@
+{
+    "flow_name": "Master_btm_flow_2026",
+    "flow_type": "master-flow",
+    "flow_environment_name": "quest master",
+    "flow_environment_path": "C:/work/quest21/Scripts/python.exe",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x16ce1d3dc10": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                "name": "pv_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -292.42298820287976,
+                    130.8247420011809
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "pv_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": ""
+                }
+            },
+            "0x16ce1d3dd00": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                "name": "rate_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -292.41043510960446,
+                    295.1646591835818
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rate_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": ""
+                }
+            },
+            "0x16ce1d3de80": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                "name": "power rating",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -294.93675521362536,
+                    598.2215711246814
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "100"
+                }
+            },
+            "0x16ce2ce0070": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                "name": "energy capacity",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -296.6593597106332,
+                    730.598652571707
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "energy",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "400"
+                }
+            },
+            "0x16ce2ce0220": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                "name": "rte",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -299.14363953571217,
+                    844.5114086529048
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rte",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "0.88"
+                }
+            },
+            "0x16ce2ce03d0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                "name": "load_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -295.8094717647698,
+                    458.18646258223805
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "load_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": ""
+                }
+            },
+            "0x16ce2ce0670": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                "name": "btm_flow_2026",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 214.921875,
+                "height": 172.6,
+                "pos": [
+                    192.43982366114273,
+                    413.8669055073367
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "pv_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "rate_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "power_rating",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "energy_capacity",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "rte",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "load_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "saved_location",
+                        "multi_connection": true,
+                        "display_name": true
+                    },
+                    {
+                        "name": "checkpoints",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            }
+        },
+        "connections": [
+            {
+                "out": [
+                    "0x16ce1d3dc10",
+                    "pv_path"
+                ],
+                "in": [
+                    "0x16ce2ce0670",
+                    "pv_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x16ce1d3dd00",
+                    "rate_path"
+                ],
+                "in": [
+                    "0x16ce2ce0670",
+                    "rate_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x16ce1d3de80",
+                    "power"
+                ],
+                "in": [
+                    "0x16ce2ce0670",
+                    "power_rating"
+                ]
+            },
+            {
+                "out": [
+                    "0x16ce2ce0070",
+                    "energy"
+                ],
+                "in": [
+                    "0x16ce2ce0670",
+                    "energy_capacity"
+                ]
+            },
+            {
+                "out": [
+                    "0x16ce2ce0220",
+                    "rte"
+                ],
+                "in": [
+                    "0x16ce2ce0670",
+                    "rte"
+                ]
+            },
+            {
+                "out": [
+                    "0x16ce2ce03d0",
+                    "load_path"
+                ],
+                "in": [
+                    "0x16ce2ce0670",
+                    "load_path"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x16ce1d3dc10",
+            "node_name": "pv_path",
+            "node_type": "data_node",
+            "node_input_variable": "pv_path",
+            "node_input_value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
+            "node_value_display": false,
+            "node_is_path": true,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x16ce1d3dd00",
+            "node_name": "rate_path",
+            "node_type": "data_node",
+            "node_input_variable": "rate_path",
+            "node_input_value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
+            "node_value_display": false,
+            "node_is_path": true,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x16ce1d3de80",
+            "node_name": "power rating",
+            "node_type": "data_node",
+            "node_input_variable": "power",
+            "node_input_value": "100",
+            "node_value_display": true,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x16ce2ce0070",
+            "node_name": "energy capacity",
+            "node_type": "data_node",
+            "node_input_variable": "energy",
+            "node_input_value": "400",
+            "node_value_display": true,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x16ce2ce0220",
+            "node_name": "rte",
+            "node_type": "data_node",
+            "node_input_variable": "rte",
+            "node_input_value": "0.88",
+            "node_value_display": true,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x16ce2ce03d0",
+            "node_name": "load_path",
+            "node_type": "data_node",
+            "node_input_variable": "load_path",
+            "node_input_value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
+            "node_value_display": false,
+            "node_is_path": true,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x16ce2ce0670",
+            "node_name": "btm_flow_2026",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_value_display": false,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "def btm_flow_2026_function(pv_path=None, rate_path=None, power_rating=None, energy_capacity=None, rte=None, load_path=None):\n\n    def update_subflow(subflow_nodes_df, **kwargs):\n        for (idx, row) in subflow_nodes_df.iterrows():\n            if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:\n                node_name = str(row.get('node_name', '')).strip()\n                if node_name in kwargs:\n                    subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])\n        return subflow_nodes_df\n\n    def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable=None):\n        f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df)\n        f.set_inputs()\n        f.get_outputs(key=None)\n        f.make()\n        append_lines = []\n        append_lines.append('import json')\n        append_lines.append('_quest_subflow_results = {}')\n        append_lines.append(\"if 'node0x1e5266dda90_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['data_manager'] = node0x1e5266dda90_outputs\")\n        append_lines.append(\"if 'node0x1e5266ddd60_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['load_profile'] = node0x1e5266ddd60_outputs\")\n        append_lines.append(\"if 'node0x1e52672d100_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['pv_profile'] = node0x1e52672d100_outputs\")\n        append_lines.append(\"if 'node0x1e52672d460_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['rate_structure_new'] = node0x1e52672d460_outputs\")\n        append_lines.append(\"if 'node0x1e52672d5e0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_request'] = node0x1e52672d5e0_outputs\")\n        append_lines.append(\"if 'node0x1e52672d7c0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_process'] = node0x1e52672d7c0_outputs\")\n        append_lines.append(\"if 'node0x1e52672df10_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['ess_parameters'] = node0x1e52672df10_outputs\")\n        append_lines.append(\"if 'node0x1e52674e940_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['results'] = node0x1e52674e940_outputs\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_START__')\")\n        append_lines.append('print(json.dumps(_quest_subflow_results, default=str))')\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_END__')\")\n        f.main_py = f.main_py.rstrip() + '\\n\\n' + '\\n'.join(append_lines) + '\\n'\n        with tempfile.TemporaryDirectory() as tmpdir:\n            f.save(tmpdir + os.sep)\n            result = f.run(python_executable=python_executable)\n            stdout = getattr(result, 'stdout', '') or ''\n        start_marker = '__QUEST_SUBFLOW_RESULTS_START__'\n        end_marker = '__QUEST_SUBFLOW_RESULTS_END__'\n        if start_marker not in stdout or end_marker not in stdout:\n            raise RuntimeError('Could not find subflow results in stdout.\\nSTDOUT:\\n' + stdout)\n        payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()\n        if not payload:\n            return {}\n        return json.loads(payload)\n    subflow_name = 'btm_flow_2026'\n    subflow_nodes_df = pd.DataFrame([{'node_id': '0x1e5266dd790', 'node_name': 'BTM Optimization Handler', 'node_type': 'back_node', 'node_input_variable': '', 'node_input_value': 'This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e5266dda90', 'node_name': 'data_manager', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def data_manager_function(data_path):\\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\\n    return {'dms': dms}\", 'node_imports': 'from btm.es_gui.tools.btm.btm_dms import BtmDMS\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\data_manager.ipynb'}, {'node_id': '0x1e5266dd910', 'node_name': 'data_location', 'node_type': 'data_node', 'node_input_variable': 'data_path', 'node_input_value': '\"/data/\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e5266ddd60', 'node_name': 'load_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def load_profile_function(load_data_path):\\n    load_profile = {'name': 'data_center_10MW', 'path': load_data_path}\\n    return {'load_profile': load_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\load_profile.ipynb'}, {'node_id': '0x1e5266ddeb0', 'node_name': 'pv_path', 'node_type': 'data_node', 'node_input_variable': 'pv_path', 'node_input_value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52672d100', 'node_name': 'pv_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def pv_profile_function(pv_data_path):\\n    pv_profile = {'name': 'ZeroPV', 'path': pv_data_path}\\n    return {'pv_profile': pv_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\pv_profile.ipynb'}, {'node_id': '0x1e52672d250', 'node_name': 'rate_path', 'node_type': 'data_node', 'node_input_variable': 'rate_path', 'node_input_value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52672d460', 'node_name': 'rate_structure_new', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def rate_structure_new_function(rate_path):\\n    with open(rate_path, 'r') as file:\\n        rate_structure = json.load(file)\\n    return {'rate_structure': rate_structure}\", 'node_imports': 'import json\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\rate_structure_new.ipynb'}, {'node_id': '0x1e52672d5e0', 'node_name': 'btm_op_request', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\\n    return {'btm_op_request': op_handler_request}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_request.ipynb'}, {'node_id': '0x1e52672d7c0', 'node_name': 'btm_op_process', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_process_function(btm_op_request, dms, solver_name):\\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}\", 'node_imports': 'from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_process.ipynb'}, {'node_id': '0x1e52672db50', 'node_name': 'power_rating', 'node_type': 'data_node', 'node_input_variable': 'power', 'node_input_value': '100', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52672df10', 'node_name': 'ess_parameters', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def ess_parameters_function(power, energy, rte):\\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\\n    return {'ess_parameters': [params]}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\ess_parameters.ipynb'}, {'node_id': '0x1e52674e0d0', 'node_name': 'energy_capacity', 'node_type': 'data_node', 'node_input_variable': 'energy', 'node_input_value': '400', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e430', 'node_name': 'rte', 'node_type': 'data_node', 'node_input_variable': 'rte', 'node_input_value': '0.88', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e5e0', 'node_name': 'solver', 'node_type': 'data_node', 'node_input_variable': 'solver_name', 'node_input_value': '\"glpk\"', 'node_value_display': True, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e790', 'node_name': 'load_path', 'node_type': 'data_node', 'node_input_variable': 'load_path', 'node_input_value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e940', 'node_name': 'results', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': ['saved_location', 'checkpoints'], 'node_function_wrapper': \"def results_function(solved_ops, saved_location):\\n    os.makedirs(saved_location, exist_ok=True)\\n    checkpoints = {}\\n    for op in solved_ops:\\n        op_results = op[1].results\\n        file_name = op[0]\\n        file_name = re.sub('[^\\\\\\\\w\\\\\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\\n        file_name = saved_location + '/' + file_name\\n        op_results.to_csv(file_name, index=False)\\n        checkpoints[file_name] = file_name\\n    return {'saved_location': saved_location, 'checkpoints': checkpoints}\", 'node_imports': 'import os\\nimport re\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\results.ipynb'}, {'node_id': '0x1e52674eac0', 'node_name': 'results_location', 'node_type': 'data_node', 'node_input_variable': 'rs_location', 'node_input_value': '\"./results/workspace\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}])\n    subflow_connections_df = pd.DataFrame([{'connection_id': 1, 'from_node': '0x1e5266dd910', 'to_node': '0x1e5266dda90', 'mapping': {'data_path': 'data_path'}}, {'connection_id': 2, 'from_node': '0x1e5266dda90', 'to_node': '0x1e52672d7c0', 'mapping': {'dms': 'dms'}}, {'connection_id': 3, 'from_node': '0x1e52674e790', 'to_node': '0x1e5266ddd60', 'mapping': {'load_path': 'load_data_path'}}, {'connection_id': 4, 'from_node': '0x1e5266ddd60', 'to_node': '0x1e52672d5e0', 'mapping': {'load_profile': 'load_profile'}}, {'connection_id': 5, 'from_node': '0x1e5266ddeb0', 'to_node': '0x1e52672d100', 'mapping': {'pv_path': 'pv_data_path'}}, {'connection_id': 6, 'from_node': '0x1e52672d100', 'to_node': '0x1e52672d5e0', 'mapping': {'pv_profile': 'pv_profile'}}, {'connection_id': 7, 'from_node': '0x1e52672d250', 'to_node': '0x1e52672d460', 'mapping': {'rate_path': 'rate_path'}}, {'connection_id': 8, 'from_node': '0x1e52672d460', 'to_node': '0x1e52672d5e0', 'mapping': {'rate_structure': 'rate_structure'}}, {'connection_id': 9, 'from_node': '0x1e52672df10', 'to_node': '0x1e52672d5e0', 'mapping': {'ess_parameters': 'ess_parameters'}}, {'connection_id': 10, 'from_node': '0x1e52672d5e0', 'to_node': '0x1e52672d7c0', 'mapping': {'btm_op_request': 'btm_op_request'}}, {'connection_id': 11, 'from_node': '0x1e52674e5e0', 'to_node': '0x1e52672d7c0', 'mapping': {'solver_name': 'solver_name'}}, {'connection_id': 12, 'from_node': '0x1e52672d7c0', 'to_node': '0x1e52674e940', 'mapping': {'btm_solved_ops': 'solved_ops'}}, {'connection_id': 13, 'from_node': '0x1e52672db50', 'to_node': '0x1e52672df10', 'mapping': {'power': 'power'}}, {'connection_id': 14, 'from_node': '0x1e52674e0d0', 'to_node': '0x1e52672df10', 'mapping': {'energy': 'energy'}}, {'connection_id': 15, 'from_node': '0x1e52674e430', 'to_node': '0x1e52672df10', 'mapping': {'rte': 'rte'}}, {'connection_id': 16, 'from_node': '0x1e52674eac0', 'to_node': '0x1e52674e940', 'mapping': {'rs_location': 'saved_location'}}])\n    subflow_nodes_df = update_subflow(subflow_nodes_df, pv_path=pv_path, rate_path=rate_path, power_rating=power_rating, energy_capacity=energy_capacity, rte=rte, load_path=load_path)\n    _results = run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable='C:/work/quest20c/quest2/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe')\n    return {'saved_location': _results.get('results', {}).get('saved_location'), 'checkpoints': _results.get('results', {}).get('checkpoints')}",
+            "node_imports": "",
+            "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_flow_2026_0x1ea86425490.ipynb"
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x16ce1d3dc10",
+            "to_node": "0x16ce2ce0670",
+            "mapping": {
+                "pv_path": "pv_path"
+            }
+        },
+        {
+            "connection_id": 2,
+            "from_node": "0x16ce1d3dd00",
+            "to_node": "0x16ce2ce0670",
+            "mapping": {
+                "rate_path": "rate_path"
+            }
+        },
+        {
+            "connection_id": 3,
+            "from_node": "0x16ce1d3de80",
+            "to_node": "0x16ce2ce0670",
+            "mapping": {
+                "power": "power_rating"
+            }
+        },
+        {
+            "connection_id": 4,
+            "from_node": "0x16ce2ce0070",
+            "to_node": "0x16ce2ce0670",
+            "mapping": {
+                "energy": "energy_capacity"
+            }
+        },
+        {
+            "connection_id": 5,
+            "from_node": "0x16ce2ce0220",
+            "to_node": "0x16ce2ce0670",
+            "mapping": {
+                "rte": "rte"
+            }
+        },
+        {
+            "connection_id": 6,
+            "from_node": "0x16ce2ce03d0",
+            "to_node": "0x16ce2ce0670",
+            "mapping": {
+                "load_path": "load_path"
+            }
+        }
+    ],
+    "subflows_df": [
+        {
+            "flow_name": "btm_flow_2026",
+            "flow_type": "sub-flow",
+            "flow_environment_name": "quest master",
+            "flow_environment_path": "C:/work/quest21/snl-quest/quest/app_envs/env_btm/Scripts/python.exe",
+            "flow_layout": {
+                "graph": {
+                    "acyclic": true,
+                    "pipe_collision": false
+                },
+                "nodes": {
+                    "0x16ce2d31040": {
+                        "type_": "QuESt.Workspace.BackNode",
+                        "icon": null,
+                        "name": "BTM Optimization Handler",
+                        "color": [
+                            255,
+                            255,
+                            155
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 378.6637780683644,
+                        "height": 130.1585985343803,
+                        "pos": [
+                            514.316759512516,
+                            81.21537985689815
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": false,
+                        "subgraph_session": {},
+                        "custom": {
+                            "backdrop_text": "This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure."
+                        }
+                    },
+                    "0x16ce2d310d0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "data_manager",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            541.6212525206836,
+                            612.1893547302437
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "data_path",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "dms",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d31190": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "data_location",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            95.98465722821018,
+                            818.7673783526485
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "data_path",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d313a0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "load_profile",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 195.46875,
+                        "height": 80,
+                        "pos": [
+                            79.76719699672526,
+                            458.79527882758237
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "load_data_path",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "load_profile",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d314f0": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "pv_path",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -298.4468068538671,
+                            304.65047363282446
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "pv_path",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d31700": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "pv_profile",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            93.73461286191207,
+                            327.4239849087828
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "pv_data_path",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "pv_profile",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d31850": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "rate_path",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -296.62710816529557,
+                            168.0620856477492
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "rate_path",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d31a60": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "rate_structure_new",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            93.84911818759983,
+                            175.54482751848906
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "rate_path",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "rate_structure",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d31be0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "btm_op_request",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 219.109375,
+                        "height": 126.4,
+                        "pos": [
+                            517.9715540509712,
+                            374.3659817506838
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "rate_structure",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "pv_profile",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "load_profile",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "ess_parameters",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "btm_op_request",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d31dc0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "btm_op_process",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 222.75,
+                        "height": 103.3,
+                        "pos": [
+                            1064.7999682505379,
+                            549.4867745518596
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "btm_op_request",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "dms",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "solver_name",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "btm_solved_ops",
+                                "multi_connection": true,
+                                "display_name": true
+                            },
+                            {
+                                "name": "handler_status",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d56190": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "power_rating",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -294.93675521362536,
+                            598.2215711246814
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "power",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d56550": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "ess_parameters",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 103.3,
+                        "pos": [
+                            94.87787805798212,
+                            637.545141924836
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "power",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "energy",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "rte",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "ess_parameters",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d566d0": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "energy_capacity",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -296.6593597106332,
+                            730.598652571707
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "energy",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d56a30": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "rte",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -293.6027455682174,
+                            849.4965060188866
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "rte",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d56be0": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "solver",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            540.1862529007691,
+                            823.3416384999927
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "solver_name",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": "\"glpk\""
+                        }
+                    },
+                    "0x16ce2d56d90": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "load_path",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -295.8094717647698,
+                            459.294641375737
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "load_path",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x16ce2d56f40": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
+                        "name": "results",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 208.09375,
+                        "height": 80.2,
+                        "pos": [
+                            1443.7617418116306,
+                            586.8883906818662
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "solved_ops",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "saved_location",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "saved_location",
+                                "multi_connection": true,
+                                "display_name": true
+                            },
+                            {
+                                "name": "checkpoints",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x16ce2d78100": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
+                        "name": "results_location",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            1105.8914495935585,
+                            724.367893773601
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "rs_location",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    }
+                },
+                "connections": [
+                    {
+                        "in": [
+                            "0x16ce2d310d0",
+                            "data_path"
+                        ],
+                        "out": [
+                            "0x16ce2d31190",
+                            "data_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d310d0",
+                            "dms"
+                        ],
+                        "in": [
+                            "0x16ce2d31dc0",
+                            "dms"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x16ce2d313a0",
+                            "load_data_path"
+                        ],
+                        "out": [
+                            "0x16ce2d56d90",
+                            "load_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d313a0",
+                            "load_profile"
+                        ],
+                        "in": [
+                            "0x16ce2d31be0",
+                            "load_profile"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d314f0",
+                            "pv_path"
+                        ],
+                        "in": [
+                            "0x16ce2d31700",
+                            "pv_data_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d31700",
+                            "pv_profile"
+                        ],
+                        "in": [
+                            "0x16ce2d31be0",
+                            "pv_profile"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d31850",
+                            "rate_path"
+                        ],
+                        "in": [
+                            "0x16ce2d31a60",
+                            "rate_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d31a60",
+                            "rate_structure"
+                        ],
+                        "in": [
+                            "0x16ce2d31be0",
+                            "rate_structure"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x16ce2d31be0",
+                            "ess_parameters"
+                        ],
+                        "out": [
+                            "0x16ce2d56550",
+                            "ess_parameters"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d31be0",
+                            "btm_op_request"
+                        ],
+                        "in": [
+                            "0x16ce2d31dc0",
+                            "btm_op_request"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x16ce2d31dc0",
+                            "solver_name"
+                        ],
+                        "out": [
+                            "0x16ce2d56be0",
+                            "solver_name"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d31dc0",
+                            "btm_solved_ops"
+                        ],
+                        "in": [
+                            "0x16ce2d56f40",
+                            "solved_ops"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x16ce2d56190",
+                            "power"
+                        ],
+                        "in": [
+                            "0x16ce2d56550",
+                            "power"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x16ce2d56550",
+                            "energy"
+                        ],
+                        "out": [
+                            "0x16ce2d566d0",
+                            "energy"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x16ce2d56550",
+                            "rte"
+                        ],
+                        "out": [
+                            "0x16ce2d56a30",
+                            "rte"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x16ce2d56f40",
+                            "saved_location"
+                        ],
+                        "out": [
+                            "0x16ce2d78100",
+                            "rs_location"
+                        ]
+                    }
+                ]
+            },
+            "nodes_df": [
+                {
+                    "node_id": "0x16ce2d31040",
+                    "node_name": "BTM Optimization Handler",
+                    "node_type": "back_node",
+                    "node_input_variable": "",
+                    "node_input_value": "This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d310d0",
+                    "node_name": "data_manager",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def data_manager_function(data_path):\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\n    return {'dms': dms}",
+                    "node_imports": "from btm.es_gui.tools.btm.btm_dms import BtmDMS\n",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\data_manager.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d31190",
+                    "node_name": "data_location",
+                    "node_type": "data_node",
+                    "node_input_variable": "data_path",
+                    "node_input_value": "\"/data/\"",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d313a0",
+                    "node_name": "load_profile",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def load_profile_function(load_data_path):\n    load_profile = {'name': 'data_center_10MW', 'path': load_data_path}\n    return {'load_profile': load_profile}",
+                    "node_imports": "",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\load_profile.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d314f0",
+                    "node_name": "pv_path",
+                    "node_type": "data_node",
+                    "node_input_variable": "pv_path",
+                    "node_input_value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d31700",
+                    "node_name": "pv_profile",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def pv_profile_function(pv_data_path):\n    pv_profile = {'name': 'ZeroPV', 'path': pv_data_path}\n    return {'pv_profile': pv_profile}",
+                    "node_imports": "",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\pv_profile.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d31850",
+                    "node_name": "rate_path",
+                    "node_type": "data_node",
+                    "node_input_variable": "rate_path",
+                    "node_input_value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d31a60",
+                    "node_name": "rate_structure_new",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def rate_structure_new_function(rate_path):\n    with open(rate_path, 'r') as file:\n        rate_structure = json.load(file)\n    return {'rate_structure': rate_structure}",
+                    "node_imports": "import json\n",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\rate_structure_new.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d31be0",
+                    "node_name": "btm_op_request",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\n    return {'btm_op_request': op_handler_request}",
+                    "node_imports": "",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_op_request.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d31dc0",
+                    "node_name": "btm_op_process",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def btm_op_process_function(btm_op_request, dms, solver_name):\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}",
+                    "node_imports": "from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\n",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_op_process.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d56190",
+                    "node_name": "power_rating",
+                    "node_type": "data_node",
+                    "node_input_variable": "power",
+                    "node_input_value": "100",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d56550",
+                    "node_name": "ess_parameters",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def ess_parameters_function(power, energy, rte):\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\n    return {'ess_parameters': [params]}",
+                    "node_imports": "",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\ess_parameters.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d566d0",
+                    "node_name": "energy_capacity",
+                    "node_type": "data_node",
+                    "node_input_variable": "energy",
+                    "node_input_value": "400",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d56a30",
+                    "node_name": "rte",
+                    "node_type": "data_node",
+                    "node_input_variable": "rte",
+                    "node_input_value": "0.88",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d56be0",
+                    "node_name": "solver",
+                    "node_type": "data_node",
+                    "node_input_variable": "solver_name",
+                    "node_input_value": "\"glpk\"",
+                    "node_value_display": true,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d56d90",
+                    "node_name": "load_path",
+                    "node_type": "data_node",
+                    "node_input_variable": "load_path",
+                    "node_input_value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x16ce2d56f40",
+                    "node_name": "results",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [
+                        "saved_location",
+                        "checkpoints"
+                    ],
+                    "node_function_wrapper": "def results_function(solved_ops, saved_location):\n    os.makedirs(saved_location, exist_ok=True)\n    checkpoints = {}\n    for op in solved_ops:\n        op_results = op[1].results\n        file_name = op[0]\n        file_name = re.sub('[^\\\\w\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\n        file_name = saved_location + '/' + file_name\n        op_results.to_csv(file_name, index=False)\n        checkpoints[file_name] = file_name\n    return {'saved_location': saved_location, 'checkpoints': checkpoints}",
+                    "node_imports": "import os\nimport re\n",
+                    "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\results.ipynb"
+                },
+                {
+                    "node_id": "0x16ce2d78100",
+                    "node_name": "results_location",
+                    "node_type": "data_node",
+                    "node_input_variable": "rs_location",
+                    "node_input_value": "\"./results/workspace\"",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                }
+            ],
+            "connections_df": [
+                {
+                    "connection_id": 1,
+                    "from_node": "0x16ce2d31190",
+                    "to_node": "0x16ce2d310d0",
+                    "mapping": {
+                        "data_path": "data_path"
+                    }
+                },
+                {
+                    "connection_id": 2,
+                    "from_node": "0x16ce2d310d0",
+                    "to_node": "0x16ce2d31dc0",
+                    "mapping": {
+                        "dms": "dms"
+                    }
+                },
+                {
+                    "connection_id": 3,
+                    "from_node": "0x16ce2d56d90",
+                    "to_node": "0x16ce2d313a0",
+                    "mapping": {
+                        "load_path": "load_data_path"
+                    }
+                },
+                {
+                    "connection_id": 4,
+                    "from_node": "0x16ce2d313a0",
+                    "to_node": "0x16ce2d31be0",
+                    "mapping": {
+                        "load_profile": "load_profile"
+                    }
+                },
+                {
+                    "connection_id": 5,
+                    "from_node": "0x16ce2d314f0",
+                    "to_node": "0x16ce2d31700",
+                    "mapping": {
+                        "pv_path": "pv_data_path"
+                    }
+                },
+                {
+                    "connection_id": 6,
+                    "from_node": "0x16ce2d31700",
+                    "to_node": "0x16ce2d31be0",
+                    "mapping": {
+                        "pv_profile": "pv_profile"
+                    }
+                },
+                {
+                    "connection_id": 7,
+                    "from_node": "0x16ce2d31850",
+                    "to_node": "0x16ce2d31a60",
+                    "mapping": {
+                        "rate_path": "rate_path"
+                    }
+                },
+                {
+                    "connection_id": 8,
+                    "from_node": "0x16ce2d31a60",
+                    "to_node": "0x16ce2d31be0",
+                    "mapping": {
+                        "rate_structure": "rate_structure"
+                    }
+                },
+                {
+                    "connection_id": 9,
+                    "from_node": "0x16ce2d56550",
+                    "to_node": "0x16ce2d31be0",
+                    "mapping": {
+                        "ess_parameters": "ess_parameters"
+                    }
+                },
+                {
+                    "connection_id": 10,
+                    "from_node": "0x16ce2d31be0",
+                    "to_node": "0x16ce2d31dc0",
+                    "mapping": {
+                        "btm_op_request": "btm_op_request"
+                    }
+                },
+                {
+                    "connection_id": 11,
+                    "from_node": "0x16ce2d56be0",
+                    "to_node": "0x16ce2d31dc0",
+                    "mapping": {
+                        "solver_name": "solver_name"
+                    }
+                },
+                {
+                    "connection_id": 12,
+                    "from_node": "0x16ce2d31dc0",
+                    "to_node": "0x16ce2d56f40",
+                    "mapping": {
+                        "btm_solved_ops": "solved_ops"
+                    }
+                },
+                {
+                    "connection_id": 13,
+                    "from_node": "0x16ce2d56190",
+                    "to_node": "0x16ce2d56550",
+                    "mapping": {
+                        "power": "power"
+                    }
+                },
+                {
+                    "connection_id": 14,
+                    "from_node": "0x16ce2d566d0",
+                    "to_node": "0x16ce2d56550",
+                    "mapping": {
+                        "energy": "energy"
+                    }
+                },
+                {
+                    "connection_id": 15,
+                    "from_node": "0x16ce2d56a30",
+                    "to_node": "0x16ce2d56550",
+                    "mapping": {
+                        "rte": "rte"
+                    }
+                },
+                {
+                    "connection_id": 16,
+                    "from_node": "0x16ce2d78100",
+                    "to_node": "0x16ce2d56f40",
+                    "mapping": {
+                        "rs_location": "saved_location"
+                    }
+                }
+            ]
+        }
+    ]
+}

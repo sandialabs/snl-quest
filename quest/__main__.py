@@ -6,7 +6,7 @@ import requests
 import subprocess
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
-from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess
+from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess, QCoreApplication
 
 from quest.app.ui.ui_quest_main import Ui_MainWindow
 from quest.app.home_page.home_page import home_page
@@ -19,6 +19,10 @@ from quest.app.ui_tools.custom_splash import CustomSplashScreen, SplashScreenUpd
 from quest.app.updates.updater import UpdateChecker
 
 dirname = get_path()
+# Force software rendering to avoid D3D11 / swapchain issues on some systems.
+os.environ["QT_OPENGL"] = "software"
+# os.environ["QSG_RHI_BACKEND"] = "software"
+QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """

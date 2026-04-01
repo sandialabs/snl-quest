@@ -410,23 +410,96 @@ class home_page(QWidget, Ui_home_page):
         equity_page = self.add_info_page.add_page("QuESt Energy Equity", "David Rosewater dmrose@sandia.gov", "An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.")
         self.add_info_page.connect_about(equity_about_button, equity_page)
 
-        self.gridLayout.addWidget(equity_front, 1, 3)
+        #self.gridLayout.addWidget(equity_front, 1, 3)
 
-        #Planning app place holder
-        self.plan_front = form_apps()
-        self.plan_front.progress_bar.setValue(0)
-        self.plan_front.setting_button.setEnabled(False)
-        self.plan_front.install_button.setEnabled(False)
-        self.plan_front.install_button.setText("Upcoming")
-        plan_image = os.path.join(base_dir, "images", "logo", "Quest_Planning_Logo_RGB.png")
+        #Planning app
+        plan_front = form_apps()
+        plan_image = os.path.join(base_dir, "images", "logo", "custom_QP_logo.png")
         plan_image = plan_image.replace("\\", "/")
-        self.plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
+        plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
 
-        plan_about_button = self.plan_front.about_button
-        plan_page = self.add_info_page.add_page("QuESt Planning", "", "This app is still in development and will be released to the QuESt platform soon.")
+        plan_env_path = os.path.join(base_dir, "app_envs", "env_planning", "snl_quest_planning")
+        plan_env_act = os.path.join(base_dir, "app_envs", "env_planning", "Scripts", "python.exe")
+
+        plan_env_cmd = "quest_planning"
+        plan_script_path = os.path.join(base_dir, "app", "tools", "script_files", "plan.bat")
+        plan_del_path = os.path.join(base_dir, "app_envs", "env_planning")
+        plan_solve = os.path.join(base_dir,"app_envs", "env_planning", "glpk", "GLPK-4.65", "w64" )
+
+        plan_back = app_manager(plan_env_path, plan_env_act, plan_env_cmd, plan_script_path, del_path, plan_del_path, plan_solve, mod)
+        self.plan_obj = gui_connector(plan_front, plan_back, plan_env_path)
+
+        plan_about_button = plan_front.about_button
+        plan_page = self.add_info_page.add_page("QuESt Planning", "Cody Newlun cjnewlu@sandia.gov", "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.")
         self.add_info_page.connect_about(plan_about_button, plan_page)
 
-        self.gridLayout.addWidget(self.plan_front, 2, 0)
+        self.gridLayout.addWidget(plan_front, 2, 0)
+
+
+        #Progress app
+        progress_front = form_apps()
+        progress_image = os.path.join(base_dir, "images", "logo", "progress_transparent_alt.png")
+        progress_image = progress_image.replace("\\", "/")
+        progress_front.app_image.setStyleSheet(f"image: url({progress_image});")
+
+        progress_env_path = os.path.join(base_dir, "app_envs", "env_progress", "snl_quest_progress")
+        progress_env_act = os.path.join(base_dir, "app_envs", "env_progress", "Scripts", "python.exe")
+
+        progress_env_cmd = "progress"
+        progress_script_path = os.path.join(base_dir, "app", "tools", "script_files", "progress.bat")
+        progress_del_path = os.path.join(base_dir, "app_envs", "env_progress")
+        progress_solve = os.path.join(base_dir,"app_envs", "env_progress", "glpk", "GLPK-4.65", "w64" )
+
+        progress_back = app_manager(progress_env_path, progress_env_act, progress_env_cmd, progress_script_path, del_path, progress_del_path, progress_solve, mod)
+        self.progress_obj = gui_connector(progress_front, progress_back, progress_env_path)
+
+        progress_about_button = progress_front.about_button
+        progress_page = self.add_info_page.add_page("QuESt Progress", "Atri Bera abera@sandia.gov", "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.")
+        self.add_info_page.connect_about(progress_about_button, progress_page)
+
+        self.gridLayout.addWidget(progress_front, 1, 3)
+
+
+        # #AFR app
+        # afr_front = form_apps()
+        # afr_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_AFR.png")
+        # afr_image = afr_image.replace("\\", "/")
+        # afr_front.app_image.setStyleSheet(f"image: url({afr_image});")
+
+        # afr_env_path = os.path.join(base_dir, "app_envs", "env_afr")
+        # afr_env_act = os.path.join(base_dir, "app_envs", "env_afr", "Scripts", "python.exe")
+
+        # afr_env_cmd = "afr"
+        # afr_script_path = os.path.join(base_dir, "app", "tools", "script_files", "afr.bat")
+        # afr_del_path = os.path.join(base_dir, "app_envs", "env_afr")
+        # afr_solve = os.path.join(base_dir,"app_envs", "env_afr", "glpk", "GLPK-4.65", "w64" )
+
+        # afr_back = app_manager(afr_env_path, afr_env_act, afr_env_cmd, afr_script_path, del_path, afr_del_path, afr_solve, mod)
+        # self.afr_obj = gui_connector(afr_front, afr_back, afr_env_path)
+
+        # afr_about_button = afr_front.about_button
+        # afr_page = self.add_info_page.add_page("QuESt Analysis for Regulators", "Walker Olis wolis@sandia.gov", "QuESt Analysis for Regulators is a python-based tool for analyzing the impact of energy storage, PV, and wind deployment on capacity goals.")
+        # self.add_info_page.connect_about(afr_about_button, afr_page)
+
+        # self.gridLayout.addWidget(afr_front, 1, 3)
+##      place holder formats
+        # #Planning app place holder
+        # self.plan_front = form_apps()
+        # self.plan_front.progress_bar.setValue(0)
+        # self.plan_front.setting_button.setEnabled(False)
+        # self.plan_front.install_button.setEnabled(False)
+        # self.plan_front.install_button.setText("Upcoming")
+        # plan_image = os.path.join(base_dir, "images", "logo", "Quest_Planning_Logo_RGB.png")
+        # plan_image = plan_image.replace("\\", "/")
+        # self.plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
+
+        # plan_about_button = self.plan_front.about_button
+        # plan_page = self.add_info_page.add_page("QuESt Planning", "", "This app is still in development and will be released to the QuESt platform soon.")
+        # self.add_info_page.connect_about(plan_about_button, plan_page)
+
+        # self.gridLayout.addWidget(self.plan_front, 2, 0)
+
+
 
 #           connecting the search bar funtion
 
@@ -460,17 +533,19 @@ class home_page(QWidget, Ui_home_page):
         behind_the_meter = self.btm_obj.front.app_search
         performance = self.perf_obj.front.app_search
         microgrid = self.micro_obj.front.app_search
-        planning = self.plan_front.app_search
+        planning = self.plan_obj.front.app_search
+        progress = self.progress_obj.front.app_search
         data_gpt = self.gpt_obj.front.app_search
         data_manager = self.data_man_obj.front.app_search
         energy_equity = self.equity_obj.front.app_search
+        analysis_for_regulators = self.afr_obj.front.app_search
 
 
 #           list of apps to search
 
         self.widget_names = [
             "tech_selection", "evaluation", "behind_the_meter",
-            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager",
+            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager", "progress", "analysis_for_regulators"
             ]
 
         for widget in self.widget_names:
