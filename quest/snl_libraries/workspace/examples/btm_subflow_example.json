@@ -2,14 +2,14 @@
     "flow_name": "Master_btm_flow_2026",
     "flow_type": "master-flow",
     "flow_environment_name": "quest master",
-    "flow_environment_path": "C:/work/quest21/Scripts/python.exe",
+    "flow_environment_path": "C:/work/quest21a/Scripts/python.exe",
     "flow_layout": {
         "graph": {
             "acyclic": true,
             "pipe_collision": false
         },
         "nodes": {
-            "0x16ce1d3dc10": {
+            "0x1d350235430": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "pv_path",
@@ -53,7 +53,7 @@
                     "Text Caption": ""
                 }
             },
-            "0x16ce1d3dd00": {
+            "0x1d3502354f0": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "rate_path",
@@ -97,7 +97,7 @@
                     "Text Caption": ""
                 }
             },
-            "0x16ce1d3de80": {
+            "0x1d350235700": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "power rating",
@@ -141,7 +141,7 @@
                     "Text Caption": "100"
                 }
             },
-            "0x16ce2ce0070": {
+            "0x1d350235880": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "energy capacity",
@@ -185,7 +185,7 @@
                     "Text Caption": "400"
                 }
             },
-            "0x16ce2ce0220": {
+            "0x1d350235a30": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "rte",
@@ -211,8 +211,8 @@
                 "width": 180,
                 "height": 80,
                 "pos": [
-                    -299.14363953571217,
-                    844.5114086529048
+                    -291.6016805579997,
+                    938.7858958743103
                 ],
                 "layout_direction": 0,
                 "port_deletion_allowed": true,
@@ -229,7 +229,7 @@
                     "Text Caption": "0.88"
                 }
             },
-            "0x16ce2ce03d0": {
+            "0x1d350235be0": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "load_path",
@@ -255,7 +255,7 @@
                 "width": 180,
                 "height": 80,
                 "pos": [
-                    -295.8094717647698,
+                    -293.92398202034167,
                     458.18646258223805
                 ],
                 "layout_direction": 0,
@@ -273,7 +273,7 @@
                     "Text Caption": ""
                 }
             },
-            "0x16ce2ce0670": {
+            "0x1d350235e80": {
                 "type_": "QuESt.Workspace.PyNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                 "name": "btm_flow_2026",
@@ -299,8 +299,8 @@
                 "width": 214.921875,
                 "height": 172.6,
                 "pos": [
-                    192.43982366114273,
-                    413.8669055073367
+                    260.20111451406217,
+                    398.8088408733546
                 ],
                 "layout_direction": 0,
                 "port_deletion_allowed": true,
@@ -354,61 +354,61 @@
         "connections": [
             {
                 "out": [
-                    "0x16ce1d3dc10",
+                    "0x1d350235430",
                     "pv_path"
                 ],
                 "in": [
-                    "0x16ce2ce0670",
+                    "0x1d350235e80",
                     "pv_path"
                 ]
             },
             {
                 "out": [
-                    "0x16ce1d3dd00",
+                    "0x1d3502354f0",
                     "rate_path"
                 ],
                 "in": [
-                    "0x16ce2ce0670",
+                    "0x1d350235e80",
                     "rate_path"
                 ]
             },
             {
                 "out": [
-                    "0x16ce1d3de80",
+                    "0x1d350235700",
                     "power"
                 ],
                 "in": [
-                    "0x16ce2ce0670",
+                    "0x1d350235e80",
                     "power_rating"
                 ]
             },
             {
                 "out": [
-                    "0x16ce2ce0070",
+                    "0x1d350235880",
                     "energy"
                 ],
                 "in": [
-                    "0x16ce2ce0670",
+                    "0x1d350235e80",
                     "energy_capacity"
                 ]
             },
             {
                 "out": [
-                    "0x16ce2ce0220",
+                    "0x1d350235a30",
                     "rte"
                 ],
                 "in": [
-                    "0x16ce2ce0670",
+                    "0x1d350235e80",
                     "rte"
                 ]
             },
             {
                 "out": [
-                    "0x16ce2ce03d0",
+                    "0x1d350235be0",
                     "load_path"
                 ],
                 "in": [
-                    "0x16ce2ce0670",
+                    "0x1d350235e80",
                     "load_path"
                 ]
             }
@@ -416,7 +416,7 @@
     },
     "nodes_df": [
         {
-            "node_id": "0x16ce1d3dc10",
+            "node_id": "0x1d350235430",
             "node_name": "pv_path",
             "node_type": "data_node",
             "node_input_variable": "pv_path",
@@ -430,7 +430,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x16ce1d3dd00",
+            "node_id": "0x1d3502354f0",
             "node_name": "rate_path",
             "node_type": "data_node",
             "node_input_variable": "rate_path",
@@ -444,7 +444,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x16ce1d3de80",
+            "node_id": "0x1d350235700",
             "node_name": "power rating",
             "node_type": "data_node",
             "node_input_variable": "power",
@@ -458,7 +458,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x16ce2ce0070",
+            "node_id": "0x1d350235880",
             "node_name": "energy capacity",
             "node_type": "data_node",
             "node_input_variable": "energy",
@@ -472,7 +472,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x16ce2ce0220",
+            "node_id": "0x1d350235a30",
             "node_name": "rte",
             "node_type": "data_node",
             "node_input_variable": "rte",
@@ -486,7 +486,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x16ce2ce03d0",
+            "node_id": "0x1d350235be0",
             "node_name": "load_path",
             "node_type": "data_node",
             "node_input_variable": "load_path",
@@ -500,7 +500,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x16ce2ce0670",
+            "node_id": "0x1d350235e80",
             "node_name": "btm_flow_2026",
             "node_type": "python_node",
             "node_input_variable": "",
@@ -509,7 +509,7 @@
             "node_is_path": false,
             "node_is_from_master": false,
             "node_expose_outputs": [],
-            "node_function_wrapper": "def btm_flow_2026_function(pv_path=None, rate_path=None, power_rating=None, energy_capacity=None, rte=None, load_path=None):\n\n    def update_subflow(subflow_nodes_df, **kwargs):\n        for (idx, row) in subflow_nodes_df.iterrows():\n            if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:\n                node_name = str(row.get('node_name', '')).strip()\n                if node_name in kwargs:\n                    subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])\n        return subflow_nodes_df\n\n    def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable=None):\n        f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df)\n        f.set_inputs()\n        f.get_outputs(key=None)\n        f.make()\n        append_lines = []\n        append_lines.append('import json')\n        append_lines.append('_quest_subflow_results = {}')\n        append_lines.append(\"if 'node0x1e5266dda90_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['data_manager'] = node0x1e5266dda90_outputs\")\n        append_lines.append(\"if 'node0x1e5266ddd60_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['load_profile'] = node0x1e5266ddd60_outputs\")\n        append_lines.append(\"if 'node0x1e52672d100_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['pv_profile'] = node0x1e52672d100_outputs\")\n        append_lines.append(\"if 'node0x1e52672d460_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['rate_structure_new'] = node0x1e52672d460_outputs\")\n        append_lines.append(\"if 'node0x1e52672d5e0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_request'] = node0x1e52672d5e0_outputs\")\n        append_lines.append(\"if 'node0x1e52672d7c0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_process'] = node0x1e52672d7c0_outputs\")\n        append_lines.append(\"if 'node0x1e52672df10_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['ess_parameters'] = node0x1e52672df10_outputs\")\n        append_lines.append(\"if 'node0x1e52674e940_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['results'] = node0x1e52674e940_outputs\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_START__')\")\n        append_lines.append('print(json.dumps(_quest_subflow_results, default=str))')\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_END__')\")\n        f.main_py = f.main_py.rstrip() + '\\n\\n' + '\\n'.join(append_lines) + '\\n'\n        with tempfile.TemporaryDirectory() as tmpdir:\n            f.save(tmpdir + os.sep)\n            result = f.run(python_executable=python_executable)\n            stdout = getattr(result, 'stdout', '') or ''\n        start_marker = '__QUEST_SUBFLOW_RESULTS_START__'\n        end_marker = '__QUEST_SUBFLOW_RESULTS_END__'\n        if start_marker not in stdout or end_marker not in stdout:\n            raise RuntimeError('Could not find subflow results in stdout.\\nSTDOUT:\\n' + stdout)\n        payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()\n        if not payload:\n            return {}\n        return json.loads(payload)\n    subflow_name = 'btm_flow_2026'\n    subflow_nodes_df = pd.DataFrame([{'node_id': '0x1e5266dd790', 'node_name': 'BTM Optimization Handler', 'node_type': 'back_node', 'node_input_variable': '', 'node_input_value': 'This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e5266dda90', 'node_name': 'data_manager', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def data_manager_function(data_path):\\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\\n    return {'dms': dms}\", 'node_imports': 'from btm.es_gui.tools.btm.btm_dms import BtmDMS\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\data_manager.ipynb'}, {'node_id': '0x1e5266dd910', 'node_name': 'data_location', 'node_type': 'data_node', 'node_input_variable': 'data_path', 'node_input_value': '\"/data/\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e5266ddd60', 'node_name': 'load_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def load_profile_function(load_data_path):\\n    load_profile = {'name': 'data_center_10MW', 'path': load_data_path}\\n    return {'load_profile': load_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\load_profile.ipynb'}, {'node_id': '0x1e5266ddeb0', 'node_name': 'pv_path', 'node_type': 'data_node', 'node_input_variable': 'pv_path', 'node_input_value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52672d100', 'node_name': 'pv_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def pv_profile_function(pv_data_path):\\n    pv_profile = {'name': 'ZeroPV', 'path': pv_data_path}\\n    return {'pv_profile': pv_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\pv_profile.ipynb'}, {'node_id': '0x1e52672d250', 'node_name': 'rate_path', 'node_type': 'data_node', 'node_input_variable': 'rate_path', 'node_input_value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52672d460', 'node_name': 'rate_structure_new', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def rate_structure_new_function(rate_path):\\n    with open(rate_path, 'r') as file:\\n        rate_structure = json.load(file)\\n    return {'rate_structure': rate_structure}\", 'node_imports': 'import json\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\rate_structure_new.ipynb'}, {'node_id': '0x1e52672d5e0', 'node_name': 'btm_op_request', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\\n    return {'btm_op_request': op_handler_request}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_request.ipynb'}, {'node_id': '0x1e52672d7c0', 'node_name': 'btm_op_process', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_process_function(btm_op_request, dms, solver_name):\\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}\", 'node_imports': 'from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_process.ipynb'}, {'node_id': '0x1e52672db50', 'node_name': 'power_rating', 'node_type': 'data_node', 'node_input_variable': 'power', 'node_input_value': '100', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52672df10', 'node_name': 'ess_parameters', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def ess_parameters_function(power, energy, rte):\\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\\n    return {'ess_parameters': [params]}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\ess_parameters.ipynb'}, {'node_id': '0x1e52674e0d0', 'node_name': 'energy_capacity', 'node_type': 'data_node', 'node_input_variable': 'energy', 'node_input_value': '400', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e430', 'node_name': 'rte', 'node_type': 'data_node', 'node_input_variable': 'rte', 'node_input_value': '0.88', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e5e0', 'node_name': 'solver', 'node_type': 'data_node', 'node_input_variable': 'solver_name', 'node_input_value': '\"glpk\"', 'node_value_display': True, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e790', 'node_name': 'load_path', 'node_type': 'data_node', 'node_input_variable': 'load_path', 'node_input_value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1e52674e940', 'node_name': 'results', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': ['saved_location', 'checkpoints'], 'node_function_wrapper': \"def results_function(solved_ops, saved_location):\\n    os.makedirs(saved_location, exist_ok=True)\\n    checkpoints = {}\\n    for op in solved_ops:\\n        op_results = op[1].results\\n        file_name = op[0]\\n        file_name = re.sub('[^\\\\\\\\w\\\\\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\\n        file_name = saved_location + '/' + file_name\\n        op_results.to_csv(file_name, index=False)\\n        checkpoints[file_name] = file_name\\n    return {'saved_location': saved_location, 'checkpoints': checkpoints}\", 'node_imports': 'import os\\nimport re\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\results.ipynb'}, {'node_id': '0x1e52674eac0', 'node_name': 'results_location', 'node_type': 'data_node', 'node_input_variable': 'rs_location', 'node_input_value': '\"./results/workspace\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}])\n    subflow_connections_df = pd.DataFrame([{'connection_id': 1, 'from_node': '0x1e5266dd910', 'to_node': '0x1e5266dda90', 'mapping': {'data_path': 'data_path'}}, {'connection_id': 2, 'from_node': '0x1e5266dda90', 'to_node': '0x1e52672d7c0', 'mapping': {'dms': 'dms'}}, {'connection_id': 3, 'from_node': '0x1e52674e790', 'to_node': '0x1e5266ddd60', 'mapping': {'load_path': 'load_data_path'}}, {'connection_id': 4, 'from_node': '0x1e5266ddd60', 'to_node': '0x1e52672d5e0', 'mapping': {'load_profile': 'load_profile'}}, {'connection_id': 5, 'from_node': '0x1e5266ddeb0', 'to_node': '0x1e52672d100', 'mapping': {'pv_path': 'pv_data_path'}}, {'connection_id': 6, 'from_node': '0x1e52672d100', 'to_node': '0x1e52672d5e0', 'mapping': {'pv_profile': 'pv_profile'}}, {'connection_id': 7, 'from_node': '0x1e52672d250', 'to_node': '0x1e52672d460', 'mapping': {'rate_path': 'rate_path'}}, {'connection_id': 8, 'from_node': '0x1e52672d460', 'to_node': '0x1e52672d5e0', 'mapping': {'rate_structure': 'rate_structure'}}, {'connection_id': 9, 'from_node': '0x1e52672df10', 'to_node': '0x1e52672d5e0', 'mapping': {'ess_parameters': 'ess_parameters'}}, {'connection_id': 10, 'from_node': '0x1e52672d5e0', 'to_node': '0x1e52672d7c0', 'mapping': {'btm_op_request': 'btm_op_request'}}, {'connection_id': 11, 'from_node': '0x1e52674e5e0', 'to_node': '0x1e52672d7c0', 'mapping': {'solver_name': 'solver_name'}}, {'connection_id': 12, 'from_node': '0x1e52672d7c0', 'to_node': '0x1e52674e940', 'mapping': {'btm_solved_ops': 'solved_ops'}}, {'connection_id': 13, 'from_node': '0x1e52672db50', 'to_node': '0x1e52672df10', 'mapping': {'power': 'power'}}, {'connection_id': 14, 'from_node': '0x1e52674e0d0', 'to_node': '0x1e52672df10', 'mapping': {'energy': 'energy'}}, {'connection_id': 15, 'from_node': '0x1e52674e430', 'to_node': '0x1e52672df10', 'mapping': {'rte': 'rte'}}, {'connection_id': 16, 'from_node': '0x1e52674eac0', 'to_node': '0x1e52674e940', 'mapping': {'rs_location': 'saved_location'}}])\n    subflow_nodes_df = update_subflow(subflow_nodes_df, pv_path=pv_path, rate_path=rate_path, power_rating=power_rating, energy_capacity=energy_capacity, rte=rte, load_path=load_path)\n    _results = run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable='C:/work/quest20c/quest2/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe')\n    return {'saved_location': _results.get('results', {}).get('saved_location'), 'checkpoints': _results.get('results', {}).get('checkpoints')}",
+            "node_function_wrapper": "def btm_flow_2026_function(pv_path=None, rate_path=None, power_rating=None, energy_capacity=None, rte=None, load_path=None):\n    def update_subflow(subflow_nodes_df, **kwargs):\n        for idx, row in subflow_nodes_df.iterrows():\n            if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:\n                node_name = str(row.get('node_name', '')).strip()\n                if node_name in kwargs:\n                    subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])\n        return subflow_nodes_df\n\n    def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable=None):\n        f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df)\n        f.set_inputs()\n        f.get_outputs(key=None)\n        f.make()\n        append_lines = []\n        append_lines.append('import json')\n        append_lines.append('_quest_subflow_results = {}')\n        append_lines.append(\"if 'node0x1d3511b58e0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['data_manager'] = node0x1d3511b58e0_outputs\")\n        append_lines.append(\"if 'node0x1d3511b5bb0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['load_profile'] = node0x1d3511b5bb0_outputs\")\n        append_lines.append(\"if 'node0x1d3511b5f10_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['pv_profile'] = node0x1d3511b5f10_outputs\")\n        append_lines.append(\"if 'node0x1d3512022b0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['rate_structure_new'] = node0x1d3512022b0_outputs\")\n        append_lines.append(\"if 'node0x1d351202430_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_request'] = node0x1d351202430_outputs\")\n        append_lines.append(\"if 'node0x1d351202610_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_process'] = node0x1d351202610_outputs\")\n        append_lines.append(\"if 'node0x1d351202d60_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['ess_parameters'] = node0x1d351202d60_outputs\")\n        append_lines.append(\"if 'node0x1d351225760_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['results'] = node0x1d351225760_outputs\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_START__')\")\n        append_lines.append(\"print(json.dumps(_quest_subflow_results, default=str))\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_END__')\")\n        f.main_py = f.main_py.rstrip() + '\\n\\n' + '\\n'.join(append_lines) + '\\n'\n        with tempfile.TemporaryDirectory() as tmpdir:\n            f.save(tmpdir + os.sep)\n            result = f.run(python_executable=python_executable)\n            stdout = getattr(result, 'stdout', '') or ''\n        start_marker = '__QUEST_SUBFLOW_RESULTS_START__'\n        end_marker = '__QUEST_SUBFLOW_RESULTS_END__'\n        if start_marker not in stdout or end_marker not in stdout:\n            raise RuntimeError('Could not find subflow results in stdout.\\nSTDOUT:\\n' + stdout)\n        payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()\n        if not payload:\n            return {}\n        return json.loads(payload)\n\n    subflow_name = 'btm_flow_2026'\n    subflow_nodes_df = pd.DataFrame([{'node_id': '0x1d3511b5400', 'node_name': 'BTM Optimization Handler', 'node_type': 'back_node', 'node_input_variable': '', 'node_input_value': 'This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d3511b58e0', 'node_name': 'data_manager', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def data_manager_function(data_path):\\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\\n    return {'dms': dms}\", 'node_imports': 'from btm.es_gui.tools.btm.btm_dms import BtmDMS\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\data_manager.ipynb'}, {'node_id': '0x1d3511b5760', 'node_name': 'data_location', 'node_type': 'data_node', 'node_input_variable': 'data_path', 'node_input_value': '\"/data/\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d3511b5bb0', 'node_name': 'load_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def load_profile_function(load_data_path):\\n    load_profile = {'name': 'data_center_10MW', 'path': load_data_path}\\n    return {'load_profile': load_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\load_profile.ipynb'}, {'node_id': '0x1d3511b5d00', 'node_name': 'pv_path', 'node_type': 'data_node', 'node_input_variable': 'pv_path', 'node_input_value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d3511b5f10', 'node_name': 'pv_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def pv_profile_function(pv_data_path):\\n    pv_profile = {'name': 'ZeroPV', 'path': pv_data_path}\\n    return {'pv_profile': pv_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\pv_profile.ipynb'}, {'node_id': '0x1d3512020a0', 'node_name': 'rate_path', 'node_type': 'data_node', 'node_input_variable': 'rate_path', 'node_input_value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d3512022b0', 'node_name': 'rate_structure_new', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def rate_structure_new_function(rate_path):\\n    with open(rate_path, 'r') as file:\\n        rate_structure = json.load(file)\\n    return {'rate_structure': rate_structure}\", 'node_imports': 'import json\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\rate_structure_new.ipynb'}, {'node_id': '0x1d351202430', 'node_name': 'btm_op_request', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\\n    return {'btm_op_request': op_handler_request}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_request.ipynb'}, {'node_id': '0x1d351202610', 'node_name': 'btm_op_process', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_process_function(btm_op_request, dms, solver_name, glpk_path):\\n    sys.path.insert(0, os.path.dirname(glpk_path))\\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}\", 'node_imports': 'from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_process.ipynb'}, {'node_id': '0x1d3512029a0', 'node_name': 'power_rating', 'node_type': 'data_node', 'node_input_variable': 'power', 'node_input_value': '100', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d351202d60', 'node_name': 'ess_parameters', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def ess_parameters_function(power, energy, rte):\\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\\n    return {'ess_parameters': [params]}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\ess_parameters.ipynb'}, {'node_id': '0x1d351202ee0', 'node_name': 'energy_capacity', 'node_type': 'data_node', 'node_input_variable': 'energy', 'node_input_value': '400', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d351225280', 'node_name': 'rte', 'node_type': 'data_node', 'node_input_variable': 'rte', 'node_input_value': '0.88', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d351225430', 'node_name': 'solver', 'node_type': 'data_node', 'node_input_variable': 'solver_name', 'node_input_value': '\"glpk\"', 'node_value_display': True, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d3512255b0', 'node_name': 'load_path', 'node_type': 'data_node', 'node_input_variable': 'load_path', 'node_input_value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d351225760', 'node_name': 'results', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': ['saved_location', 'checkpoints'], 'node_function_wrapper': \"def results_function(solved_ops, saved_location):\\n    os.makedirs(saved_location, exist_ok=True)\\n    checkpoints = {}\\n    for op in solved_ops:\\n        op_results = op[1].results\\n        file_name = op[0]\\n        file_name = re.sub('[^\\\\\\\\w\\\\\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\\n        file_name = saved_location + '/' + file_name\\n        op_results.to_csv(file_name, index=False)\\n        checkpoints[file_name] = file_name\\n    return {'saved_location': saved_location, 'checkpoints': checkpoints}\", 'node_imports': 'import os\\nimport re\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\results.ipynb'}, {'node_id': '0x1d3512258e0', 'node_name': 'results_location', 'node_type': 'data_node', 'node_input_variable': 'rs_location', 'node_input_value': '\"./results/workspace\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x1d349cb4c40', 'node_name': 'DataNode1', 'node_type': 'data_node', 'node_input_variable': 'glpk_path', 'node_input_value': '\"C:/work/quest21a/Lib/site-packages/quest/app_envs/env_btm/Lib/site-packages/glpk/\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}])\n    subflow_connections_df = pd.DataFrame([{'connection_id': 1, 'from_node': '0x1d3511b5760', 'to_node': '0x1d3511b58e0', 'mapping': {'data_path': 'data_path'}}, {'connection_id': 2, 'from_node': '0x1d3511b58e0', 'to_node': '0x1d351202610', 'mapping': {'dms': 'dms'}}, {'connection_id': 3, 'from_node': '0x1d3512255b0', 'to_node': '0x1d3511b5bb0', 'mapping': {'load_path': 'load_data_path'}}, {'connection_id': 4, 'from_node': '0x1d3511b5bb0', 'to_node': '0x1d351202430', 'mapping': {'load_profile': 'load_profile'}}, {'connection_id': 5, 'from_node': '0x1d3511b5d00', 'to_node': '0x1d3511b5f10', 'mapping': {'pv_path': 'pv_data_path'}}, {'connection_id': 6, 'from_node': '0x1d3511b5f10', 'to_node': '0x1d351202430', 'mapping': {'pv_profile': 'pv_profile'}}, {'connection_id': 7, 'from_node': '0x1d3512020a0', 'to_node': '0x1d3512022b0', 'mapping': {'rate_path': 'rate_path'}}, {'connection_id': 8, 'from_node': '0x1d3512022b0', 'to_node': '0x1d351202430', 'mapping': {'rate_structure': 'rate_structure'}}, {'connection_id': 9, 'from_node': '0x1d351202d60', 'to_node': '0x1d351202430', 'mapping': {'ess_parameters': 'ess_parameters'}}, {'connection_id': 10, 'from_node': '0x1d351202430', 'to_node': '0x1d351202610', 'mapping': {'btm_op_request': 'btm_op_request'}}, {'connection_id': 11, 'from_node': '0x1d351225430', 'to_node': '0x1d351202610', 'mapping': {'solver_name': 'solver_name'}}, {'connection_id': 12, 'from_node': '0x1d349cb4c40', 'to_node': '0x1d351202610', 'mapping': {'glpk_path': 'glpk_path'}}, {'connection_id': 13, 'from_node': '0x1d351202610', 'to_node': '0x1d351225760', 'mapping': {'btm_solved_ops': 'solved_ops'}}, {'connection_id': 14, 'from_node': '0x1d3512029a0', 'to_node': '0x1d351202d60', 'mapping': {'power': 'power'}}, {'connection_id': 15, 'from_node': '0x1d351202ee0', 'to_node': '0x1d351202d60', 'mapping': {'energy': 'energy'}}, {'connection_id': 16, 'from_node': '0x1d351225280', 'to_node': '0x1d351202d60', 'mapping': {'rte': 'rte'}}, {'connection_id': 17, 'from_node': '0x1d3512258e0', 'to_node': '0x1d351225760', 'mapping': {'rs_location': 'saved_location'}}])\n    subflow_nodes_df = update_subflow(subflow_nodes_df, pv_path=pv_path, rate_path=rate_path, power_rating=power_rating, energy_capacity=energy_capacity, rte=rte, load_path=load_path)\n    _results = run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable='C:/work/quest21a/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe')\n    return {\n        'saved_location': _results.get('results', {}).get('saved_location'),\n        'checkpoints': _results.get('results', {}).get('checkpoints'),\n    }",
             "node_imports": "",
             "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_flow_2026_0x1ea86425490.ipynb"
         }
@@ -517,48 +517,48 @@
     "connections_df": [
         {
             "connection_id": 1,
-            "from_node": "0x16ce1d3dc10",
-            "to_node": "0x16ce2ce0670",
+            "from_node": "0x1d350235430",
+            "to_node": "0x1d350235e80",
             "mapping": {
                 "pv_path": "pv_path"
             }
         },
         {
             "connection_id": 2,
-            "from_node": "0x16ce1d3dd00",
-            "to_node": "0x16ce2ce0670",
+            "from_node": "0x1d3502354f0",
+            "to_node": "0x1d350235e80",
             "mapping": {
                 "rate_path": "rate_path"
             }
         },
         {
             "connection_id": 3,
-            "from_node": "0x16ce1d3de80",
-            "to_node": "0x16ce2ce0670",
+            "from_node": "0x1d350235700",
+            "to_node": "0x1d350235e80",
             "mapping": {
                 "power": "power_rating"
             }
         },
         {
             "connection_id": 4,
-            "from_node": "0x16ce2ce0070",
-            "to_node": "0x16ce2ce0670",
+            "from_node": "0x1d350235880",
+            "to_node": "0x1d350235e80",
             "mapping": {
                 "energy": "energy_capacity"
             }
         },
         {
             "connection_id": 5,
-            "from_node": "0x16ce2ce0220",
-            "to_node": "0x16ce2ce0670",
+            "from_node": "0x1d350235a30",
+            "to_node": "0x1d350235e80",
             "mapping": {
                 "rte": "rte"
             }
         },
         {
             "connection_id": 6,
-            "from_node": "0x16ce2ce03d0",
-            "to_node": "0x16ce2ce0670",
+            "from_node": "0x1d350235be0",
+            "to_node": "0x1d350235e80",
             "mapping": {
                 "load_path": "load_path"
             }
@@ -569,14 +569,14 @@
             "flow_name": "btm_flow_2026",
             "flow_type": "sub-flow",
             "flow_environment_name": "quest master",
-            "flow_environment_path": "C:/work/quest21/snl-quest/quest/app_envs/env_btm/Scripts/python.exe",
+            "flow_environment_path": "C:/work/quest21a/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe",
             "flow_layout": {
                 "graph": {
                     "acyclic": true,
                     "pipe_collision": false
                 },
                 "nodes": {
-                    "0x16ce2d31040": {
+                    "0x1d3511b5400": {
                         "type_": "QuESt.Workspace.BackNode",
                         "icon": null,
                         "name": "BTM Optimization Handler",
@@ -612,7 +612,7 @@
                             "backdrop_text": "This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure."
                         }
                     },
-                    "0x16ce2d310d0": {
+                    "0x1d3511b58e0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "data_manager",
@@ -659,7 +659,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d31190": {
+                    "0x1d3511b5760": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "data_location",
@@ -703,7 +703,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d313a0": {
+                    "0x1d3511b5bb0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "load_profile",
@@ -750,7 +750,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d314f0": {
+                    "0x1d3511b5d00": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "pv_path",
@@ -794,7 +794,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d31700": {
+                    "0x1d3511b5f10": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "pv_profile",
@@ -841,7 +841,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d31850": {
+                    "0x1d3512020a0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "rate_path",
@@ -885,7 +885,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d31a60": {
+                    "0x1d3512022b0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "rate_structure_new",
@@ -932,7 +932,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d31be0": {
+                    "0x1d351202430": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "btm_op_request",
@@ -994,7 +994,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d31dc0": {
+                    "0x1d351202610": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "btm_op_process",
@@ -1015,10 +1015,10 @@
                             0
                         ],
                         "disabled": false,
-                        "selected": false,
+                        "selected": true,
                         "visible": true,
                         "width": 222.75,
-                        "height": 103.3,
+                        "height": 126.4,
                         "pos": [
                             1064.7999682505379,
                             549.4867745518596
@@ -1041,6 +1041,11 @@
                                 "name": "solver_name",
                                 "multi_connection": false,
                                 "display_name": true
+                            },
+                            {
+                                "name": "glpk_path",
+                                "multi_connection": false,
+                                "display_name": true
                             }
                         ],
                         "output_ports": [
@@ -1056,7 +1061,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d56190": {
+                    "0x1d3512029a0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "power_rating",
@@ -1100,7 +1105,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d56550": {
+                    "0x1d351202d60": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "ess_parameters",
@@ -1157,7 +1162,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d566d0": {
+                    "0x1d351202ee0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "energy_capacity",
@@ -1201,7 +1206,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d56a30": {
+                    "0x1d351225280": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "rte",
@@ -1245,7 +1250,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d56be0": {
+                    "0x1d351225430": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "solver",
@@ -1289,7 +1294,7 @@
                             "Text Caption": "\"glpk\""
                         }
                     },
-                    "0x16ce2d56d90": {
+                    "0x1d3512255b0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "load_path",
@@ -1333,7 +1338,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x16ce2d56f40": {
+                    "0x1d351225760": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "results",
@@ -1390,7 +1395,7 @@
                             }
                         ]
                     },
-                    "0x16ce2d78100": {
+                    "0x1d3512258e0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "results_location",
@@ -1433,166 +1438,220 @@
                         "custom": {
                             "Text Caption": ""
                         }
+                    },
+                    "0x1d349cb4c40": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "C:\\work\\quest21a\\lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+                        "name": "DataNode1",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            542.8870006546241,
+                            970.6059881576339
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "glpk_path",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
                     }
                 },
                 "connections": [
                     {
                         "in": [
-                            "0x16ce2d310d0",
+                            "0x1d3511b58e0",
                             "data_path"
                         ],
                         "out": [
-                            "0x16ce2d31190",
+                            "0x1d3511b5760",
                             "data_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d310d0",
+                            "0x1d3511b58e0",
                             "dms"
                         ],
                         "in": [
-                            "0x16ce2d31dc0",
+                            "0x1d351202610",
                             "dms"
                         ]
                     },
                     {
                         "in": [
-                            "0x16ce2d313a0",
+                            "0x1d3511b5bb0",
                             "load_data_path"
                         ],
                         "out": [
-                            "0x16ce2d56d90",
+                            "0x1d3512255b0",
                             "load_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d313a0",
+                            "0x1d3511b5bb0",
                             "load_profile"
                         ],
                         "in": [
-                            "0x16ce2d31be0",
+                            "0x1d351202430",
                             "load_profile"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d314f0",
+                            "0x1d3511b5d00",
                             "pv_path"
                         ],
                         "in": [
-                            "0x16ce2d31700",
+                            "0x1d3511b5f10",
                             "pv_data_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d31700",
+                            "0x1d3511b5f10",
                             "pv_profile"
                         ],
                         "in": [
-                            "0x16ce2d31be0",
+                            "0x1d351202430",
                             "pv_profile"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d31850",
+                            "0x1d3512020a0",
                             "rate_path"
                         ],
                         "in": [
-                            "0x16ce2d31a60",
+                            "0x1d3512022b0",
                             "rate_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d31a60",
+                            "0x1d3512022b0",
                             "rate_structure"
                         ],
                         "in": [
-                            "0x16ce2d31be0",
+                            "0x1d351202430",
                             "rate_structure"
                         ]
                     },
                     {
                         "in": [
-                            "0x16ce2d31be0",
+                            "0x1d351202430",
                             "ess_parameters"
                         ],
                         "out": [
-                            "0x16ce2d56550",
+                            "0x1d351202d60",
                             "ess_parameters"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d31be0",
+                            "0x1d351202430",
                             "btm_op_request"
                         ],
                         "in": [
-                            "0x16ce2d31dc0",
+                            "0x1d351202610",
                             "btm_op_request"
                         ]
                     },
                     {
                         "in": [
-                            "0x16ce2d31dc0",
+                            "0x1d351202610",
                             "solver_name"
                         ],
                         "out": [
-                            "0x16ce2d56be0",
+                            "0x1d351225430",
                             "solver_name"
                         ]
                     },
                     {
+                        "in": [
+                            "0x1d351202610",
+                            "glpk_path"
+                        ],
                         "out": [
-                            "0x16ce2d31dc0",
+                            "0x1d349cb4c40",
+                            "glpk_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x1d351202610",
                             "btm_solved_ops"
                         ],
                         "in": [
-                            "0x16ce2d56f40",
+                            "0x1d351225760",
                             "solved_ops"
                         ]
                     },
                     {
                         "out": [
-                            "0x16ce2d56190",
+                            "0x1d3512029a0",
                             "power"
                         ],
                         "in": [
-                            "0x16ce2d56550",
+                            "0x1d351202d60",
                             "power"
                         ]
                     },
                     {
                         "in": [
-                            "0x16ce2d56550",
+                            "0x1d351202d60",
                             "energy"
                         ],
                         "out": [
-                            "0x16ce2d566d0",
+                            "0x1d351202ee0",
                             "energy"
                         ]
                     },
                     {
                         "in": [
-                            "0x16ce2d56550",
+                            "0x1d351202d60",
                             "rte"
                         ],
                         "out": [
-                            "0x16ce2d56a30",
+                            "0x1d351225280",
                             "rte"
                         ]
                     },
                     {
                         "in": [
-                            "0x16ce2d56f40",
+                            "0x1d351225760",
                             "saved_location"
                         ],
                         "out": [
-                            "0x16ce2d78100",
+                            "0x1d3512258e0",
                             "rs_location"
                         ]
                     }
@@ -1600,7 +1659,7 @@
             },
             "nodes_df": [
                 {
-                    "node_id": "0x16ce2d31040",
+                    "node_id": "0x1d3511b5400",
                     "node_name": "BTM Optimization Handler",
                     "node_type": "back_node",
                     "node_input_variable": "",
@@ -1614,7 +1673,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d310d0",
+                    "node_id": "0x1d3511b58e0",
                     "node_name": "data_manager",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1628,7 +1687,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\data_manager.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d31190",
+                    "node_id": "0x1d3511b5760",
                     "node_name": "data_location",
                     "node_type": "data_node",
                     "node_input_variable": "data_path",
@@ -1642,7 +1701,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d313a0",
+                    "node_id": "0x1d3511b5bb0",
                     "node_name": "load_profile",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1656,7 +1715,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\load_profile.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d314f0",
+                    "node_id": "0x1d3511b5d00",
                     "node_name": "pv_path",
                     "node_type": "data_node",
                     "node_input_variable": "pv_path",
@@ -1670,7 +1729,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d31700",
+                    "node_id": "0x1d3511b5f10",
                     "node_name": "pv_profile",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1684,7 +1743,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\pv_profile.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d31850",
+                    "node_id": "0x1d3512020a0",
                     "node_name": "rate_path",
                     "node_type": "data_node",
                     "node_input_variable": "rate_path",
@@ -1698,7 +1757,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d31a60",
+                    "node_id": "0x1d3512022b0",
                     "node_name": "rate_structure_new",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1712,7 +1771,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\rate_structure_new.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d31be0",
+                    "node_id": "0x1d351202430",
                     "node_name": "btm_op_request",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1726,7 +1785,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_op_request.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d31dc0",
+                    "node_id": "0x1d351202610",
                     "node_name": "btm_op_process",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1735,12 +1794,12 @@
                     "node_is_path": false,
                     "node_is_from_master": false,
                     "node_expose_outputs": [],
-                    "node_function_wrapper": "def btm_op_process_function(btm_op_request, dms, solver_name):\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}",
+                    "node_function_wrapper": "def btm_op_process_function(btm_op_request, dms, solver_name, glpk_path):\n    sys.path.insert(0, os.path.dirname(glpk_path))\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\n    (btm_solved_op, handler_status) = btm_op_handler.process_requests(btm_op_request)\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}",
                     "node_imports": "from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\n",
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_op_process.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d56190",
+                    "node_id": "0x1d3512029a0",
                     "node_name": "power_rating",
                     "node_type": "data_node",
                     "node_input_variable": "power",
@@ -1754,7 +1813,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d56550",
+                    "node_id": "0x1d351202d60",
                     "node_name": "ess_parameters",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1768,7 +1827,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\ess_parameters.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d566d0",
+                    "node_id": "0x1d351202ee0",
                     "node_name": "energy_capacity",
                     "node_type": "data_node",
                     "node_input_variable": "energy",
@@ -1782,7 +1841,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d56a30",
+                    "node_id": "0x1d351225280",
                     "node_name": "rte",
                     "node_type": "data_node",
                     "node_input_variable": "rte",
@@ -1796,7 +1855,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d56be0",
+                    "node_id": "0x1d351225430",
                     "node_name": "solver",
                     "node_type": "data_node",
                     "node_input_variable": "solver_name",
@@ -1810,7 +1869,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d56d90",
+                    "node_id": "0x1d3512255b0",
                     "node_name": "load_path",
                     "node_type": "data_node",
                     "node_input_variable": "load_path",
@@ -1824,7 +1883,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x16ce2d56f40",
+                    "node_id": "0x1d351225760",
                     "node_name": "results",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1841,11 +1900,25 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\results.ipynb"
                 },
                 {
-                    "node_id": "0x16ce2d78100",
+                    "node_id": "0x1d3512258e0",
                     "node_name": "results_location",
                     "node_type": "data_node",
                     "node_input_variable": "rs_location",
                     "node_input_value": "\"./results/workspace\"",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x1d349cb4c40",
+                    "node_name": "DataNode1",
+                    "node_type": "data_node",
+                    "node_input_variable": "glpk_path",
+                    "node_input_value": "\"C:/work/quest21a/Lib/site-packages/quest/app_envs/env_btm/Lib/site-packages/glpk/\"",
                     "node_value_display": false,
                     "node_is_path": true,
                     "node_is_from_master": false,
@@ -1858,128 +1931,136 @@
             "connections_df": [
                 {
                     "connection_id": 1,
-                    "from_node": "0x16ce2d31190",
-                    "to_node": "0x16ce2d310d0",
+                    "from_node": "0x1d3511b5760",
+                    "to_node": "0x1d3511b58e0",
                     "mapping": {
                         "data_path": "data_path"
                     }
                 },
                 {
                     "connection_id": 2,
-                    "from_node": "0x16ce2d310d0",
-                    "to_node": "0x16ce2d31dc0",
+                    "from_node": "0x1d3511b58e0",
+                    "to_node": "0x1d351202610",
                     "mapping": {
                         "dms": "dms"
                     }
                 },
                 {
                     "connection_id": 3,
-                    "from_node": "0x16ce2d56d90",
-                    "to_node": "0x16ce2d313a0",
+                    "from_node": "0x1d3512255b0",
+                    "to_node": "0x1d3511b5bb0",
                     "mapping": {
                         "load_path": "load_data_path"
                     }
                 },
                 {
                     "connection_id": 4,
-                    "from_node": "0x16ce2d313a0",
-                    "to_node": "0x16ce2d31be0",
+                    "from_node": "0x1d3511b5bb0",
+                    "to_node": "0x1d351202430",
                     "mapping": {
                         "load_profile": "load_profile"
                     }
                 },
                 {
                     "connection_id": 5,
-                    "from_node": "0x16ce2d314f0",
-                    "to_node": "0x16ce2d31700",
+                    "from_node": "0x1d3511b5d00",
+                    "to_node": "0x1d3511b5f10",
                     "mapping": {
                         "pv_path": "pv_data_path"
                     }
                 },
                 {
                     "connection_id": 6,
-                    "from_node": "0x16ce2d31700",
-                    "to_node": "0x16ce2d31be0",
+                    "from_node": "0x1d3511b5f10",
+                    "to_node": "0x1d351202430",
                     "mapping": {
                         "pv_profile": "pv_profile"
                     }
                 },
                 {
                     "connection_id": 7,
-                    "from_node": "0x16ce2d31850",
-                    "to_node": "0x16ce2d31a60",
+                    "from_node": "0x1d3512020a0",
+                    "to_node": "0x1d3512022b0",
                     "mapping": {
                         "rate_path": "rate_path"
                     }
                 },
                 {
                     "connection_id": 8,
-                    "from_node": "0x16ce2d31a60",
-                    "to_node": "0x16ce2d31be0",
+                    "from_node": "0x1d3512022b0",
+                    "to_node": "0x1d351202430",
                     "mapping": {
                         "rate_structure": "rate_structure"
                     }
                 },
                 {
                     "connection_id": 9,
-                    "from_node": "0x16ce2d56550",
-                    "to_node": "0x16ce2d31be0",
+                    "from_node": "0x1d351202d60",
+                    "to_node": "0x1d351202430",
                     "mapping": {
                         "ess_parameters": "ess_parameters"
                     }
                 },
                 {
                     "connection_id": 10,
-                    "from_node": "0x16ce2d31be0",
-                    "to_node": "0x16ce2d31dc0",
+                    "from_node": "0x1d351202430",
+                    "to_node": "0x1d351202610",
                     "mapping": {
                         "btm_op_request": "btm_op_request"
                     }
                 },
                 {
                     "connection_id": 11,
-                    "from_node": "0x16ce2d56be0",
-                    "to_node": "0x16ce2d31dc0",
+                    "from_node": "0x1d351225430",
+                    "to_node": "0x1d351202610",
                     "mapping": {
                         "solver_name": "solver_name"
                     }
                 },
                 {
                     "connection_id": 12,
-                    "from_node": "0x16ce2d31dc0",
-                    "to_node": "0x16ce2d56f40",
+                    "from_node": "0x1d349cb4c40",
+                    "to_node": "0x1d351202610",
+                    "mapping": {
+                        "glpk_path": "glpk_path"
+                    }
+                },
+                {
+                    "connection_id": 13,
+                    "from_node": "0x1d351202610",
+                    "to_node": "0x1d351225760",
                     "mapping": {
                         "btm_solved_ops": "solved_ops"
                     }
                 },
                 {
-                    "connection_id": 13,
-                    "from_node": "0x16ce2d56190",
-                    "to_node": "0x16ce2d56550",
+                    "connection_id": 14,
+                    "from_node": "0x1d3512029a0",
+                    "to_node": "0x1d351202d60",
                     "mapping": {
                         "power": "power"
                     }
                 },
                 {
-                    "connection_id": 14,
-                    "from_node": "0x16ce2d566d0",
-                    "to_node": "0x16ce2d56550",
+                    "connection_id": 15,
+                    "from_node": "0x1d351202ee0",
+                    "to_node": "0x1d351202d60",
                     "mapping": {
                         "energy": "energy"
                     }
                 },
                 {
-                    "connection_id": 15,
-                    "from_node": "0x16ce2d56a30",
-                    "to_node": "0x16ce2d56550",
+                    "connection_id": 16,
+                    "from_node": "0x1d351225280",
+                    "to_node": "0x1d351202d60",
                     "mapping": {
                         "rte": "rte"
                     }
                 },
                 {
-                    "connection_id": 16,
-                    "from_node": "0x16ce2d78100",
-                    "to_node": "0x16ce2d56f40",
+                    "connection_id": 17,
+                    "from_node": "0x1d3512258e0",
+                    "to_node": "0x1d351225760",
                     "mapping": {
                         "rs_location": "saved_location"
                     }
