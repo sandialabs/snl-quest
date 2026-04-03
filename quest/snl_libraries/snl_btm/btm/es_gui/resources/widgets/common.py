@@ -8,16 +8,10 @@ import textwrap
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import sys
-mpl.use('module://kivy.garden.matplotlib.backend_kivy')
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+mpl.use('module://btm.libs.garden.garden_matplotlib.backend_kivy')
+from btm.libs.garden.garden_matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from btm.paths import get_path
 dirname = get_path()
-# kivy_back = os.path.join(dirname, "libs", "garden", "garden_matplotlib")
-# sys.path.append(kivy_back)
-
-# mpl.use('module://libs.garden.garden_matplotlib.backend_kivy')
-# from btm.libs.garden.garden_matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
 from kivy.app import App
 from kivy.clock import Clock

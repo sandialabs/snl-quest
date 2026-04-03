@@ -1,6 +1,5 @@
 import os
 from PySide6.QtCore import (
-    QThreadPool,
     QPropertyAnimation,
     QEasingCurve,
 )
@@ -8,7 +7,8 @@ from PySide6.QtWidgets import (
     QMenu,
     QWidget,
     QVBoxLayout,
-    QTextBrowser
+    QTextBrowser,
+    QDialog,
 )
 from functools import partial
 from quest.app.home_page.ui.ui_home_page import Ui_home_page
@@ -44,11 +44,40 @@ class gui_connector():
         self.state = state
         self.front.install_button.clicked.connect(self.install_display)
         self.front.progress_bar.setValue(0)
+        self.log_dialog = None
+        self.log_browser = None
         self.menu = QMenu()
         self.menu.addAction("Uninstall", self.app_removal)
         self.front.setting_button.setMenu(self.menu)
-        if os.path.isdir(self.state):
+        if self.back.is_app_installed():
             self.front.install_button.setText("Launch")
+
+    def ensure_log_dialog(self):
+        """Create the install log dialog the first time it is needed."""
+        if self.log_dialog is not None:
+            return
+
+        self.log_dialog = QDialog(self.front)
+        self.log_dialog.setWindowTitle("App Log")
+        self.log_dialog.resize(760, 420)
+
+        layout = QVBoxLayout(self.log_dialog)
+        self.log_browser = QTextBrowser(self.log_dialog)
+        self.log_browser.setOpenExternalLinks(True)
+        layout.addWidget(self.log_browser)
+
+    def append_install_log(self, text):
+        """Append process output to the visible install log."""
+        self.ensure_log_dialog()
+        if text:
+            self.log_browser.append(text)
+
+    def show_install_output(self):
+        """Ensure the install log window is visible to the user."""
+        self.ensure_log_dialog()
+        self.log_dialog.show()
+        self.log_dialog.raise_()
+        self.log_dialog.activateWindow()
 
     def install_display(self):
         """
@@ -61,11 +90,23 @@ class gui_connector():
         self.front.progress_bar.setRange(0,0)
         self.front.install_button.setEnabled(False)
         self.back.install()
-        if os.path.isdir(self.state):
+        self.show_install_output()
+        self.log_browser.clear()
+        self.append_install_log(f"Starting process: {' '.join(self.back.runner.command)}")
+        self.back.runner.signals.output_line.connect(self.append_install_log)
+        self.back.runner.signals.result.connect(self.handle_install_result)
+        if self.back.is_app_installed():
             self.front.install_button.setText("Running")
         else:
             self.front.install_button.setText("Installing")
         self.back.runner.signals.finished.connect(self.reset_gui)
+
+    def handle_install_result(self, output):
+        """Add a final status line once the process completes."""
+        if not output.strip():
+            self.append_install_log("Process finished with no output.")
+        elif not output.endswith("\n"):
+            self.append_install_log("")
 
     def reset_gui(self):
         """
@@ -77,10 +118,12 @@ class gui_connector():
         self.front.progress_bar.setRange(0,100)
         self.front.install_button.setEnabled(True)
         self.front.install_button.setChecked(False)
-        if os.path.isdir(self.state):
+        if self.back.is_app_installed():
             self.front.install_button.setText("Launch")
+            self.append_install_log("Installation finished. The app appears to be installed.")
         else:
             self.front.install_button.setText("Install")
+            self.append_install_log("Installation finished, but the app is still not detected as installed.")
 
     def app_removal(self):
         """
@@ -95,7 +138,19 @@ class gui_connector():
         self.front.install_button.setEnabled(False)
         self.front.install_button.setText('Uninstalling')
         self.back.remove_app()
+        self.show_install_output()
+        self.log_browser.clear()
+        self.append_install_log(f"Starting process: {' '.join(self.back.runner.command)}")
+        self.back.runner.signals.output_line.connect(self.append_install_log)
+        self.back.runner.signals.result.connect(self.handle_uninstall_result)
         self.back.runner.signals.finished.connect(self.reset_gui)
+
+    def handle_uninstall_result(self, output):
+        """Add a final status line once the uninstall process completes."""
+        if not output.strip():
+            self.append_install_log("Process finished with no output.")
+        elif not output.endswith("\n"):
+            self.append_install_log("")
 
 class InfoPage(QWidget):
     """
@@ -220,13 +275,179 @@ class home_page(QWidget, Ui_home_page):
     Update state based on files at launch
     """
 
+    def _get_active_app_configs(self, del_path, mod):
+        """Return the active app definitions rendered on the home page."""
+        return [
+            {
+                "connector_attr": "tech_obj",
+                "search_key": "tech_selection",
+                "title": "QuESt Technology Selection",
+                "contact": "Tu Nguyen tunguy@sandia.gov",
+                "info": "An application for identifying the energy storage technologies most suitable for a given project. This tool is based on multiple parameters that characterize each storage technology; the technologies that do not satisfy the minimum application requirements are filtered out and the remaining technologies are ranked to indicate their compatibility to the desired project.",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_Tech_Logo_RGB.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_tech"),
+                "env_cmd": "tech_selection",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "tech.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_tech"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_tech", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (0, 0),
+            },
+            {
+                "connector_attr": "eval_obj",
+                "search_key": "evaluation",
+                "title": "QuESt Valuation",
+                "contact": "Tu Nguyen tunguy@sandia.gov",
+                "info": "An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_EvaluationLogo_RGB.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_eval"),
+                "env_cmd": "valuation",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "eval.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_eval"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_eval", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (0, 1),
+            },
+            {
+                "connector_attr": "perf_obj",
+                "search_key": "performance",
+                "title": "QuESt Performance",
+                "contact": "Walker Olis wolis@sandia.gov",
+                "info": "An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air conditioning loads. This tool leverages the building simulation tool EnergyPlus to model the energy consumption of a particular battery housing.",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_Perf_Logo_RGB.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_perf"),
+                "env_cmd": "performance",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "perf.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_perf"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_perf", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (0, 2),
+            },
+            {
+                "connector_attr": "btm_obj",
+                "search_key": "behind_the_meter",
+                "title": "QuESt BTM",
+                "contact": "Tu Nguyen tunguy@sandia.gov",
+                "info": "A collection of tools for behind-the-meter (BTM) energy storage systems: <br>*Estimate cost savings for time-of-use and/or net-metering customers",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_BTN_Logo_RGB.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_btm"),
+                "env_cmd": "btm",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "btm.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_btm"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_btm", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (0, 3),
+            },
+            {
+                "connector_attr": "micro_obj",
+                "search_key": "microgrid",
+                "title": "QuESt Microgrid",
+                "contact": "John Eddy jpeddy@sandia.gov",
+                "info": "The QuESt Microgrid app is a Discrete Event Simulator for evaluating energy storage systems connected to electrical power distribution systems.",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_Microgrid_Logo_RGB.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_micro"),
+                "env_cmd": os.path.join(base_dir, "app_envs", "env_micro", "Lib", "site-packages", "ssim", "ui", "kivy", "ssimapp.py") if sys.platform.startswith('win') else os.path.join(base_dir, "app_envs", "env_micro", "bin", "ssim"),
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "micro.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_micro"),
+                "mod": None if sys.platform.startswith('win') else "exe",
+                "grid_position": (1, 0),
+            },
+            {
+                "connector_attr": "gpt_obj",
+                "search_key": "data_gpt",
+                "title": "QuESt-GPT<br><span style='font-size:16px; font-weight:bold;'> AI-powered tool for data analysis and visualization</span>",
+                "contact": "Tu Nguyen tunguy@sandia.gov",
+                "info": "This application helps users analyze and visualize their dataset (in CSV files). The application utilizes Large Language Models (LLMs) to translate users queries into python codes for performing data analysis and visualization. Currently, GPT4 models (OpenAI's API: https://openai.com/product) and codellama2 model (Replicate's API: https://replicate.com/) are used within the application. ",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_Logo_RGB - GPT.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_viz"),
+                "env_cmd": os.path.join(base_dir, "snl_libraries", "gpt", "main.py"),
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "viz.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_viz"),
+                "grid_position": (1, 1),
+            },
+            {
+                "connector_attr": "data_man_obj",
+                "search_key": "data_manager",
+                "title": "QuESt Data Manager",
+                "contact": "Tu Nguyen tunguy@sandia.gov",
+                "info": "An application for acquiring data from open sources. Data selected for download is acquired in a format and structure compatible with other QuESt applications. Data that can be acquired includes:<br><ul><li>Independent system operators (ISOs) and regional transmission organization (RTOs) market and operations data </li><li>U.S. utility rate structures (tariffs) </li><li>Commercial or residential building load profiles </li><li>Photovoltaic (PV) power profiles</li></ul>",
+                "image": os.path.join(base_dir, "images", "logo", "Quest_Datamanager_Logo_RGB.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_data"),
+                "env_cmd": "data_manager",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "manager.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_data"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_data", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (1, 2),
+            },
+            {
+                "connector_attr": "plan_obj",
+                "search_key": "planning",
+                "title": "QuESt Planning",
+                "contact": "Cody Newlun cjnewlu@sandia.gov",
+                "info": "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.",
+                "image": os.path.join(base_dir, "images", "logo", "custom_QP_logo.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_planning", "snl_quest_planning"),
+                "env_cmd": "quest_planning",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "plan.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_planning"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_planning", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (2, 0),
+            },
+            {
+                "connector_attr": "progress_obj",
+                "search_key": "progress",
+                "title": "QuESt Progress",
+                "contact": "Atri Bera abera@sandia.gov",
+                "info": "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.",
+                "image": os.path.join(base_dir, "images", "logo", "progress_transparent_alt.png"),
+                "env_path": os.path.join(base_dir, "app_envs", "env_progress", "snl_quest_progress"),
+                "env_cmd": "progress",
+                "script_path": os.path.join(base_dir, "app", "tools", "script_files", "progress.bat"),
+                "env_delete": os.path.join(base_dir, "app_envs", "env_progress"),
+                "solve_path": os.path.join(base_dir, "app_envs", "env_progress", "glpk", "GLPK-4.65", "w64"),
+                "mod": mod,
+                "grid_position": (1, 3),
+            },
+        ]
+
+    def _build_app_card(self, config, del_path):
+        """Create, connect, and place a single app card."""
+        front = form_apps()
+        image_path = config["image"].replace("\\", "/")
+        front.app_image.setStyleSheet(f"image: url({image_path});")
+
+        env_path = config["env_path"]
+        env_act = os.path.join(env_path, "Scripts", "python.exe")
+        back = app_manager(
+            env_path,
+            env_act,
+            config["env_cmd"],
+            config["script_path"],
+            del_path,
+            config["env_delete"],
+            config.get("solve_path"),
+            config.get("mod"),
+        )
+        connector = gui_connector(front, back, env_path)
+        setattr(self, config["connector_attr"], connector)
+
+        page_index = self.add_info_page.add_page(
+            config["title"],
+            config["contact"],
+            config["info"],
+        )
+        self.add_info_page.connect_about(front.about_button, page_index)
+        row, column = config["grid_position"]
+        self.gridLayout.addWidget(front, row, column)
+        return front.app_search
+
     def __init__(self):
         """Initialize the home page."""
         super().__init__()
 #           Set up the ui
         self.setupUi(self)
-#           Thread runner
-        self.threadpool = QThreadPool()
 #           gui objects for the about page class
         about = self.about_info
         stacked = self.stackedWidget_2
@@ -238,227 +459,30 @@ class home_page(QWidget, Ui_home_page):
 #       declare info page
 
         self.add_info_page = info_drop(about, stacked)
+        self.search_widgets = {}
+        for app_config in self._get_active_app_configs(del_path, mod):
+            self.search_widgets[app_config["search_key"]] = self._build_app_card(app_config, del_path)
 
-        # Tech Selection app
-        tech_front = form_apps()
-        tech_image = os.path.join(base_dir, "images", "logo", "Quest_Tech_Logo_RGB.png")
-        tech_image = tech_image.replace("\\", "/")
-        tech_front.app_image.setStyleSheet(f"image: url({tech_image});")
+        # # Energy Equity app
+        # equity_front = form_apps()
+        # equity_image = os.path.join(base_dir, "images", "logo", "Quest_Equity_Logo_RGB.png")
+        # equity_image = equity_image.replace("\\", "/")
+        # equity_front.app_image.setStyleSheet(f"image: url({equity_image});")
 
-        tech_env_path = os.path.join(base_dir, "app_envs", "env_tech")
-        tech_env_act = os.path.join(base_dir, "app_envs", "env_tech", "Scripts", "python.exe")
-        tech_env_cmd = "tech_selection"
-        tech_script_path = os.path.join(base_dir, "app", "tools", "script_files", "tech.bat")
-        tech_del_name = os.path.join(base_dir, "app_envs", "env_tech")
-        tech_solve = os.path.join(base_dir,"app_envs", "env_tech", "glpk", "GLPK-4.65", "w64" )
-        tech_back = app_manager(tech_env_path, tech_env_act, tech_env_cmd, tech_script_path, del_path, tech_del_name, tech_solve, mod)
-        self.tech_obj = gui_connector(tech_front, tech_back, tech_env_path)
+        # equity_env_path = os.path.join(base_dir, "app_envs", "env_energy", "equity")
+        # equity_env_act = os.path.join(base_dir, "app_envs", "env_energy", "Scripts", "python.exe")
+        # equity_env_cmd = os.path.join(base_dir, "app_envs", "env_energy", "equity", "main.py")
+        # equity_script_path = os.path.join(base_dir, "app", "tools", "script_files", "energy.bat")
+        # equity_del_path = os.path.join(base_dir, "app_envs", "env_energy")
+        # equity_solve = os.path.join(base_dir,"app_envs", "env_energy", "glpk", "GLPK-4.65", "w64" )
+        # equity_back = app_manager(equity_env_path, equity_env_act, equity_env_cmd, equity_script_path, del_path, equity_del_path, equity_solve)
+        # self.equity_obj = gui_connector(equity_front, equity_back, equity_env_path)
 
+        # equity_about_button = equity_front.about_button
+        # equity_page = self.add_info_page.add_page("QuESt Energy Equity", "David Rosewater dmrose@sandia.gov", "An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.")
+        # self.add_info_page.connect_about(equity_about_button, equity_page)
 
-        tech_page = self.add_info_page.add_page("QuESt Technology Selection", "Tu Nguyen tunguy@sandia.gov","An application for identifying the energy storage technologies most suitable for a given project. This tool is based on multiple parameters that characterize each storage technology; the technologies that do not satisfy the minimum application requirements are filtered out and the remaining technologies are ranked to indicate their compatibility to the desired project.")
-        tech_about_button = tech_front.about_button
-        self.add_info_page.connect_about(tech_about_button, tech_page)
-        self.gridLayout.addWidget(tech_front, 0, 0)
-
-
-        # Evaluation app
-        eval_front = form_apps()
-        eval_image = os.path.join(base_dir, "images", "logo", "Quest_EvaluationLogo_RGB.png")
-       # eval_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_RGB_Reversed.png")
-        eval_image = eval_image.replace("\\", "/")
-        eval_front.app_image.setStyleSheet(f"image: url({eval_image});")
-
-        eval_env_path = os.path.join(base_dir, "app_envs", "env_eval")
-        eval_env_act = os.path.join(base_dir, "app_envs", "env_eval", "Scripts", "python.exe")
-        eval_env_cmd = "valuation"
-        eval_script_path = os.path.join(base_dir, "app", "tools", "script_files", "eval.bat")
-        eval_del_name = os.path.join(base_dir, "app_envs", "env_eval")
-        eval_solve = os.path.join(base_dir,"app_envs", "env_eval", "glpk", "GLPK-4.65", "w64" )
-        eval_back= app_manager(eval_env_path, eval_env_act, eval_env_cmd, eval_script_path, del_path, eval_del_name, eval_solve, mod)
-        self.eval_obj = gui_connector(eval_front, eval_back, eval_env_path)
-
-        eval_about_button = eval_front.about_button
-        eval_page = self.add_info_page.add_page("QuESt Valuation", "Tu Nguyen tunguy@sandia.gov","An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.")
-        self.add_info_page.connect_about(eval_about_button, eval_page)
-        self.gridLayout.addWidget(eval_front, 0, 1)
-
-        # Performance app
-        perf_front = form_apps()
-        perf_image = os.path.join(base_dir, "images", "logo", "Quest_Perf_Logo_RGB.png")
-        perf_image = perf_image.replace("\\", "/")
-        perf_front.app_image.setStyleSheet(f"image: url({perf_image});")
-
-        perf_env_path = os.path.join(base_dir, "app_envs", "env_perf")
-        perf_env_act = os.path.join(base_dir, "app_envs", "env_perf", "Scripts", "python.exe")
-        perf_env_cmd = "performance"
-        perf_script_path = os.path.join(base_dir, "app", "tools", "script_files", "perf.bat")
-        perf_del_name = os.path.join(base_dir, "app_envs", "env_perf")
-        perf_solve = os.path.join(base_dir,"app_envs", "env_perf", "glpk", "GLPK-4.65", "w64" )
-        perf_back=app_manager(perf_env_path, perf_env_act, perf_env_cmd, perf_script_path, del_path, perf_del_name, perf_solve, mod)
-        self.perf_obj= gui_connector(perf_front, perf_back, perf_env_path)
-
-
-        perf_about_button = perf_front.about_button
-        perf_page = self.add_info_page.add_page("QuESt Performance", "Walker Olis wolis@sandia.gov", "An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air conditioning loads. This tool leverages the building simulation tool EnergyPlus to model the energy consumption of a particular battery housing.")
-        self.add_info_page.connect_about(perf_about_button, perf_page)
-
-        self.gridLayout.addWidget(perf_front, 0, 2)
-
-        # Behind the meter app
-        btm_front = form_apps()
-        btm_image = os.path.join(base_dir, "images", "logo", "Quest_BTN_Logo_RGB.png")
-        btm_image = btm_image.replace("\\", "/")
-        btm_front.app_image.setStyleSheet(f"image: url({btm_image});")
-
-        btm_env_path = os.path.join(base_dir, "app_envs", "env_btm")
-        btm_env_act = os.path.join(base_dir, "app_envs", "env_btm", "Scripts", "python.exe")
-        btm_env_cmd = "btm"
-        btm_script_path = os.path.join(base_dir, "app", "tools", "script_files", "btm.bat")
-        btm_del_name = os.path.join(base_dir, "app_envs", "env_btm")
-        btm_solve = os.path.join(base_dir,"app_envs", "env_btm", "glpk", "GLPK-4.65", "w64" )
-        btm_back = app_manager(btm_env_path, btm_env_act, btm_env_cmd, btm_script_path, del_path, btm_del_name, btm_solve, mod)
-        self.btm_obj = gui_connector(btm_front, btm_back, btm_env_path)
-
-        btm_about_button = btm_front.about_button
-        btm_page = self.add_info_page.add_page("QuESt BTM", "Tu Nguyen tunguy@sandia.gov", "A collection of tools for behind-the-meter (BTM) energy storage systems: <br>*Estimate cost savings for time-of-use and/or net-metering customers")
-        self.add_info_page.connect_about(btm_about_button, btm_page)
-
-        self.gridLayout.addWidget(btm_front, 0, 3)
-
-        # Microgrid app
-        micro_front = form_apps()
-        micro_image = os.path.join(base_dir, "images", "logo", "Quest_Microgrid_Logo_RGB.png")
-        micro_image = micro_image.replace("\\", "/")
-        micro_front.app_image.setStyleSheet(f"image: url({micro_image});")
-
-        micro_env_path = os.path.join(base_dir, "app_envs", "env_micro")
-        micro_env_act = os.path.join(base_dir, "app_envs", "env_micro", "Scripts", "python.exe")
-        if sys.platform.startswith('win'):
-            micro_env_cmd = os.path.join(base_dir, "app_envs", "env_micro", "Lib", "site-packages", "ssim", "ui", "kivy", "ssimapp.py")
-            micro_mod = None
-        else:
-            micro_env_cmd = os.path.join(base_dir, "app_envs", "env_micro", "bin", "ssim")
-            micro_mod = "exe"
-        micro_script_path = os.path.join(base_dir, "app", "tools", "script_files", "micro.bat")
-        micro_del_name = os.path.join(base_dir, "app_envs", "env_micro")
-        micro_back = app_manager(micro_env_path, micro_env_act, micro_env_cmd, micro_script_path, del_path, micro_del_name, mod=micro_mod)
-        self.micro_obj = gui_connector(micro_front, micro_back, micro_env_path)
-
-        micro_about_button = micro_front.about_button
-        micro_page = self.add_info_page.add_page("QuESt Microgrid", "John Eddy jpeddy@sandia.gov", "The QuESt Microgrid app is a Discrete Event Simulator for evaluating energy storage systems connected to electrical power distribution systems.")
-        self.add_info_page.connect_about(micro_about_button, micro_page)
-
-        self.gridLayout.addWidget(micro_front, 1, 0)
-
-        # Data GPT app
-        gpt_front = form_apps()
-        gpt_image = os.path.join(base_dir, "images", "logo", "Quest_Logo_RGB - GPT.png")
-        gpt_image = gpt_image.replace("\\", "/")
-        gpt_front.app_image.setStyleSheet(f"image: url({gpt_image});")
-
-        gpt_env_path = os.path.join(base_dir, "app_envs", "env_viz")
-        gpt_env_act = os.path.join(base_dir, "app_envs", "env_viz", "Scripts", "python.exe")
-        gpt_env_cmd = os.path.join(base_dir, "snl_libraries", "gpt", "main.py")
-        gpt_script_path = os.path.join(base_dir, "app", "tools", "script_files", "viz.bat")
-        gpt_del_path = os.path.join(base_dir, "app_envs", "env_viz",)
-        gpt_back = app_manager(gpt_env_path, gpt_env_act, gpt_env_cmd, gpt_script_path, del_path, gpt_del_path)
-        self.gpt_obj = gui_connector(gpt_front, gpt_back, gpt_env_path)
-
-        gpt_about_button = gpt_front.about_button
-        gpt_page = self.add_info_page.add_page("QuESt-GPT<br><span style='font-size:16px; font-weight:bold;'> AI-powered tool for data analysis and visualization</span>", "Tu Nguyen tunguy@sandia.gov", "This application helps users analyze and visualize their dataset (in CSV files). The application utilizes Large Language Models (LLMs) to translate users queries into python codes for performing data analysis and visualization. Currently, GPT4 models (OpenAI's API: https://openai.com/product) and codellama2 model (Replicate's API: https://replicate.com/) are used within the application. ")
-        self.add_info_page.connect_about(gpt_about_button, gpt_page)
-
-        self.gridLayout.addWidget(gpt_front, 1, 1)
-
-        # Data manager app
-        data_man_front = form_apps()
-        data_man_image = os.path.join(base_dir, "images", "logo", "Quest_Datamanager_Logo_RGB.png")
-        data_man_image = data_man_image.replace("\\", "/")
-        data_man_front.app_image.setStyleSheet(f"image: url({data_man_image});")
-
-        data_man_env_path = os.path.join(base_dir, "app_envs", "env_data")
-        data_man_env_act = os.path.join(base_dir, "app_envs", "env_data", "Scripts", "python.exe")
-        data_man_env_cmd = "data_manager"
-        data_man_script_path = os.path.join(base_dir, "app", "tools", "script_files", "manager.bat")
-        data_man_del_path = os.path.join(base_dir, "app_envs", "env_data")
-        data_man_solve = os.path.join(base_dir,"app_envs", "env_data", "glpk", "GLPK-4.65", "w64" )
-        data_man_back = app_manager(data_man_env_path, data_man_env_act, data_man_env_cmd, data_man_script_path, del_path, data_man_del_path, data_man_solve, mod)
-        self.data_man_obj = gui_connector(data_man_front, data_man_back, data_man_env_path)
-
-        data_man_about_button = data_man_front.about_button
-        data_man_page = self.add_info_page.add_page("QuESt Data Manager", "Tu Nguyen tunguy@sandia.gov", "An application for acquiring data from open sources. Data selected for download is acquired in a format and structure compatible with other QuESt applications. Data that can be acquired includes:<br><ul><li>Independent system operators (ISOs) and regional transmission organization (RTOs) market and operations data </li><li>U.S. utility rate structures (tariffs) </li><li>Commercial or residential building load profiles </li><li>Photovoltaic (PV) power profiles</li></ul>")
-        self.add_info_page.connect_about(data_man_about_button, data_man_page)
-
-        self.gridLayout.addWidget(data_man_front, 1, 2)
-
-        # Energy Equity app
-        equity_front = form_apps()
-        equity_image = os.path.join(base_dir, "images", "logo", "Quest_Equity_Logo_RGB.png")
-        equity_image = equity_image.replace("\\", "/")
-        equity_front.app_image.setStyleSheet(f"image: url({equity_image});")
-
-        equity_env_path = os.path.join(base_dir, "app_envs", "env_energy", "equity")
-        equity_env_act = os.path.join(base_dir, "app_envs", "env_energy", "Scripts", "python.exe")
-        equity_env_cmd = os.path.join(base_dir, "app_envs", "env_energy", "equity", "main.py")
-        equity_script_path = os.path.join(base_dir, "app", "tools", "script_files", "energy.bat")
-        equity_del_path = os.path.join(base_dir, "app_envs", "env_energy")
-        equity_solve = os.path.join(base_dir,"app_envs", "env_energy", "glpk", "GLPK-4.65", "w64" )
-        equity_back = app_manager(equity_env_path, equity_env_act, equity_env_cmd, equity_script_path, del_path, equity_del_path, equity_solve)
-        self.equity_obj = gui_connector(equity_front, equity_back, equity_env_path)
-
-        equity_about_button = equity_front.about_button
-        equity_page = self.add_info_page.add_page("QuESt Energy Equity", "David Rosewater dmrose@sandia.gov", "An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.")
-        self.add_info_page.connect_about(equity_about_button, equity_page)
-
-        #self.gridLayout.addWidget(equity_front, 1, 3)
-
-        #Planning app
-        plan_front = form_apps()
-        plan_image = os.path.join(base_dir, "images", "logo", "custom_QP_logo.png")
-        plan_image = plan_image.replace("\\", "/")
-        plan_front.app_image.setStyleSheet(f"image: url({plan_image});")
-
-        plan_env_path = os.path.join(base_dir, "app_envs", "env_planning", "snl_quest_planning")
-        plan_env_act = os.path.join(base_dir, "app_envs", "env_planning", "Scripts", "python.exe")
-
-        plan_env_cmd = "quest_planning"
-        plan_script_path = os.path.join(base_dir, "app", "tools", "script_files", "plan.bat")
-        plan_del_path = os.path.join(base_dir, "app_envs", "env_planning")
-        plan_solve = os.path.join(base_dir,"app_envs", "env_planning", "glpk", "GLPK-4.65", "w64" )
-
-        plan_back = app_manager(plan_env_path, plan_env_act, plan_env_cmd, plan_script_path, del_path, plan_del_path, plan_solve, mod)
-        self.plan_obj = gui_connector(plan_front, plan_back, plan_env_path)
-
-        plan_about_button = plan_front.about_button
-        plan_page = self.add_info_page.add_page("QuESt Planning", "Cody Newlun cjnewlu@sandia.gov", "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.")
-        self.add_info_page.connect_about(plan_about_button, plan_page)
-
-        self.gridLayout.addWidget(plan_front, 2, 0)
-
-
-        #Progress app
-        progress_front = form_apps()
-        progress_image = os.path.join(base_dir, "images", "logo", "progress_transparent_alt.png")
-        progress_image = progress_image.replace("\\", "/")
-        progress_front.app_image.setStyleSheet(f"image: url({progress_image});")
-
-        progress_env_path = os.path.join(base_dir, "app_envs", "env_progress", "snl_quest_progress")
-        progress_env_act = os.path.join(base_dir, "app_envs", "env_progress", "Scripts", "python.exe")
-
-        progress_env_cmd = "progress"
-        progress_script_path = os.path.join(base_dir, "app", "tools", "script_files", "progress.bat")
-        progress_del_path = os.path.join(base_dir, "app_envs", "env_progress")
-        progress_solve = os.path.join(base_dir,"app_envs", "env_progress", "glpk", "GLPK-4.65", "w64" )
-
-        progress_back = app_manager(progress_env_path, progress_env_act, progress_env_cmd, progress_script_path, del_path, progress_del_path, progress_solve, mod)
-        self.progress_obj = gui_connector(progress_front, progress_back, progress_env_path)
-
-        progress_about_button = progress_front.about_button
-        progress_page = self.add_info_page.add_page("QuESt Progress", "Atri Bera abera@sandia.gov", "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.")
-        self.add_info_page.connect_about(progress_about_button, progress_page)
-
-        self.gridLayout.addWidget(progress_front, 1, 3)
-
+        # self.gridLayout.addWidget(equity_front, 1, 3)
 
         # #AFR app
         # afr_front = form_apps()
@@ -528,35 +552,9 @@ class home_page(QWidget, Ui_home_page):
 
     def update_display(self, text,):
         """Dynamic update of visible apps."""
-        tech_selection = self.tech_obj.front.app_search
-        evaluation = self.eval_obj.front.app_search
-        behind_the_meter = self.btm_obj.front.app_search
-        performance = self.perf_obj.front.app_search
-        microgrid = self.micro_obj.front.app_search
-        planning = self.plan_obj.front.app_search
-        progress = self.progress_obj.front.app_search
-        data_gpt = self.gpt_obj.front.app_search
-        data_manager = self.data_man_obj.front.app_search
-        energy_equity = self.equity_obj.front.app_search
-        analysis_for_regulators = self.afr_obj.front.app_search
-
-
-#           list of apps to search
-
-        self.widget_names = [
-            "tech_selection", "evaluation", "behind_the_meter",
-            "performance", "energy_equity", "microgrid", "planning", "data_gpt", "data_manager", "progress", "analysis_for_regulators"
-            ]
-
-        for widget in self.widget_names:
-
-            if text.lower() in widget.lower():
-
-                eval(widget).setVisible(True)
-
-            else:
-
-                eval(widget).setVisible(False)
+        search_text = text.lower()
+        for widget_name, widget in self.search_widgets.items():
+            widget.setVisible(search_text in widget_name.lower())
 
 if __name__ == '__main__':
     home_page()

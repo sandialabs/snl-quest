@@ -1,22 +1,14 @@
 import sys
 import os
 import ctypes
-import psutil
-import requests
-import subprocess
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess, QCoreApplication
 
 from quest.app.ui.ui_quest_main import Ui_MainWindow
-from quest.app.home_page.home_page import home_page
-from quest.app.about_pages.about_it import about_land
-from quest.snl_libraries.workspace.app import WMainWindow
-from quest.app.data_vis.data_view import data_view
 from configparser import ConfigParser
 from quest.paths import get_path
 from quest.app.ui_tools.custom_splash import CustomSplashScreen, SplashScreenUpdater
-from quest.app.updates.updater import UpdateChecker
 
 dirname = get_path()
 # Force software rendering to avoid D3D11 / swapchain issues on some systems.
@@ -36,12 +28,13 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     from quest.app.tools.pop_down import quest_hide_window, about_quest_window
 
-    def __init__(self, app=None, *args, **kwargs):
+    def __init__(self, app=None, splash_updater=None, *args, **kwargs):
         """Initialize the app and load in the widgets."""
         super().__init__()
 
         #store an instance of app for clean exits
         self.app = app
+        self.splash_updater = splash_updater
 
         # Initializing mainwindow and setting up UI
         self.setupUi(self)
@@ -80,15 +73,27 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         # Navigate to chat page
         self.chat_button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.chat_page))
 
+        if self.splash_updater:
+            self.splash_updater.show_message("Loading data tools...")
+        from quest.app.data_vis.data_view import data_view
         # Adding chat bot
         self.chat_layout.addWidget(data_view())
 
+        if self.splash_updater:
+            self.splash_updater.show_message("Loading app hub...")
+        from quest.app.home_page.home_page import home_page
         # Adding the home page widget
         self.home_page_layout.addWidget(home_page())
 
+        if self.splash_updater:
+            self.splash_updater.show_message("Loading about page...")
+        from quest.app.about_pages.about_it import about_land
         # Adding the about page widget
         self.about_page_layout.addWidget(about_land())
 
+        if self.splash_updater:
+            self.splash_updater.show_message("Loading workspace...")
+        from quest.snl_libraries.workspace.app import WMainWindow
         # Adding the workspace widget
         self.work_graph = WMainWindow()
         self.work_space_layout.addWidget(self.work_graph)
@@ -213,6 +218,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         settings.setValue("theme", theme)
 
     def set_stream_theme(self, theme):
+        import requests
+
         # Update the config.toml file
         toml_theme = os.path.join(dirname, ".streamlit", "config.toml")
         with open(toml_theme, 'w') as file:
@@ -242,6 +249,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         :return: True if the process was terminated, False otherwise.
         :rtype: bool
         """
+        import psutil
+
         for proc in psutil.process_iter():
             try:
                 for conn in proc.connections():
@@ -306,6 +315,7 @@ def main():
 
         # Create a SplashScreenUpdater object
         updater = SplashScreenUpdater(splash)
+        updater.show_message("Loading UI...")
 
         # Create and start the update checker
         repo_path = os.path.join(dirname, '..')  # Set to the top-level directory of the project
@@ -313,7 +323,7 @@ def main():
         branch_name = 'QuESt_2.0.b'
 
         # Initialize the main window
-        main_win = MainWindow(app)
+        main_win = MainWindow(app, splash_updater=updater)
 
         # Show the main window after the update check
         def show_main_window():

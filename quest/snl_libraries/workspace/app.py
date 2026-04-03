@@ -421,8 +421,12 @@ class quest_workflow(QWidget):
         self.nodes_df = pd.DataFrame(columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_value_display', 'node_is_path', 'node_is_from_master', 'node_expose_outputs', 'node_function_wrapper', 'node_imports', 'node_notebook_path'])
         self.connections_df = pd.DataFrame(columns=['connection_id', 'from_node', 'to_node', 'mapping'])
         self.flow_name = ''
-        self.flow_environment_name = 'quest master'
+        self.flow_environment_name = 'workflow_env'
         self.flow_environment_path = self._normalize_python_path(sys.executable) if hasattr(self, '_normalize_python_path') else sys.executable.replace('\\', '/')
+        self._proxy_wrapper_sync_in_progress = False
+        self._suspend_proxy_wrapper_sync = False
+        self._last_auto_environment_name = self.flow_environment_name
+        self._pending_graph_frame = False
 
         self.layout = QHBoxLayout(self)
         self.flow_run_widget = QWidget()
@@ -475,6 +479,7 @@ class quest_workflow(QWidget):
         self.flow_load_button = QPushButton("Load")
         self.flow_load_button.setFixedHeight(36)
         self.flow_load_button.clicked.connect(self.load_flow)
+        self.flow_load_path.setText(self._display_flow_path(self._default_flow_examples_dir()))
 
         self.flow_load_layout.addWidget(self.flow_load_label)
         self.flow_load_layout.addWidget(self.flow_load_path)
@@ -686,7 +691,7 @@ class quest_workflow(QWidget):
         self.env_name_layout = QHBoxLayout(self.env_name_widget)
         self.env_name_layout.setContentsMargins(0, 0, 0, 0)
         self.env_name_label = QLabel("Environment name:")
-        self.env_name_input = QLineEdit("quest master")
+        self.env_name_input = QLineEdit(self.flow_environment_name)
         self.env_name_input.textChanged.connect(self._refresh_environment_status)
         self.env_name_layout.addWidget(self.env_name_label)
         self.env_name_layout.addWidget(self.env_name_input)
@@ -766,7 +771,7 @@ class quest_workflow(QWidget):
                 return value
         if getattr(self, 'flow_environment_name', ''):
             return str(self.flow_environment_name).strip()
-        return "quest master"
+        return self._default_environment_name()
 
     def _refresh_flow_environment_dropdown(self, selected_name=None):
         self._sync_flow_metadata_from_controls()
@@ -774,16 +779,37 @@ class quest_workflow(QWidget):
     def update_selected_flow_environment(self):
         self._sync_flow_metadata_from_controls()
 
+    def _default_environment_name(self, flow_name=None):
+        base_name = str(flow_name if flow_name is not None else getattr(self, "flow_name", "")).strip()
+        if not base_name:
+            base_name = "workflow"
+        safe = "".join(ch if ch.isalnum() or ch == "_" else "_" for ch in base_name.replace(" ", "_"))
+        while "__" in safe:
+            safe = safe.replace("__", "_")
+        safe = safe.strip("_") or "workflow"
+        return f"{safe}_env"
+
     def _sync_flow_metadata_from_controls(self, *args):
         try:
             self.flow_name = str(self.flow_run_input.text()).strip()
         except Exception:
             self.flow_name = ''
-        env_name = 'quest master'
+        auto_env_name = self._default_environment_name(self.flow_name)
+        env_name = auto_env_name
         env_path = self._normalize_python_path(sys.executable)
         try:
             if hasattr(self, 'env_name_input'):
-                env_name = str(self.env_name_input.text()).strip() or 'quest master'
+                current_env_name = str(self.env_name_input.text()).strip()
+                if not current_env_name or current_env_name == getattr(self, "_last_auto_environment_name", "") or current_env_name == 'quest master':
+                    env_name = auto_env_name
+                    if current_env_name != auto_env_name:
+                        try:
+                            self.env_name_input.blockSignals(True)
+                            self.env_name_input.setText(auto_env_name)
+                        finally:
+                            self.env_name_input.blockSignals(False)
+                else:
+                    env_name = current_env_name
             if hasattr(self, 'env_path_input'):
                 entered_path = self._normalize_python_path(self.env_path_input.text().strip())
                 if entered_path:
@@ -792,6 +818,7 @@ class quest_workflow(QWidget):
             pass
         self.flow_environment_name = env_name
         self.flow_environment_path = env_path
+        self._last_auto_environment_name = auto_env_name
 
     def _refresh_node_environment_dropdown(self, selected_name=None):
         return
@@ -806,7 +833,7 @@ class quest_workflow(QWidget):
             env_name = str(self.env_name_input.text()).strip()
         if hasattr(self, 'env_path_input'):
             python_path = self._normalize_python_path(self.env_path_input.text().strip())
-        return [{'environment_name': env_name or 'quest master', 'python_path': python_path or self._normalize_python_path(sys.executable)}]
+        return [{'environment_name': env_name or self._default_environment_name(), 'python_path': python_path or self._normalize_python_path(sys.executable)}]
 
     def _environment_path_from_name(self, env_name):
         requested = (env_name or '').strip()
@@ -875,6 +902,30 @@ class quest_workflow(QWidget):
         except Exception:
             return str(python_path).replace("\\", "/")
 
+    def _default_flow_examples_dir(self):
+        candidates = [
+            os.path.join(os.getcwd(), "snl-quest", "quest", "snl_libraries", "workspace", "examples"),
+            os.path.join(os.path.dirname(__file__), "examples"),
+        ]
+        for candidate in candidates:
+            abs_candidate = os.path.abspath(candidate)
+            if os.path.isdir(abs_candidate):
+                return abs_candidate
+        return os.path.abspath(candidates[0])
+
+    def _display_flow_path(self, path):
+        normalized = self._normalize_python_path(path)
+        if not normalized:
+            return ""
+        try:
+            cwd = os.path.abspath(os.getcwd())
+            rel_path = os.path.relpath(normalized.replace("/", os.sep), cwd)
+            if not rel_path.startswith(".."):
+                return rel_path.replace("\\", "/")
+        except Exception:
+            pass
+        return normalized
+
 
 
     def _is_valid_python_path(self, python_path):
@@ -913,7 +964,7 @@ class quest_workflow(QWidget):
     def on_environment_table_clicked(self, row, column):
         return
     def populate_environment_settings_table(self):
-        default_name = self.flow_environment_name or 'quest master'
+        default_name = self.flow_environment_name or self._default_environment_name()
         default_path = self.flow_environment_path or self._normalize_python_path(sys.executable)
         if hasattr(self, 'env_name_input'):
             self.env_name_input.setText(default_name)
@@ -922,7 +973,7 @@ class quest_workflow(QWidget):
         self._refresh_environment_status()
 
     def populate_environment_settings_table_from_df(self):
-        env_name = self.flow_environment_name or 'quest master'
+        env_name = self.flow_environment_name or self._default_environment_name()
         python_path = self.flow_environment_path or self._normalize_python_path(sys.executable)
         if hasattr(self, 'env_name_input'):
             self.env_name_input.setText(env_name)
@@ -931,7 +982,7 @@ class quest_workflow(QWidget):
         self._refresh_environment_status()
 
     def _next_default_environment_name(self):
-        return "quest master"
+        return self._default_environment_name()
     def _ensure_add_row(self):
         return
 
@@ -1572,6 +1623,18 @@ class quest_workflow(QWidget):
             selected_name = getattr(selected_nodes[0], 'node_environment_name', self._quest_master_environment_label())
         self._refresh_node_environment_dropdown(selected_name)
 
+        if (
+            self.get_flow_type() != 'master-flow'
+            and not getattr(self, '_proxy_wrapper_sync_in_progress', False)
+            and not getattr(self, '_suspend_proxy_wrapper_sync', False)
+        ):
+            parent_workspace = self._find_workspace_parent()
+            if parent_workspace is not None and hasattr(parent_workspace, '_sync_proxy_wrapper_for_subflow'):
+                try:
+                    parent_workspace._sync_proxy_wrapper_for_subflow(self)
+                except Exception:
+                    pass
+
     def _create_flow_runner_notebook(self, script_path, flow_name):
         script_path = os.path.abspath(script_path)
         flow_stub = self._sanitize_node_name_for_file(flow_name or 'flow_run')
@@ -1749,7 +1812,12 @@ class quest_workflow(QWidget):
 
     def _serialize_independent_flow_json_data(self):
         self.update_envs()
-        self.update_flow()
+        previous_suspend = getattr(self, "_suspend_proxy_wrapper_sync", False)
+        self._suspend_proxy_wrapper_sync = True
+        try:
+            self.update_flow()
+        finally:
+            self._suspend_proxy_wrapper_sync = previous_suspend
         nodes_df_json = self.nodes_df.to_json(orient='records')
         connection_df_json = self.connections_df.to_json(orient='records')
         layout_dict = self.graph.serialize_session()
@@ -1787,8 +1855,9 @@ class quest_workflow(QWidget):
                 if loaded_env_name and loaded_env_path:
                     break
 
-        self.flow_environment_name = loaded_env_name or 'quest master'
+        self.flow_environment_name = loaded_env_name or self._default_environment_name(flow_name)
         self.flow_environment_path = loaded_env_path or self._normalize_python_path(sys.executable)
+        self._last_auto_environment_name = self._default_environment_name(flow_name)
         self.populate_environment_settings_table_from_df()
 
         layout_dict = flow_json_data['flow_layout']
@@ -1797,6 +1866,7 @@ class quest_workflow(QWidget):
 
         self.graph.clear_session()
         self.graph.deserialize_session(layout_dict)
+        self.request_graph_frame()
 
         nodesdf_list = flow_json_data['nodes_df']
         data_node_rename_map = {}
@@ -1940,11 +2010,11 @@ class quest_workflow(QWidget):
 
     def load_flow(self):
         path, _ = QFileDialog.getOpenFileName(
-            self, "Load Flow JSON", "", "JSON Files (*.json);;All Files (*)"
+            self, "Load Flow JSON", self._default_flow_examples_dir(), "JSON Files (*.json);;All Files (*)"
         )
         if not path:
             return
-        self.flow_load_path.setText(path)
+        self.flow_load_path.setText(self._display_flow_path(path))
 
         try:
             with open(path, 'r') as file:
@@ -2013,7 +2083,7 @@ class quest_workflow(QWidget):
                 # and load that flow directly into the master workflow, with no subflows.
                 parent_workspace._clear_all_subflows()
                 self._deserialize_flow_json_data(flow_json_data)
-                self.flow_load_path.setText(path)
+                self.flow_load_path.setText(self._display_flow_path(path))
                 self.set_flow_type('master-flow')
                 parent_workspace.activate_workflow(self)
                 parent_workspace.sync_workflow_ui(self)
@@ -2313,6 +2383,35 @@ class quest_workflow(QWidget):
 
         if isinstance(node, PyNode):
             self._rename_pynode_notebook_and_wrapper(node, old_name, new_name)
+            if self.get_flow_type() == "master-flow":
+                parent_workspace = self._find_workspace_parent()
+                if parent_workspace is not None and hasattr(parent_workspace, "_workflow_for_proxy_node"):
+                    try:
+                        linked_workflow = parent_workspace._workflow_for_proxy_node(node)
+                    except Exception:
+                        linked_workflow = None
+                    if linked_workflow is not None and linked_workflow is not self:
+                        linked_workflow.flow_name = new_name
+                        try:
+                            linked_workflow.flow_run_input.setText(new_name)
+                        except Exception:
+                            pass
+                        try:
+                            linked_tab = parent_workspace._workflow_tab_for_proxy_node(node)
+                            if linked_tab is not None:
+                                linked_index = parent_workspace.tab_widget.indexOf(linked_tab)
+                                if linked_index >= 0:
+                                    parent_workspace.tab_widget.setTabText(linked_index, new_name)
+                        except Exception:
+                            pass
+                        try:
+                            parent_workspace.sync_workflow_ui(linked_workflow)
+                        except Exception:
+                            pass
+                        try:
+                            parent_workspace._sync_proxy_wrapper_for_subflow(linked_workflow)
+                        except Exception:
+                            pass
             if hasattr(self, "notebook_preview"):
                 try:
                     self.notebook_preview.setPlainText(self._notebook_to_code(node.node_notebook_path))
@@ -2418,27 +2517,45 @@ class quest_workflow(QWidget):
                 input_ports = [arg.arg for arg in func_def.args.args]
                 output_ports = []
 
-                for in_port_name in list(node.inputs().keys()):
-                    for connected_port in node.inputs()[in_port_name].connected_ports():
-                        node.inputs()[in_port_name].disconnect_from(connected_port)
-                    node.delete_input(in_port_name)
-
-                for port_name in input_ports:
-                    node.add_dynamic_input(port_name)
-
                 for fc in ast.walk(func_def):
                     if isinstance(fc, ast.Return):
                         if isinstance(fc.value, ast.Dict):
                             output_ports = [key.s for key in fc.value.keys if isinstance(key, ast.Constant)]
                         break
 
-                for out_port_name in list(node.outputs().keys()):
-                    for connected_port in node.outputs()[out_port_name].connected_ports():
-                        node.outputs()[out_port_name].disconnect_from(connected_port)
-                    node.delete_output(out_port_name)
+                existing_inputs = list(node.inputs().keys())
+                existing_outputs = list(node.outputs().keys())
 
-                for key in output_ports:
-                    node.add_dynamic_output(key)
+                desired_inputs = []
+                for port_name in input_ports:
+                    if port_name not in desired_inputs:
+                        desired_inputs.append(port_name)
+
+                desired_outputs = []
+                for port_name in output_ports:
+                    if port_name not in desired_outputs:
+                        desired_outputs.append(port_name)
+
+                for in_port_name in existing_inputs:
+                    if in_port_name not in desired_inputs:
+                        for connected_port in list(node.inputs()[in_port_name].connected_ports()):
+                            node.inputs()[in_port_name].disconnect_from(connected_port)
+                        node.delete_input(in_port_name)
+
+                for port_name in desired_inputs:
+                    if port_name not in existing_inputs:
+                        node.add_dynamic_input(port_name)
+
+                for out_port_name in existing_outputs:
+                    if out_port_name not in desired_outputs:
+                        for connected_port in list(node.outputs()[out_port_name].connected_ports()):
+                            node.outputs()[out_port_name].disconnect_from(connected_port)
+                        node.delete_output(out_port_name)
+
+                for key in desired_outputs:
+                    if key not in existing_outputs:
+                        node.add_dynamic_output(key)
+
                 valid_exposed = [name for name in getattr(node, 'node_expose_outputs', []) if name in output_ports]
                 node.node_expose_outputs = valid_exposed
                 self._refresh_py_expose_outputs_menu(node)
@@ -2583,6 +2700,39 @@ class quest_workflow(QWidget):
             pass
         return super().eventFilter(obj, event)
 
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._apply_pending_graph_frame()
+
+    def request_graph_frame(self):
+        self._pending_graph_frame = True
+        QTimer.singleShot(0, self._apply_pending_graph_frame)
+
+    def _apply_pending_graph_frame(self):
+        if not self._pending_graph_frame:
+            return
+        try:
+            if not self.isVisible():
+                return
+            if self.graph_widget is None or not self.graph_widget.isVisible():
+                return
+            all_nodes = self.graph.all_nodes()
+            if not all_nodes:
+                self._pending_graph_frame = False
+                return
+            self.graph.fit_to_selection()
+            try:
+                self.graph.center_on(all_nodes)
+            except Exception:
+                pass
+            try:
+                self.graph.viewer().force_update()
+            except Exception:
+                pass
+            self._pending_graph_frame = False
+        except Exception:
+            pass
+
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
             self.on_node_selected()
@@ -2691,6 +2841,9 @@ class quest_workspace(QWidget):
                 self.create_workflow_tab()
             else:
                 self.sync_active_flow_name_from_tab_name()
+                workflow = self.active_workflow()
+                if workflow is not None:
+                    workflow.request_graph_frame()
         except Exception:
             pass
 
@@ -2872,6 +3025,11 @@ class quest_workspace(QWidget):
 
         try:
             self.master_workflow._rename_pynode_notebook_and_wrapper(node, old_name, new_name)
+        except Exception:
+            pass
+
+        try:
+            self._sync_proxy_wrapper_for_subflow(workflow)
         except Exception:
             pass
 
@@ -3175,19 +3333,36 @@ class quest_workspace(QWidget):
                         output_ports = [key.value if isinstance(key, ast.Constant) else key.s for key in fc.value.keys if isinstance(key, (ast.Constant, ast.Str))]
                         break
 
-            for in_port_name in list(proxy_node.inputs().keys()):
-                for connected_port in proxy_node.inputs()[in_port_name].connected_ports():
-                    proxy_node.inputs()[in_port_name].disconnect_from(connected_port)
-                proxy_node.delete_input(in_port_name)
-            for port_name in input_ports:
-                proxy_node.add_dynamic_input(port_name)
+            existing_inputs = list(proxy_node.inputs().keys())
+            existing_outputs = list(proxy_node.outputs().keys())
 
-            for out_port_name in list(proxy_node.outputs().keys()):
-                for connected_port in proxy_node.outputs()[out_port_name].connected_ports():
-                    proxy_node.outputs()[out_port_name].disconnect_from(connected_port)
-                proxy_node.delete_output(out_port_name)
+            desired_inputs = []
+            for port_name in input_ports:
+                if port_name not in desired_inputs:
+                    desired_inputs.append(port_name)
+
+            desired_outputs = []
             for port_name in output_ports:
-                proxy_node.add_dynamic_output(port_name)
+                if port_name not in desired_outputs:
+                    desired_outputs.append(port_name)
+
+            for in_port_name in existing_inputs:
+                if in_port_name not in desired_inputs:
+                    for connected_port in list(proxy_node.inputs()[in_port_name].connected_ports()):
+                        proxy_node.inputs()[in_port_name].disconnect_from(connected_port)
+                    proxy_node.delete_input(in_port_name)
+            for port_name in desired_inputs:
+                if port_name not in existing_inputs:
+                    proxy_node.add_dynamic_input(port_name)
+
+            for out_port_name in existing_outputs:
+                if out_port_name not in desired_outputs:
+                    for connected_port in list(proxy_node.outputs()[out_port_name].connected_ports()):
+                        proxy_node.outputs()[out_port_name].disconnect_from(connected_port)
+                    proxy_node.delete_output(out_port_name)
+            for port_name in desired_outputs:
+                if port_name not in existing_outputs:
+                    proxy_node.add_dynamic_output(port_name)
         except Exception:
             pass
 
@@ -3197,26 +3372,36 @@ class quest_workspace(QWidget):
         proxy_node = getattr(workflow, "_subflow_proxy_node", None)
         if proxy_node is None:
             return
+        if getattr(workflow, "_proxy_wrapper_sync_in_progress", False):
+            return
 
-        input_names = self._subflow_proxy_input_names(workflow)
+        workflow._proxy_wrapper_sync_in_progress = True
+        try:
+            input_names = self._subflow_proxy_input_names(workflow)
 
-        output_names = self._subflow_proxy_output_names(workflow)
-        if not output_names:
-            try:
-                wrapper_text = getattr(proxy_node, "node_function_wrapper", "") or ""
-                parsed_ast = ast.parse(wrapper_text)
-                for func_def in [n for n in ast.walk(parsed_ast) if isinstance(n, ast.FunctionDef)]:
-                    for fc in ast.walk(func_def):
-                        if isinstance(fc, ast.Return) and isinstance(fc.value, ast.Dict):
-                            output_names = [key.value if isinstance(key, ast.Constant) else key.s for key in fc.value.keys if isinstance(key, (ast.Constant, ast.Str))]
+            output_names = self._subflow_proxy_output_names(workflow)
+            if not output_names:
+                try:
+                    wrapper_text = getattr(proxy_node, "node_function_wrapper", "") or ""
+                    parsed_ast = ast.parse(wrapper_text)
+                    for func_def in [n for n in ast.walk(parsed_ast) if isinstance(n, ast.FunctionDef)]:
+                        for fc in ast.walk(func_def):
+                            if isinstance(fc, ast.Return) and isinstance(fc.value, ast.Dict):
+                                output_names = [key.value if isinstance(key, ast.Constant) else key.s for key in fc.value.keys if isinstance(key, (ast.Constant, ast.Str))]
+                                break
+                        if output_names:
                             break
-                    if output_names:
-                        break
-            except Exception:
-                output_names = []
+                except Exception:
+                    output_names = []
 
-        wrapper_code = self._generate_proxy_wrapper_for_subflow(workflow, proxy_node)
-        self._set_proxy_node_wrapper(proxy_node, wrapper_code)
+            wrapper_code = self._generate_proxy_wrapper_for_subflow(workflow, proxy_node)
+            self._set_proxy_node_wrapper(proxy_node, wrapper_code)
+            try:
+                self.master_workflow.update_flow()
+            except Exception:
+                pass
+        finally:
+            workflow._proxy_wrapper_sync_in_progress = False
 
     def _workflow_tab_for_proxy_node(self, node):
         for i in range(0, self.tab_widget.count()):
@@ -3448,7 +3633,7 @@ class quest_workspace(QWidget):
     def _load_master_flow_json_data(self, flow_json_data, source_path=""):
         self._clear_all_subflows()
         self.master_workflow._deserialize_flow_json_data(flow_json_data)
-        self.master_workflow.flow_load_path.setText(source_path)
+        self.master_workflow.flow_load_path.setText(self.master_workflow._display_flow_path(source_path))
         self.master_workflow.set_flow_type("master-flow")
 
         subflows_data = [d for d in flow_json_data.get("subflows_df", []) if isinstance(d, dict)]
@@ -3473,7 +3658,7 @@ class quest_workspace(QWidget):
             workflow._subflow_proxy_node = proxy_node
             workflow._deserialize_flow_json_data(subflow_data)
             workflow.set_flow_type("sub-flow")
-            workflow.flow_load_path.setText(source_path)
+            workflow.flow_load_path.setText(workflow._display_flow_path(source_path))
             try:
                 loaded_name = str(workflow.flow_run_input.text() or "").strip()
             except Exception:

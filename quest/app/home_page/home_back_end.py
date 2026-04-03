@@ -1,6 +1,7 @@
 import os
 import re
 import subprocess
+import platform
 from PySide6.QtCore import (
     QThreadPool,
     QObject,
@@ -8,13 +9,12 @@ from PySide6.QtCore import (
     Signal,
     Slot,
 )
-import platform
 
 # home_dir = os.path.dirname(__file__)
 # base_dir = os.path.join(home_dir, "..", "..")
 from quest.paths import get_path
 base_dir = get_path()
-progress_re = re.compile("(\d+)%")
+progress_re = re.compile(r"(\d+)%")
 
 def simple_percent_parser(output):
     """Match lines using the progress_re regex, returning a single integer for the % progress."""
@@ -40,6 +40,9 @@ class WorkerSignals(QObject):
     result = Signal(
         str
     )  # Send back the output from the process as a string.
+    output_line = Signal(
+        str
+    )  # Stream individual output lines from the process.
     progress = Signal(
         int
     )  # Return an integer 0-100 showing the current progress.
@@ -61,7 +64,7 @@ class SubProcessWorker(QRunnable):
 
     """
 
-    def __init__(self, command, parser=None):
+    def __init__(self, command, parser=None, env=None):
         """Initiliaze the subprocessworker."""
         super().__init__()
         # Store constructor arguments (re-used for processing).
@@ -72,12 +75,14 @@ class SubProcessWorker(QRunnable):
 
         # The parser function to extract the progress information.
         self.parser = parser
+        self.env = env
 
     # tag::workerRun[]
     @Slot()
     def run(self):
         """Initialize the runner function with passed args, kwargs."""
         result = []
+        value = 0
         with subprocess.Popen(
 
             self.command,
@@ -86,18 +91,26 @@ class SubProcessWorker(QRunnable):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
+            env=self.env,
 
 
         ) as proc:
 
-            while proc.poll() is None:
+            while True:
                 data = proc.stdout.readline()
-                print(data)
+                if not data:
+                    if proc.poll() is not None:
+                        break
+                    continue
                 result.append(data)
+                self.signals.output_line.emit(data.rstrip())
                 if self.parser:
-                    value = self.parser(data)
-                    if value:
+                    parsed_value = self.parser(data)
+                    if parsed_value is not None:
+                        value = parsed_value
                         self.signals.progress.emit(value)
+
+            proc.wait()
 
         output = "".join(result)
 
@@ -146,6 +159,40 @@ class app_manager:
         self.solve_path = solve
         self.mod = mod
 
+    def is_app_installed(self):
+        """Return True when the environment exists and the target app is actually installed."""
+        if not os.path.isdir(self.env_path) or not os.path.exists(self.env_act):
+            return False
+
+        scripts_dir = os.path.dirname(self.env_act)
+        env_root = os.path.dirname(scripts_dir)
+        module_name = self.env_cmd if isinstance(self.env_cmd, str) else ""
+
+        if self.mod == "exe":
+            return os.path.exists(self.env_cmd)
+
+        if isinstance(self.env_cmd, str) and (os.sep in self.env_cmd or self.env_cmd.endswith(".py")):
+            return os.path.exists(self.env_cmd)
+
+        if self.mod == "-m" and module_name:
+            if platform.system() == "Windows":
+                candidate_exe = os.path.join(scripts_dir, f"{module_name}.exe")
+                if os.path.exists(candidate_exe):
+                    return True
+
+            site_packages_dir = os.path.join(env_root, "Lib", "site-packages")
+            return (
+                os.path.exists(os.path.join(site_packages_dir, module_name))
+                or os.path.exists(os.path.join(site_packages_dir, f"{module_name}.py"))
+            )
+
+        if module_name:
+            if platform.system() == "Windows":
+                return os.path.exists(os.path.join(scripts_dir, f"{module_name}.exe"))
+            return os.path.exists(os.path.join(scripts_dir, module_name))
+
+        return False
+
     def install(self):
         """
         Install the application by setting up and activating the environment.
@@ -154,14 +201,20 @@ class app_manager:
         appropriate activation command based on the operating system. It then starts
         a subprocess to run the installation command.
         """
+        current_platform = platform.system()
+        worker_env = None
+
         # Check if the environment directory exists
         if os.path.isdir(self.env_path):
 
             # Determine the activation command based on the OS
-            if platform.system() == "Windows":
+            if current_platform == "Windows":
                 act_command = [self.env_act, self.mod, self.env_cmd] if self.mod else [self.env_act, self.env_cmd]
                 if self.solve_path is not None:
-                    os.environ['PATH'] += os.pathsep + self.solve_path
+                    worker_env = os.environ.copy()
+                    path_entries = worker_env.get("PATH", "").split(os.pathsep)
+                    if self.solve_path not in path_entries:
+                        worker_env["PATH"] = os.pathsep.join([self.solve_path, worker_env.get("PATH", "")]).rstrip(os.pathsep)
             else:
                 # For Unix-like systems
                 activate_script_path = self.env_act.replace('Scripts/python.exe', 'bin/activate')
@@ -176,7 +229,7 @@ class app_manager:
 
         else:
             # Determine the script to run (batch file for Windows, shell script for others)
-            if platform.system() == "Windows":
+            if current_platform == "Windows":
                 script_command = [self.script_path]
             else:
                 script_command = ["/bin/bash", self.script_path.replace('.bat', '.sh')]
@@ -188,6 +241,7 @@ class app_manager:
         self.runner = SubProcessWorker(
             command=act_command,
             parser=simple_percent_parser,
+            env=worker_env,
         )
         self.threadpool.start(self.runner)
 
@@ -200,7 +254,9 @@ class app_manager:
         associated with the application.
         """
 
-        if platform.system() == "Windows":
+        current_platform = platform.system()
+
+        if current_platform == "Windows":
             python_cmd = "python"
         else:
             python_cmd = "python3"

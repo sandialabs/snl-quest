@@ -111,17 +111,15 @@ class CostSavingsWizardRateSelect(Screen):
         else:
             Animation.stop_all(self.preview_box, 'opacity')
             self.preview_box.opacity = 0
+            self.has_selection = True
 
-            def _generate_preview():
+            def _generate_preview(*args):
                 self.generate_schedule_charts()
                 self.generate_flat_demand_rate_table()
                 self.generate_misc_table()
+                fade_in_animation(self.preview_box)
 
-                Clock.schedule_once(partial(fade_in_animation, self.preview_box), 0)
-                self.has_selection = True
-            
-            thread_preview = threading.Thread(target=_generate_preview)
-            thread_preview.start()
+            Clock.schedule_once(_generate_preview, 0)
 
     def on_has_selection(self, instance, value):
         self.next_button.disabled = not value            
@@ -204,12 +202,25 @@ class CostSavingsWizardRateSelect(Screen):
 class CostSavingsRateStructureRVEntry(RecycleViewRow):
     host_screen = None
 
+    def on_touch_down(self, touch):
+        """Add selection on touch down."""
+        if super(CostSavingsRateStructureRVEntry, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
     def apply_selection(self, rv, index, is_selected):
         """Respond to the selection of items in the view."""
         super(CostSavingsRateStructureRVEntry, self).apply_selection(rv, index, is_selected)
+        self.selected = is_selected
 
         if is_selected:
             self.host_screen.rate_structure_selected = rv.data[self.index]
+            self.host_screen.has_selection = True
+            self.host_screen.next_button.disabled = False
+        else:
+            self.host_screen.has_selection = False
+            self.host_screen.next_button.disabled = True
 
 
 class FlatDemandRateTable(GridLayout):
