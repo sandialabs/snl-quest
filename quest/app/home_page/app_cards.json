@@ -1,0 +1,217 @@
+{
+  "apps": [
+    {
+      "id": "tech",
+      "connector_attr": "tech_obj",
+      "search_key": "tech_selection",
+      "title": "QuESt Technology Selection",
+      "contact": "Tu Nguyen tunguy@sandia.gov",
+      "info": "An application for identifying the energy storage technologies most suitable for a given project. This tool is based on multiple parameters that characterize each storage technology; the technologies that do not satisfy the minimum application requirements are filtered out and the remaining technologies are ranked to indicate their compatibility to the desired project.",
+      "image_relpath": "images/logo/Quest_Tech_Logo_RGB.png",
+      "env_relpath": "app_envs/env_tech",
+      "script_relpath": "app/tools/script_files/tech.bat",
+      "env_delete_relpath": "app_envs/env_tech",
+      "solve_relpath": "app_envs/env_tech/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "tech_selection"
+      },
+      "grid_position": [0, 0],
+      "active": true
+    },
+    {
+      "id": "valuation",
+      "connector_attr": "eval_obj",
+      "search_key": "evaluation",
+      "title": "QuESt Valuation",
+      "contact": "Tu Nguyen tunguy@sandia.gov",
+      "info": "An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.",
+      "image_relpath": "images/logo/Quest_EvaluationLogo_RGB.png",
+      "env_relpath": "app_envs/env_eval",
+      "script_relpath": "app/tools/script_files/eval.bat",
+      "env_delete_relpath": "app_envs/env_eval",
+      "solve_relpath": "app_envs/env_eval/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "valuation"
+      },
+      "grid_position": [0, 1],
+      "active": true
+    },
+    {
+      "id": "performance",
+      "connector_attr": "perf_obj",
+      "search_key": "performance",
+      "title": "QuESt Performance",
+      "contact": "Walker Olis wolis@sandia.gov",
+      "info": "An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air conditioning loads. This tool leverages the building simulation tool EnergyPlus to model the energy consumption of a particular battery housing.",
+      "image_relpath": "images/logo/Quest_Perf_Logo_RGB.png",
+      "env_relpath": "app_envs/env_perf",
+      "script_relpath": "app/tools/script_files/perf.bat",
+      "env_delete_relpath": "app_envs/env_perf",
+      "solve_relpath": "app_envs/env_perf/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "performance"
+      },
+      "grid_position": [0, 2],
+      "active": true
+    },
+    {
+      "id": "btm",
+      "connector_attr": "btm_obj",
+      "search_key": "behind_the_meter",
+      "title": "QuESt BTM",
+      "contact": "Tu Nguyen tunguy@sandia.gov",
+      "info": "A collection of tools for behind-the-meter (BTM) energy storage systems: <br>*Estimate cost savings for time-of-use and/or net-metering customers",
+      "image_relpath": "images/logo/Quest_BTN_Logo_RGB.png",
+      "env_relpath": "app_envs/env_btm",
+      "script_relpath": "app/tools/script_files/btm.bat",
+      "env_delete_relpath": "app_envs/env_btm",
+      "solve_relpath": "app_envs/env_btm/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "btm"
+      },
+      "grid_position": [0, 3],
+      "active": true
+    },
+    {
+      "id": "microgrid",
+      "connector_attr": "micro_obj",
+      "search_key": "microgrid",
+      "title": "QuESt Microgrid",
+      "contact": "John Eddy jpeddy@sandia.gov",
+      "info": "The QuESt Microgrid app is a Discrete Event Simulator for evaluating energy storage systems connected to electrical power distribution systems.",
+      "image_relpath": "images/logo/Quest_Microgrid_Logo_RGB.png",
+      "env_relpath": "app_envs/env_micro",
+      "script_relpath": "app/tools/script_files/micro.bat",
+      "env_delete_relpath": "app_envs/env_micro",
+      "launch": {
+        "windows": {
+          "type": "path",
+          "value_relpath": "app_envs/env_micro/Lib/site-packages/ssim/ui/kivy/ssimapp.py"
+        },
+        "default": {
+          "type": "exe",
+          "value_relpath": "app_envs/env_micro/bin/ssim"
+        }
+      },
+      "grid_position": [1, 0],
+      "active": true
+    },
+    {
+      "id": "gpt",
+      "connector_attr": "gpt_obj",
+      "search_key": "data_gpt",
+      "title": "QuESt-GPT<br><span style='font-size:16px; font-weight:bold;'> AI-powered tool for data analysis and visualization</span>",
+      "contact": "Tu Nguyen tunguy@sandia.gov",
+      "info": "This application helps users analyze and visualize their dataset (in CSV files). The application utilizes Large Language Models (LLMs) to translate users queries into python codes for performing data analysis and visualization. Currently, GPT4 models (OpenAI's API: https://openai.com/product) and codellama2 model (Replicate's API: https://replicate.com/) are used within the application. ",
+      "image_relpath": "images/logo/Quest_Logo_RGB - GPT.png",
+      "env_relpath": "app_envs/env_viz",
+      "script_relpath": "app/tools/script_files/viz.bat",
+      "env_delete_relpath": "app_envs/env_viz",
+      "launch": {
+        "type": "path",
+        "value_relpath": "snl_libraries/gpt/main.py"
+      },
+      "grid_position": [1, 1],
+      "active": true
+    },
+    {
+      "id": "data_manager",
+      "connector_attr": "data_man_obj",
+      "search_key": "data_manager",
+      "title": "QuESt Data Manager",
+      "contact": "Tu Nguyen tunguy@sandia.gov",
+      "info": "An application for acquiring data from open sources. Data selected for download is acquired in a format and structure compatible with other QuESt applications. Data that can be acquired includes:<br><ul><li>Independent system operators (ISOs) and regional transmission organization (RTOs) market and operations data </li><li>U.S. utility rate structures (tariffs) </li><li>Commercial or residential building load profiles </li><li>Photovoltaic (PV) power profiles</li></ul>",
+      "image_relpath": "images/logo/Quest_Datamanager_Logo_RGB.png",
+      "env_relpath": "app_envs/env_data",
+      "script_relpath": "app/tools/script_files/manager.bat",
+      "env_delete_relpath": "app_envs/env_data",
+      "solve_relpath": "app_envs/env_data/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "data_manager"
+      },
+      "grid_position": [1, 2],
+      "active": true
+    },
+    {
+      "id": "planning",
+      "connector_attr": "plan_obj",
+      "search_key": "planning",
+      "title": "QuESt Planning",
+      "contact": "Cody Newlun cjnewlu@sandia.gov",
+      "info": "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.",
+      "image_relpath": "images/logo/custom_QP_logo.png",
+      "env_relpath": "app_envs/env_planning/snl_quest_planning",
+      "script_relpath": "app/tools/script_files/plan.bat",
+      "env_delete_relpath": "app_envs/env_planning",
+      "solve_relpath": "app_envs/env_planning/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "quest_planning"
+      },
+      "grid_position": [2, 0],
+      "active": true
+    },
+    {
+      "id": "progress",
+      "connector_attr": "progress_obj",
+      "search_key": "progress",
+      "title": "QuESt Progress",
+      "contact": "Atri Bera abera@sandia.gov",
+      "info": "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.",
+      "image_relpath": "images/logo/progress_transparent_alt.png",
+      "env_relpath": "app_envs/env_progress/snl_quest_progress",
+      "script_relpath": "app/tools/script_files/progress.bat",
+      "env_delete_relpath": "app_envs/env_progress",
+      "solve_relpath": "app_envs/env_progress/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "progress"
+      },
+      "grid_position": [1, 3],
+      "active": true
+    },
+    {
+      "id": "energy_equity",
+      "connector_attr": "equity_obj",
+      "search_key": "energy_equity",
+      "title": "QuESt Energy Equity",
+      "contact": "David Rosewater dmrose@sandia.gov",
+      "info": "An application for assessing energy equity and environmental justice of energy storage projects. This application currently has the powerplant replacement wizard that estimates the health and climate benefits of substituting a powerplant with energy storage and PV. It then calculates the county level benefits to estimate how much the project would impact disadvantaged communities and people with low incomes.",
+      "image_relpath": "images/logo/Quest_Equity_Logo_RGB.png",
+      "env_relpath": "app_envs/env_energy/equity",
+      "script_relpath": "app/tools/script_files/energy.bat",
+      "env_delete_relpath": "app_envs/env_energy",
+      "solve_relpath": "app_envs/env_energy/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "path",
+        "value_relpath": "app_envs/env_energy/equity/main.py"
+      },
+      "grid_position": [1, 3],
+      "active": false
+    },
+    {
+      "id": "afr",
+      "connector_attr": "afr_obj",
+      "search_key": "analysis_for_regulators",
+      "title": "QuESt Analysis for Regulators",
+      "contact": "Walker Olis wolis@sandia.gov",
+      "info": "QuESt Analysis for Regulators is a python-based tool for analyzing the impact of energy storage, PV, and wind deployment on capacity goals.",
+      "image_relpath": "images/logo/Quest_Logo_AFR.png",
+      "env_relpath": "app_envs/env_afr",
+      "script_relpath": "app/tools/script_files/afr.bat",
+      "env_delete_relpath": "app_envs/env_afr",
+      "solve_relpath": "app_envs/env_afr/glpk/GLPK-4.65/w64",
+      "launch": {
+        "type": "module",
+        "value": "afr"
+      },
+      "grid_position": [1, 3],
+      "active": false
+    }
+  ]
+}
