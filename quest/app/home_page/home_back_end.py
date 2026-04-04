@@ -203,9 +203,10 @@ class app_manager:
         """
         current_platform = platform.system()
         worker_env = None
+        app_installed = self.is_app_installed()
 
-        # Check if the environment directory exists
-        if os.path.isdir(self.env_path):
+        # Launch the app only when it is actually installed.
+        if app_installed:
 
             # Determine the activation command based on the OS
             if current_platform == "Windows":
