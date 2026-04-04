@@ -93,9 +93,9 @@ from kivy.properties import ObjectProperty
 from kivy.base import EventLoop
 from kivy.uix.floatlayout import FloatLayout
 from kivy.core.image import Image
-from kivy.garden.matplotlib.backend_kivy import FigureCanvasKivy,\
-                            FigureManagerKivy, show, new_figure_manager,\
-                            NavigationToolbar2Kivy
+from valuation.libs.garden.garden_matplotlib.backend_kivy import FigureCanvasKivy, \
+    FigureManagerKivy, show, new_figure_manager, \
+    NavigationToolbar2Kivy
 
 register_backend('png', 'backend_kivyagg', 'PNG File Format')
 

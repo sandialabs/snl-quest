@@ -9,8 +9,8 @@ import textwrap
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import sys
-mpl.use('module://kivy.garden.matplotlib.backend_kivy')
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+mpl.use('module://valuation.libs.garden.garden_matplotlib.backend_kivy')
+from valuation.libs.garden.garden_matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from valuation.paths import get_path
 dirname = get_path()
 # kivy_back = os.path.join(dirname, "libs", "garden", "garden_matplotlib")
