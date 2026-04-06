@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import logging
 from datetime import datetime
 import calendar
-import pyutilib
+from pyutilib.common._exceptions import ApplicationError
 
 from kivy.clock import mainthread
 
@@ -128,7 +128,7 @@ class ValuationOptimizerHandler:
 
                 try:
                     solved_op = self._solve_model(op)
-                except pyutilib.common._exceptions.ApplicationError as e:
+                except ApplicationError as e:
                     logging.error('Op Handler: {error}'.format(error=e))
 
                     if 'No executable found' in e.args[0]:
