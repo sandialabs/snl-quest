@@ -2,6 +2,7 @@ import os
 import re
 import subprocess
 import platform
+import sys
 from PySide6.QtCore import (
     QThreadPool,
     QObject,
@@ -159,6 +160,22 @@ class app_manager:
         self.solve_path = solve
         self.mod = mod
 
+    def _site_packages_dirs(self, env_root):
+        """Return possible site-packages locations for this environment."""
+        candidates = []
+        if platform.system() == "Windows":
+            candidates.append(os.path.join(env_root, "Lib", "site-packages"))
+        else:
+            py_version = f"python{sys.version_info.major}.{sys.version_info.minor}"
+            candidates.append(os.path.join(env_root, "lib", py_version, "site-packages"))
+            lib_root = os.path.join(env_root, "lib")
+            if os.path.isdir(lib_root):
+                for child in os.listdir(lib_root):
+                    child_path = os.path.join(lib_root, child, "site-packages")
+                    if child.startswith("python") and os.path.isdir(child_path):
+                        candidates.append(child_path)
+        return candidates
+
     def is_app_installed(self):
         """Return True when the environment exists and the target app is actually installed."""
         if not os.path.isdir(self.env_path) or not os.path.exists(self.env_act):
@@ -180,11 +197,13 @@ class app_manager:
                 if os.path.exists(candidate_exe):
                     return True
 
-            site_packages_dir = os.path.join(env_root, "Lib", "site-packages")
-            return (
-                os.path.exists(os.path.join(site_packages_dir, module_name))
-                or os.path.exists(os.path.join(site_packages_dir, f"{module_name}.py"))
-            )
+            for site_packages_dir in self._site_packages_dirs(env_root):
+                if (
+                    os.path.exists(os.path.join(site_packages_dir, module_name))
+                    or os.path.exists(os.path.join(site_packages_dir, f"{module_name}.py"))
+                ):
+                    return True
+            return False
 
         if module_name:
             if platform.system() == "Windows":
@@ -218,15 +237,17 @@ class app_manager:
                         worker_env["PATH"] = os.pathsep.join([self.solve_path, worker_env.get("PATH", "")]).rstrip(os.pathsep)
             else:
                 # For Unix-like systems
-                activate_script_path = self.env_act.replace('Scripts/python.exe', 'bin/activate')
+                activate_script_path = os.path.join(os.path.dirname(os.path.dirname(self.env_act)), 'bin', 'activate')
                 # Construct the activation command for Unix-like systems
                 if self.mod:
-                    if self.mod != 'exe':
-                        act_command = ["/bin/bash", "-c", f"source {activate_script_path} && {self.env_cmd}"]
+                    if self.mod == '-m':
+                        act_command = ["/bin/bash", "-c", f"source \"{activate_script_path}\" && python3 -m {self.env_cmd}"]
+                    elif self.mod != 'exe':
+                        act_command = ["/bin/bash", "-c", f"source \"{activate_script_path}\" && {self.mod} \"{self.env_cmd}\""]
                     else:
                         act_command = [self.env_cmd]
                 else:
-                    act_command = ["/bin/bash", "-c", f"source {activate_script_path} && python3 {self.env_cmd}"]
+                    act_command = ["/bin/bash", "-c", f"source \"{activate_script_path}\" && python3 \"{self.env_cmd}\""]
 
         else:
             # Determine the script to run (batch file for Windows, shell script for others)

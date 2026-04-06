@@ -362,7 +362,7 @@ class AddAppDialog(QDialog):
 
         self.image_input.setPlaceholderText("images/logo/my_app_logo.png")
         self.env_input.setPlaceholderText("app_envs/env_my_app")
-        self.script_input.setPlaceholderText("app/tools/script_files/my_app.bat")
+        self.script_input.setPlaceholderText("app/tools/script_files/my_app.bat or my_app.sh")
         self.env_delete_input.setPlaceholderText("app_envs/env_my_app")
         self.solve_input.setPlaceholderText("Optional")
         self.launch_value_input.setPlaceholderText("module name or relative path")
@@ -470,7 +470,7 @@ class AddAppDialog(QDialog):
             self.image_input.setText(relpath)
 
     def _browse_script(self):
-        relpath = self._browse_relative_file("app/tools/script_files", "Batch Files (*.bat *.cmd);;All Files (*)")
+        relpath = self._browse_relative_file("app/tools/script_files", "Scripts (*.bat *.cmd *.sh);;All Files (*)")
         if relpath:
             self.script_input.setText(relpath)
 
@@ -1001,7 +1001,10 @@ class home_page(QWidget, Ui_home_page):
         remove_button.show()
 
         env_path = config["env_path"]
-        env_act = os.path.join(env_path, "Scripts", "python.exe")
+        if sys.platform.startswith("win"):
+            env_act = os.path.join(env_path, "Scripts", "python.exe")
+        else:
+            env_act = os.path.join(env_path, "bin", "python3")
         back = app_manager(
             env_path,
             env_act,
