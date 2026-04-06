@@ -3,7 +3,7 @@ import os
 import keyword
 import tempfile
 import pickle
-import inspect, ast, json, socket, subprocess, html
+import inspect, ast, json, socket, subprocess, html, re
 import pandas as pd
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
@@ -696,6 +696,16 @@ class quest_workflow(QWidget):
         self.env_name_layout.addWidget(self.env_name_label)
         self.env_name_layout.addWidget(self.env_name_input)
 
+        self.env_select_widget = QWidget()
+        self.env_select_widget.setFixedWidth(400)
+        self.env_select_layout = QHBoxLayout(self.env_select_widget)
+        self.env_select_layout.setContentsMargins(0, 0, 0, 0)
+        self.env_select_label = QLabel("Detected envs:")
+        self.env_select_combo = QComboBox()
+        self.env_select_combo.currentIndexChanged.connect(self._on_environment_selector_changed)
+        self.env_select_layout.addWidget(self.env_select_label)
+        self.env_select_layout.addWidget(self.env_select_combo)
+
         self.env_path_widget = QWidget()
         self.env_path_widget.setFixedWidth(400)
         self.env_path_layout = QHBoxLayout(self.env_path_widget)
@@ -726,6 +736,7 @@ class quest_workflow(QWidget):
         self.env_status_label.setStyleSheet("font-size: 10pt; color: #475569;")
 
         self.env_settings_layout.addWidget(self.env_name_widget)
+        self.env_settings_layout.addWidget(self.env_select_widget)
         self.env_settings_layout.addWidget(self.env_path_widget)
         self.env_settings_layout.addWidget(self.env_browse_widget)
         self.env_settings_layout.addWidget(self.env_status_label)
@@ -882,10 +893,10 @@ class quest_workflow(QWidget):
             self,
             "Select Python Executable",
             start_dir,
-            "Python Executable (python.exe python python3 python3.exe);;All Files (*)"
+            "Python Executable (python.exe python python3 python3.11 python3.13);;All Files (*)"
         )
         if chosen_path and hasattr(self, 'env_path_input'):
-            self.env_path_input.setText(self._normalize_python_path(chosen_path))
+            self.env_path_input.setText(self._resolve_python_interpreter_path(chosen_path))
             self._refresh_environment_status()
 
     def _sync_node_environments_with_available_list(self):
@@ -901,6 +912,145 @@ class quest_workflow(QWidget):
             return os.path.abspath(str(python_path)).replace("\\", "/")
         except Exception:
             return str(python_path).replace("\\", "/")
+
+    def _resolve_python_interpreter_path(self, python_path):
+        normalized = self._normalize_python_path(python_path)
+        if not normalized:
+            return ""
+
+        os_path = normalized.replace("/", os.sep)
+        candidate_paths = []
+
+        if os.path.isfile(os_path):
+            candidate_paths.append(os_path)
+        elif os.path.isdir(os_path):
+            base_name = os.path.basename(os_path).lower()
+            if base_name in ("scripts", "bin"):
+                candidate_paths.extend([
+                    os.path.join(os_path, "python.exe"),
+                    os.path.join(os_path, "pythonw.exe"),
+                    os.path.join(os_path, "python"),
+                    os.path.join(os_path, "python3"),
+                ])
+                try:
+                    for child in sorted(os.listdir(os_path)):
+                        if re.fullmatch(r"python\d+(?:\.\d+)*", child.lower()):
+                            candidate_paths.append(os.path.join(os_path, child))
+                except Exception:
+                    pass
+            else:
+                candidate_paths.extend(self._python_executable_candidates(os_path))
+
+        for candidate in candidate_paths:
+            if not os.path.isfile(candidate):
+                continue
+            name = os.path.basename(candidate).lower()
+            if not re.fullmatch(r"python(?:w)?(?:\d+(?:\.\d+)*)?(?:\.exe)?", name):
+                continue
+            if os.name != "nt" and not os.access(candidate, os.X_OK):
+                continue
+            return self._normalize_python_path(candidate)
+
+        return normalized
+
+    def _python_executable_candidates(self, env_root):
+        env_root = os.path.abspath(str(env_root))
+        candidates = []
+        if os.name == "nt":
+            candidates.extend([
+                os.path.join(env_root, "Scripts", "python.exe"),
+                os.path.join(env_root, "Scripts", "python"),
+            ])
+        else:
+            bin_dir = os.path.join(env_root, "bin")
+            candidates.extend([
+                os.path.join(bin_dir, "python"),
+                os.path.join(bin_dir, "python3"),
+            ])
+            if os.path.isdir(bin_dir):
+                try:
+                    for child in sorted(os.listdir(bin_dir)):
+                        if re.fullmatch(r"python\d+(?:\.\d+)*", child):
+                            candidates.append(os.path.join(bin_dir, child))
+                except Exception:
+                    pass
+        return [self._normalize_python_path(path) for path in candidates]
+
+    def _discover_available_python_environments(self):
+        discovered = []
+        seen_paths = set()
+        current_python = self._normalize_python_path(sys.executable)
+        discovered.append({
+            "label": f"Current QuESt Python ({os.path.basename(current_python)})",
+            "path": current_python,
+        })
+        seen_paths.add(current_python)
+
+        candidate_env_dirs = [
+            os.path.join(os.path.dirname(quest.__file__), "app_envs"),
+            os.path.join(base_dir, "app_envs"),
+            os.path.join(os.getcwd(), "snl-quest", "quest", "app_envs"),
+        ]
+        seen_env_dirs = set()
+        for env_dir in candidate_env_dirs:
+            normalized_dir = os.path.abspath(env_dir)
+            if normalized_dir in seen_env_dirs or not os.path.isdir(normalized_dir):
+                continue
+            seen_env_dirs.add(normalized_dir)
+            try:
+                children = sorted(os.listdir(normalized_dir))
+            except Exception:
+                continue
+            for child in children:
+                child_path = os.path.join(normalized_dir, child)
+                if not os.path.isdir(child_path) or child == "__pycache__":
+                    continue
+                for candidate in self._python_executable_candidates(child_path):
+                    if candidate in seen_paths or not self._is_valid_python_path(candidate):
+                        continue
+                    discovered.append({
+                        "label": f"{child} ({os.path.basename(candidate)})",
+                        "path": candidate,
+                    })
+                    seen_paths.add(candidate)
+                    break
+
+        return discovered
+
+    def _refresh_environment_selector(self, selected_path=None):
+        if not hasattr(self, "env_select_combo"):
+            return
+        normalized_selected = self._normalize_python_path(selected_path or "")
+        combo = self.env_select_combo
+        options = self._discover_available_python_environments()
+        try:
+            combo.blockSignals(True)
+            combo.clear()
+            selected_index = -1
+            for index, option in enumerate(options):
+                combo.addItem(option["label"], option["path"])
+                if normalized_selected and option["path"] == normalized_selected:
+                    selected_index = index
+            combo.addItem("Custom...", "__custom__")
+            combo.setCurrentIndex(selected_index if selected_index >= 0 else combo.count() - 1)
+        finally:
+            combo.blockSignals(False)
+
+    def _on_environment_selector_changed(self, index):
+        if not hasattr(self, "env_select_combo") or not hasattr(self, "env_path_input"):
+            return
+        selected_path = self.env_select_combo.itemData(index)
+        if not selected_path or selected_path == "__custom__":
+            return
+        normalized_path = self._resolve_python_interpreter_path(selected_path)
+        if self._normalize_python_path(self.env_path_input.text().strip()) == normalized_path:
+            return
+        try:
+            self.env_path_input.blockSignals(True)
+            self.env_path_input.setText(normalized_path)
+        finally:
+            self.env_path_input.blockSignals(False)
+        self._refresh_environment_status()
 
     def _default_flow_examples_dir(self):
         candidates = [
@@ -932,11 +1082,17 @@ class quest_workflow(QWidget):
         try:
             if not python_path:
                 return False
-            path = os.path.abspath(str(python_path).replace("/", os.sep))
+            resolved = self._resolve_python_interpreter_path(python_path)
+            path = os.path.abspath(str(resolved).replace("/", os.sep))
             if not os.path.isfile(path):
                 return False
             name = os.path.basename(path).lower()
-            return name in ("python.exe", "python", "python3", "python3.exe")
+            is_python_name = bool(re.fullmatch(r"python(?:w)?(?:\d+(?:\.\d+)*)?(?:\.exe)?", name))
+            if not is_python_name:
+                return False
+            if os.name != "nt" and not os.access(path, os.X_OK):
+                return False
+            return True
         except Exception:
             return False
 
@@ -947,12 +1103,12 @@ class quest_workflow(QWidget):
                 path_widget.setStyleSheet(
                     "QLineEdit { color: #166534; background: #ecfdf5; border: 1px solid #86efac; border-radius: 6px; padding: 4px 6px; }"
                 )
-                path_widget.setToolTip("Valid Python executable")
+                path_widget.setToolTip("Valid Python interpreter path")
             else:
                 path_widget.setStyleSheet(
                     "QLineEdit { color: #991b1b; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 6px; padding: 4px 6px; }"
                 )
-                path_widget.setToolTip("Invalid Python executable path")
+                path_widget.setToolTip("Invalid Python interpreter path")
         return valid
     def _add_environment_row_widget(self, row, env_name="", python_path=""):
         # legacy no-op now that environment is edited directly in line edits.
@@ -970,6 +1126,7 @@ class quest_workflow(QWidget):
             self.env_name_input.setText(default_name)
         if hasattr(self, 'env_path_input'):
             self.env_path_input.setText(default_path)
+        self._refresh_environment_selector(default_path)
         self._refresh_environment_status()
 
     def populate_environment_settings_table_from_df(self):
@@ -979,6 +1136,7 @@ class quest_workflow(QWidget):
             self.env_name_input.setText(env_name)
         if hasattr(self, 'env_path_input'):
             self.env_path_input.setText(python_path)
+        self._refresh_environment_selector(python_path)
         self._refresh_environment_status()
 
     def _next_default_environment_name(self):
@@ -997,6 +1155,7 @@ class quest_workflow(QWidget):
         if hasattr(self, 'env_path_input'):
             path_text = self.env_path_input.text().strip()
             self._apply_path_validation_style(self.env_path_input, path_text)
+        self._refresh_environment_selector(path_text)
         valid_count = 1 if self._is_valid_python_path(path_text) else 0
         if hasattr(self, 'env_status_label'):
             self.env_status_label.setText(f"1 environment configured • {valid_count} valid")
