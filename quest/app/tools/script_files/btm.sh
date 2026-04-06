@@ -4,6 +4,7 @@ set -e
 PYTHON_BIN="${QUEST_PYTHON:-python3}"
 VENV_PATH="$(cd "$(dirname "$0")" && pwd)/../../../app_envs/env_btm"
 LOCAL_BTM_PATH="$(cd "$(dirname "$0")" && pwd)/../../../snl_libraries/snl_btm"
+TARGET_PYTHON_VERSION="$("$PYTHON_BIN" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 
 install_glpk() {
     if command -v glpsol >/dev/null 2>&1; then
@@ -43,6 +44,14 @@ install_glpk() {
 if [ -d "$VENV_PATH" ] && [ ! -f "$VENV_PATH/bin/activate" ]; then
     echo "Existing BTM environment is incomplete. Recreating it..."
     rm -rf "$VENV_PATH"
+fi
+
+if [ -f "$VENV_PATH/bin/python3" ]; then
+    EXISTING_PYTHON_VERSION="$("$VENV_PATH/bin/python3" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")' 2>/dev/null || true)"
+    if [ -n "$EXISTING_PYTHON_VERSION" ] && [ "$EXISTING_PYTHON_VERSION" != "$TARGET_PYTHON_VERSION" ]; then
+        echo "Existing BTM environment uses Python $EXISTING_PYTHON_VERSION but QuESt is using Python $TARGET_PYTHON_VERSION. Recreating it..."
+        rm -rf "$VENV_PATH"
+    fi
 fi
 
 if [ ! -f "$VENV_PATH/bin/activate" ]; then
