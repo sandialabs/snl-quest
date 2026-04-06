@@ -1,6 +1,10 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 import logging
-import pyutilib
+import os
+import shutil
+import sys
+
+from pyutilib.common._exceptions import ApplicationError
 
 from six import with_metaclass
 from pyomo.environ import *
@@ -58,7 +62,7 @@ class Optimizer(with_metaclass(ABCMeta)):
             solver_manager = SolverManagerFactory("neos")
             results = solver_manager.solve(self.model, opt=opt)
         else:
-            solver = SolverFactory(self.solver)
+            solver = self._create_solver()
             results = solver.solve(self.model, tee=False, keepfiles=False)
 
         assert results.solver.termination_condition == TerminationCondition.optimal
@@ -85,12 +89,13 @@ class Optimizer(with_metaclass(ABCMeta)):
             solver_manager = SolverManagerFactory("neos")
             results = solver_manager.solve(self.model, opt=opt)
         else:
-            solver = SolverFactory(self.solver)
+            solver = self._create_solver()
 
             try:
                 solver.available()
-            except pyutilib.common._exceptions.ApplicationError as e:
+            except ApplicationError as e:
                 logging.error("Optimizer: {error}".format(error=e))
+                raise
             else:
                 results = solver.solve(self.model, tee=True, keepfiles=False)
 
@@ -113,6 +118,45 @@ class Optimizer(with_metaclass(ABCMeta)):
             self._process_results()
 
         return self.get_results()
+
+    def _create_solver(self):
+        """Create a solver instance, preferring a bundled GLPK executable when present."""
+        if self.solver != "glpk":
+            return SolverFactory(self.solver)
+
+        executable = self._find_glpk_executable()
+        if executable:
+            logging.info("Optimizer: Using GLPK executable at %s", executable)
+            return SolverFactory(self.solver, executable=executable)
+
+        return SolverFactory(self.solver)
+
+    @staticmethod
+    def _find_glpk_executable():
+        """Locate glpsol in PATH or in the current environment's bundled GLPK folder."""
+        exe_name = "glpsol.exe" if os.name == "nt" else "glpsol"
+        from_path = shutil.which(exe_name) or shutil.which("glpsol")
+        if from_path:
+            return from_path
+
+        env_root = os.path.dirname(os.path.dirname(sys.executable))
+        candidates = [
+            os.path.join(env_root, "glpk", "GLPK-4.65", "w64", exe_name),
+            os.path.join(env_root, "glpk", "glpk-4.65", "w64", exe_name),
+            os.path.join(env_root, "glpk", "winglpk-4.65", "w64", exe_name),
+            os.path.join(env_root, "bin", exe_name),
+        ]
+        for candidate in candidates:
+            if os.path.exists(candidate):
+                return candidate
+
+        glpk_root = os.path.join(env_root, "glpk")
+        if os.path.isdir(glpk_root):
+            for root, _dirs, files in os.walk(glpk_root):
+                if exe_name in files:
+                    return os.path.join(root, exe_name)
+
+        return None
 
     def set_model_parameters(self, **kwargs):
         """Sets model parameters in kwargs to their respective values."""

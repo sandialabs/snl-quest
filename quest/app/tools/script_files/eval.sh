@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e
 
-REPO_URL="https://github.com/sandialabs/snl-quest.git"
-BRANCH_NAME="snl_libraries"
-SPARSE_DIR="snl_libraries/snl_valuation"
+PYTHON_BIN="${QUEST_PYTHON:-python3}"
 VENV_PATH="$(cd "$(dirname "$0")" && pwd)/../../../app_envs/env_eval"
-CHECKOUT_PATH="$VENV_PATH/snl-quest/$SPARSE_DIR"
+LOCAL_EVAL_PATH="$(cd "$(dirname "$0")" && pwd)/../../../snl_libraries/snl_valuation"
 
 install_glpk() {
     if command -v glpsol >/dev/null 2>&1; then
@@ -42,27 +40,25 @@ install_glpk() {
     esac
 }
 
-if [ ! -d "$VENV_PATH" ]; then
-    python3 -m venv "$VENV_PATH"
+if [ -d "$VENV_PATH" ] && [ ! -f "$VENV_PATH/bin/activate" ]; then
+    echo "Existing Valuation environment is incomplete. Recreating it..."
+    rm -rf "$VENV_PATH"
+fi
+
+if [ ! -f "$VENV_PATH/bin/activate" ]; then
+    "$PYTHON_BIN" -m venv "$VENV_PATH"
 fi
 
 source "$VENV_PATH/bin/activate"
 
-if [ ! -d "$VENV_PATH/snl-quest" ]; then
-    git clone --no-checkout -b "$BRANCH_NAME" "$REPO_URL" "$VENV_PATH/snl-quest"
-fi
+export PIP_NO_INDEX=0
 
-cd "$VENV_PATH/snl-quest"
-git sparse-checkout init
-git sparse-checkout set "$SPARSE_DIR"
-git checkout "$BRANCH_NAME"
-
-if [ ! -d "$CHECKOUT_PATH" ]; then
-    echo "Sparse checkout failed. Directory $SPARSE_DIR does not exist."
+if [ ! -f "$LOCAL_EVAL_PATH/setup.py" ]; then
+    echo "Failed to locate bundled Valuation sources at '$LOCAL_EVAL_PATH'."
     exit 1
 fi
 
-pip install "$CHECKOUT_PATH"
+pip install "$LOCAL_EVAL_PATH"
 
 install_glpk
 

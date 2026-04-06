@@ -7,8 +7,16 @@ set VENV_PATH=%~dp0..\..\..\app_envs\env_btm
 REM Set the path to the bundled BTM package in this QuESt installation
 set LOCAL_BTM_PATH=%~dp0..\..\..\snl_libraries\snl_btm
 
+REM Rebuild the environment if it exists but is incomplete.
+if exist "%VENV_PATH%" (
+    if not exist "%VENV_PATH%\Scripts\activate.bat" (
+        echo Existing BTM environment is incomplete. Recreating it...
+        rmdir /s /q "%VENV_PATH%"
+    )
+)
+
 REM Create the virtual environment if it doesn't exist
-if not exist "%VENV_PATH%" (
+if not exist "%VENV_PATH%\Scripts\activate.bat" (
     python -m venv "%VENV_PATH%"
     if errorlevel 1 (
         echo Failed to create the BTM virtual environment.

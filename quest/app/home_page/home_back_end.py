@@ -176,9 +176,30 @@ class app_manager:
                         candidates.append(child_path)
         return candidates
 
+    def _has_required_solver(self):
+        """Return True when the configured solver bundle is present, if required."""
+        if platform.system() != "Windows" or not self.solve_path:
+            return True
+
+        expected_executable = os.path.join(self.solve_path, "glpsol.exe")
+        if os.path.exists(expected_executable):
+            return True
+
+        glpk_root = os.path.join(self.env_path, "glpk")
+        if not os.path.isdir(glpk_root):
+            return False
+
+        for root, _dirs, files in os.walk(glpk_root):
+            if "glpsol.exe" in files:
+                return True
+
+        return False
+
     def is_app_installed(self):
         """Return True when the environment exists and the target app is actually installed."""
         if not os.path.isdir(self.env_path) or not os.path.exists(self.env_act):
+            return False
+        if not self._has_required_solver():
             return False
 
         scripts_dir = os.path.dirname(self.env_act)
@@ -254,6 +275,8 @@ class app_manager:
             if current_platform == "Windows":
                 script_command = [self.script_path]
             else:
+                worker_env = os.environ.copy()
+                worker_env["QUEST_PYTHON"] = sys.executable
                 script_command = ["/bin/bash", self.script_path.replace('.bat', '.sh')]
 
             # Use script_command if the environment directory does not exist

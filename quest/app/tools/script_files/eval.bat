@@ -1,51 +1,51 @@
 @echo off
-
-REM Set the repository URL and branch name
-set REPO_URL=https://github.com/sandialabs/snl-quest.git
-set BRANCH_NAME=snl_libraries
-
-REM Set the sparse checkout directory
-set SPARSE_DIR=snl_libraries/snl_valuation
+setlocal
 
 REM Set the path to the virtual environment
 set VENV_PATH=%~dp0..\..\..\app_envs\env_eval
 
-REM Set the path to the sparse checkout directory within the virtual environment
-set CHECKOUT_PATH=%VENV_PATH%\snl-quest\%SPARSE_DIR%
+REM Set the path to the bundled Valuation package in this QuESt installation
+set LOCAL_EVAL_PATH=%~dp0..\..\..\snl_libraries\snl_valuation
+
+REM Rebuild the environment if it exists but is incomplete.
+if exist "%VENV_PATH%" (
+    if not exist "%VENV_PATH%\Scripts\activate.bat" (
+        echo Existing Valuation environment is incomplete. Recreating it...
+        rmdir /s /q "%VENV_PATH%"
+    )
+)
 
 REM Create the virtual environment if it doesn't exist
-if not exist "%VENV_PATH%" (
-    python -m venv %VENV_PATH%
+if not exist "%VENV_PATH%\Scripts\activate.bat" (
+    python -m venv "%VENV_PATH%"
+    if errorlevel 1 (
+        echo Failed to create the Valuation virtual environment.
+        exit /b 1
+    )
 )
 
 REM Activate the virtual environment
-call "%VENV_PATH%\Scripts\activate"
-
-REM Clone the repository without checking out files into the virtual environment directory
-if not exist "%VENV_PATH%\snl-quest" (
-    git clone --no-checkout -b %BRANCH_NAME% %REPO_URL% "%VENV_PATH%\snl-quest"
-)
-
-REM Navigate to the cloned repository
-cd "%VENV_PATH%\snl-quest"
-
-REM Enable sparse checkout
-git sparse-checkout init
-
-REM Set sparse checkout path to include only the desired directory
-git sparse-checkout set %SPARSE_DIR%
-
-REM Check out the branch
-git checkout %BRANCH_NAME%
-
-REM Ensure the sparse checkout directory exists
-if not exist "%CHECKOUT_PATH%" (
-    echo Sparse checkout failed. Directory %SPARSE_DIR% does not exist.
+call "%VENV_PATH%\Scripts\activate.bat"
+if errorlevel 1 (
+    echo Failed to activate the Valuation virtual environment.
     exit /b 1
 )
 
-REM Install the Python package within the virtual environment
-pip install "%CHECKOUT_PATH%"
+REM Allow this app installer to resolve packages from configured package indexes.
+set "PIP_NO_INDEX=0"
+
+REM Ensure the bundled Valuation package exists
+if not exist "%LOCAL_EVAL_PATH%\setup.py" (
+    echo Failed to locate bundled Valuation sources at "%LOCAL_EVAL_PATH%".
+    exit /b 1
+)
+
+REM Install the Python package within the virtual environment from the local source bundle
+pip install "%LOCAL_EVAL_PATH%"
+if errorlevel 1 (
+    echo Failed to install QuESt Valuation from "%LOCAL_EVAL_PATH%".
+    exit /b 1
+)
 
 REM Define the GLPK URL and destination
 set URL=https://sourceforge.net/projects/winglpk/files/winglpk/GLPK-4.65/winglpk-4.65.zip/download
@@ -74,10 +74,6 @@ REM Clean up
 del %OUTPUT%
 
 echo GLPK installation successful
-
-REM Install matplotlib using garden
-garden install matplotlib
-echo Garden installation matplotlib successful
 
 REM Deactivate the virtual environment
 deactivate
