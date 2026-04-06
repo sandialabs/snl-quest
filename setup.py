@@ -25,22 +25,18 @@ setup(
     url=URL,
     install_requires=[
         "kivy==2.3.0",
-        "scipy==1.12.0",
+        "numpy==1.26.4",
         "pandas==2.2.1",
         "pyomo==6.7.1",
         "matplotlib==3.7.4",
-        "xlrd==2.0.1",
         "six==1.16.0",
         "jinja2==3.1.3",
         "bs4==0.0.2",
         "requests==2.31.0",
         "urllib3==2.2.1",
-        "seaborn==0.13.2",
-        "eppy==0.5.63",
         "openpyxl==3.1.2",
         "pyutilib==6.0.0",
         "holidays==0.43",
-        "scikit-glpk==0.5.0",
     ],
 
     package_data={
