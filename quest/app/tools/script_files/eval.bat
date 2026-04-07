@@ -48,32 +48,55 @@ if errorlevel 1 (
 )
 
 REM Define the GLPK URL and destination
-set URL=https://sourceforge.net/projects/winglpk/files/winglpk/GLPK-4.65/winglpk-4.65.zip/download
-set OUTPUT=%VENV_PATH%\glpk.zip
+set "URL=https://downloads.sourceforge.net/project/winglpk/winglpk/GLPK-4.65/winglpk-4.65.zip"
+set "OUTPUT=%VENV_PATH%\glpk.zip"
+set "GLPK_DEST=%VENV_PATH%\glpk"
 
 REM Download GLPK using curl
-curl -L --insecure -o %OUTPUT% %URL%
+curl -fL --retry 3 --retry-delay 2 --insecure -o "%OUTPUT%" "%URL%"
+if errorlevel 1 (
+    echo Failed to download GLPK from "%URL%".
+    if exist "%OUTPUT%" del "%OUTPUT%"
+    exit /b 1
+)
 
 REM Check if the download was successful
-if not exist %OUTPUT% (
+if not exist "%OUTPUT%" (
     echo Failed to download GLPK
     exit /b 1
 )
 
+if exist "%GLPK_DEST%" (
+    rmdir /s /q "%GLPK_DEST%"
+)
+
 REM Extract GLPK
-powershell -Command "Expand-Archive -Path %OUTPUT% -DestinationPath %VENV_PATH%\glpk"
+powershell -NoProfile -Command "try { Expand-Archive -LiteralPath '%OUTPUT%' -DestinationPath '%GLPK_DEST%' -Force -ErrorAction Stop } catch { Write-Error $_; exit 1 }"
 
 REM Check if the extraction was successful
 if errorlevel 1 (
     echo Failed to extract GLPK
-    del %OUTPUT%
+    if exist "%OUTPUT%" del "%OUTPUT%"
+    exit /b 1
+)
+
+set "GLPSOL_EXE="
+for /r "%GLPK_DEST%" %%F in (glpsol.exe) do (
+    set "GLPSOL_EXE=%%F"
+    goto :glpk_found
+)
+
+:glpk_found
+if not defined GLPSOL_EXE (
+    echo GLPK extraction completed, but glpsol.exe was not found.
+    if exist "%OUTPUT%" del "%OUTPUT%"
     exit /b 1
 )
 
 REM Clean up
-del %OUTPUT%
+del "%OUTPUT%"
 
-echo GLPK installation successful
+echo GLPK installation successful: %GLPSOL_EXE%
 
 REM Deactivate the virtual environment
 deactivate

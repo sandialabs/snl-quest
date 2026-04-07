@@ -85,7 +85,8 @@ def main():
     st.set_page_config(layout="wide")
     # css_file = 'style.css'
     # load_css(css_file)
-    st.title("QuESt GPT - AI-powered tool for data analysis and visualization")
+    st.title("QuESt GPT")
+    st.write("This application helps users analyze and visualize their dataset (in CSV files) using OpenAI API.")
     
     # Attempt to load the API key from config if available
     saved_api_key = get_api_key_from_config()

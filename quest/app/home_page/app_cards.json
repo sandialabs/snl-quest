@@ -121,7 +121,7 @@
       "search_key": "data_gpt",
       "title": "QuESt-GPT<br><span style='font-size:16px; font-weight:bold;'> AI-powered tool for data analysis and visualization</span>",
       "contact": "Tu Nguyen tunguy@sandia.gov",
-      "info": "This application helps users analyze and visualize their dataset (in CSV files). The application utilizes Large Language Models (LLMs) to translate users queries into python codes for performing data analysis and visualization. Currently, GPT4 models (OpenAI's API: https://openai.com/product) and codellama2 model (Replicate's API: https://replicate.com/) are used within the application. ",
+      "info": "This application helps users analyze and visualize their dataset (in CSV files) using OpenAI API.",
       "image_relpath": "images/logo/Quest_Logo_RGB - GPT.png",
       "env_relpath": "app_envs/env_viz",
       "script_relpath": "app/tools/script_files/viz.bat",
