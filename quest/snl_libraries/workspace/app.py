@@ -522,6 +522,70 @@ class quest_workflow(QWidget):
                     graph_view.viewport().installEventFilter(self)
         except Exception:
             pass
+        self.graph_help_overlay = QFrame(self.graph_widget)
+        self.graph_help_overlay.setObjectName("graphHelpOverlay")
+        self.graph_help_overlay.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.graph_help_overlay.setStyleSheet(
+            "QFrame#graphHelpOverlay {"
+            "background: rgba(255, 255, 255, 235);"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 8px;"
+            "}"
+            "QLabel { color: #111111; font-size: 10pt; }"
+            "QLabel[role='hintHeader'] { color: #111111; font-weight: 600; }"
+            "QLabel[role='hintAction'] { color: #666666; font-family: Consolas, 'Courier New', monospace; }"
+        )
+        self.graph_help_layout = QGridLayout(self.graph_help_overlay)
+        self.graph_help_layout.setContentsMargins(12, 10, 12, 10)
+        self.graph_help_layout.setHorizontalSpacing(10)
+        self.graph_help_layout.setVerticalSpacing(6)
+        zoom_label = QLabel("Zoom In/Out")
+        zoom_label.setProperty("role", "hintHeader")
+        zoom_action = QLabel("Alt + Middle Mouse Button + Drag")
+        zoom_action.setProperty("role", "hintAction")
+        zoom_or = QLabel("or")
+        zoom_scroll = QLabel("Mouse Scroll Up/Down")
+        zoom_scroll.setProperty("role", "hintAction")
+        pan_label = QLabel("Pan")
+        pan_label.setProperty("role", "hintHeader")
+        pan_action = QLabel("Alt + Left Mouse Button + Drag")
+        pan_action.setProperty("role", "hintAction")
+        pan_or = QLabel("or")
+        pan_drag = QLabel("Middle Mouse Button + Drag")
+        pan_drag.setProperty("role", "hintAction")
+        self.graph_help_layout.addWidget(zoom_label, 0, 0)
+        self.graph_help_layout.addWidget(zoom_action, 0, 1)
+        self.graph_help_layout.addWidget(zoom_or, 0, 2)
+        self.graph_help_layout.addWidget(zoom_scroll, 0, 3)
+        self.graph_help_layout.addWidget(pan_label, 1, 0)
+        self.graph_help_layout.addWidget(pan_action, 1, 1)
+        self.graph_help_layout.addWidget(pan_or, 1, 2)
+        self.graph_help_layout.addWidget(pan_drag, 1, 3)
+        self.graph_help_overlay.adjustSize()
+        self.graph_help_overlay.show()
+        self._position_graph_help_overlay()
+        self.clear_canvas_button = QPushButton("Clear Canvas", self.graph_widget)
+        self.clear_canvas_button.setObjectName("clearCanvasButton")
+        self.clear_canvas_button.setFixedHeight(34)
+        self.clear_canvas_button.setStyleSheet(
+            "QPushButton#clearCanvasButton {"
+            "background: rgba(255, 255, 255, 235);"
+            "color: #991b1b;"
+            "border: 1px solid #fca5a5;"
+            "border-radius: 8px;"
+            "padding: 4px 12px;"
+            "font-size: 10pt;"
+            "font-weight: 600;"
+            "}"
+            "QPushButton#clearCanvasButton:hover {"
+            "background: rgba(254, 242, 242, 245);"
+            "border-color: #ef4444;"
+            "}"
+        )
+        self.clear_canvas_button.clicked.connect(self.clear_canvas)
+        self.clear_canvas_button.adjustSize()
+        self.clear_canvas_button.show()
+        self._position_clear_canvas_button()
         self.master_graph_tab = QWidget()
         self.master_graph_layout = QVBoxLayout(self.master_graph_tab)
         self.master_graph_layout.setContentsMargins(0, 0, 0, 0)
@@ -898,6 +962,91 @@ class quest_workflow(QWidget):
         if chosen_path and hasattr(self, 'env_path_input'):
             self.env_path_input.setText(self._resolve_python_interpreter_path(chosen_path))
             self._refresh_environment_status()
+
+    def _position_graph_help_overlay(self):
+        if not hasattr(self, "graph_help_overlay") or self.graph_help_overlay is None:
+            return
+        if not hasattr(self, "graph_widget") or self.graph_widget is None:
+            return
+        margin = 16
+        self.graph_help_overlay.adjustSize()
+        overlay_size = self.graph_help_overlay.sizeHint()
+        x = max(margin, self.graph_widget.width() - overlay_size.width() - margin)
+        y = max(margin, self.graph_widget.height() - overlay_size.height() - margin)
+        self.graph_help_overlay.setGeometry(x, y, overlay_size.width(), overlay_size.height())
+        self.graph_help_overlay.raise_()
+
+    def _position_clear_canvas_button(self):
+        if not hasattr(self, "clear_canvas_button") or self.clear_canvas_button is None:
+            return
+        if not hasattr(self, "graph_widget") or self.graph_widget is None:
+            return
+        margin = 16
+        self.clear_canvas_button.adjustSize()
+        button_size = self.clear_canvas_button.sizeHint()
+        x = max(margin, self.graph_widget.width() - button_size.width() - margin)
+        y = margin
+        self.clear_canvas_button.setGeometry(x, y, button_size.width(), button_size.height())
+        self.clear_canvas_button.raise_()
+
+    def clear_canvas(self):
+        try:
+            all_nodes = list(self.graph.all_nodes())
+        except Exception:
+            all_nodes = []
+
+        if not all_nodes:
+            if hasattr(self, "flow_result_label"):
+                self.flow_result_label.setText("Canvas is already empty.")
+            return
+
+        flow_label = "master flow" if self.get_flow_type() == "master-flow" else "sub-flow"
+        response = QMessageBox.warning(
+            self,
+            "Clear Canvas",
+            f"Are you sure you want to clear everything in this {flow_label}?\n\nThis action cannot be undone.",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if response != QMessageBox.Yes:
+            return
+
+        parent_workspace = self._find_workspace_parent()
+        try:
+            if (
+                self.get_flow_type() == "master-flow"
+                and parent_workspace is not None
+                and hasattr(parent_workspace, "_clear_all_subflows")
+            ):
+                parent_workspace._clear_all_subflows()
+        except Exception:
+            pass
+
+        try:
+            self.graph.clear_session()
+        except Exception:
+            pass
+
+        self.node_counters = {"DataNode": 0, "PyNode": 0, "TextNode": 0}
+        self.nodes_df = pd.DataFrame(columns=self.nodes_df.columns)
+        self.connections_df = pd.DataFrame(columns=self.connections_df.columns)
+        try:
+            self.update_flow()
+        except Exception:
+            pass
+        self._sync_parent_proxy_wrapper_from_current_graph()
+        try:
+            self.request_graph_frame()
+        except Exception:
+            pass
+        try:
+            if parent_workspace is not None and hasattr(parent_workspace, "sync_workflow_ui"):
+                parent_workspace.sync_workflow_ui(self)
+        except Exception:
+            pass
+
+        if hasattr(self, "flow_result_label"):
+            self.flow_result_label.setText(f"{flow_label.capitalize()} canvas cleared.")
 
     def _sync_node_environments_with_available_list(self):
         return
@@ -2855,12 +3004,17 @@ class quest_workflow(QWidget):
                 QTimer.singleShot(0, self._handle_subworkflow_double_click)
             elif event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
                 QTimer.singleShot(0, self._sync_parent_proxy_wrapper_from_current_graph)
+            elif event.type() in (QEvent.Resize, QEvent.Show):
+                QTimer.singleShot(0, self._position_graph_help_overlay)
+                QTimer.singleShot(0, self._position_clear_canvas_button)
         except Exception:
             pass
         return super().eventFilter(obj, event)
 
     def showEvent(self, event):
         super().showEvent(event)
+        self._position_graph_help_overlay()
+        self._position_clear_canvas_button()
         self._apply_pending_graph_frame()
 
     def request_graph_frame(self):

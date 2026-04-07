@@ -7,6 +7,8 @@ Created on Wed Mar  6 21:37:34 2024
 
 import sys
 import subprocess
+import socket
+import time
 from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import QUrl
@@ -44,24 +46,41 @@ def run_streamlit(path):
     else:
         act_path = os.path.join(base_dir, "app_envs", "env_viz", "bin", "python")
 
-    return subprocess.Popen([act_path, "-m", "streamlit", "run", path, "--server.headless=true", "--server.port", "8506"])
+    port = find_free_port()
+    process = subprocess.Popen([
+        act_path,
+        "-m",
+        "streamlit",
+        "run",
+        path,
+        "--server.headless=true",
+        "--server.port",
+        str(port),
+    ])
+    return process, port
     # return subprocess.Popen(["./app_envs/env_viz/Scripts/python.exe", "-m", "streamlit", "run", path, "--server.headless=true", "--server.port", "8506"])
+
+def find_free_port():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 0))
+    port = sock.getsockname()[1]
+    sock.close()
+    return port
 
 #8506
 if __name__ == '__main__':
     # Start the Streamlit app in a separate thread but keep the subprocess for later
     
     cmd_path = os.path.join(base_dir, "snl_libraries", "gpt", "app.py")
-    streamlit_process = run_streamlit(cmd_path)
+    streamlit_process, streamlit_port = run_streamlit(cmd_path)
  
     # Give Streamlit some time to start
-    import time
     time.sleep(5)  # Adjust as necessary
 
     app = QApplication(sys.argv)
     QApplication.setApplicationName('QuESt-GPT ver 1.0')
 
-    streamlit_url = "http://localhost:8506"
+    streamlit_url = f"http://localhost:{streamlit_port}?v={int(time.time())}"
     window = Browser(streamlit_url, streamlit_process)  # Pass the subprocess to the Browser
 
     sys.exit(app.exec())
