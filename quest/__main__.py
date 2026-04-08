@@ -9,8 +9,10 @@ from quest.app.ui.ui_quest_main import Ui_MainWindow
 from configparser import ConfigParser
 from quest.paths import get_path
 from quest.app.ui_tools.custom_splash import CustomSplashScreen, SplashScreenUpdater
+from quest import __version__
 
 dirname = get_path()
+DISPLAY_VERSION = ".".join(__version__.split(".")[:2])
 # Force software rendering to avoid D3D11 / swapchain issues on some systems.
 os.environ["QT_OPENGL"] = "software"
 # os.environ["QSG_RHI_BACKEND"] = "software"
@@ -57,6 +59,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.setWindowTitle("Quest")
         quest_icon = os.path.join(":", "logos", "images", "logo", "Quest_App_Icon.svg")
         self.setWindowIcon(QIcon(quest_icon))
+        self.top_label.setText(
+            f"QuESt {DISPLAY_VERSION} - Open-Source Python Platform for Energy Storage Analytics"
+        )
+        self.version_label.setText(f"ver {__version__}")
 
         # Navigate to home and set home page
         self.home_button.clicked.connect(lambda: self.stackedWidget.setCurrentWidget(self.home_page))
