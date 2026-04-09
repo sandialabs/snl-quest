@@ -7,12 +7,15 @@ Current release version: 2.1
 Release date: June, 2025
 
 ## Contact
+
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
 
 ### Email
+
 Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 
 ## Table of contents
+
 - [Introduction](#what-is-it)
 - [App Hub](#the-app_hub)
 - [Workspace](#the-workspace)
@@ -26,6 +29,7 @@ Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 - [References](#references)
 
 ### What is it?
+
 <a id="what-is-it"></a>
 QuESt 2.0 is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools.
 
@@ -34,6 +38,7 @@ QuESt 2.0 is an evolved version of the original QuESt, an open-source Python sof
 Currently, QuESt 2.0 includes three main components:
 
 ### The App Hub
+
 <a id="the-app_hub"></a>
 The QuESt App Hub operates similarly to an app store, offering access points to a multitude of applications. Currently, various energy storage analytics tools have been available on QuESt App hub. For example:
 
@@ -58,6 +63,7 @@ It has been designed with key features to improve user experience and applicatio
 - **Simultaneous Operation:** Multiple applications can be installed and operated simultaneously, allowing users to leverage different tools without interference.
 
 ### The Workspace
+
 <a id="the-workspace"></a>
 The QuESt Workspace provides an integrated environment where users can create workflows by assembling multiple applications into a coherent process. It enhances the platform's usability and efficiency through several mechanisms:
 
@@ -66,6 +72,7 @@ The QuESt Workspace provides an integrated environment where users can create wo
 - **Workflow Management:** The workspace supports the selection, assembly, connection, and post-processing of data and tools. This structured approach streamlines the analytics process, from data preparation to visualization, making it easier to manage and understand.
 
 ### QuESt GPT
+
 <a id="quest-gpt"></a>
 QuESt GPT represents a leap forward in data analytics within the platform, utilizing generative AI (specifically Large Language Models, or LLM) for data characterization and visualization:
 
@@ -74,17 +81,21 @@ QuESt GPT represents a leap forward in data analytics within the platform, utili
 - **Utilization of LLMs:** By leveraging advanced open-source LLMs such as OpenAi’s GPT-4 and Meta’s Llama2, QuESt GPT can perform sophisticated data analytics tasks, such as characterizing and visualizing large datasets. This enables users to gain deeper insights from their data, supporting more informed decision-making at no costs.
 
 ### What are the key innovations of QuESt 2.0?
+
 <a id="what-are-the-key-innovations-of-quest-20"></a>
 QuESt 2.0 facilitates the advancement of energy storage technology by making powerful analytics tools accessible to all energy storage stakeholders, aligning with DOE’s energy storage program goals. The platform standardizes data and program structures, integrates applications seamlessly, and utilizes generative AI for advanced analytics, simplifying user interaction and enabling deeper insights from diverse data sources. This positions QuESt 2.0 as a pioneering platform in the energy storage domain, with the potential to significantly impact both the field and the broader energy landscape. Specifically, the key innovations of QuESt 2.0 include:
+
 1. **Integration and Usability:** At its core, QuESt 2.0 revolutionizes how energy storage analytics are performed by providing a seamless, user-friendly platform that integrates multiple applications developed by independent developers. This allows for a more cohesive and efficient user experience, significantly lowering the learning curve for users at various levels of expertise.
 2. **AI-powered Data Analytics:** The incorporation of QuESt GPT, utilizing Large Language Models (LLM), represents a significant technological leap forward. This feature enables users to perform more sophisticated data analytics, providing deeper insights from diverse data sources. It allows users to interact with data in an intuitive way, asking questions and receiving insights, which democratizes access to complex data analysis.
 3. **Complex Workflows:** The QuESt Workspace and the QuESt App Hub enhance the platform's capability to support complex analytical workflows. Users can integrate multiple applications into a single process, creating efficient pipelines for data analysis. The users can run their workflows locally or schedule them to run on cloud services (e.g., AWS, Azure..)
 
 ### How is QuESt 2.0 different from the other tools in Energy Storage Analytics?
+
 <a id="how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics"></a>
 QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics tools by offering a unified platform rather than a collection of individual tools. While there are numerous tools available, these tend to focus on specific aspects of energy storage analysis and lack the integration and broad applicability that QuESt 2.0 provides.
 
 ### Key Competitive Advantages of QuESt 2.0:
+
 <a id="key-competitive-advantages-of-quest-20"></a>
 
 - **Unified Platform:** Unlike individual tools that offer limited capabilities in specific topics, QuESt 2.0 serves as a comprehensive platform that integrates multiple applications for energy storage analytics. This integration allows users to access a wide range of tools and functionalities within a single environment, streamlining the workflow and enhancing productivity.
@@ -96,6 +107,7 @@ QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics 
 - **Collaborative Development:** As an open-source platform, QuESt 2.0 benefits from contributions by a wide community of developers, enhancing its capabilities and ensuring continuous improvement.
 
 ### How to download QuESt?
+
 <a id="how-to-download-quest"></a>
 QuESt is currently available on Github at: https://github.com/sandialabs/snl-quest.
 
@@ -104,14 +116,207 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 ## Easy Installation (Recommended)
 
 ### For Windows Users:
-1. Click on the releases located on the right side.
+
+#### Prerequisites
+
+**GitHub**: You need Git installed on your system to clone the repository. If you don’t have Git installed, you can follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install it.
+
+1. Click on the releases located at the top of this page on the right side as shown in the picture below. (Opening this page in a new tab may be helpful to follow along with the instructions)
    <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
-2. Download the quest_win.zip file found in the assets of QuESt2.0.b pre-release.
+2. On the releases page, download the quest_win.zip file found in the assets of QuESt2.0.b pre-release.
    <img src="quest/images/read/quest_win_zip.png" alt="Download zip" width=600px margin="auto" />
 3. Extract the downloaded file.
-4. Navigate inside the directory and double click on start.bat. This will setup QuESt and launch it when it is finished. This will also launch QuESt in the future.
+4. Navigate inside the extracted directory and double click on start.bat. This will setup QuESt and launch it when it is finished. For future uses of QuESt users can double click the start.bat file to launch QuESt.
 
-### For Unix Users (Linux and macOS):
+### For Mac Users
+
+#### Prerequisites
+
+1. **GitHub**: You need Git installed on your system to clone the repository. If you don’t have Git installed, you can follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install it.
+
+2. **GLPK (GNU Linear Programming Kit)**: You need to install GLPK. You can do this using either Homebrew or Conda. If you don’t have either installed, follow the instructions below:
+   - **Installing GLPK using Homebrew**:
+     1. Open the Terminal.
+     2. Run the following command to install Homebrew:
+        ```bash
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+        ```
+     3. After installation, you can install GLPK using:
+        ```bash
+        brew install glpk
+        ```
+
+   - **Installing GLPK using Conda**:
+     1. After installing Conda (Instructions below), you can install GLPK using:
+        ```bash
+        conda install -c conda-forge glpk
+        ```
+
+3. **Conda**:
+   1. You can install Miniconda by following [these instructions](https://docs.conda.io/en/latest/miniconda.html).
+
+4. **Apple Silicon (M1/M2/Mxx) Setup Instructions**
+
+If you have an M-type architecture (Apple Silicon), follow these steps to set up your environment.
+
+---
+
+## 1. Install Rosetta 2
+
+Rosetta 2 allows you to run Intel-based applications on Apple Silicon. To install Rosetta 2:
+
+1. Open the **Terminal**.
+2. Run the following command:
+
+   ```bash
+   softwareupdate --install-rosetta --agree-to-license
+   ```
+
+   Close the Terminal completely by using Command + Q or selecting Quit Terminal from the menu.
+
+3. Configure the Terminal to Open Using Rosetta
+
+To ensure that the Terminal runs in Rosetta mode:
+
+    1.Open Finder and navigate to Applications > Utilities.
+    2.Locate the Terminal application.
+    3.Right-click on Terminal and select Get Info.
+    4.In the Get Info window, check the box that says Open using Rosetta.
+    5.Close the Get Info window.
+
+3. Open a Terminal with Rosetta Active
+
+After configuring the Terminal to open using Rosetta:
+Open the Terminal again.
+Verify that Rosetta is active by running the following command:
+
+```bash
+arch
+```
+
+You should see `i386` as the output, indicating that the Terminal is running in Rosetta mode.
+
+4. Install Intel Homebrew
+
+With Rosetta active, install Intel Homebrew:
+
+Run the following command:
+
+```bash
+arch -x86_64 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+Follow the on-screen instructions to complete the installation.
+
+5. Install Python 3.9 (Intel Version)
+
+After installing Intel Homebrew, use it to install Python 3.9:
+
+Run the following command:
+
+```bash
+arch -x86_64 /usr/local/bin/brew install python@3.9
+```
+
+Verify the installation by checking the Python version and architecture:
+
+```bash
+    arch -x86_64 /usr/local/opt/python@3.9/bin/python3.9 -c "import platform; print('Python Version:', platform.python_version()); print('Architecture:', platform.machine())"
+```
+
+You should see output similar to:
+
+```bash
+Python Version: 3.9.x
+Architecture: x86_64
+```
+
+6. Create a folder on the Desktop called quest_folder
+
+7. Open a terminal at the folder by right clicking on the folder and selecting open terminal at folder.
+
+8. Clone the QuESt repository using the following command:
+
+   ```bash
+   git clone -b QuESt_2.0.c https://github.com/sandialabs/snl-quest.git
+   ```
+
+9. Navigate inside the cloned repository from the terminal using the command:
+
+   ```bash
+      cd snl-quest
+   ```
+
+10. Set up the environment for QuESt by running the following command:
+
+```bash
+   conda create -n quest python=3.9.13
+```
+
+When prompted type y and enter.
+
+11. Activate the environment that has just been created using the command:
+
+```bash
+   conda activate quest
+```
+
+12. With the environment active and from inside the snl-quest directory set up the dependencies for QuESt using the command:
+
+```bash
+pip install .
+```
+
+13. Now QuESt is set up and can be run using the command:
+
+```bash
+python -m quest
+```
+
+### Future runs of QuESt
+
+1. After the environment has been set up open a terminal inside the snl-quest folder and activate the environment using the command:
+   ```bash
+   conda activate quest
+   ```
+2. Run QuESt with the command:
+   ```
+   python -m quest
+   ```
+
+### Installing QuESt using the executable
+
+1. Click on the releases located at the top of this page on the right side.
+   <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
+2. Download the `quest_mac.zip` file found in the assets of the QuESt 2.0.b pre-release.
+   <img src="quest/images/read/quest_mac_zip.png" alt="Download zip" width=600px margin="auto" />
+3. Extract the downloaded file.
+
+4. **Activate Rosetta 2** (for Apple Silicon users):
+   - Navigate to **Finder** > **Applications** > **Utilities** and locate **Terminal**.
+   - Right-click on **Terminal** and select **Get Info**.
+   - Check the box that says **Open using Rosetta**.
+   - If you need to install Rosetta you can run this line from the terminal:
+
+   ```bash
+   softwareupdate --install-rosetta --agree-to-license
+   ```
+
+5. Open the Terminal after Rosetta has been activated.
+
+6. Navigate to the directory where QuESt is located. You can do this using the `cd` command. For example:
+
+   ```bash
+   cd /path/to/quest_directory
+
+   ```
+
+7. Make the start.sh script executable and launch QuESt by running:
+   ```bash
+   chmod +x start.sh && ./start.sh
+   ```
+
+### For Linux Users:
 
 1. Click on the code button at the top of the page and then select "Download ZIP" from the dropdown.
    <img src="quest/images/read/git_extract.png" alt="Download zip" width=600px margin="auto" />
@@ -123,70 +328,81 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 4. Install python (3.9.13)
 
 ## Installing Python
+
 1. Go to [python.org](https://www.python.org/).
 2. Download a version of Python suitable for your operating system (3.9.x recommended).
 3. Follow the installation instructions provided on the website.
 
-5. Install git
-
+4. Install git
 
 ## Installing Git
+
 - Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
 - Follow the installation instructions provided on the website.
 
 6. Open a terminal inside the installed quest directory and create a virtual env.
 
 ## Setting Up a Virtual Environment
+
 1. Install `virtualenv` (if not already installed):
-    ```bash
-    python3 -m pip install virtualenv
-    ```
+
+   ```bash
+   python3 -m pip install virtualenv
+   ```
 
 2. Create a virtual environment:
-    ```bash
-    virtualenv env
-    ```
+
+   ```bash
+   virtualenv env
+   ```
 
 3. Activate the virtual environment:
-     ```bash
-     source env/bin/activate
-     ```
 
-7. With the virtual env activated we can now setup the environment for QuESt with the following command:
-    ```bash
-    python3 -m pip install .
-    ```
-8. Run QuESt with the following command:
+   ```bash
+   source env/bin/activate
+   ```
 
-        ```bash
-        python3 -m quest
-        ```
+4. With the virtual env activated we can now setup the environment for QuESt with the following command:
+   ```bash
+   python3 -m pip install .
+   ```
+5. Run QuESt with the following command:
+
+   ```bash
+   python3 -m quest
+   ```
 
 ## Installation for Developers:
 
 ## Prerequisites
+
 - Python (3.9.x recommended) installed on your system
 - Git installed on your system
 
 ## Installing Python
+
 1. Go to [python.org](https://www.python.org/).
 2. Download a version of Python suitable for your operating system (3.9.x recommended).
 3. Follow the installation instructions provided on the website.
 
 ## Installing Git
+
 - Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
 - Follow the installation instructions provided on the website.
 
 ## Setting Up a Virtual Environment
+
 1. Install `virtualenv` (if not already installed):
-    ```bash
-    pip install virtualenv
-    ```
+
+   ```bash
+   pip install virtualenv
+   ```
 
 2. Create a virtual environment:
-    ```bash
-    virtualenv env
-    ```
+
+   ```bash
+   virtualenv env
+   ```
 
 3. Activate the virtual environment:
    - On Windows:
@@ -198,53 +414,93 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
      source env/bin/activate
      ```
 
-## Installing QuESt
+## Installing QuESt with Git
 
 1. Clone the Repository:
-    ```bash
-    git clone <repository_url>
-    ```
+
+   ```bash
+   git clone <repository_url>
+   ```
+
    Replace `<repository_url>` with the URL of the QuESt GitHub repository.
 
 2. Navigate to the QuESt Directory:
-    ```bash
-    cd <repository_name>
-    ```
+
+   ```bash
+   cd <repository_name>
+   ```
+
    Replace `<repository_name>` with the name of the directory where QuESt was cloned.
 
 3. Install Dependencies:
-    ```bash
-    pip install .
-    ```
+   ```bash
+   pip install .
+   ```
+
+## Installing QuESt via Pip
+
+1. Create a Virutal environment:
+
+   ```bash
+   python -m venv venv
+   ```
+
+2. Activate the virual environment
+
+   Windows:
+
+   ```bash
+   venv\Scripts\activate
+   ```
+
+   Mac:
+
+   ```bash
+   source venv/bin/activate
+   ```
+
+3. Install QuESt:
+   ```bash
+   pip install quest-snl[dev]
+   ```
+4. Run QuESt:
+   ```bash
+   quest
+   ```
 
 ## Running QuESt
+
 ## Easy Version:
+
 1. If you have followed the Easy Installation steps you can now double click on the start.bat if you are on windows or on the unix_entry if you are on mac or linux to launch quest. Some unix based systems may require users to always use the terminal to run the unix_entry.sh script to launch QuESt.
 
 ## For Developers:
+
 1. Run QuESt:
-    - Once the dependencies are installed, ensure you have navigated to the directory where QuESt is installed and the virtual environment is activated. You can run QuESt using the following command:
-        - On Windows:
-            ```bash
-            python -m quest
-            ```
-        - On Linux/macOS:
-            ```bash
-            python3 -m quest
-            ```
-        - Alternatively quest may be run any directory as long as the venv is active using the terminal command:
-            ```bash
-            quest
-            ```
+   - Once the dependencies are installed, ensure you have navigated to the directory where QuESt is installed and the virtual environment is activated. You can run QuESt using the following command:
+     - On Windows:
+       ```bash
+       python -m quest
+       ```
+     - On Linux/macOS:
+       ```bash
+       python3 -m quest
+       ```
+     - Alternatively quest may be run any directory as long as the venv is active using the terminal command:
+       ```bash
+       quest
+       ```
 
 ## Deactivating the Virtual Environment
+
 1. Deactivate the Virtual Environment:
-    ```bash
-    deactivate
-    ```
+   ```bash
+   deactivate
+   ```
    This will return you to your system's default Python environment.
 
 ### References
+
 <a id="references"></a>
 Nguyen, Tu A., David A. Copp, and Raymond H. Byrne. "Stacking Revenue of Energy Storage System from Resilience, T&D Deferral and Arbitrage." 2019 IEEE Power & Energy Society General Meeting (PESGM). IEEE, 2019.
 
