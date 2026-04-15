@@ -4,7 +4,7 @@ from quest import __version__
 
 DISTNAME = "Quest"
 VERSION = __version__
-PYTHON_REQUIRES = ">=3.6, <3.11"
+PYTHON_REQUIRES = ">=3.9, <3.14"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
 LONG_DESCRIPTION = open("README.md").read()
 AUTHOR = "Sandia National Laboratories"
@@ -19,6 +19,14 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     python_requires=PYTHON_REQUIRES,
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+    ],
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     author=AUTHOR,
@@ -26,11 +34,10 @@ setup(
     license=LICENSE,
     url=URL,
     install_requires=[
-        "PySide6==6.5.2",
+        "PySide6==6.8.1",
         "pandas==2.2.1",
-        "streamlit==1.32.0",
+        "streamlit==1.55.0",
         "openai==1.86.0",
-        "matplotlib==3.8.3",
         "psutil==5.9.0",
         "GitPython==3.1.43",
         'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',

@@ -7,17 +7,32 @@ set VENV_PATH=%~dp0..\..\..\app_envs\env_eval
 REM Set the path to the bundled Valuation package in this QuESt installation
 set LOCAL_EVAL_PATH=%~dp0..\..\..\snl_libraries\snl_valuation
 
-REM Rebuild the environment if it exists but is incomplete.
+REM Legacy Valuation currently relies on Python 3.9 on Windows.
+set PYTHON_CMD=py -3.9
+
+%PYTHON_CMD% --version >nul 2>&1
+if errorlevel 1 (
+    echo Python 3.9 is required to install QuESt Valuation but was not found via the py launcher.
+    exit /b 1
+)
+
+REM Rebuild the environment if it exists but is incomplete or uses the wrong Python version.
 if exist "%VENV_PATH%" (
     if not exist "%VENV_PATH%\Scripts\activate.bat" (
         echo Existing Valuation environment is incomplete. Recreating it...
         rmdir /s /q "%VENV_PATH%"
+    ) else (
+        "%VENV_PATH%\Scripts\python.exe" -c "import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 9) else 1)"
+        if errorlevel 1 (
+            echo Existing Valuation environment is not using Python 3.9. Recreating it...
+            rmdir /s /q "%VENV_PATH%"
+        )
     )
 )
 
 REM Create the virtual environment if it doesn't exist
 if not exist "%VENV_PATH%\Scripts\activate.bat" (
-    python -m venv "%VENV_PATH%"
+    %PYTHON_CMD% -m venv "%VENV_PATH%"
     if errorlevel 1 (
         echo Failed to create the Valuation virtual environment.
         exit /b 1
@@ -40,8 +55,11 @@ if not exist "%LOCAL_EVAL_PATH%\setup.py" (
     exit /b 1
 )
 
+REM Some Windows environments do not have the local CA chain configured for pip.
+set "PIP_TRUSTED_HOST=files.pythonhosted.org pypi.org pypi.python.org"
+
 REM Install the Python package within the virtual environment from the local source bundle
-pip install "%LOCAL_EVAL_PATH%"
+pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org "%LOCAL_EVAL_PATH%"
 if errorlevel 1 (
     echo Failed to install QuESt Valuation from "%LOCAL_EVAL_PATH%".
     exit /b 1

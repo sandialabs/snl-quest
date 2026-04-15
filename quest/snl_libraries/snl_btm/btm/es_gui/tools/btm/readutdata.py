@@ -197,7 +197,7 @@ def read_load_profile(path, month):
 
     # Overwrite DateTime column (esp. for data obtained from OpenEI)
     datetime_start = datetime(2019, 1, 1, 0)
-    hour_range = pd.date_range(start=datetime_start, periods=len(load_df), freq="H")
+    hour_range = pd.date_range(start=datetime_start, periods=len(load_df), freq="h")
     load_df[datetime_column_name] = hour_range
 
     # Filter by given month.
@@ -222,7 +222,7 @@ def read_pv_profile(path, month):
 
     # Apply datetime index for filtering.
     datetime_start = datetime(2019, 1, 1, 0)
-    hour_range = pd.date_range(start=datetime_start, periods=len(pv_output_w), freq='H')
+    hour_range = pd.date_range(start=datetime_start, periods=len(pv_output_w), freq='h')
     df_pv_output['dt'] = hour_range
 
     # Filter by given month.

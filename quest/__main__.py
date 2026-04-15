@@ -1,9 +1,21 @@
 import sys
 import os
 import ctypes
+
+# Configure the Qt graphics backend before importing any Qt widgets or creating QApplication.
+os.environ.setdefault("QT_OPENGL", "software")
+os.environ.setdefault("QT_QUICK_BACKEND", "software")
+os.environ.setdefault(
+    "QTWEBENGINE_CHROMIUM_FLAGS",
+    "--disable-gpu --disable-gpu-compositing --disable-gpu-rasterization "
+    "--disable-software-rasterizer --disable-features=VizDisplayCompositor "
+    "--log-level=3",
+)
+
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess, QCoreApplication
+from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
 
 from quest.app.ui.ui_quest_main import Ui_MainWindow
 from configparser import ConfigParser
@@ -13,10 +25,12 @@ from quest import __version__
 
 dirname = get_path()
 DISPLAY_VERSION = ".".join(__version__.split(".")[:2])
-# Force software rendering to avoid D3D11 / swapchain issues on some systems.
-os.environ["QT_OPENGL"] = "software"
-# os.environ["QSG_RHI_BACKEND"] = "software"
+
+# Prefer software rendering for Qt and the embedded Chromium views on systems
+# where hardware/OpenGL context creation is unreliable.
 QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
+QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
+QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Software)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -57,7 +71,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Setting window title and icon
         self.setWindowTitle("Quest")
-        quest_icon = os.path.join(":", "logos", "images", "logo", "Quest_App_Icon.svg")
+        quest_icon = os.path.join(":", "logos", "images", "logo", "Quest_App_Icon.png")
         self.setWindowIcon(QIcon(quest_icon))
         self.top_label.setText(
             f"QuESt {DISPLAY_VERSION} - Open-Source Python Platform for Energy Storage Analytics"

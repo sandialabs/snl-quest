@@ -79,7 +79,8 @@ class flow:
             "import tempfile\n"
             "import pandas as pd\n"
             f"QUEST_ROOT = r'{QUEST_ROOT}'\n"
-            "sys.path.insert(0, os.path.dirname(QUEST_ROOT))\n"
+            "if os.path.dirname(QUEST_ROOT) not in sys.path:\n"
+            "    sys.path.append(os.path.dirname(QUEST_ROOT))\n"
             "from quest.snl_libraries.workspace.nodes.pynodes import python_node, data_node\n"
             "from quest.snl_libraries.workspace.flow.questflow import *\n"
         )
