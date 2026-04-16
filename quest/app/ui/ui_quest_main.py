@@ -100,7 +100,7 @@ class Ui_MainWindow(object):
         self.home_button.setAutoFillBackground(False)
         self.home_button.setStyleSheet(u"")
         icon1 = QIcon()
-        icon1.addFile(u":/svgs/images/svgs/home_FILL0_wght200_GRAD0_opsz48.svg", QSize(), QIcon.Normal, QIcon.Off)
+        icon1.addFile(u":/icon/images/icons/home_FILL0_wght200_GRAD0_opsz48.png", QSize(), QIcon.Normal, QIcon.Off)
         self.home_button.setIcon(icon1)
         self.home_button.setIconSize(QSize(32, 32))
         self.home_button.setCheckable(True)

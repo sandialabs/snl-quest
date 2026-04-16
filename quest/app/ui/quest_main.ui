@@ -216,7 +216,7 @@
                </property>
                <property name="icon">
                 <iconset resource="../../resources.qrc">
-                 <normaloff>:/svgs/images/svgs/home_FILL0_wght200_GRAD0_opsz48.svg</normaloff>:/svgs/images/svgs/home_FILL0_wght200_GRAD0_opsz48.svg</iconset>
+               <normaloff>:/icon/images/icons/home_FILL0_wght200_GRAD0_opsz48.png</normaloff>:/icon/images/icons/home_FILL0_wght200_GRAD0_opsz48.png</iconset>
                </property>
                <property name="iconSize">
                 <size>
