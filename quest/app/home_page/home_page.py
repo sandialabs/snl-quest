@@ -68,6 +68,7 @@ class gui_connector():
         self.info_page = None
         self._show_info_page = None
         self._post_uninstall_callback = None
+        self._last_action = None
         self.menu = QMenu()
         self.menu.addAction("Uninstall", self.app_removal)
         self.front.setting_button.setMenu(self.menu)
@@ -157,6 +158,7 @@ class gui_connector():
             self.info_page.set_log_visible(True)
         app_installed = self.back.is_app_installed()
         action_name = "launch" if app_installed else "install"
+        self._last_action = action_name
         self.append_install_log(f"Preparing to {action_name} the app...")
         self.back.install()
         self._disconnect_runner_signals()
@@ -188,10 +190,16 @@ class gui_connector():
         self.front.install_button.setChecked(False)
         if self.back.is_app_installed():
             self.front.install_button.setText("Launch")
-            self.append_install_log("Installation finished. The app appears to be installed.")
+            if self._last_action == "launch":
+                self.append_install_log("Launch finished.")
+            else:
+                self.append_install_log("Installation finished. The app appears to be installed.")
         else:
             self.front.install_button.setText("Install")
-            self.append_install_log("Installation finished, but the app is still not detected as installed.")
+            if self._last_action == "uninstall":
+                self.append_install_log("Uninstall finished. The app is no longer detected as installed.")
+            else:
+                self.append_install_log("Installation finished, but the app is still not detected as installed.")
 
     def app_removal(self):
         """
@@ -205,6 +213,7 @@ class gui_connector():
         self.front.install_button.setChecked(True)
         self.front.install_button.setEnabled(False)
         self.front.install_button.setText('Uninstalling')
+        self._last_action = "uninstall"
         self.show_install_output()
         self.ensure_log_dialog()
         if self.log_browser is not None:

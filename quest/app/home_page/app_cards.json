@@ -164,7 +164,7 @@
       "contact": "Atri Bera abera@sandia.gov",
       "info": "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.",
       "image_relpath": "images/logo/progress_transparent_alt.png",
-      "env_relpath": "app_envs/env_progress/snl_quest_progress",
+      "env_relpath": "app_envs/env_progress",
       "script_relpath": "app/tools/script_files/progress.bat",
       "env_delete_relpath": "app_envs/env_progress",
       "solve_relpath": "app_envs/env_progress/glpk/GLPK-4.65/w64",
