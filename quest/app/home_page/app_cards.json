@@ -167,7 +167,7 @@
       "env_relpath": "app_envs/env_progress",
       "script_relpath": "app/tools/script_files/progress.bat",
       "env_delete_relpath": "app_envs/env_progress",
-      "solve_relpath": "app_envs/env_progress/glpk/GLPK-4.65/w64",
+      "solve_relpath": "app_envs/env_progress/glpk/glpk-4.65/w64",
       "launch": {
         "type": "module",
         "value": "progress"
