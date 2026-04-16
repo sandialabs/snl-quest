@@ -77,7 +77,7 @@ if [ ! -f "$PROGRESS_REPO_PATH/setup.py" ]; then
     exit 1
 fi
 
-pip install -e "$PROGRESS_REPO_PATH"
+pip install "$PROGRESS_REPO_PATH"
 
 install_glpk
 

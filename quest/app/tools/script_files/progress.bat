@@ -84,7 +84,7 @@ if not exist "%PROGRESS_REPO_PATH%\setup.py" (
 )
 
 REM Install the Python package within the virtual environment from the git checkout.
-pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org -e "%PROGRESS_REPO_PATH%"
+pip install --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org "%PROGRESS_REPO_PATH%"
 if errorlevel 1 (
     echo Failed to install QuESt Progress from "%PROGRESS_REPO_PATH%".
     exit /b 1
