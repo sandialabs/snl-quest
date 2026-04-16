@@ -380,13 +380,14 @@ class flow:
             raise RuntimeError(f"Python executable not found: {python_exe}")
 
         env = os.environ.copy()
+        env["PYTHONUNBUFFERED"] = "1"
 
         if platform.system() == "Windows":
             scripts_dir = os.path.dirname(python_exe)
             venv_root = os.path.dirname(scripts_dir)
             env["VIRTUAL_ENV"] = venv_root
             env["PATH"] = scripts_dir + os.pathsep + env.get("PATH", "")
-            command = [python_exe, self.py_file_name]
+            command = [python_exe, "-u", self.py_file_name]
         else:
             activate_script_path = python_exe.replace('bin/python', 'bin/activate')
             if activate_script_path == python_exe:
@@ -394,7 +395,7 @@ class flow:
             venv_root = os.path.dirname(os.path.dirname(python_exe))
             env["VIRTUAL_ENV"] = venv_root
             env["PATH"] = os.path.join(venv_root, "bin") + os.pathsep + env.get("PATH", "")
-            command = ["/bin/bash", "-c", f"source '{activate_script_path}' && '{python_exe}' '{self.py_file_name}'"]
+            command = ["/bin/bash", "-c", f"source '{activate_script_path}' && '{python_exe}' -u '{self.py_file_name}'"]
 
         try:
             print(f"Running with command: {command}")
@@ -410,17 +411,22 @@ class flow:
                     env=env,
                 )
 
+                streamed_output = []
                 while proc.poll() is None:
                     line = proc.stdout.readline()
                     if line:
+                        streamed_output.append(line)
                         print(line, end="")
 
                 rest = proc.stdout.read()
                 if rest:
+                    streamed_output.append(rest)
                     print(rest, end="")
 
+                proc.quest_stdout = "".join(streamed_output)
+
                 if proc.returncode != 0:
-                    raise RuntimeError("Flow execution failed")
+                    raise RuntimeError(proc.quest_stdout or "Flow execution failed")
 
                 return proc
 

@@ -2090,17 +2090,22 @@ class quest_workflow(QWidget):
             "):\n"
             "    env = os.environ.copy()\n"
             "    env['QUEST_FLOW_REEXEC'] = '1'\n"
-            "    result = subprocess.run(\n"
-            "        [FLOW_PYTHON_EXECUTABLE, __file__],\n"
+            "    env['PYTHONUNBUFFERED'] = '1'\n"
+            "    proc = subprocess.Popen(\n"
+            "        [FLOW_PYTHON_EXECUTABLE, '-u', __file__],\n"
             "        env=env,\n"
-            "        capture_output=True,\n"
+            "        stdout=subprocess.PIPE,\n"
+            "        stderr=subprocess.STDOUT,\n"
             "        text=True,\n"
+            "        bufsize=1,\n"
             "    )\n"
-            "    if result.stdout:\n"
-            "        print(result.stdout, end='')\n"
-            "    if result.stderr:\n"
-            "        print(result.stderr, end='', file=sys.stderr)\n"
-            "    raise SystemExit(result.returncode)\n"
+            "    while True:\n"
+            "        line = proc.stdout.readline()\n"
+            "        if not line and proc.poll() is not None:\n"
+            "            break\n"
+            "        if line:\n"
+            "            print(line, end='')\n"
+            "    raise SystemExit(proc.wait())\n"
         )
 
     def _inject_flow_environment_into_script(self, script_path, python_executable="", basedir=None):
@@ -3914,8 +3919,8 @@ class quest_workspace(QWidget):
         # --- temp run ---
         code.append(IND*2 + "with tempfile.TemporaryDirectory() as tmpdir:")
         code.append(IND*3 + "f.save(tmpdir + os.sep)")
-        code.append(IND*3 + "result = f.run(python_executable=python_executable)")
-        code.append(IND*3 + "stdout = getattr(result, 'stdout', '') or ''")
+        code.append(IND*3 + "result = f.run(python_executable=python_executable, stream_output=True)")
+        code.append(IND*3 + "stdout = getattr(result, 'quest_stdout', '') or getattr(result, 'stdout', '') or ''")
 
         # --- parse output ---
         code.append(IND*2 + "start_marker = '__QUEST_SUBFLOW_RESULTS_START__'")
