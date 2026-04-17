@@ -23,6 +23,9 @@ def find_start_nodes(graph_input):
     start_nodes = all_nodes - to_nodes
     return start_nodes
 
+def find_end_nodes(graph_input):
+    return {node for node, edges in graph_input.items() if not edges}
+
 def remove_nodes(graph_input, nodes_to_remove):
     for node in nodes_to_remove:
         del graph_input[node]
@@ -238,6 +241,7 @@ class flow:
         self.start_nodes = list(find_start_nodes(graph_temp))
         self.sequence = find_sequence(graph_temp)
         self.graph_dict = build_graph(self.connections_df)
+        self.end_nodes = list(find_end_nodes(self.graph_dict))
 
         connected_nodes=[]
         for i in range(len(self.sequence)):
@@ -262,12 +266,12 @@ class flow:
     def get_outputs(self, key=None):
         self._update_graph()
         
-        for connected_node in self.connected_nodes:
-            connected_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==connected_node].values[0]
+        for output_node in self.end_nodes:
+            output_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==output_node].values[0]
             if key==None:
-                self.py_dict['get_outputs'][connected_node_name]=f"node{connected_node}_outputs=node{connected_node}.get_outputs()"
+                self.py_dict['get_outputs'][output_node_name]=f"node{output_node}_outputs=node{output_node}.get_outputs()"
             elif key=='Show':
-                self.py_dict['get_outputs'][connected_node_name]=f"print('{connected_node_name}_outputs:',node{connected_node}.get_outputs())"
+                self.py_dict['get_outputs'][output_node_name]=f"print('{output_node_name}_outputs:',node{output_node}.get_outputs())"
             else:
                 raise ValueError("get_outputs key must be None or 'Show' ")
     # def load(self,flow_file_name):
@@ -348,11 +352,11 @@ class flow:
             if connection_id in self.py_dict["node_connections"]:
                 connections_lines.append(self.py_dict["node_connections"][connection_id])
 
-        # Add get outputs commands for each connected node
-        for connected_node in self.connected_nodes:
-            connected_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==connected_node].values[0]
-            if connected_node_name in self.py_dict["get_outputs"]:
-                get_outputs_lines.append(self.py_dict["get_outputs"][connected_node_name])
+        # Add get outputs commands only for terminal nodes to avoid re-running intermediate nodes.
+        for output_node in self.end_nodes:
+            output_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==output_node].values[0]
+            if output_node_name in self.py_dict["get_outputs"]:
+                get_outputs_lines.append(self.py_dict["get_outputs"][output_node_name])
 
         # Combine all parts into the final program
         program_lines = imports_lines + ['\n# Functions'] + functions_lines + ['\n# Instantiations'] + instantiations_lines + ['\n# Set inputs'] + set_inputs_lines + ['\n# Connections'] + connections_lines + ['\n# Get Outputs'] + get_outputs_lines
