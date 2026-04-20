@@ -1,0 +1,1115 @@
+{
+    "flow_name": "master_flownew",
+    "flow_type": "master-flow",
+    "flow_environment_name": "master_flownew_env",
+    "flow_environment_path": "C:/work/quest210-py313/Scripts/python.exe",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x27049f84d60": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/data_icon.png",
+                "name": "yaml_path",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -344.62509084391473,
+                    -160.67481871823716
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "yaml",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": ""
+                }
+            },
+            "0x27049f84fc0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                "name": "progress_workflowfreshnew",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": true,
+                "visible": true,
+                "width": 240.875,
+                "height": 103.3,
+                "pos": [
+                    -68.99892261961566,
+                    -167.66547292384467
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "yaml_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "output",
+                        "multi_connection": true,
+                        "display_name": true
+                    },
+                    {
+                        "name": "indices",
+                        "multi_connection": true,
+                        "display_name": true
+                    },
+                    {
+                        "name": "results_dir",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            }
+        },
+        "connections": [
+            {
+                "out": [
+                    "0x27049f84d60",
+                    "yaml"
+                ],
+                "in": [
+                    "0x27049f84fc0",
+                    "yaml_path"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x27049f84d60",
+            "node_name": "yaml_path",
+            "node_type": "data_node",
+            "node_input_variable": "yaml",
+            "node_input_value": "'C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_progress/Lib/site-packages/progress/input.yaml'",
+            "node_value_display": false,
+            "node_is_path": true,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x27049f84fc0",
+            "node_name": "progress_workflowfreshnew",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_value_display": false,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "def progress_workflowfreshnew_function(yaml_path=None):\n\n    def update_subflow(subflow_nodes_df, **kwargs):\n        for idx, row in subflow_nodes_df.iterrows():\n            if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:\n                node_name = str(row.get('node_name', '')).strip()\n                if node_name in kwargs:\n                    subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])\n        return subflow_nodes_df\n\n    def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable=None):\n        f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df)\n        f.set_inputs()\n        f.get_outputs(key=None)\n        f.make()\n        append_lines = []\n        append_lines.append('import json')\n        append_lines.append('_quest_subflow_results = {}')\n        append_lines.append(\"if 'node0x27049f85220_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['yaml_loader'] = node0x27049f85220_outputs\")\n        append_lines.append(\"if 'node0x27049f85350_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['system_data'] = node0x27049f85350_outputs\")\n        append_lines.append(\"if 'node0x27049f85480_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['utilities'] = node0x27049f85480_outputs\")\n        append_lines.append(\"if 'node0x27049f855b0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['matrices'] = node0x27049f855b0_outputs\")\n        append_lines.append(\"if 'node0x27049f856e0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['VG_data'] = node0x27049f856e0_outputs\")\n        append_lines.append(\"if 'node0x27049f85810_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['DataDownloader'] = node0x27049f85810_outputs\")\n        append_lines.append(\"if 'node0x27049f85940_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['mcs_setup'] = node0x27049f85940_outputs\")\n        append_lines.append(\"if 'node0x27049f85a70_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['mcs_run_samples'] = node0x27049f85a70_outputs\")\n        append_lines.append(\"if 'node0x27049f85ba0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['mcs_finalize'] = node0x27049f85ba0_outputs\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_START__')\")\n        append_lines.append('print(json.dumps(_quest_subflow_results, default=str))')\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_END__')\")\n        f.main_py = f.main_py.rstrip() + '\\n\\n' + '\\n'.join(append_lines) + '\\n'\n        with tempfile.TemporaryDirectory() as tmpdir:\n            f.save(tmpdir + os.sep)\n            result = f.run(python_executable=python_executable, stream_output=True)\n            stdout = getattr(result, 'quest_stdout', '') or getattr(result, 'stdout', '') or ''\n        start_marker = '__QUEST_SUBFLOW_RESULTS_START__'\n        end_marker = '__QUEST_SUBFLOW_RESULTS_END__'\n        if start_marker not in stdout or end_marker not in stdout:\n            raise RuntimeError('Could not find subflow results in stdout.\\nSTDOUT:\\n' + stdout)\n        payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()\n        if not payload:\n            return {}\n        return json.loads(payload)\n    subflow_name = 'progress_workflowfreshnew'\n    subflow_nodes_df = pd.DataFrame([{'node_id': '0x27049f850f0', 'node_name': 'yaml_path', 'node_type': 'data_node', 'node_input_variable': 'yaml_path', 'node_input_value': \"'C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_progress/Lib/site-packages/progress/input.yaml'\", 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x27049f85220', 'node_name': 'yaml_loader', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def yaml_loader_function(yaml_path):\\n    with open(yaml_path, 'r') as f:\\n        config = yaml.safe_load(f)\\n    return {'config': config}\", 'node_imports': 'import yaml\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\yaml_loader_0x27049f85220.ipynb'}, {'node_id': '0x27049f85350', 'node_name': 'system_data', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def system_data_function(config):\\n    system_directory = config['data'] + '/System'\\n    data_gen = system_directory + '/gen.csv'\\n    data_branch = system_directory + '/branch.csv'\\n    data_bus = system_directory + '/bus.csv'\\n    data_load = system_directory + '/load.csv'\\n    data_storage = system_directory + '/storage.csv'\\n    rasd = RASystemData()\\n    rasd_data = {}\\n    rasd_data['BMva'] = 100\\n    (rasd_data['genbus'], rasd_data['ng'], rasd_data['pmax'], rasd_data['pmin'], rasd_data['FOR_gen'], rasd_data['MTTF_gen'], rasd_data['MTTR_gen'], rasd_data['gencost']) = rasd.gen(data_gen)\\n    (rasd_data['nl'], rasd_data['fb'], rasd_data['tb'], rasd_data['cap_trans'], rasd_data['MTTF_trans'], rasd_data['MTTR_trans']) = rasd.branch(data_branch)\\n    (rasd_data['bus_name'], rasd_data['bus_no'], rasd_data['nz']) = rasd.bus(data_bus)\\n    rasd_data['load_all_regions'] = rasd.load(rasd_data['bus_name'], data_load)\\n    (rasd_data['essname'], rasd_data['essbus'], rasd_data['ness'], rasd_data['ess_pmax'], rasd_data['ess_pmin'], rasd_data['ess_duration'], rasd_data['ess_socmax'], rasd_data['ess_socmin'], rasd_data['ess_eff'], rasd_data['disch_cost'], rasd_data['ch_cost'], rasd_data['MTTF_ess'], rasd_data['MTTR_ess'], rasd_data['ess_units']) = rasd.storage(data_storage)\\n    print('System Data exported')\\n    return {'system_data': rasd_data}\", 'node_imports': 'from progress.mod_sysdata import RASystemData\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\system_data_0x27049f85350.ipynb'}, {'node_id': '0x27049f85480', 'node_name': 'utilities', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def utilities_function(system_data):\\n    raut = RAUtilities()\\n    raut_data = {}\\n    rasd_data = system_data\\n    (raut_data['mu_tot'], raut_data['lambda_tot']) = raut.reltrates(rasd_data['MTTF_gen'], rasd_data['MTTF_trans'], rasd_data['MTTR_gen'], rasd_data['MTTR_trans'], rasd_data['MTTF_ess'], rasd_data['MTTR_ess'])\\n    (raut_data['cap_max'], raut_data['cap_min']) = raut.capacities(rasd_data['nl'], rasd_data['pmax'], rasd_data['pmin'], rasd_data['ess_pmax'], rasd_data['ess_pmin'], rasd_data['cap_trans'])\\n    print('Utilities formed')\\n    return {'utility_data': raut_data}\", 'node_imports': 'from progress.mod_utilities import RAUtilities\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\utilities_0x27049f85480.ipynb'}, {'node_id': '0x27049f855b0', 'node_name': 'matrices', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def matrices_function(system_data):\\n    rasd = system_data\\n    ramat = RAMatrices(rasd['nz'])\\n    ramat_data = {}\\n    ramat_data['gen_mat'] = ramat.genmat(rasd['ng'], rasd['genbus'], rasd['ness'], rasd['essbus'])\\n    ramat_data['ch_mat'] = ramat.chmat(rasd['ness'], rasd['essbus'], rasd['nz'])\\n    ramat_data['A_inc'] = ramat.Ainc(rasd['nl'], rasd['fb'], rasd['tb'])\\n    ramat_data['curt_mat'] = ramat.curtmat(rasd['nz'])\\n    print('Matrices formed')\\n    return {'matrices': ramat_data}\", 'node_imports': 'from progress.mod_matrices import RAMatrices\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\matrices_0x27049f855b0.ipynb'}, {'node_id': '0x27049f856e0', 'node_name': 'VG_data', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def VG_data_function(config, downloader_flag):\\n    if downloader_flag:\\n        pass\\n    solar_directory = config['data'] + '/Solar'\\n    wind_directory = config['data'] + '/Wind'\\n    solar_data = {}\\n    wind_data = {}\\n    if wind_directory:\\n        wind_sites = wind_directory + '/wind_sites.csv'\\n        wind_power_curves = wind_directory + '/w_power_curves.csv'\\n        windspeed_data = wind_directory + '/windspeed_data.csv'\\n        wind_tr_rate = wind_directory + '/t_rate.xlsx'\\n        wind = Wind()\\n        (wind_data['w_sites'], wind_data['farm_name'], wind_data['zone_no'], wind_data['w_classes'], wind_data['w_turbines'], wind_data['r_cap'], wind_data['p_class'], wind_data['out_curve2'], wind_data['out_curve3'], wind_data['start_speed']) = wind.WindFarmsData(wind_sites, wind_power_curves)\\n        wind.CalWindTrRates(wind_directory, windspeed_data, wind_sites, wind_power_curves)\\n        tr_mats = pd.read_excel(wind_tr_rate, sheet_name=None)\\n        wind_data['tr_mats'] = np.array([tr_mats[sheet_name].to_numpy() for sheet_name in tr_mats])\\n    if solar_directory:\\n        solar_site_data = solar_directory + '/solar_sites.csv'\\n        solar_prob_data = solar_directory + '/solar_probs.csv'\\n        solar = Solar(solar_site_data, solar_directory)\\n        (solar_data['s_sites'], solar_data['s_zone_no'], solar_data['s_max'], solar_data['s_profiles'], solar_data['solar_prob']) = solar.GetSolarProfiles(solar_prob_data)\\n    print('VG data exported')\\n    return {'wind_Data': wind_data, 'solar_Data': solar_data}\", 'node_imports': 'import numpy as np\\nimport pandas as pd\\nfrom progress.mod_solar import Solar\\nfrom progress.mod_wind import Wind\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\VG_data_0x27049f856e0.ipynb'}, {'node_id': '0x27049f85810', 'node_name': 'DataDownloader', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def DataDownloader_function(yaml_path):\\n    data = DataProcess(yaml_path)\\n    data.ProcessWindData()\\n    data.ProcessSolarData()\\n    return {'output': 1}\", 'node_imports': \"import os\\nos.environ['MPLBACKEND'] = 'Agg'\\nfrom progress.data_download_process import DataProcess\\n\", 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\DataDownloader_0x27049f85810.ipynb'}, {'node_id': '0x27049f85940', 'node_name': 'mcs_setup', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def mcs_setup_function(config, system_data, utility_data, matrices, wind_data, solar_data):\\n    print('MCS module just started')\\n    progress_root = Path(progress.__file__).resolve().parent\\n    glpk_candidates = [progress_root.parent.parent.parent / 'glpk' / 'glpk-4.65' / 'w64', progress_root.parent.parent.parent / 'glpk' / 'GLPK-4.65' / 'w64', progress_root / 'glpk' / 'glpk-4.65' / 'w64', progress_root / 'glpk' / 'GLPK-4.65' / 'w64']\\n    for glpk_dir in glpk_candidates:\\n        glpsol = glpk_dir / 'glpsol.exe'\\n        if glpsol.exists():\\n            current_path = os.environ.get('PATH', '')\\n            glpk_str = str(glpk_dir)\\n            if glpk_str not in current_path.split(os.pathsep):\\n                os.environ['PATH'] = glpk_str + os.pathsep + current_path if current_path else glpk_str\\n            print(f'GLPK configured from {glpk_dir}')\\n            break\\n    else:\\n        print('Warning: glpsol.exe was not found in the expected Progress environment locations.')\\n    samples = config['samples']\\n    sim_hours = config['sim_hours']\\n    indices_rec = {'LOLP_rec': np.zeros(samples), 'EUE_rec': np.zeros(samples), 'MDT_rec': np.zeros(samples), 'LOLF_rec': np.zeros(samples), 'EPNS_rec': np.zeros(samples), 'LOLP_hr': np.zeros(sim_hours), 'LOLE_rec': np.zeros(samples), 'mLOLP_rec': np.zeros(samples), 'COV_rec': np.zeros(samples)}\\n    simulation_context = {'config': config, 'rasd': system_data, 'raut_data': utility_data, 'rmat': matrices, 'rwind': wind_data, 'rsolar': solar_data, 'samples': samples, 'sim_hours': sim_hours, 'indices_rec': indices_rec, 'LOL_track': np.zeros((samples, sim_hours))}\\n    print('MCS setup complete')\\n    return {'simulation_context': simulation_context}\", 'node_imports': 'import os\\nfrom pathlib import Path\\nimport numpy as np\\nimport progress\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\mcs_setup_0x27049f85940.ipynb'}, {'node_id': '0x27049f85a70', 'node_name': 'mcs_run_samples', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': 'def mcs_run_samples_function(simulation_context):\\n    config = simulation_context[\\'config\\']\\n    rasd = simulation_context[\\'rasd\\']\\n    raut_data = simulation_context[\\'raut_data\\']\\n    rmat = simulation_context[\\'rmat\\']\\n    rsolar = simulation_context[\\'rsolar\\']\\n    rwind = simulation_context[\\'rwind\\']\\n    samples = simulation_context[\\'samples\\']\\n    sim_hours = simulation_context[\\'sim_hours\\']\\n    indices_rec = simulation_context[\\'indices_rec\\']\\n    LOL_track = simulation_context[\\'LOL_track\\']\\n    raut = RAUtilities()\\n    print(\\'Simulation started\\')\\n\\n    main_folder = get_path()\\n    timestamp = datetime.now().strftime(\\'%Y-%m-%d_%H-%M-%S\\')\\n    results_subdir = os.path.join(main_folder, \\'Results\\', timestamp)\\n    os.makedirs(results_subdir, exist_ok=True)\\n\\n    def init_sample_state():\\n        var_s = {\\n            \\'t_min\\': 0,\\n            \\'LLD\\': 0,\\n            \\'curtailment\\': np.zeros(sim_hours),\\n            \\'label_LOLF\\': np.zeros(sim_hours),\\n            \\'freq_LOLF\\': 0,\\n            \\'LOL_days\\': 0,\\n            \\'outage_day\\': np.zeros(365),\\n        }\\n        current_state = np.ones(rasd[\\'ng\\'] + rasd[\\'nl\\'] + rasd[\\'ness\\'])\\n        current_w_class = None\\n        if rwind:\\n            current_w_class = np.floor(\\n                np.random.uniform(0, 1, rwind[\\'w_sites\\']) * rwind[\\'w_classes\\']\\n            ).astype(int)\\n        renewable_rec = {\\n            \\'wind_rec\\': np.zeros((rasd[\\'nz\\'], sim_hours)),\\n            \\'solar_rec\\': np.zeros((rasd[\\'nz\\'], sim_hours)),\\n            \\'congen_temp\\': 0,\\n            \\'rengen_temp\\': 0,\\n        }\\n        SOC_old = 0.5 * np.multiply(\\n            np.multiply(rasd[\\'ess_pmax\\'], rasd[\\'ess_duration\\']),\\n            rasd[\\'ess_socmax\\'],\\n        ) / rasd[\\'BMva\\']\\n        SOC_rec = np.zeros((rasd[\\'ness\\'], sim_hours))\\n        curt_rec = np.zeros(sim_hours)\\n        part_netload = config[\\'load_factor\\'] * rasd[\\'load_all_regions\\']\\n        return var_s, current_state, current_w_class, renewable_rec, SOC_old, SOC_rec, curt_rec, part_netload\\n\\n    def run_single_sample(sample_index):\\n        var_s, current_state, current_w_class, renewable_rec, SOC_old, SOC_rec, curt_rec, part_netload = init_sample_state()\\n\\n        for n in range(sim_hours):\\n            next_state, current_cap, var_s[\\'t_min\\'] = raut.NextState(\\n                var_s[\\'t_min\\'],\\n                rasd[\\'ng\\'],\\n                rasd[\\'ness\\'],\\n                rasd[\\'nl\\'],\\n                raut_data[\\'lambda_tot\\'],\\n                raut_data[\\'mu_tot\\'],\\n                current_state,\\n                raut_data[\\'cap_max\\'],\\n                raut_data[\\'cap_min\\'],\\n                rasd[\\'ess_units\\'],\\n            )\\n            current_state = copy.deepcopy(next_state)\\n            ess_smax, ess_smin, SOC_old = raut.updateSOC(\\n                rasd[\\'ng\\'],\\n                rasd[\\'nl\\'],\\n                current_cap,\\n                rasd[\\'ess_pmax\\'],\\n                rasd[\\'ess_duration\\'],\\n                rasd[\\'ess_socmax\\'],\\n                rasd[\\'ess_socmin\\'],\\n                SOC_old,\\n            )\\n            gt_limits = {\\n                \\'g_lb\\': np.concatenate((\\n                    current_cap[\\'min\\'][0:rasd[\\'ng\\']] / rasd[\\'BMva\\'],\\n                    current_cap[\\'min\\'][rasd[\\'ng\\'] + rasd[\\'nl\\']:] / rasd[\\'BMva\\'],\\n                )),\\n                \\'g_ub\\': np.concatenate((\\n                    current_cap[\\'max\\'][0:rasd[\\'ng\\']] / rasd[\\'BMva\\'],\\n                    current_cap[\\'max\\'][rasd[\\'ng\\'] + rasd[\\'nl\\']:] / rasd[\\'BMva\\'],\\n                )),\\n                \\'tl\\': current_cap[\\'max\\'][rasd[\\'ng\\']:rasd[\\'ng\\'] + rasd[\\'nl\\']] / rasd[\\'BMva\\'],\\n            }\\n\\n            def fb_Pg(model, i):\\n                return (gt_limits[\\'g_lb\\'][i], gt_limits[\\'g_ub\\'][i])\\n\\n            def fb_flow(model, i):\\n                return (-gt_limits[\\'tl\\'][i], gt_limits[\\'tl\\'][i])\\n\\n            def fb_ess(model, i):\\n                return (\\n                    -current_cap[\\'max\\'][rasd[\\'ng\\'] + rasd[\\'nl\\']:][i] / rasd[\\'BMva\\'],\\n                    current_cap[\\'min\\'][rasd[\\'ng\\'] + rasd[\\'nl\\']:][i] / rasd[\\'BMva\\'],\\n                )\\n\\n            def fb_soc(model, i):\\n                return (ess_smin[i] / rasd[\\'BMva\\'], ess_smax[i] / rasd[\\'BMva\\'])\\n\\n            w_zones = None\\n            s_zones = None\\n            if rwind:\\n                w_zones, current_w_class = raut.WindPower(\\n                    rasd[\\'nz\\'],\\n                    rwind[\\'w_sites\\'],\\n                    rwind[\\'zone_no\\'],\\n                    rwind[\\'w_classes\\'],\\n                    rwind[\\'r_cap\\'],\\n                    current_w_class,\\n                    rwind[\\'tr_mats\\'],\\n                    rwind[\\'p_class\\'],\\n                    rwind[\\'w_turbines\\'],\\n                    rwind[\\'out_curve2\\'],\\n                    rwind[\\'out_curve3\\'],\\n                )\\n            if rsolar:\\n                s_zones = raut.SolarPower(\\n                    n,\\n                    rasd[\\'nz\\'],\\n                    rsolar[\\'s_zone_no\\'],\\n                    rsolar[\\'solar_prob\\'],\\n                    rsolar[\\'s_profiles\\'],\\n                    rsolar[\\'s_sites\\'],\\n                    rsolar[\\'s_max\\'],\\n                )\\n\\n            if rwind:\\n                renewable_rec[\\'wind_rec\\'][:, n] = w_zones\\n            if rsolar:\\n                s_zones_t = np.transpose(s_zones)\\n                renewable_rec[\\'solar_rec\\'][:, n] = s_zones_t[:, n % 24]\\n\\n            if rsolar and rwind:\\n                net_load = part_netload[n] - w_zones - s_zones[n % 24]\\n            elif (not rsolar) and rwind:\\n                net_load = part_netload[n] - w_zones\\n            elif rsolar and (not rwind):\\n                net_load = part_netload[n] - s_zones[n % 24]\\n            else:\\n                net_load = part_netload[n]\\n\\n            if config[\\'model\\'] == \\'Zonal\\':\\n                load_curt, SOC_old = raut.OptDispatch(\\n                    rasd[\\'ng\\'],\\n                    rasd[\\'nz\\'],\\n                    rasd[\\'nl\\'],\\n                    rasd[\\'ness\\'],\\n                    fb_ess,\\n                    fb_soc,\\n                    rasd[\\'BMva\\'],\\n                    fb_Pg,\\n                    fb_flow,\\n                    rmat[\\'A_inc\\'],\\n                    rmat[\\'gen_mat\\'],\\n                    rmat[\\'curt_mat\\'],\\n                    rmat[\\'ch_mat\\'],\\n                    rasd[\\'gencost\\'],\\n                    net_load,\\n                    SOC_old,\\n                    rasd[\\'ess_pmax\\'],\\n                    rasd[\\'ess_eff\\'],\\n                    rasd[\\'disch_cost\\'],\\n                    rasd[\\'ch_cost\\'],\\n                )\\n            elif config[\\'model\\'] == \\'Copper Sheet\\':\\n                load_curt, SOC_old = raut.OptDispatchLite(\\n                    rasd[\\'ng\\'],\\n                    rasd[\\'nz\\'],\\n                    rasd[\\'ness\\'],\\n                    fb_ess,\\n                    fb_soc,\\n                    rasd[\\'BMva\\'],\\n                    fb_Pg,\\n                    rmat[\\'A_inc\\'],\\n                    rasd[\\'gencost\\'],\\n                    net_load,\\n                    SOC_old,\\n                    rasd[\\'ess_pmax\\'],\\n                    rasd[\\'ess_eff\\'],\\n                    rasd[\\'disch_cost\\'],\\n                    rasd[\\'ch_cost\\'],\\n                )\\n            else:\\n                raise ValueError(f\"Unsupported model: {config[\\'model\\']}\")\\n\\n            SOC_rec[:, n] = SOC_old * rasd[\\'BMva\\']\\n            curt_rec[n] = load_curt * rasd[\\'BMva\\']\\n            var_s, LOL_track[:] = raut.TrackLOLStates(load_curt, rasd[\\'BMva\\'], var_s, LOL_track, sample_index, n)\\n            if (n + 1) % 100 == 0:\\n                print(f\\'Hour {n + 1}\\')\\n\\n        sample_subdir = os.path.join(results_subdir, f\\'Sample {sample_index + 1}\\')\\n        os.makedirs(sample_subdir, exist_ok=True)\\n        rapt = RAPlotTools(sample_subdir)\\n        rapt.PlotSolarGen(renewable_rec[\\'solar_rec\\'], rasd[\\'bus_name\\'], sample_index)\\n        rapt.PlotWindGen(renewable_rec[\\'wind_rec\\'], rasd[\\'bus_name\\'], sample_index)\\n        rapt.PlotSOC(SOC_rec, rasd[\\'essname\\'], sample_index)\\n        rapt.PlotLoadCurt(curt_rec, sample_index)\\n        return var_s\\n\\n    for s in range(samples):\\n        print(f\\'Sample: {s + 1}\\')\\n        var_s = run_single_sample(s)\\n        indices_rec = raut.UpdateIndexArrays(indices_rec, var_s, sim_hours, s)\\n        indices_rec[\\'mLOLP_rec\\'][s] = np.mean(indices_rec[\\'LOLP_rec\\'][0:s + 1])\\n        var_LOLP = np.var(indices_rec[\\'LOLP_rec\\'][0:s + 1])\\n        if indices_rec[\\'mLOLP_rec\\'][s] != 0:\\n            indices_rec[\\'COV_rec\\'][s] = np.sqrt(var_LOLP) / indices_rec[\\'mLOLP_rec\\'][s]\\n        else:\\n            indices_rec[\\'COV_rec\\'][s] = 0\\n\\n    return {\\n        \\'simulation_state\\': {\\n            \\'indices_rec\\': indices_rec,\\n            \\'results_subdir\\': results_subdir,\\n            \\'samples\\': samples,\\n            \\'sim_hours\\': sim_hours,\\n            \\'LOL_track\\': LOL_track,\\n        }\\n    }', 'node_imports': 'import os\\nimport copy\\nfrom datetime import datetime\\nimport numpy as np\\nfrom progress.mod_utilities import RAUtilities\\nfrom progress.mod_plot import RAPlotTools\\nfrom progress.paths import get_path\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210\\\\snl-quest\\\\quest\\\\snl_libraries\\\\workspace\\\\examples\\\\mcs_run_samples_refactored.ipynb'}, {'node_id': '0x27049f85ba0', 'node_name': 'mcs_finalize', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': ['output', 'indices', 'results_dir'], 'node_function_wrapper': \"def mcs_finalize_function(simulation_state):\\n    indices_rec = simulation_state['indices_rec']\\n    results_subdir = simulation_state['results_subdir']\\n    samples = simulation_state['samples']\\n    sim_hours = simulation_state['sim_hours']\\n    LOL_track = simulation_state['LOL_track']\\n    raut = RAUtilities()\\n    indices = raut.GetReliabilityIndices(indices_rec, sim_hours, samples)\\n    df = pd.DataFrame([indices])\\n    mLOLP_rec = indices_rec['mLOLP_rec']\\n    COV_rec = indices_rec['COV_rec']\\n    all_subdir = os.path.join(results_subdir, 'Indices')\\n    os.makedirs(all_subdir, exist_ok=True)\\n    df.to_csv(f'{all_subdir}/indices.csv', index=False)\\n    rapt = RAPlotTools(all_subdir)\\n    rapt.PlotLOLP(mLOLP_rec, samples, 1)\\n    rapt.PlotCOV(COV_rec, samples, 1)\\n    if sim_hours == 8760:\\n        rapt.OutageMap(f'{all_subdir}/LOL_perc_prob.csv')\\n        raut.OutageHeatMap(LOL_track, 1, samples, all_subdir)\\n    return {'output': df, 'indices': indices, 'results_dir': all_subdir}\", 'node_imports': 'import os\\nimport pandas as pd\\nfrom progress.mod_utilities import RAUtilities\\nfrom progress.mod_plot import RAPlotTools\\n', 'node_notebook_path': 'c:\\\\work\\\\quest210-py313\\\\node_notebooks\\\\mcs_finalize_0x27049f85ba0.ipynb'}])\n    subflow_connections_df = pd.DataFrame([{'connection_id': 1, 'from_node': '0x27049f850f0', 'to_node': '0x27049f85810', 'mapping': {'yaml_path': 'yaml_path'}}, {'connection_id': 2, 'from_node': '0x27049f850f0', 'to_node': '0x27049f85220', 'mapping': {'yaml_path': 'yaml_path'}}, {'connection_id': 3, 'from_node': '0x27049f85220', 'to_node': '0x27049f856e0', 'mapping': {'config': 'config'}}, {'connection_id': 4, 'from_node': '0x27049f85220', 'to_node': '0x27049f85350', 'mapping': {'config': 'config'}}, {'connection_id': 5, 'from_node': '0x27049f85220', 'to_node': '0x27049f85940', 'mapping': {'config': 'config'}}, {'connection_id': 6, 'from_node': '0x27049f85350', 'to_node': '0x27049f85480', 'mapping': {'system_data': 'system_data'}}, {'connection_id': 7, 'from_node': '0x27049f85350', 'to_node': '0x27049f855b0', 'mapping': {'system_data': 'system_data'}}, {'connection_id': 8, 'from_node': '0x27049f85350', 'to_node': '0x27049f85940', 'mapping': {'system_data': 'system_data'}}, {'connection_id': 9, 'from_node': '0x27049f85480', 'to_node': '0x27049f85940', 'mapping': {'utility_data': 'utility_data'}}, {'connection_id': 10, 'from_node': '0x27049f855b0', 'to_node': '0x27049f85940', 'mapping': {'matrices': 'matrices'}}, {'connection_id': 11, 'from_node': '0x27049f85810', 'to_node': '0x27049f856e0', 'mapping': {'output': 'downloader_flag'}}, {'connection_id': 12, 'from_node': '0x27049f856e0', 'to_node': '0x27049f85940', 'mapping': {'wind_Data': 'wind_data'}}, {'connection_id': 13, 'from_node': '0x27049f856e0', 'to_node': '0x27049f85940', 'mapping': {'solar_Data': 'solar_data'}}, {'connection_id': 14, 'from_node': '0x27049f85940', 'to_node': '0x27049f85a70', 'mapping': {'simulation_context': 'simulation_context'}}, {'connection_id': 15, 'from_node': '0x27049f85a70', 'to_node': '0x27049f85ba0', 'mapping': {'simulation_state': 'simulation_state'}}])\n    subflow_nodes_df = update_subflow(subflow_nodes_df, yaml_path=yaml_path)\n    _results = run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, python_executable='C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_progress/Scripts/python.exe')\n    return {'output': _results.get('mcs_finalize', {}).get('output'), 'indices': _results.get('mcs_finalize', {}).get('indices'), 'results_dir': _results.get('mcs_finalize', {}).get('results_dir')}",
+            "node_imports": "",
+            "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\progress_workflowfreshnew_0x27049f84fc0.ipynb"
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x27049f84d60",
+            "to_node": "0x27049f84fc0",
+            "mapping": {
+                "yaml": "yaml_path"
+            }
+        }
+    ],
+    "subflows_df": [
+        {
+            "flow_name": "progress_workflowfreshnew",
+            "flow_type": "sub-flow",
+            "flow_environment_name": "progress_workflowfreshnew_env",
+            "flow_environment_path": "C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_progress/Scripts/python.exe",
+            "flow_layout": {
+                "graph": {
+                    "acyclic": true,
+                    "pipe_collision": false
+                },
+                "nodes": {
+                    "0x27049f850f0": {
+                        "type_": "QuESt.Workspace.DataNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/data_icon.png",
+                        "name": "yaml_path",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -712.9085968757607,
+                            -180.69316189619605
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [],
+                        "output_ports": [
+                            {
+                                "name": "yaml_path",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ],
+                        "custom": {
+                            "Text Caption": ""
+                        }
+                    },
+                    "0x27049f85220": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "yaml_loader",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -473.44556693205425,
+                            -178.98427702614185
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "yaml_path",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "config",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f85350": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "system_data",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -210.92632525322554,
+                            -251.20308760844085
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "config",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "system_data",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f85480": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "utilities",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            14.420212699413327,
+                            -352.62878951363814
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "system_data",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "utility_data",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f855b0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "matrices",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            20.511533283028825,
+                            -245.53709455732258
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "system_data",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "matrices",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f856e0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "VG_data",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 195.90625,
+                        "height": 80.2,
+                        "pos": [
+                            -223.19108174819814,
+                            -99.5467202878665
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "config",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "downloader_flag",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "wind_Data",
+                                "multi_connection": true,
+                                "display_name": true
+                            },
+                            {
+                                "name": "solar_Data",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f85810": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "DataDownloader",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 180,
+                        "height": 80,
+                        "pos": [
+                            -448.2252212987454,
+                            2.7615006488031213
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "yaml_path",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "output",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f85940": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "mcs_setup",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": true,
+                        "visible": true,
+                        "width": 216.96875,
+                        "height": 172.6,
+                        "pos": [
+                            244.0,
+                            -155.0
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "config",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "system_data",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "utility_data",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "matrices",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "wind_data",
+                                "multi_connection": false,
+                                "display_name": true
+                            },
+                            {
+                                "name": "solar_data",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "simulation_context",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f85a70": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "mcs_run_samples",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 237.484375,
+                        "height": 80,
+                        "pos": [
+                            520.0,
+                            -155.0
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "simulation_context",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "simulation_state",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    },
+                    "0x27049f85ba0": {
+                        "type_": "QuESt.Workspace.PyNode",
+                        "icon": "c:/dilip/quest/quest_latest/snl-quest/quest/images/icons/python_icon.png",
+                        "name": "mcs_finalize",
+                        "color": [
+                            255,
+                            255,
+                            255
+                        ],
+                        "border_color": [
+                            74,
+                            84,
+                            85,
+                            255
+                        ],
+                        "text_color": [
+                            0,
+                            0,
+                            0
+                        ],
+                        "disabled": false,
+                        "selected": false,
+                        "visible": true,
+                        "width": 191.859375,
+                        "height": 103.3,
+                        "pos": [
+                            848.597137118615,
+                            -137.85287926063108
+                        ],
+                        "layout_direction": 0,
+                        "port_deletion_allowed": true,
+                        "subgraph_session": {},
+                        "input_ports": [
+                            {
+                                "name": "simulation_state",
+                                "multi_connection": false,
+                                "display_name": true
+                            }
+                        ],
+                        "output_ports": [
+                            {
+                                "name": "output",
+                                "multi_connection": true,
+                                "display_name": true
+                            },
+                            {
+                                "name": "indices",
+                                "multi_connection": true,
+                                "display_name": true
+                            },
+                            {
+                                "name": "results_dir",
+                                "multi_connection": true,
+                                "display_name": true
+                            }
+                        ]
+                    }
+                },
+                "connections": [
+                    {
+                        "out": [
+                            "0x27049f850f0",
+                            "yaml_path"
+                        ],
+                        "in": [
+                            "0x27049f85810",
+                            "yaml_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f850f0",
+                            "yaml_path"
+                        ],
+                        "in": [
+                            "0x27049f85220",
+                            "yaml_path"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85220",
+                            "config"
+                        ],
+                        "in": [
+                            "0x27049f856e0",
+                            "config"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85220",
+                            "config"
+                        ],
+                        "in": [
+                            "0x27049f85350",
+                            "config"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85220",
+                            "config"
+                        ],
+                        "in": [
+                            "0x27049f85940",
+                            "config"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85350",
+                            "system_data"
+                        ],
+                        "in": [
+                            "0x27049f85480",
+                            "system_data"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85350",
+                            "system_data"
+                        ],
+                        "in": [
+                            "0x27049f855b0",
+                            "system_data"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85350",
+                            "system_data"
+                        ],
+                        "in": [
+                            "0x27049f85940",
+                            "system_data"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85480",
+                            "utility_data"
+                        ],
+                        "in": [
+                            "0x27049f85940",
+                            "utility_data"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f855b0",
+                            "matrices"
+                        ],
+                        "in": [
+                            "0x27049f85940",
+                            "matrices"
+                        ]
+                    },
+                    {
+                        "in": [
+                            "0x27049f856e0",
+                            "downloader_flag"
+                        ],
+                        "out": [
+                            "0x27049f85810",
+                            "output"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f856e0",
+                            "wind_Data"
+                        ],
+                        "in": [
+                            "0x27049f85940",
+                            "wind_data"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f856e0",
+                            "solar_Data"
+                        ],
+                        "in": [
+                            "0x27049f85940",
+                            "solar_data"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85940",
+                            "simulation_context"
+                        ],
+                        "in": [
+                            "0x27049f85a70",
+                            "simulation_context"
+                        ]
+                    },
+                    {
+                        "out": [
+                            "0x27049f85a70",
+                            "simulation_state"
+                        ],
+                        "in": [
+                            "0x27049f85ba0",
+                            "simulation_state"
+                        ]
+                    }
+                ]
+            },
+            "nodes_df": [
+                {
+                    "node_id": "0x27049f850f0",
+                    "node_name": "yaml_path",
+                    "node_type": "data_node",
+                    "node_input_variable": "yaml_path",
+                    "node_input_value": "'C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_progress/Lib/site-packages/progress/input.yaml'",
+                    "node_value_display": false,
+                    "node_is_path": true,
+                    "node_is_from_master": true,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "",
+                    "node_imports": "",
+                    "node_notebook_path": ""
+                },
+                {
+                    "node_id": "0x27049f85220",
+                    "node_name": "yaml_loader",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def yaml_loader_function(yaml_path):\n    with open(yaml_path, 'r') as f:\n        config = yaml.safe_load(f)\n    return {'config': config}",
+                    "node_imports": "import yaml\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\yaml_loader_0x27049f85220.ipynb"
+                },
+                {
+                    "node_id": "0x27049f85350",
+                    "node_name": "system_data",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def system_data_function(config):\n    system_directory = config['data'] + '/System'\n    data_gen = system_directory + '/gen.csv'\n    data_branch = system_directory + '/branch.csv'\n    data_bus = system_directory + '/bus.csv'\n    data_load = system_directory + '/load.csv'\n    data_storage = system_directory + '/storage.csv'\n    rasd = RASystemData()\n    rasd_data = {}\n    rasd_data['BMva'] = 100\n    (rasd_data['genbus'], rasd_data['ng'], rasd_data['pmax'], rasd_data['pmin'], rasd_data['FOR_gen'], rasd_data['MTTF_gen'], rasd_data['MTTR_gen'], rasd_data['gencost']) = rasd.gen(data_gen)\n    (rasd_data['nl'], rasd_data['fb'], rasd_data['tb'], rasd_data['cap_trans'], rasd_data['MTTF_trans'], rasd_data['MTTR_trans']) = rasd.branch(data_branch)\n    (rasd_data['bus_name'], rasd_data['bus_no'], rasd_data['nz']) = rasd.bus(data_bus)\n    rasd_data['load_all_regions'] = rasd.load(rasd_data['bus_name'], data_load)\n    (rasd_data['essname'], rasd_data['essbus'], rasd_data['ness'], rasd_data['ess_pmax'], rasd_data['ess_pmin'], rasd_data['ess_duration'], rasd_data['ess_socmax'], rasd_data['ess_socmin'], rasd_data['ess_eff'], rasd_data['disch_cost'], rasd_data['ch_cost'], rasd_data['MTTF_ess'], rasd_data['MTTR_ess'], rasd_data['ess_units']) = rasd.storage(data_storage)\n    print('System Data exported')\n    return {'system_data': rasd_data}",
+                    "node_imports": "from progress.mod_sysdata import RASystemData\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\system_data_0x27049f85350.ipynb"
+                },
+                {
+                    "node_id": "0x27049f85480",
+                    "node_name": "utilities",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def utilities_function(system_data):\n    raut = RAUtilities()\n    raut_data = {}\n    rasd_data = system_data\n    (raut_data['mu_tot'], raut_data['lambda_tot']) = raut.reltrates(rasd_data['MTTF_gen'], rasd_data['MTTF_trans'], rasd_data['MTTR_gen'], rasd_data['MTTR_trans'], rasd_data['MTTF_ess'], rasd_data['MTTR_ess'])\n    (raut_data['cap_max'], raut_data['cap_min']) = raut.capacities(rasd_data['nl'], rasd_data['pmax'], rasd_data['pmin'], rasd_data['ess_pmax'], rasd_data['ess_pmin'], rasd_data['cap_trans'])\n    print('Utilities formed')\n    return {'utility_data': raut_data}",
+                    "node_imports": "from progress.mod_utilities import RAUtilities\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\utilities_0x27049f85480.ipynb"
+                },
+                {
+                    "node_id": "0x27049f855b0",
+                    "node_name": "matrices",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def matrices_function(system_data):\n    rasd = system_data\n    ramat = RAMatrices(rasd['nz'])\n    ramat_data = {}\n    ramat_data['gen_mat'] = ramat.genmat(rasd['ng'], rasd['genbus'], rasd['ness'], rasd['essbus'])\n    ramat_data['ch_mat'] = ramat.chmat(rasd['ness'], rasd['essbus'], rasd['nz'])\n    ramat_data['A_inc'] = ramat.Ainc(rasd['nl'], rasd['fb'], rasd['tb'])\n    ramat_data['curt_mat'] = ramat.curtmat(rasd['nz'])\n    print('Matrices formed')\n    return {'matrices': ramat_data}",
+                    "node_imports": "from progress.mod_matrices import RAMatrices\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\matrices_0x27049f855b0.ipynb"
+                },
+                {
+                    "node_id": "0x27049f856e0",
+                    "node_name": "VG_data",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def VG_data_function(config, downloader_flag):\n    if downloader_flag:\n        pass\n    solar_directory = config['data'] + '/Solar'\n    wind_directory = config['data'] + '/Wind'\n    solar_data = {}\n    wind_data = {}\n    if wind_directory:\n        wind_sites = wind_directory + '/wind_sites.csv'\n        wind_power_curves = wind_directory + '/w_power_curves.csv'\n        windspeed_data = wind_directory + '/windspeed_data.csv'\n        wind_tr_rate = wind_directory + '/t_rate.xlsx'\n        wind = Wind()\n        (wind_data['w_sites'], wind_data['farm_name'], wind_data['zone_no'], wind_data['w_classes'], wind_data['w_turbines'], wind_data['r_cap'], wind_data['p_class'], wind_data['out_curve2'], wind_data['out_curve3'], wind_data['start_speed']) = wind.WindFarmsData(wind_sites, wind_power_curves)\n        wind.CalWindTrRates(wind_directory, windspeed_data, wind_sites, wind_power_curves)\n        tr_mats = pd.read_excel(wind_tr_rate, sheet_name=None)\n        wind_data['tr_mats'] = np.array([tr_mats[sheet_name].to_numpy() for sheet_name in tr_mats])\n    if solar_directory:\n        solar_site_data = solar_directory + '/solar_sites.csv'\n        solar_prob_data = solar_directory + '/solar_probs.csv'\n        solar = Solar(solar_site_data, solar_directory)\n        (solar_data['s_sites'], solar_data['s_zone_no'], solar_data['s_max'], solar_data['s_profiles'], solar_data['solar_prob']) = solar.GetSolarProfiles(solar_prob_data)\n    print('VG data exported')\n    return {'wind_Data': wind_data, 'solar_Data': solar_data}",
+                    "node_imports": "import numpy as np\nimport pandas as pd\nfrom progress.mod_solar import Solar\nfrom progress.mod_wind import Wind\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\VG_data_0x27049f856e0.ipynb"
+                },
+                {
+                    "node_id": "0x27049f85810",
+                    "node_name": "DataDownloader",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def DataDownloader_function(yaml_path):\n    data = DataProcess(yaml_path)\n    data.ProcessWindData()\n    data.ProcessSolarData()\n    return {'output': 1}",
+                    "node_imports": "import os\nos.environ['MPLBACKEND'] = 'Agg'\nfrom progress.data_download_process import DataProcess\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\DataDownloader_0x27049f85810.ipynb"
+                },
+                {
+                    "node_id": "0x27049f85940",
+                    "node_name": "mcs_setup",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def mcs_setup_function(config, system_data, utility_data, matrices, wind_data, solar_data):\n    print('MCS module just started')\n    progress_root = Path(progress.__file__).resolve().parent\n    glpk_candidates = [progress_root.parent.parent.parent / 'glpk' / 'glpk-4.65' / 'w64', progress_root.parent.parent.parent / 'glpk' / 'GLPK-4.65' / 'w64', progress_root / 'glpk' / 'glpk-4.65' / 'w64', progress_root / 'glpk' / 'GLPK-4.65' / 'w64']\n    for glpk_dir in glpk_candidates:\n        glpsol = glpk_dir / 'glpsol.exe'\n        if glpsol.exists():\n            current_path = os.environ.get('PATH', '')\n            glpk_str = str(glpk_dir)\n            if glpk_str not in current_path.split(os.pathsep):\n                os.environ['PATH'] = glpk_str + os.pathsep + current_path if current_path else glpk_str\n            print(f'GLPK configured from {glpk_dir}')\n            break\n    else:\n        print('Warning: glpsol.exe was not found in the expected Progress environment locations.')\n    samples = config['samples']\n    sim_hours = config['sim_hours']\n    indices_rec = {'LOLP_rec': np.zeros(samples), 'EUE_rec': np.zeros(samples), 'MDT_rec': np.zeros(samples), 'LOLF_rec': np.zeros(samples), 'EPNS_rec': np.zeros(samples), 'LOLP_hr': np.zeros(sim_hours), 'LOLE_rec': np.zeros(samples), 'mLOLP_rec': np.zeros(samples), 'COV_rec': np.zeros(samples)}\n    simulation_context = {'config': config, 'rasd': system_data, 'raut_data': utility_data, 'rmat': matrices, 'rwind': wind_data, 'rsolar': solar_data, 'samples': samples, 'sim_hours': sim_hours, 'indices_rec': indices_rec, 'LOL_track': np.zeros((samples, sim_hours))}\n    print('MCS setup complete')\n    return {'simulation_context': simulation_context}",
+                    "node_imports": "import os\nfrom pathlib import Path\nimport numpy as np\nimport progress\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\mcs_setup_0x27049f85940.ipynb"
+                },
+                {
+                    "node_id": "0x27049f85a70",
+                    "node_name": "mcs_run_samples",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [],
+                    "node_function_wrapper": "def mcs_run_samples_function(simulation_context):\n    config = simulation_context['config']\n    rasd = simulation_context['rasd']\n    raut_data = simulation_context['raut_data']\n    rmat = simulation_context['rmat']\n    rsolar = simulation_context['rsolar']\n    rwind = simulation_context['rwind']\n    samples = simulation_context['samples']\n    sim_hours = simulation_context['sim_hours']\n    indices_rec = simulation_context['indices_rec']\n    LOL_track = simulation_context['LOL_track']\n    raut = RAUtilities()\n    print('Simulation started')\n\n    main_folder = get_path()\n    timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')\n    results_subdir = os.path.join(main_folder, 'Results', timestamp)\n    os.makedirs(results_subdir, exist_ok=True)\n\n    def init_sample_state():\n        var_s = {\n            't_min': 0,\n            'LLD': 0,\n            'curtailment': np.zeros(sim_hours),\n            'label_LOLF': np.zeros(sim_hours),\n            'freq_LOLF': 0,\n            'LOL_days': 0,\n            'outage_day': np.zeros(365),\n        }\n        current_state = np.ones(rasd['ng'] + rasd['nl'] + rasd['ness'])\n        current_w_class = None\n        if rwind:\n            current_w_class = np.floor(\n                np.random.uniform(0, 1, rwind['w_sites']) * rwind['w_classes']\n            ).astype(int)\n        renewable_rec = {\n            'wind_rec': np.zeros((rasd['nz'], sim_hours)),\n            'solar_rec': np.zeros((rasd['nz'], sim_hours)),\n            'congen_temp': 0,\n            'rengen_temp': 0,\n        }\n        SOC_old = 0.5 * np.multiply(\n            np.multiply(rasd['ess_pmax'], rasd['ess_duration']),\n            rasd['ess_socmax'],\n        ) / rasd['BMva']\n        SOC_rec = np.zeros((rasd['ness'], sim_hours))\n        curt_rec = np.zeros(sim_hours)\n        part_netload = config['load_factor'] * rasd['load_all_regions']\n        return var_s, current_state, current_w_class, renewable_rec, SOC_old, SOC_rec, curt_rec, part_netload\n\n    def run_single_sample(sample_index):\n        var_s, current_state, current_w_class, renewable_rec, SOC_old, SOC_rec, curt_rec, part_netload = init_sample_state()\n\n        for n in range(sim_hours):\n            next_state, current_cap, var_s['t_min'] = raut.NextState(\n                var_s['t_min'],\n                rasd['ng'],\n                rasd['ness'],\n                rasd['nl'],\n                raut_data['lambda_tot'],\n                raut_data['mu_tot'],\n                current_state,\n                raut_data['cap_max'],\n                raut_data['cap_min'],\n                rasd['ess_units'],\n            )\n            current_state = copy.deepcopy(next_state)\n            ess_smax, ess_smin, SOC_old = raut.updateSOC(\n                rasd['ng'],\n                rasd['nl'],\n                current_cap,\n                rasd['ess_pmax'],\n                rasd['ess_duration'],\n                rasd['ess_socmax'],\n                rasd['ess_socmin'],\n                SOC_old,\n            )\n            gt_limits = {\n                'g_lb': np.concatenate((\n                    current_cap['min'][0:rasd['ng']] / rasd['BMva'],\n                    current_cap['min'][rasd['ng'] + rasd['nl']:] / rasd['BMva'],\n                )),\n                'g_ub': np.concatenate((\n                    current_cap['max'][0:rasd['ng']] / rasd['BMva'],\n                    current_cap['max'][rasd['ng'] + rasd['nl']:] / rasd['BMva'],\n                )),\n                'tl': current_cap['max'][rasd['ng']:rasd['ng'] + rasd['nl']] / rasd['BMva'],\n            }\n\n            def fb_Pg(model, i):\n                return (gt_limits['g_lb'][i], gt_limits['g_ub'][i])\n\n            def fb_flow(model, i):\n                return (-gt_limits['tl'][i], gt_limits['tl'][i])\n\n            def fb_ess(model, i):\n                return (\n                    -current_cap['max'][rasd['ng'] + rasd['nl']:][i] / rasd['BMva'],\n                    current_cap['min'][rasd['ng'] + rasd['nl']:][i] / rasd['BMva'],\n                )\n\n            def fb_soc(model, i):\n                return (ess_smin[i] / rasd['BMva'], ess_smax[i] / rasd['BMva'])\n\n            w_zones = None\n            s_zones = None\n            if rwind:\n                w_zones, current_w_class = raut.WindPower(\n                    rasd['nz'],\n                    rwind['w_sites'],\n                    rwind['zone_no'],\n                    rwind['w_classes'],\n                    rwind['r_cap'],\n                    current_w_class,\n                    rwind['tr_mats'],\n                    rwind['p_class'],\n                    rwind['w_turbines'],\n                    rwind['out_curve2'],\n                    rwind['out_curve3'],\n                )\n            if rsolar:\n                s_zones = raut.SolarPower(\n                    n,\n                    rasd['nz'],\n                    rsolar['s_zone_no'],\n                    rsolar['solar_prob'],\n                    rsolar['s_profiles'],\n                    rsolar['s_sites'],\n                    rsolar['s_max'],\n                )\n\n            if rwind:\n                renewable_rec['wind_rec'][:, n] = w_zones\n            if rsolar:\n                s_zones_t = np.transpose(s_zones)\n                renewable_rec['solar_rec'][:, n] = s_zones_t[:, n % 24]\n\n            if rsolar and rwind:\n                net_load = part_netload[n] - w_zones - s_zones[n % 24]\n            elif (not rsolar) and rwind:\n                net_load = part_netload[n] - w_zones\n            elif rsolar and (not rwind):\n                net_load = part_netload[n] - s_zones[n % 24]\n            else:\n                net_load = part_netload[n]\n\n            if config['model'] == 'Zonal':\n                load_curt, SOC_old = raut.OptDispatch(\n                    rasd['ng'],\n                    rasd['nz'],\n                    rasd['nl'],\n                    rasd['ness'],\n                    fb_ess,\n                    fb_soc,\n                    rasd['BMva'],\n                    fb_Pg,\n                    fb_flow,\n                    rmat['A_inc'],\n                    rmat['gen_mat'],\n                    rmat['curt_mat'],\n                    rmat['ch_mat'],\n                    rasd['gencost'],\n                    net_load,\n                    SOC_old,\n                    rasd['ess_pmax'],\n                    rasd['ess_eff'],\n                    rasd['disch_cost'],\n                    rasd['ch_cost'],\n                )\n            elif config['model'] == 'Copper Sheet':\n                load_curt, SOC_old = raut.OptDispatchLite(\n                    rasd['ng'],\n                    rasd['nz'],\n                    rasd['ness'],\n                    fb_ess,\n                    fb_soc,\n                    rasd['BMva'],\n                    fb_Pg,\n                    rmat['A_inc'],\n                    rasd['gencost'],\n                    net_load,\n                    SOC_old,\n                    rasd['ess_pmax'],\n                    rasd['ess_eff'],\n                    rasd['disch_cost'],\n                    rasd['ch_cost'],\n                )\n            else:\n                raise ValueError(f\"Unsupported model: {config['model']}\")\n\n            SOC_rec[:, n] = SOC_old * rasd['BMva']\n            curt_rec[n] = load_curt * rasd['BMva']\n            var_s, updated_lol_track = raut.TrackLOLStates(load_curt, rasd['BMva'], var_s, LOL_track, sample_index, n)\n            LOL_track[:] = updated_lol_track\n            if (n + 1) % 100 == 0:\n                print(f'Hour {n + 1}')\n\n        sample_subdir = os.path.join(results_subdir, f'Sample {sample_index + 1}')\n        os.makedirs(sample_subdir, exist_ok=True)\n        rapt = RAPlotTools(sample_subdir)\n        rapt.PlotSolarGen(renewable_rec['solar_rec'], rasd['bus_name'], sample_index)\n        rapt.PlotWindGen(renewable_rec['wind_rec'], rasd['bus_name'], sample_index)\n        rapt.PlotSOC(SOC_rec, rasd['essname'], sample_index)\n        rapt.PlotLoadCurt(curt_rec, sample_index)\n        return var_s\n\n    for s in range(samples):\n        print(f'Sample: {s + 1}')\n        var_s = run_single_sample(s)\n        indices_rec = raut.UpdateIndexArrays(indices_rec, var_s, sim_hours, s)\n        indices_rec['mLOLP_rec'][s] = np.mean(indices_rec['LOLP_rec'][0:s + 1])\n        var_LOLP = np.var(indices_rec['LOLP_rec'][0:s + 1])\n        if indices_rec['mLOLP_rec'][s] != 0:\n            indices_rec['COV_rec'][s] = np.sqrt(var_LOLP) / indices_rec['mLOLP_rec'][s]\n        else:\n            indices_rec['COV_rec'][s] = 0\n\n    return {\n        'simulation_state': {\n            'indices_rec': indices_rec,\n            'results_subdir': results_subdir,\n            'samples': samples,\n            'sim_hours': sim_hours,\n            'LOL_track': LOL_track,\n        }\n    }",
+                    "node_imports": "import os\nimport copy\nfrom datetime import datetime\nimport numpy as np\nfrom progress.mod_utilities import RAUtilities\nfrom progress.mod_plot import RAPlotTools\nfrom progress.paths import get_path\n",
+                    "node_notebook_path": "c:\\\\work\\\\quest210\\\\snl-quest\\\\quest\\\\snl_libraries\\\\workspace\\\\examples\\\\mcs_run_samples_refactored.ipynb"
+                },
+                {
+                    "node_id": "0x27049f85ba0",
+                    "node_name": "mcs_finalize",
+                    "node_type": "python_node",
+                    "node_input_variable": "",
+                    "node_input_value": "",
+                    "node_value_display": false,
+                    "node_is_path": false,
+                    "node_is_from_master": false,
+                    "node_expose_outputs": [
+                        "output",
+                        "indices",
+                        "results_dir"
+                    ],
+                    "node_function_wrapper": "def mcs_finalize_function(simulation_state):\n    indices_rec = simulation_state['indices_rec']\n    results_subdir = simulation_state['results_subdir']\n    samples = simulation_state['samples']\n    sim_hours = simulation_state['sim_hours']\n    LOL_track = simulation_state['LOL_track']\n    raut = RAUtilities()\n    indices = raut.GetReliabilityIndices(indices_rec, sim_hours, samples)\n    df = pd.DataFrame([indices])\n    mLOLP_rec = indices_rec['mLOLP_rec']\n    COV_rec = indices_rec['COV_rec']\n    all_subdir = os.path.join(results_subdir, 'Indices')\n    os.makedirs(all_subdir, exist_ok=True)\n    df.to_csv(f'{all_subdir}/indices.csv', index=False)\n    rapt = RAPlotTools(all_subdir)\n    rapt.PlotLOLP(mLOLP_rec, samples, 1)\n    rapt.PlotCOV(COV_rec, samples, 1)\n    if sim_hours == 8760:\n        raut.OutageHeatMap(LOL_track, 1, samples, all_subdir)\n        outage_map_path = f'{all_subdir}/LOL_perc_prob.csv'\n        if os.path.exists(outage_map_path):\n            rapt.OutageMap(outage_map_path)\n        else:\n            print(f'Warning: outage heatmap data was not found at {outage_map_path}')\n    return {'output': df, 'indices': indices, 'results_dir': all_subdir}",
+                    "node_imports": "import os\nimport pandas as pd\nfrom progress.mod_utilities import RAUtilities\nfrom progress.mod_plot import RAPlotTools\n",
+                    "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\mcs_finalize_0x27049f85ba0.ipynb"
+                }
+            ],
+            "connections_df": [
+                {
+                    "connection_id": 1,
+                    "from_node": "0x27049f850f0",
+                    "to_node": "0x27049f85810",
+                    "mapping": {
+                        "yaml_path": "yaml_path"
+                    }
+                },
+                {
+                    "connection_id": 2,
+                    "from_node": "0x27049f850f0",
+                    "to_node": "0x27049f85220",
+                    "mapping": {
+                        "yaml_path": "yaml_path"
+                    }
+                },
+                {
+                    "connection_id": 3,
+                    "from_node": "0x27049f85220",
+                    "to_node": "0x27049f856e0",
+                    "mapping": {
+                        "config": "config"
+                    }
+                },
+                {
+                    "connection_id": 4,
+                    "from_node": "0x27049f85220",
+                    "to_node": "0x27049f85350",
+                    "mapping": {
+                        "config": "config"
+                    }
+                },
+                {
+                    "connection_id": 5,
+                    "from_node": "0x27049f85220",
+                    "to_node": "0x27049f85940",
+                    "mapping": {
+                        "config": "config"
+                    }
+                },
+                {
+                    "connection_id": 6,
+                    "from_node": "0x27049f85350",
+                    "to_node": "0x27049f85480",
+                    "mapping": {
+                        "system_data": "system_data"
+                    }
+                },
+                {
+                    "connection_id": 7,
+                    "from_node": "0x27049f85350",
+                    "to_node": "0x27049f855b0",
+                    "mapping": {
+                        "system_data": "system_data"
+                    }
+                },
+                {
+                    "connection_id": 8,
+                    "from_node": "0x27049f85350",
+                    "to_node": "0x27049f85940",
+                    "mapping": {
+                        "system_data": "system_data"
+                    }
+                },
+                {
+                    "connection_id": 9,
+                    "from_node": "0x27049f85480",
+                    "to_node": "0x27049f85940",
+                    "mapping": {
+                        "utility_data": "utility_data"
+                    }
+                },
+                {
+                    "connection_id": 10,
+                    "from_node": "0x27049f855b0",
+                    "to_node": "0x27049f85940",
+                    "mapping": {
+                        "matrices": "matrices"
+                    }
+                },
+                {
+                    "connection_id": 11,
+                    "from_node": "0x27049f85810",
+                    "to_node": "0x27049f856e0",
+                    "mapping": {
+                        "output": "downloader_flag"
+                    }
+                },
+                {
+                    "connection_id": 12,
+                    "from_node": "0x27049f856e0",
+                    "to_node": "0x27049f85940",
+                    "mapping": {
+                        "wind_Data": "wind_data"
+                    }
+                },
+                {
+                    "connection_id": 13,
+                    "from_node": "0x27049f856e0",
+                    "to_node": "0x27049f85940",
+                    "mapping": {
+                        "solar_Data": "solar_data"
+                    }
+                },
+                {
+                    "connection_id": 14,
+                    "from_node": "0x27049f85940",
+                    "to_node": "0x27049f85a70",
+                    "mapping": {
+                        "simulation_context": "simulation_context"
+                    }
+                },
+                {
+                    "connection_id": 15,
+                    "from_node": "0x27049f85a70",
+                    "to_node": "0x27049f85ba0",
+                    "mapping": {
+                        "simulation_state": "simulation_state"
+                    }
+                }
+            ]
+        }
+    ]
+}
