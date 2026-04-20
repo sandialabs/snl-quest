@@ -1,10 +1,12 @@
 import sys
 import os
+import warnings
 import keyword
 import tempfile
 import pickle
 import inspect, ast, json, socket, subprocess, html, re
 import pandas as pd
+import yaml
 from PySide6.QtWidgets import *
 from PySide6.QtCore import *
 from PySide6.QtGui import *
@@ -427,6 +429,7 @@ class quest_workflow(QWidget):
         self._suspend_proxy_wrapper_sync = False
         self._last_auto_environment_name = self.flow_environment_name
         self._pending_graph_frame = False
+        self._current_flow_json_path = ""
 
         self.layout = QHBoxLayout(self)
         self.flow_run_widget = QWidget()
@@ -464,7 +467,7 @@ class quest_workflow(QWidget):
         self.flow_save_path = QLabel()
         self.flow_save_button = QPushButton("Save")
         self.flow_save_button.setFixedHeight(36)
-        self.flow_save_button.clicked.connect(self.save_flow)
+        self.flow_save_button.clicked.connect(self.save_flow_as)
 
         self.flow_save_layout.addWidget(self.flow_save_label)
         self.flow_save_layout.addWidget(self.flow_save_mode_combo)
@@ -517,6 +520,16 @@ class quest_workflow(QWidget):
         try:
             graph_view = self.graph_widget.findChild(QGraphicsView)
             if graph_view is not None:
+                graph_view.setObjectName("workspaceGraphView")
+                graph_view.setFrameShape(QFrame.StyledPanel)
+                graph_view.setLineWidth(1)
+                graph_view.setStyleSheet(
+                    "QGraphicsView#workspaceGraphView {"
+                    "border: 1px solid #94a3b8;"
+                    "border-radius: 0px;"
+                    "background: white;"
+                    "}"
+                )
                 graph_view.installEventFilter(self)
                 if graph_view.viewport() is not None:
                     graph_view.viewport().installEventFilter(self)
@@ -564,28 +577,250 @@ class quest_workflow(QWidget):
         self.graph_help_overlay.adjustSize()
         self.graph_help_overlay.show()
         self._position_graph_help_overlay()
-        self.clear_canvas_button = QPushButton("Clear Canvas", self.graph_widget)
+        self.copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), self.graph_widget)
+        self.copy_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+        self.copy_shortcut.activated.connect(self.copy_selected_nodes)
+        self.cut_shortcut = QShortcut(QKeySequence("Ctrl+X"), self.graph_widget)
+        self.cut_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+        self.cut_shortcut.activated.connect(self.cut_selected_nodes)
+        self.paste_shortcut = QShortcut(QKeySequence("Ctrl+V"), self.graph_widget)
+        self.paste_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+        self.paste_shortcut.activated.connect(self.paste_nodes_from_clipboard)
+        self.save_shortcut = QShortcut(QKeySequence("Ctrl+S"), self.graph_widget)
+        self.save_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
+        self.save_shortcut.activated.connect(self.save_flow)
+        self.flow_control_toolbar = QToolBar("Flow Control Toolbar", self.graph_widget)
+        self.flow_control_toolbar.setObjectName("flowControlToolbar")
+        self.flow_control_toolbar.setFloatable(False)
+        self.flow_control_toolbar.setMovable(False)
+        self.flow_control_toolbar.setIconSize(QSize(20, 20))
+        self.flow_control_toolbar.setStyleSheet(
+            "QToolBar#flowControlToolbar {"
+            "background: rgba(255, 255, 255, 240);"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 10px;"
+            "spacing: 4px;"
+            "padding: 4px 6px;"
+            "}"
+        )
+        self.canvas_run_button = QPushButton("", self.flow_control_toolbar)
+        self.canvas_run_button.setObjectName("canvasRunButton")
+        self.canvas_run_button.setFixedSize(32, 32)
+        self.canvas_run_button.setToolTip("Run Flow")
+        self.canvas_run_button.setIcon(
+            self._load_workspace_icon("play_arrow_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
+        )
+        self.canvas_run_button.setIconSize(QSize(22, 22))
+        self.canvas_run_button.setStyleSheet(
+            "QPushButton#canvasRunButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #15803d;"
+            "border: 2px solid #22c55e;"
+            "border-radius: 8px;"
+            "padding: 0px;"
+            "}"
+            "QPushButton#canvasRunButton:hover {"
+            "background: rgba(240, 253, 244, 245);"
+            "border-color: #16a34a;"
+            "}"
+            "QPushButton#canvasRunButton:pressed {"
+            "background: rgba(220, 252, 231, 250);"
+            "}"
+        )
+        self.canvas_run_button.clicked.connect(self.run_flow)
+        self.flow_control_toolbar.addWidget(self.canvas_run_button)
+        self.canvas_open_button = QPushButton("", self.flow_control_toolbar)
+        self.canvas_open_button.setObjectName("canvasOpenButton")
+        self.canvas_open_button.setFixedSize(32, 32)
+        self.canvas_open_button.setToolTip("Open Flow")
+        self.canvas_open_button.setIcon(
+            self._load_workspace_icon("folder_open_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
+        )
+        self.canvas_open_button.setIconSize(QSize(22, 22))
+        self.canvas_open_button.setStyleSheet(
+            "QPushButton#canvasOpenButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #64748b;"
+            "border: 2px solid #cbd5e1;"
+            "border-radius: 8px;"
+            "padding: 0px;"
+            "}"
+            "QPushButton#canvasOpenButton:hover {"
+            "background: rgba(248, 250, 252, 245);"
+            "border-color: #94a3b8;"
+            "}"
+            "QPushButton#canvasOpenButton:pressed {"
+            "background: rgba(241, 245, 249, 250);"
+            "}"
+        )
+        self.canvas_open_button.clicked.connect(self.load_flow)
+        self.flow_control_toolbar.addWidget(self.canvas_open_button)
+        self.canvas_quick_save_button = QPushButton("", self.flow_control_toolbar)
+        self.canvas_quick_save_button.setObjectName("canvasQuickSaveButton")
+        self.canvas_quick_save_button.setFixedSize(32, 32)
+        self.canvas_quick_save_button.setToolTip("Save Flow")
+        self.canvas_quick_save_button.setIcon(
+            self._load_workspace_icon("file_save_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
+        )
+        self.canvas_quick_save_button.setIconSize(QSize(22, 22))
+        self.canvas_quick_save_button.setStyleSheet(
+            "QPushButton#canvasQuickSaveButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #64748b;"
+            "border: 2px solid #cbd5e1;"
+            "border-radius: 8px;"
+            "padding: 0px;"
+            "}"
+            "QPushButton#canvasQuickSaveButton:hover {"
+            "background: rgba(248, 250, 252, 245);"
+            "border-color: #94a3b8;"
+            "}"
+            "QPushButton#canvasQuickSaveButton:pressed {"
+            "background: rgba(241, 245, 249, 250);"
+            "}"
+        )
+        self.canvas_quick_save_button.clicked.connect(self.save_flow)
+        self.flow_control_toolbar.addWidget(self.canvas_quick_save_button)
+        self.canvas_save_button = QPushButton("", self.flow_control_toolbar)
+        self.canvas_save_button.setObjectName("canvasSaveButton")
+        self.canvas_save_button.setFixedSize(32, 32)
+        self.canvas_save_button.setToolTip("Save Flow As")
+        self.canvas_save_button.setIcon(
+            self._load_workspace_icon("edit_document_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
+        )
+        self.canvas_save_button.setIconSize(QSize(22, 22))
+        self.canvas_save_button.setStyleSheet(
+            "QPushButton#canvasSaveButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #64748b;"
+            "border: 2px solid #cbd5e1;"
+            "border-radius: 8px;"
+            "padding: 0px;"
+            "}"
+            "QPushButton#canvasSaveButton:hover {"
+            "background: rgba(248, 250, 252, 245);"
+            "border-color: #94a3b8;"
+            "}"
+            "QPushButton#canvasSaveButton:pressed {"
+            "background: rgba(241, 245, 249, 250);"
+            "}"
+        )
+        self.canvas_save_button.clicked.connect(self.save_flow_as)
+        self.flow_control_toolbar.addWidget(self.canvas_save_button)
+        self.flow_control_toolbar.adjustSize()
+        self.flow_control_toolbar.show()
+        self._position_flow_control_toolbar()
+        self.edit_toolbar = QToolBar("Edit Toolbar", self.graph_widget)
+        self.edit_toolbar.setObjectName("editToolbar")
+        self.edit_toolbar.setFloatable(False)
+        self.edit_toolbar.setMovable(False)
+        self.edit_toolbar.setIconSize(QSize(20, 20))
+        self.edit_toolbar.setStyleSheet(
+            "QToolBar#editToolbar {"
+            "background: rgba(255, 255, 255, 240);"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 10px;"
+            "spacing: 4px;"
+            "padding: 4px 6px;"
+            "}"
+        )
+        self.edit_node_button_style = (
+            "background: rgba(255, 255, 255, 240);"
+            "color: #64748b;"
+            "border: 2px solid #cbd5e1;"
+            "border-radius: 8px;"
+            "padding: 0px;"
+        )
+        self.edit_node_button_hover_style = (
+            "background: rgba(239, 246, 255, 245);"
+            "border-color: #93c5fd;"
+        )
+        self.canvas_text_node_button = QPushButton("", self.edit_toolbar)
+        self.canvas_text_node_button.setObjectName("canvasTextNodeButton")
+        self.canvas_text_node_button.setFixedSize(32, 32)
+        self.canvas_text_node_button.setIcon(self._load_workspace_icon("text_icon.png"))
+        self.canvas_text_node_button.setIconSize(QSize(22, 22))
+        self.canvas_text_node_button.setToolTip("Add Text Node")
+        self.canvas_text_node_button.setStyleSheet(
+            "QPushButton#canvasTextNodeButton {"
+            f"{self.edit_node_button_style}"
+            "}"
+            "QPushButton#canvasTextNodeButton:hover {"
+            f"{self.edit_node_button_hover_style}"
+            "}"
+            "QPushButton#canvasTextNodeButton:pressed {"
+            "background: rgba(219, 234, 254, 250);"
+            "}"
+        )
+        self.canvas_text_node_button.clicked.connect(self.create_text_node)
+        self.edit_toolbar.addWidget(self.canvas_text_node_button)
+        self.canvas_data_node_button = QPushButton("", self.edit_toolbar)
+        self.canvas_data_node_button.setObjectName("canvasDataNodeButton")
+        self.canvas_data_node_button.setFixedSize(32, 32)
+        self.canvas_data_node_button.setIcon(self._load_workspace_icon("data_icon.png"))
+        self.canvas_data_node_button.setIconSize(QSize(22, 22))
+        self.canvas_data_node_button.setToolTip("Add Data Node")
+        self.canvas_data_node_button.setStyleSheet(
+            "QPushButton#canvasDataNodeButton {"
+            f"{self.edit_node_button_style}"
+            "}"
+            "QPushButton#canvasDataNodeButton:hover {"
+            f"{self.edit_node_button_hover_style}"
+            "}"
+            "QPushButton#canvasDataNodeButton:pressed {"
+            "background: rgba(219, 234, 254, 250);"
+            "}"
+        )
+        self.canvas_data_node_button.clicked.connect(self.create_data_node)
+        self.edit_toolbar.addWidget(self.canvas_data_node_button)
+        self.canvas_py_node_button = QPushButton("", self.edit_toolbar)
+        self.canvas_py_node_button.setObjectName("canvasPyNodeButton")
+        self.canvas_py_node_button.setFixedSize(32, 32)
+        self.canvas_py_node_button.setIcon(self._load_workspace_icon("python_icon.png"))
+        self.canvas_py_node_button.setIconSize(QSize(22, 22))
+        self.canvas_py_node_button.setToolTip("Add Python Node")
+        self.canvas_py_node_button.setStyleSheet(
+            "QPushButton#canvasPyNodeButton {"
+            f"{self.edit_node_button_style}"
+            "}"
+            "QPushButton#canvasPyNodeButton:hover {"
+            f"{self.edit_node_button_hover_style}"
+            "}"
+            "QPushButton#canvasPyNodeButton:pressed {"
+            "background: rgba(219, 234, 254, 250);"
+            "}"
+        )
+        self.canvas_py_node_button.clicked.connect(self.create_py_node)
+        self.edit_toolbar.addWidget(self.canvas_py_node_button)
+        self.clear_canvas_button = QPushButton("", self.edit_toolbar)
         self.clear_canvas_button.setObjectName("clearCanvasButton")
-        self.clear_canvas_button.setFixedHeight(34)
+        self.clear_canvas_button.setFixedSize(32, 32)
+        self.clear_canvas_button.setIcon(
+            self._load_workspace_icon("clear_all_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
+        )
+        self.clear_canvas_button.setIconSize(QSize(22, 22))
+        self.clear_canvas_button.setToolTip("Clear Canvas")
         self.clear_canvas_button.setStyleSheet(
             "QPushButton#clearCanvasButton {"
-            "background: rgba(255, 255, 255, 235);"
-            "color: #991b1b;"
-            "border: 1px solid #fca5a5;"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #64748b;"
+            "border: 2px solid #cbd5e1;"
             "border-radius: 8px;"
-            "padding: 4px 12px;"
-            "font-size: 10pt;"
-            "font-weight: 600;"
+            "padding: 0px;"
             "}"
             "QPushButton#clearCanvasButton:hover {"
             "background: rgba(254, 242, 242, 245);"
-            "border-color: #ef4444;"
+            "border-color: #f87171;"
+            "}"
+            "QPushButton#clearCanvasButton:pressed {"
+            "background: rgba(254, 226, 226, 250);"
             "}"
         )
         self.clear_canvas_button.clicked.connect(self.clear_canvas)
-        self.clear_canvas_button.adjustSize()
-        self.clear_canvas_button.show()
-        self._position_clear_canvas_button()
+        self.edit_toolbar.addWidget(self.clear_canvas_button)
+        self.edit_toolbar.adjustSize()
+        self.edit_toolbar.show()
+        self._position_edit_toolbar()
         self.master_graph_tab = QWidget()
         self.master_graph_layout = QVBoxLayout(self.master_graph_tab)
         self.master_graph_layout.setContentsMargins(0, 0, 0, 0)
@@ -819,21 +1054,59 @@ class quest_workflow(QWidget):
         self.properties_layout.addWidget(self.value_widget)
         self.properties_layout.addStretch(1)
         self.properties_layout.setAlignment(Qt.AlignTop)
+
+        self.inputs_management_container = QWidget()
+        self.inputs_management_container.setFixedWidth(420)
+        self.inputs_management_layout = QVBoxLayout(self.inputs_management_container)
+        self.inputs_management_layout.setContentsMargins(0, 0, 0, 0)
+        self.inputs_management_layout.setSpacing(6)
+        self.inputs_management_label = QLabel(
+            "Manage the Base Case and create additional case tabs from the current input table."
+        )
+        self.inputs_management_label.setWordWrap(True)
+        self.inputs_management_case_tabs = QTabWidget()
+        self.inputs_management_case_tabs.setDocumentMode(True)
+        self.inputs_management_case_tabs.currentChanged.connect(self._on_inputs_management_case_tab_changed)
+        self.inputs_management_save_button = QPushButton("Save Inputs as YAML")
+        self.inputs_management_save_button.setFixedHeight(36)
+        self.inputs_management_save_button.clicked.connect(self._save_inputs_management_yaml)
+        self.inputs_management_load_button = QPushButton("Load Inputs from YAML")
+        self.inputs_management_load_button.setFixedHeight(36)
+        self.inputs_management_load_button.clicked.connect(self._load_inputs_management_yaml)
+        self.inputs_management_buttons = QWidget()
+        self.inputs_management_buttons_layout = QHBoxLayout(self.inputs_management_buttons)
+        self.inputs_management_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.inputs_management_buttons_layout.setSpacing(6)
+        self.inputs_management_buttons_layout.addWidget(self.inputs_management_save_button)
+        self.inputs_management_buttons_layout.addWidget(self.inputs_management_load_button)
+        self.inputs_management_layout.addWidget(self.inputs_management_label)
+        self.inputs_management_layout.addWidget(self.inputs_management_case_tabs)
+        self.inputs_management_layout.addWidget(self.inputs_management_buttons)
+
         self.tab_widget = QTabWidget()
         self.tab_widget.setFixedWidth(420)
         self.tab_layout = QHBoxLayout(self.tab_widget)
         self.tab_widget.addTab(self.properties_container, "Node Settings")
+        self.tab_widget.addTab(self.inputs_management_container, "Inputs Management")
         self.tab_widget.addTab(self.flow_control_container, "Flow Control")
         self.layout.addWidget(self.tab_widget)
 
         self.graph.node_selected.connect(self.on_node_selected)
         self.graph.node_selection_changed.connect(self.on_node_selected)
         self.node_counters = {"DataNode": 0, "PyNode": 0, "TextNode": 0}
+        self._inputs_management_refresh_in_progress = False
+        self._inputs_management_case_switch_in_progress = False
+        self._inputs_management_case_counter = 0
+        self._last_inputs_management_case_index = 0
+        self.inputs_management_cases = []
+        self.inputs_management_add_case_widget = None
         self.notebooks_dir = os.path.join(os.getcwd(), "node_notebooks")
         self._kernel_cache = None
         self._kernel_cache_valid = False
         os.makedirs(self.notebooks_dir, exist_ok=True)
         self.populate_environment_settings_table()
+        self._reset_inputs_management_case_tabs()
+        self._refresh_inputs_management_views()
         self._sync_flow_metadata_from_controls()
         self._refresh_save_mode_options()
 
@@ -976,18 +1249,58 @@ class quest_workflow(QWidget):
         self.graph_help_overlay.setGeometry(x, y, overlay_size.width(), overlay_size.height())
         self.graph_help_overlay.raise_()
 
-    def _position_clear_canvas_button(self):
-        if not hasattr(self, "clear_canvas_button") or self.clear_canvas_button is None:
+    def _position_edit_toolbar(self):
+        if not hasattr(self, "edit_toolbar") or self.edit_toolbar is None:
             return
         if not hasattr(self, "graph_widget") or self.graph_widget is None:
             return
         margin = 16
-        self.clear_canvas_button.adjustSize()
-        button_size = self.clear_canvas_button.sizeHint()
-        x = max(margin, self.graph_widget.width() - button_size.width() - margin)
+        self.edit_toolbar.adjustSize()
+        toolbar_size = self.edit_toolbar.sizeHint()
+        x = max(margin, self.graph_widget.width() - toolbar_size.width() - margin)
         y = margin
-        self.clear_canvas_button.setGeometry(x, y, button_size.width(), button_size.height())
-        self.clear_canvas_button.raise_()
+        self.edit_toolbar.setGeometry(x, y, toolbar_size.width(), toolbar_size.height())
+        self.edit_toolbar.raise_()
+
+    def _position_flow_control_toolbar(self):
+        if not hasattr(self, "flow_control_toolbar") or self.flow_control_toolbar is None:
+            return
+        if not hasattr(self, "graph_widget") or self.graph_widget is None:
+            return
+        margin = 16
+        self.flow_control_toolbar.adjustSize()
+        toolbar_size = self.flow_control_toolbar.sizeHint()
+        self.flow_control_toolbar.setGeometry(margin, margin, toolbar_size.width(), toolbar_size.height())
+        self.flow_control_toolbar.raise_()
+
+    def _create_eraser_icon(self):
+        pixmap = QPixmap(24, 24)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+
+        painter.translate(12, 12)
+        painter.rotate(-35)
+        painter.translate(-12, -12)
+
+        painter.setPen(QPen(QColor("#b91c1c"), 1.4))
+        painter.setBrush(QBrush(QColor("#fda4af")))
+        painter.drawRoundedRect(QRectF(5, 7, 10, 9), 2.2, 2.2)
+
+        painter.setPen(QPen(QColor("#7f1d1d"), 1.2))
+        painter.setBrush(QBrush(QColor("#fecdd3")))
+        painter.drawRoundedRect(QRectF(13, 7, 6, 9), 1.8, 1.8)
+
+        painter.setPen(QPen(QColor("#9ca3af"), 1.4))
+        painter.drawLine(QPointF(6, 18.5), QPointF(18, 18.5))
+        painter.end()
+        return QIcon(pixmap)
+
+    def _load_workspace_icon(self, icon_name):
+        icon_path = os.path.join(base_dir, "images", "icons", icon_name)
+        if os.path.exists(icon_path):
+            return QIcon(icon_path)
+        return QIcon()
 
     def clear_canvas(self):
         try:
@@ -1530,6 +1843,14 @@ class quest_workflow(QWidget):
         node.node_notebook_path = notebook_path
         return notebook_path
 
+    def _refresh_notebook_from_node_json(self, node):
+        imports_text = getattr(node, "node_imports", "") or ""
+        wrapper_text = getattr(node, "node_function_wrapper", "") or ""
+        has_json_code = bool(str(imports_text).strip() or str(wrapper_text).strip())
+        if not has_json_code:
+            return self._ensure_node_notebook(node)
+        return self._write_notebook_from_legacy_python(node)
+
     def _rename_pynode_notebook_and_wrapper(self, node, old_name, new_name):
         old_func = f"{old_name}_function"
         new_func = f"{new_name}_function"
@@ -1820,6 +2141,58 @@ class quest_workflow(QWidget):
         cp_flow.get_outputs(key=None)
         cp_flow.make()
 
+        python_executable = ""
+        try:
+            if hasattr(self, "_sync_flow_metadata_from_controls"):
+                self._sync_flow_metadata_from_controls()
+        except Exception:
+            pass
+        try:
+            python_executable = str(getattr(self, "flow_environment_path", "") or "").strip()
+        except Exception:
+            python_executable = ""
+        if not python_executable:
+            try:
+                if hasattr(self, "env_path_input") and self.env_path_input is not None:
+                    python_executable = str(self.env_path_input.text() or "").strip()
+            except Exception:
+                pass
+
+        target_output_var = f"node{target_node.id}_outputs"
+        same_interpreter = False
+        try:
+            same_interpreter = (
+                bool(python_executable)
+                and os.path.isfile(python_executable)
+                and os.path.abspath(python_executable) == os.path.abspath(sys.executable)
+            )
+        except Exception:
+            same_interpreter = False
+
+        if python_executable and os.path.isfile(python_executable) and not same_interpreter:
+            append_lines = [
+                "import json",
+                "print('__QUEST_NODE_OUTPUTS_START__')",
+                f"print(json.dumps({target_output_var}, default=str))",
+                "print('__QUEST_NODE_OUTPUTS_END__')",
+            ]
+            cp_flow.main_py = cp_flow.main_py.rstrip() + "\n\n" + "\n".join(append_lines) + "\n"
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                cp_flow.save(tmpdir + os.sep)
+                result = cp_flow.run(python_executable=python_executable)
+                stdout = getattr(result, "stdout", "") or ""
+
+            start_marker = "__QUEST_NODE_OUTPUTS_START__"
+            end_marker = "__QUEST_NODE_OUTPUTS_END__"
+            if start_marker not in stdout or end_marker not in stdout:
+                raise RuntimeError("Could not find node outputs in stdout.\nSTDOUT:\n" + stdout)
+
+            payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()
+            if not payload:
+                return {}
+            return json.loads(payload)
+
         exec_scope = {}
         exec(cp_flow.main_py, exec_scope, exec_scope)
 
@@ -1924,6 +2297,7 @@ class quest_workflow(QWidget):
         # Keep the Environment Settings tab synchronized with the saved dataframe,
         # without resetting it back to the default quest master row.
         self.populate_environment_settings_table_from_df()
+        self._refresh_inputs_management_views()
 
         selected_nodes = self.graph.selected_nodes()
         selected_name = self._quest_master_environment_label()
@@ -1942,6 +2316,651 @@ class quest_workflow(QWidget):
                     parent_workspace._sync_proxy_wrapper_for_subflow(self)
                 except Exception:
                     pass
+
+    def _data_nodes(self):
+        try:
+            nodes = self.graph.all_nodes()
+        except Exception:
+            nodes = []
+        return [node for node in nodes if isinstance(node, DataNode)]
+
+    def _inputs_management_records(self):
+        records = []
+        for node in sorted(self._data_nodes(), key=lambda item: str(item.name() or '').lower()):
+            records.append({
+                "node_id": str(getattr(node, 'id', '')),
+                "node_name": str(node.name() or ''),
+                "variable_name": str(getattr(node, 'node_input_variable', '') or ''),
+                "value": str(getattr(node, 'node_input_value', '') or ''),
+                "is_path": bool(getattr(node, 'node_is_path', False)),
+                "is_from_master": bool(getattr(node, 'node_is_from_master', False)),
+            })
+        return records
+
+    def _coerce_yaml_bool(self, value, default=False):
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            lowered = value.strip().lower()
+            if lowered in {"true", "yes", "1", "y"}:
+                return True
+            if lowered in {"false", "no", "0", "n"}:
+                return False
+        if value is None:
+            return default
+        return bool(value)
+
+    def _clone_inputs_management_records(self, records):
+        return [dict(record) for record in (records or []) if isinstance(record, dict)]
+
+    def _merge_inputs_management_records(self, records):
+        current_records = self._inputs_management_records()
+        current_by_id = {str(record.get("node_id", "")): record for record in current_records}
+        current_by_name = {
+            str(record.get("node_name", "")).strip(): record
+            for record in current_records
+            if str(record.get("node_name", "")).strip()
+        }
+
+        source_by_id = {}
+        source_by_name = {}
+        for record in records or []:
+            if not isinstance(record, dict):
+                continue
+            node_id = str(record.get("node_id", "") or "").strip()
+            node_name = str(record.get("node_name", "") or "").strip()
+            if node_id:
+                source_by_id[node_id] = record
+            if node_name:
+                source_by_name[node_name] = record
+
+        merged = []
+        for current in current_records:
+            source = source_by_id.get(str(current.get("node_id", ""))) or source_by_name.get(
+                str(current.get("node_name", "")).strip()
+            )
+            combined = dict(current)
+            if source:
+                if "node_name" in source:
+                    combined["node_name"] = str(source.get("node_name", combined["node_name"]) or combined["node_name"])
+                if "variable_name" in source:
+                    combined["variable_name"] = str(source.get("variable_name", combined["variable_name"]) or "")
+                if "value" in source:
+                    combined["value"] = str(source.get("value", combined["value"]) or "")
+                if "is_path" in source:
+                    combined["is_path"] = self._coerce_yaml_bool(source.get("is_path"), default=combined["is_path"])
+                if "is_from_master" in source:
+                    combined["is_from_master"] = self._coerce_yaml_bool(
+                        source.get("is_from_master"),
+                        default=combined["is_from_master"],
+                    )
+            merged.append(combined)
+        return merged
+
+    def _apply_inputs_yaml_record_to_node(self, node, record):
+        old_pos = node.pos()
+
+        if "node_name" in record:
+            node.set_name(self._sanitize_data_node_name(record.get("node_name", node.name()), exclude_node=node))
+
+        if "variable_name" in record:
+            variable_name = self._sanitize_data_output_name(record.get("variable_name", ""))
+            for out_port_name in list(node.outputs().keys()):
+                for connected_port in list(node.outputs()[out_port_name].connected_ports()):
+                    node.outputs()[out_port_name].disconnect_from(connected_port)
+                node.delete_output(out_port_name)
+            node.add_dynamic_output(variable_name)
+            node.node_input_variable = variable_name
+
+        if "value" in record:
+            node.node_input_value = str(record.get("value", "") or "")
+
+        if "is_path" in record:
+            node.node_is_path = self._coerce_yaml_bool(record.get("is_path"), default=bool(getattr(node, "node_is_path", False)))
+
+        if "is_from_master" in record:
+            if self.get_flow_type() == "master-flow":
+                node.node_is_from_master = False
+            else:
+                node.node_is_from_master = self._coerce_yaml_bool(
+                    record.get("is_from_master"),
+                    default=bool(getattr(node, "node_is_from_master", False))
+                )
+
+        if bool(getattr(node, "node_is_from_master", False)):
+            node.node_value_display = False
+            try:
+                widget = node.get_widget('Text Caption')
+                widget.set_value("")
+            except Exception:
+                pass
+        else:
+            try:
+                widget = node.get_widget('Text Caption')
+                widget.set_value(node.node_input_value if bool(getattr(node, "node_value_display", False)) else "")
+            except Exception:
+                pass
+
+        node.set_pos(old_pos[0], old_pos[1])
+
+    def _data_node_by_id(self, node_id):
+        for node in self._data_nodes():
+            if str(node.id) == str(node_id):
+                return node
+        return None
+
+    def _make_inputs_management_table(self):
+        table = QTableWidget()
+        table.setColumnCount(5)
+        table.setHorizontalHeaderLabels(["Node Name", "Variable Name", "Value", "Is Path?", "Is From Master?"])
+        table.verticalHeader().setVisible(False)
+        table.setSelectionBehavior(QAbstractItemView.SelectItems)
+        table.setSelectionMode(QAbstractItemView.SingleSelection)
+        table.setEditTriggers(
+            QAbstractItemView.DoubleClicked
+            | QAbstractItemView.EditKeyPressed
+            | QAbstractItemView.AnyKeyPressed
+        )
+        table.setAlternatingRowColors(True)
+        table.setStyleSheet(
+            "QTableWidget {"
+            "border: 1px solid #d9e2ec;"
+            "gridline-color: #e5e7eb;"
+            "alternate-background-color: #f8fafc;"
+            "}"
+            "QHeaderView::section {"
+            "background-color: #dbeafe;"
+            "color: #1e3a8a;"
+            "font-weight: 700;"
+            "font-size: 10pt;"
+            "padding: 8px 6px;"
+            "border: 1px solid #bfdbfe;"
+            "}"
+        )
+        table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)
+        table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        table.itemChanged.connect(lambda item, current_table=table: self._on_inputs_management_item_changed(current_table, item))
+        return table
+
+    def _populate_inputs_management_table(self, table, records):
+        if table is None:
+            return
+
+        self._inputs_management_refresh_in_progress = True
+        try:
+            table.blockSignals(True)
+            is_master_flow = (self.get_flow_type() == "master-flow")
+            normalized_records = sorted(
+                self._clone_inputs_management_records(records),
+                key=lambda record: str(record.get("node_name", "") or "").lower()
+            )
+            table.setRowCount(len(normalized_records))
+            for row, record in enumerate(normalized_records):
+                values = [
+                    str(record.get("node_name", "") or ""),
+                    str(record.get("variable_name", "") or ""),
+                    str(record.get("value", "") or ""),
+                ]
+                node_id = str(record.get("node_id", "") or "")
+                for column, value in enumerate(values):
+                    item = QTableWidgetItem(value)
+                    item.setData(Qt.UserRole, node_id)
+                    table.setItem(row, column, item)
+                path_combo = QComboBox()
+                path_combo.addItems(["False", "True"])
+                path_combo.setCurrentText("True" if self._coerce_yaml_bool(record.get("is_path")) else "False")
+                path_combo.currentTextChanged.connect(
+                    lambda text, current_table=table, current_node_id=node_id: self._on_inputs_management_path_changed(
+                        current_table,
+                        current_node_id,
+                        text,
+                    )
+                )
+                table.setCellWidget(row, 3, path_combo)
+                from_master_combo = QComboBox()
+                from_master_combo.addItems(["False", "True"])
+                from_master_combo.setCurrentText("True" if self._coerce_yaml_bool(record.get("is_from_master")) else "False")
+                from_master_combo.setEnabled(not is_master_flow)
+                from_master_combo.currentTextChanged.connect(
+                    lambda text, current_table=table, current_node_id=node_id: self._on_inputs_management_from_master_changed(
+                        current_table,
+                        current_node_id,
+                        text,
+                    )
+                )
+                table.setCellWidget(row, 4, from_master_combo)
+            if len(normalized_records) == 0:
+                table.setRowCount(0)
+        finally:
+            table.blockSignals(False)
+            self._inputs_management_refresh_in_progress = False
+
+    def _inputs_management_case_info_by_index(self, index):
+        if index < 0:
+            return None
+        widget = self.inputs_management_case_tabs.widget(index)
+        for case_info in self.inputs_management_cases:
+            if case_info["widget"] is widget:
+                return case_info
+        return None
+
+    def _active_inputs_management_case_info(self):
+        if not hasattr(self, "inputs_management_case_tabs"):
+            return None
+        return self._inputs_management_case_info_by_index(self.inputs_management_case_tabs.currentIndex())
+
+    def _active_inputs_management_table(self):
+        case_info = self._active_inputs_management_case_info()
+        if case_info is None:
+            return None
+        return case_info["table"]
+
+    def _new_inputs_management_case_name(self):
+        self._inputs_management_case_counter += 1
+        return f"Case {self._inputs_management_case_counter}"
+
+    def _create_inputs_management_case_tab(self, case_name, records=None, make_current=False):
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        table = self._make_inputs_management_table()
+        layout.addWidget(table)
+
+        case_info = {
+            "name": str(case_name or self._new_inputs_management_case_name()),
+            "widget": container,
+            "table": table,
+            "records": self._merge_inputs_management_records(records or self._inputs_management_records()),
+        }
+
+        insert_index = self.inputs_management_case_tabs.count()
+        add_index = self.inputs_management_case_tabs.indexOf(self.inputs_management_add_case_widget) if self.inputs_management_add_case_widget else -1
+        if add_index >= 0:
+            insert_index = add_index
+
+        self.inputs_management_cases.append(case_info)
+        self.inputs_management_case_tabs.insertTab(insert_index, container, case_info["name"])
+        self._populate_inputs_management_table(table, case_info["records"])
+
+        if make_current:
+            self._inputs_management_case_switch_in_progress = True
+            try:
+                self.inputs_management_case_tabs.setCurrentWidget(container)
+                self._last_inputs_management_case_index = self.inputs_management_case_tabs.currentIndex()
+            finally:
+                self._inputs_management_case_switch_in_progress = False
+        return case_info
+
+    def _create_inputs_management_add_case_tab(self):
+        self.inputs_management_add_case_widget = QWidget()
+        placeholder_layout = QVBoxLayout(self.inputs_management_add_case_widget)
+        placeholder_layout.setContentsMargins(12, 12, 12, 12)
+        placeholder_layout.addStretch(1)
+        placeholder_layout.addWidget(QLabel("Select this tab to create a new case from the current input table."))
+        placeholder_layout.addStretch(1)
+        self.inputs_management_case_tabs.addTab(self.inputs_management_add_case_widget, "Add Case")
+
+    def _reset_inputs_management_case_tabs(self, base_records=None, additional_cases=None):
+        if not hasattr(self, "inputs_management_case_tabs"):
+            return
+
+        self._inputs_management_case_switch_in_progress = True
+        try:
+            while self.inputs_management_case_tabs.count():
+                widget = self.inputs_management_case_tabs.widget(0)
+                self.inputs_management_case_tabs.removeTab(0)
+                if widget is not None:
+                    widget.deleteLater()
+
+            self.inputs_management_cases = []
+            self.inputs_management_case_counter = 0
+            self.inputs_management_add_case_widget = None
+
+            base_info = self._create_inputs_management_case_tab("Base Case", records=base_records or self._inputs_management_records())
+            self._create_inputs_management_add_case_tab()
+
+            for case_payload in additional_cases or []:
+                case_name = str(case_payload.get("name", "") or self._new_inputs_management_case_name())
+                if case_name == "Base Case":
+                    case_name = self._new_inputs_management_case_name()
+                self._create_inputs_management_case_tab(case_name, records=case_payload.get("records", []))
+
+            self.inputs_management_case_tabs.setCurrentWidget(base_info["widget"])
+            self._last_inputs_management_case_index = self.inputs_management_case_tabs.currentIndex()
+        finally:
+            self._inputs_management_case_switch_in_progress = False
+
+    def _refresh_inputs_management_views(self):
+        if not hasattr(self, "inputs_management_case_tabs") or not self.inputs_management_cases:
+            return
+
+        active_case = self._active_inputs_management_case_info()
+        if active_case is None and self.inputs_management_cases:
+            active_case = self.inputs_management_cases[0]
+
+        current_snapshot = self._inputs_management_records()
+        active_node_ids = {str(record.get("node_id", "")) for record in current_snapshot}
+
+        for case_info in self.inputs_management_cases:
+            if case_info is active_case:
+                case_info["records"] = self._clone_inputs_management_records(current_snapshot)
+            else:
+                case_info["records"] = self._merge_inputs_management_records(case_info.get("records", []))
+
+            if active_node_ids:
+                case_info["records"] = [
+                    record
+                    for record in case_info["records"]
+                    if str(record.get("node_id", "")) in active_node_ids
+                ]
+            else:
+                case_info["records"] = []
+            self._populate_inputs_management_table(case_info["table"], case_info["records"])
+
+    def _propagate_inputs_management_field_to_all_cases(self, node_id, field_name, value):
+        for case_info in self.inputs_management_cases:
+            matched = False
+            for record in case_info["records"]:
+                if str(record.get("node_id", "")) == str(node_id):
+                    record[field_name] = value
+                    matched = True
+                    break
+            if matched:
+                self._populate_inputs_management_table(case_info["table"], case_info["records"])
+
+    def _apply_inputs_management_case_to_graph(self, records):
+        merged_records = self._merge_inputs_management_records(records)
+        for record in merged_records:
+            node = self._data_node_by_id(record.get("node_id"))
+            if node is None:
+                continue
+            self._apply_inputs_yaml_record_to_node(node, record)
+
+        self._refresh_data_node_settings_state()
+        self.update_flow()
+        self.on_node_selected()
+
+    def _on_inputs_management_case_tab_changed(self, index):
+        if self._inputs_management_case_switch_in_progress:
+            return
+
+        previous_case = self._inputs_management_case_info_by_index(self._last_inputs_management_case_index)
+        if previous_case is not None:
+            previous_case["records"] = self._inputs_management_records()
+
+        current_widget = self.inputs_management_case_tabs.widget(index)
+        if current_widget is self.inputs_management_add_case_widget:
+            source_case = previous_case or (self.inputs_management_cases[0] if self.inputs_management_cases else None)
+            source_records = self._clone_inputs_management_records(
+                source_case["records"] if source_case else self._inputs_management_records()
+            )
+            new_case = self._create_inputs_management_case_tab(
+                self._new_inputs_management_case_name(),
+                records=source_records,
+                make_current=True,
+            )
+            self._last_inputs_management_case_index = self.inputs_management_case_tabs.indexOf(new_case["widget"])
+            return
+
+        case_info = self._inputs_management_case_info_by_index(index)
+        if case_info is None:
+            return
+
+        self._inputs_management_case_switch_in_progress = True
+        try:
+            self._apply_inputs_management_case_to_graph(case_info["records"])
+        finally:
+            self._inputs_management_case_switch_in_progress = False
+
+        case_info["records"] = self._inputs_management_records()
+        self._populate_inputs_management_table(case_info["table"], case_info["records"])
+        self._last_inputs_management_case_index = index
+
+    def _refresh_inputs_management_table(self, table=None):
+        target_table = table or self._active_inputs_management_table()
+        if target_table is None:
+            return
+
+        active_case = self._active_inputs_management_case_info()
+        current_records = self._inputs_management_records()
+        self._populate_inputs_management_table(target_table, current_records)
+        if active_case is not None and active_case["table"] is target_table:
+            active_case["records"] = self._clone_inputs_management_records(current_records)
+
+    def _on_inputs_management_path_changed(self, table, node_id, value):
+        if self._inputs_management_refresh_in_progress or table is not self._active_inputs_management_table():
+            return
+
+        node = self._data_node_by_id(node_id)
+        if node is None:
+            self._refresh_inputs_management_views()
+            return
+
+        old_pos = node.pos()
+        node.node_is_path = str(value).strip().lower() == "true"
+        node.set_pos(old_pos[0], old_pos[1])
+        self._sync_parent_proxy_wrapper_from_current_graph()
+
+        selected_nodes = self.graph.selected_nodes()
+        if len(selected_nodes) == 1 and selected_nodes[0] is node:
+            self.on_node_selected()
+
+        self._refresh_inputs_management_table(table)
+
+    def _on_inputs_management_from_master_changed(self, table, node_id, value):
+        if self._inputs_management_refresh_in_progress or table is not self._active_inputs_management_table():
+            return
+
+        node = self._data_node_by_id(node_id)
+        if node is None:
+            self._refresh_inputs_management_views()
+            return
+
+        old_pos = node.pos()
+        if self.get_flow_type() == "master-flow":
+            node.node_is_from_master = False
+        else:
+            node.node_is_from_master = str(value).strip().lower() == "true"
+            if node.node_is_from_master:
+                node.node_value_display = False
+                try:
+                    widget = node.get_widget('Text Caption')
+                    widget.set_value("")
+                except Exception:
+                    pass
+        node.set_pos(old_pos[0], old_pos[1])
+        self._sync_parent_proxy_wrapper_from_current_graph()
+
+        selected_nodes = self.graph.selected_nodes()
+        if len(selected_nodes) == 1 and selected_nodes[0] is node:
+            self.on_node_selected()
+
+        self._refresh_inputs_management_table(table)
+
+    def _on_inputs_management_item_changed(self, table, item):
+        if self._inputs_management_refresh_in_progress or item is None or table is not self._active_inputs_management_table():
+            return
+
+        node_id = item.data(Qt.UserRole)
+        node = self._data_node_by_id(node_id)
+        if node is None:
+            self._refresh_inputs_management_views()
+            return
+
+        column = item.column()
+        old_pos = node.pos()
+
+        try:
+            if column == 0:
+                new_name = self._sanitize_data_node_name(item.text(), exclude_node=node)
+                node.set_name(new_name)
+                self._propagate_inputs_management_field_to_all_cases(node_id, "node_name", new_name)
+            elif column == 1:
+                variable_name = self._sanitize_data_output_name(item.text())
+                for out_port_name in list(node.outputs().keys()):
+                    for connected_port in list(node.outputs()[out_port_name].connected_ports()):
+                        node.outputs()[out_port_name].disconnect_from(connected_port)
+                    node.delete_output(out_port_name)
+                node.add_dynamic_output(variable_name)
+                node.node_input_variable = variable_name
+                self._propagate_inputs_management_field_to_all_cases(node_id, "variable_name", variable_name)
+            elif column == 2:
+                node.node_input_value = item.text()
+                try:
+                    widget = node.get_widget('Text Caption')
+                    widget.set_value(node.node_input_value if getattr(node, 'node_value_display', False) else "")
+                except Exception:
+                    pass
+            node.set_pos(old_pos[0], old_pos[1])
+        finally:
+            self._refresh_inputs_management_views()
+            self._sync_parent_proxy_wrapper_from_current_graph()
+
+        selected_nodes = self.graph.selected_nodes()
+        if len(selected_nodes) == 1 and selected_nodes[0] is node:
+            self.on_node_selected()
+
+    def _inputs_management_cases_payload(self):
+        active_case = self._active_inputs_management_case_info()
+        if active_case is not None:
+            active_case["records"] = self._inputs_management_records()
+
+        payload = []
+        for case_info in self.inputs_management_cases:
+            case_info["records"] = self._merge_inputs_management_records(case_info.get("records", []))
+            payload.append({
+                "name": case_info["name"],
+                "inputs": self._clone_inputs_management_records(case_info["records"]),
+            })
+        return payload
+
+    def _save_inputs_management_yaml(self):
+        cases_payload = self._inputs_management_cases_payload()
+        default_dir = self._default_flow_examples_dir()
+        default_name = (self.get_flow_display_name() or "inputs").strip().replace(" ", "_")
+        if not default_name:
+            default_name = "inputs"
+        default_path = os.path.join(default_dir, f"{default_name}_inputs.yaml")
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Inputs YAML",
+            default_path,
+            "YAML Files (*.yaml *.yml);;All Files (*)"
+        )
+        if not path:
+            return
+        try:
+            payload = {
+                "flow_name": self.get_flow_display_name(),
+                "inputs": cases_payload[0]["inputs"] if cases_payload else [],
+                "cases": cases_payload,
+            }
+            with open(path, "w", encoding="utf-8") as handle:
+                yaml.safe_dump(
+                    payload,
+                    handle,
+                    sort_keys=False,
+                    allow_unicode=False,
+                )
+            QMessageBox.information(
+                self,
+                "Inputs Saved",
+                f"Case inputs saved to:\n{path}"
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Save Inputs Error",
+                f"Failed to save inputs as YAML.\n\nDetails: {e}"
+            )
+
+    def _load_inputs_management_yaml(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Load Inputs YAML",
+            self._default_flow_examples_dir(),
+            "YAML Files (*.yaml *.yml);;All Files (*)"
+        )
+        if not path:
+            return
+
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                payload = yaml.safe_load(handle) or {}
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Load Inputs Error",
+                f"Failed to read the YAML file.\n\nDetails: {e}"
+            )
+            return
+
+        if not isinstance(payload, dict):
+            QMessageBox.warning(
+                self,
+                "Invalid YAML",
+                "The selected YAML file must contain a top-level mapping."
+            )
+            return
+
+        case_payloads = []
+        raw_cases = payload.get("cases", [])
+        if isinstance(raw_cases, list) and raw_cases:
+            for index, case_payload in enumerate(raw_cases, start=1):
+                if not isinstance(case_payload, dict):
+                    continue
+                inputs = case_payload.get("inputs", [])
+                if not isinstance(inputs, list):
+                    continue
+                case_name = str(case_payload.get("name", "") or "").strip() or (
+                    "Base Case" if index == 1 else f"Case {index - 1}"
+                )
+                case_payloads.append({
+                    "name": case_name,
+                    "records": self._merge_inputs_management_records(inputs),
+                })
+        else:
+            records = payload.get("inputs", [])
+            if isinstance(records, list):
+                case_payloads.append({
+                    "name": "Base Case",
+                    "records": self._merge_inputs_management_records(records),
+                })
+
+        if not case_payloads:
+            QMessageBox.warning(
+                self,
+                "Invalid YAML",
+                "The selected YAML file must contain either a 'cases' list or an 'inputs' list."
+            )
+            return
+
+        try:
+            base_case = case_payloads[0]
+            additional_cases = case_payloads[1:]
+            self._reset_inputs_management_case_tabs(
+                base_records=base_case["records"],
+                additional_cases=additional_cases,
+            )
+            self._apply_inputs_management_case_to_graph(base_case["records"])
+            self._refresh_inputs_management_views()
+            self._sync_parent_proxy_wrapper_from_current_graph()
+            QMessageBox.information(
+                self,
+                "Inputs Loaded",
+                f"Loaded {len(case_payloads)} case tab(s) from:\n{path}"
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Load Inputs Error",
+                f"Failed to apply inputs from YAML.\n\nDetails: {e}"
+            )
 
     def _create_flow_runner_notebook(self, script_path, flow_name):
         script_path = os.path.abspath(script_path)
@@ -1997,33 +3016,68 @@ class quest_workflow(QWidget):
         self.runner_notebook_window.raise_()
         self.runner_notebook_window.activateWindow()
 
-    # def _quest_root_bootstrap(self, basedir=None):
-    #     quest_root = basedir or base_dir or get_path()
-    #     quest_root = os.path.abspath(str(quest_root)).replace("\\", "/")
-    #     return (
-    #         "import os\n"
-    #         "import sys\n"
-    #         f"QUEST_ROOT = r'{quest_root}'\n"
-    #         "if QUEST_ROOT not in sys.path:\n"
-    #         "    sys.path.insert(0, QUEST_ROOT)\n"
-    #     )
+    def _flow_environment_bootstrap(self, python_executable="", basedir=None):
+        quest_root = basedir or base_dir or get_path()
+        quest_root = os.path.abspath(str(quest_root)).replace("\\", "/")
+        python_executable = os.path.abspath(str(python_executable or "")).replace("\\", "/")
+        return (
+            "# QuESt flow bootstrap\n"
+            "import os\n"
+            "import sys\n"
+            "import subprocess\n"
+            f"QUEST_ROOT = r'{quest_root}'\n"
+            f"FLOW_PYTHON_EXECUTABLE = r'{python_executable}'\n"
+            "if os.path.dirname(QUEST_ROOT) not in sys.path:\n"
+            "    sys.path.append(os.path.dirname(QUEST_ROOT))\n"
+            "if (\n"
+            "    FLOW_PYTHON_EXECUTABLE\n"
+            "    and os.path.isfile(FLOW_PYTHON_EXECUTABLE)\n"
+            "    and os.path.abspath(sys.executable) != os.path.abspath(FLOW_PYTHON_EXECUTABLE)\n"
+            "    and os.environ.get('QUEST_FLOW_REEXEC') != '1'\n"
+            "):\n"
+            "    env = os.environ.copy()\n"
+            "    env['QUEST_FLOW_REEXEC'] = '1'\n"
+            "    env['PYTHONUNBUFFERED'] = '1'\n"
+            "    proc = subprocess.Popen(\n"
+            "        [FLOW_PYTHON_EXECUTABLE, '-u', __file__],\n"
+            "        env=env,\n"
+            "        stdout=subprocess.PIPE,\n"
+            "        stderr=subprocess.STDOUT,\n"
+            "        text=True,\n"
+            "        bufsize=1,\n"
+            "    )\n"
+            "    while True:\n"
+            "        line = proc.stdout.readline()\n"
+            "        if not line and proc.poll() is not None:\n"
+            "            break\n"
+            "        if line:\n"
+            "            print(line, end='')\n"
+            "    raise SystemExit(proc.wait())\n"
+        )
 
-    # def _inject_quest_root_into_script(self, script_path, basedir=None):
-    #     script_path = os.path.abspath(str(script_path))
-    #     if not os.path.exists(script_path):
-    #         return script_path
+    def _inject_flow_environment_into_script(self, script_path, python_executable="", basedir=None):
+        script_path = os.path.abspath(str(script_path))
+        if not os.path.exists(script_path):
+            return script_path
 
-    #     bootstrap = self._quest_root_bootstrap(basedir)
-    #     with open(script_path, 'r', encoding='utf-8') as f:
-    #         script_text = f.read()
+        bootstrap = self._flow_environment_bootstrap(python_executable, basedir)
+        with open(script_path, 'r', encoding='utf-8') as f:
+            script_text = f.read()
 
-    #     if "QUEST_ROOT = r'" in script_text:
-    #         return script_path
+        marker = "# QuESt flow bootstrap"
+        if marker in script_text:
+            script_text = script_text.split(marker, 1)[1]
+            marker_end = "from quest.snl_libraries.workspace.flow.questflow import *\n"
+            if marker_end in script_text:
+                script_text = script_text.split(marker_end, 1)[1]
+                script_text = (
+                    "from quest.snl_libraries.workspace.flow.questflow import *\n" + script_text
+                )
 
-    #     with open(script_path, 'w', encoding='utf-8') as f:
-    #         f.write(bootstrap + "\n" + script_text)
+        with open(script_path, 'w', encoding='utf-8') as f:
+            f.write(bootstrap + "\n" + script_text.lstrip())
 
-    #     return script_path
+        return script_path
 
     def run_flow(self):
         try:
@@ -2034,8 +3088,11 @@ class quest_workflow(QWidget):
             self.flow.get_outputs(key='Show')
             self.flow.make()
             self.flow.save('./')
-            script_path = self.flow.py_file_name
-            # script_path = self._inject_quest_root_into_script(script_path, base_dir)
+            script_path = self._inject_flow_environment_into_script(
+                self.flow.py_file_name,
+                self.flow_environment_path,
+                base_dir,
+            )
             notebook_path = self._create_flow_runner_notebook(script_path, flow_name)
             self._open_flow_runner_notebook(notebook_path)
             self.flow_result_label.setText(f"Opened flow runner notebook:\n{notebook_path}")
@@ -2215,17 +3272,7 @@ class quest_workflow(QWidget):
                 node.node_imports = node_data.get('node_imports', '')
                 if isinstance(node, PyNode):
                     node.node_notebook_path = node_data.get('node_notebook_path', '')
-                    notebook_path = node.node_notebook_path
-                    has_legacy_code = bool(
-                        (node.node_imports and str(node.node_imports).strip()) or
-                        (node.node_function_wrapper and str(node.node_function_wrapper).strip())
-                    )
-                    if notebook_path and os.path.exists(notebook_path):
-                        pass
-                    elif has_legacy_code:
-                        self._write_notebook_from_legacy_python(node)
-                    else:
-                        self._ensure_node_notebook(node)
+                    self._refresh_notebook_from_node_json(node)
                 if node.node_type == 'back_node':
                     node.set_text(text='')
                     node.set_text(text=node.node_input_value)
@@ -2233,8 +3280,16 @@ class quest_workflow(QWidget):
                 print(node.id, node.node_type, node.node_input_variable, node.node_input_value, node.node_value_display, node.node_function_wrapper)
             else:
                 print(f"NO MATCH FOR NODE NAME: {repr(node_name)}")
+        self.update_flow()
 
-    def save_flow(self):
+    def _set_current_flow_json_path(self, path):
+        normalized = self._normalize_python_path(path)
+        self._current_flow_json_path = normalized
+        display_path = self._display_flow_path(normalized)
+        if hasattr(self, "flow_save_path"):
+            self.flow_save_path.setText(display_path)
+
+    def _prepare_flow_json_for_save(self):
         save_mode = "independent"
         if hasattr(self, "flow_save_mode_combo"):
             save_mode = str(self.flow_save_mode_combo.currentData() or "independent").strip().lower()
@@ -2242,34 +3297,65 @@ class quest_workflow(QWidget):
         parent_workspace = self._find_workspace_parent()
         flow_name = self.get_flow_display_name()
 
-        try:
-            if save_mode == "master":
-                if self.get_flow_type() != "master-flow":
+        if save_mode == "master":
+            if self.get_flow_type() != "master-flow":
+                QMessageBox.warning(
+                    self,
+                    "Invalid Save Option",
+                    "Save as master flow is only allowed for the master flow.\n\nPlease switch to the Master tab or choose 'Save as independent flow'."
+                )
+                return None
+            if parent_workspace is None or getattr(parent_workspace, 'master_workflow', None) is not self:
+                QMessageBox.warning(
+                    self,
+                    "Invalid Save Context",
+                    "Save as master flow is only available from the active master workflow."
+                )
+                return None
+            flow_json_data = parent_workspace._serialize_master_flow_json_data()
+        else:
+            if self.get_flow_type() == "master-flow" and parent_workspace is not None:
+                subflows = parent_workspace._subflow_workflows()
+                if len(subflows) > 0:
                     QMessageBox.warning(
                         self,
                         "Invalid Save Option",
-                        "Save as master flow is only allowed for the master flow.\n\nPlease switch to the Master tab or choose 'Save as independent flow'."
+                        "The master flow cannot be saved as an independent flow while subflows exist.\n\nUse 'Save as master flow' instead, or remove all subflows first."
                     )
-                    return
-                if parent_workspace is None or getattr(parent_workspace, 'master_workflow', None) is not self:
-                    QMessageBox.warning(
-                        self,
-                        "Invalid Save Context",
-                        "Save as master flow is only available from the active master workflow."
-                    )
-                    return
-                flow_json_data = parent_workspace._serialize_master_flow_json_data()
-            else:
-                if self.get_flow_type() == "master-flow" and parent_workspace is not None:
-                    subflows = parent_workspace._subflow_workflows()
-                    if len(subflows) > 0:
-                        QMessageBox.warning(
-                            self,
-                            "Invalid Save Option",
-                            "The master flow cannot be saved as an independent flow while subflows exist.\n\nUse 'Save as master flow' instead, or remove all subflows first."
-                        )
-                        return
-                flow_json_data = self._serialize_independent_flow_json_data()
+                    return None
+            flow_json_data = self._serialize_independent_flow_json_data()
+
+        return flow_json_data, save_mode, flow_name
+
+    def _write_flow_json(self, path, flow_json_data, save_mode, flow_name):
+        normalized_path = self._normalize_python_path(path)
+
+        try:
+            with open(normalized_path, 'w') as json_file:
+                json.dump(flow_json_data, json_file, indent=4)
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Save Flow Error",
+                f"Failed to save the flow file.\n\nDetails: {e}"
+            )
+            return False
+
+        self._set_current_flow_json_path(normalized_path)
+        if hasattr(self, "flow_load_path"):
+            self.flow_load_path.setText(self._display_flow_path(normalized_path))
+
+        mode_label = "master flow" if save_mode == "master" else "independent flow"
+        QMessageBox.information(
+            self,
+            "Flow Saved",
+            f"'{flow_name}' was saved successfully as a {mode_label}."
+        )
+        return True
+
+    def save_flow(self):
+        try:
+            prepared = self._prepare_flow_json_for_save()
         except Exception as e:
             QMessageBox.critical(
                 self,
@@ -2278,30 +3364,41 @@ class quest_workflow(QWidget):
             )
             return
 
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Save Flow JSON", "", "JSON Files (*.json);;All Files (*)"
-        )
-        if not path:
+        if prepared is None:
             return
-        self.flow_save_path.setText(path)
 
+        current_path = self._normalize_python_path(getattr(self, "_current_flow_json_path", ""))
+        if not current_path:
+            self.save_flow_as()
+            return
+
+        flow_json_data, save_mode, flow_name = prepared
+        self._write_flow_json(current_path, flow_json_data, save_mode, flow_name)
+
+    def save_flow_as(self):
         try:
-            with open(path, 'w') as json_file:
-                json.dump(flow_json_data, json_file, indent=4)
+            prepared = self._prepare_flow_json_for_save()
         except Exception as e:
             QMessageBox.critical(
                 self,
                 "Save Flow Error",
-                f"Failed to save the flow file.\n\nDetails: {e}"
+                f"The flow could not be prepared for saving.\n\nDetails: {e}"
             )
             return
 
-        mode_label = "master flow" if save_mode == "master" else "independent flow"
-        QMessageBox.information(
-            self,
-            "Flow Saved",
-            f"'{flow_name}' was saved successfully as a {mode_label}."
+        if prepared is None:
+            return
+
+        current_path = self._normalize_python_path(getattr(self, "_current_flow_json_path", ""))
+        initial_path = current_path if current_path else ""
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Save Flow JSON", initial_path, "JSON Files (*.json);;All Files (*)"
         )
+        if not path:
+            return
+
+        flow_json_data, save_mode, flow_name = prepared
+        self._write_flow_json(path, flow_json_data, save_mode, flow_name)
 
     def load_path(self):
         dialog = QFileDialog(self)
@@ -2322,10 +3419,11 @@ class quest_workflow(QWidget):
         )
         if not path:
             return
-        self.flow_load_path.setText(self._display_flow_path(path))
+        normalized_path = self._normalize_python_path(path)
+        self.flow_load_path.setText(self._display_flow_path(normalized_path))
 
         try:
-            with open(path, 'r') as file:
+            with open(normalized_path, 'r') as file:
                 flow_json_data = json.load(file)
         except FileNotFoundError:
             QMessageBox.critical(
@@ -2391,7 +3489,8 @@ class quest_workflow(QWidget):
                 # and load that flow directly into the master workflow, with no subflows.
                 parent_workspace._clear_all_subflows()
                 self._deserialize_flow_json_data(flow_json_data)
-                self.flow_load_path.setText(self._display_flow_path(path))
+                self.flow_load_path.setText(self._display_flow_path(normalized_path))
+                self._set_current_flow_json_path(normalized_path)
                 self.set_flow_type('master-flow')
                 parent_workspace.activate_workflow(self)
                 parent_workspace.sync_workflow_ui(self)
@@ -2411,6 +3510,7 @@ class quest_workflow(QWidget):
                 return
 
             self._deserialize_flow_json_data(flow_json_data)
+            self._set_current_flow_json_path(normalized_path)
             if parent_workspace is not None and hasattr(parent_workspace, 'sync_workflow_ui'):
                 parent_workspace.sync_workflow_ui(self)
             QMessageBox.information(
@@ -2655,6 +3755,7 @@ class quest_workflow(QWidget):
                 pass
 
         node.set_pos(old_pos[0], old_pos[1])
+        self._refresh_inputs_management_views()
 
     def update_node_name(self):
         selected_nodes = self.graph.selected_nodes()
@@ -2674,10 +3775,13 @@ class quest_workflow(QWidget):
             self.name_input.setText(new_name)
             if (self.name_input.text() or "").strip() != (new_name or "").strip():
                 self.name_input.setText(new_name)
+        elif isinstance(node, PyNode):
+            new_name = self._sanitize_python_node_name(new_name or old_name, fallback="py_node", exclude_node=node)
+            self.name_input.setText(new_name)
 
         if not new_name:
             return
-        if isinstance(node, DataNode):
+        if isinstance(node, (DataNode, PyNode)):
             self.name_input.setText(new_name)
         if new_name == old_name:
             return
@@ -2734,6 +3838,7 @@ class quest_workflow(QWidget):
                     parent_workspace._sync_proxy_wrapper_for_subflow(self)
                 except Exception:
                     pass
+        self._refresh_inputs_management_views()
 
     def update_caption_value(self):
         selected_nodes = self.graph.selected_nodes()
@@ -2774,6 +3879,7 @@ class quest_workflow(QWidget):
 
             print(node.properties())
             node.set_pos(old_pos[0], old_pos[1])
+            self._refresh_inputs_management_views()
 
     def update_ports(self):
         selected_nodes = self.graph.selected_nodes()
@@ -2881,7 +3987,8 @@ class quest_workflow(QWidget):
                     node.outputs()[out_port_name].disconnect_from(connected_port)
                 node.delete_output(out_port_name)
 
-            variable_name = self.data_input.text()
+            variable_name = self._sanitize_data_output_name(self.data_input.text())
+            self.data_input.setText(variable_name)
             node.add_dynamic_output(variable_name)
             node.node_input_variable = variable_name
 
@@ -2893,6 +4000,7 @@ class quest_workflow(QWidget):
                     pass
 
         node.set_pos(old_pos[0], old_pos[1])
+        self._refresh_inputs_management_table()
 
     def get_newest_node_position(self):
         nodes = self.graph.all_nodes()
@@ -2902,14 +4010,83 @@ class quest_workflow(QWidget):
             position = newest_node.pos()
         return position
 
+    def _existing_node_names(self, exclude_node=None):
+        names = []
+        try:
+            nodes = self.graph.all_nodes()
+        except Exception:
+            nodes = []
+        for node in nodes:
+            if exclude_node is not None and node is exclude_node:
+                continue
+            try:
+                name = str(node.name() or "").strip()
+            except Exception:
+                name = ""
+            if name:
+                names.append(name)
+        return names
+
+    def _make_unique_node_name(self, base_name, exclude_node=None):
+        base_name = (base_name or "").strip() or "node"
+        existing = set(self._existing_node_names(exclude_node=exclude_node))
+        if base_name not in existing:
+            return base_name
+        i = 2
+        while True:
+            candidate = f"{base_name}_{i}"
+            if candidate not in existing:
+                return candidate
+            i += 1
+
+    def _sanitize_python_identifier(self, name, fallback="node", suffix=None):
+        raw_name = str(name or "").strip() or fallback
+        snake = []
+        previous_was_separator = True
+        for index, ch in enumerate(raw_name):
+            if ch.isalnum():
+                if (
+                    ch.isupper()
+                    and snake
+                    and not previous_was_separator
+                    and index + 1 < len(raw_name)
+                    and raw_name[index + 1].islower()
+                ):
+                    snake.append("_")
+                snake.append(ch.lower())
+                previous_was_separator = False
+            else:
+                if not previous_was_separator:
+                    snake.append("_")
+                previous_was_separator = True
+        value = "".join(snake).strip("_") or fallback
+        while "__" in value:
+            value = value.replace("__", "_")
+        if value and value[0].isdigit():
+            value = f"_{value}"
+        if keyword.iskeyword(value):
+            value = f"{value}_{suffix or fallback}"
+        return value
+
+    def _sanitize_python_node_name(self, name, fallback="py_node", exclude_node=None):
+        base = self._sanitize_python_identifier(name, fallback=fallback, suffix="node")
+        return self._make_unique_node_name(base, exclude_node=exclude_node)
+
+    def _sanitize_data_output_name(self, name):
+        return self._sanitize_python_identifier(name, fallback="output", suffix="value")
+
+    def _sanitize_data_node_name(self, name, exclude_node=None):
+        return self._sanitize_python_node_name(name, fallback="data_node", exclude_node=exclude_node)
+
     def create_data_node(self):
         self.update_flow()
         self.node_counters["DataNode"] += 1
-        node_name = f"DataNode{self.node_counters['DataNode']}"
+        node_name = self._sanitize_data_node_name(f"data_node_{self.node_counters['DataNode']}")
         latest_pos = list(self.get_newest_node_position())
         new_pos = (latest_pos[0] + 100, latest_pos[1] + 100)
         node = self.graph.create_node('QuESt.Workspace.DataNode', name=node_name, color=(255, 255, 255), text_color=(0, 0, 0), pos=new_pos, selected=True, push_undo=True)
         node.node_is_from_master = False
+        self._refresh_inputs_management_table()
 
     def create_text_node(self):
         self.update_flow()
@@ -2923,7 +4100,7 @@ class quest_workflow(QWidget):
     def create_py_node(self):
         self.update_flow()
         self.node_counters["PyNode"] += 1
-        node_name = f"PyNode{self.node_counters['PyNode']}"
+        node_name = self._sanitize_python_node_name(f"py_node_{self.node_counters['PyNode']}", fallback="py_node")
         latest_pos = list(self.get_newest_node_position())
         new_pos = (latest_pos[0] + 100, latest_pos[1] + 100)
         node = self.graph.create_node('QuESt.Workspace.PyNode', name=node_name, color=(255, 255, 255), text_color=(0, 0, 0), pos=new_pos, selected=True, push_undo=True)
@@ -2941,27 +4118,177 @@ class quest_workflow(QWidget):
             )
         node.node_notebook_path = notebook_path
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Delete:
-            selected_nodes = self.graph.selected_nodes()
-            parent_workspace = self._find_workspace_parent()
-            for node in selected_nodes:
-                if hasattr(node, "can_be_deleted") and not node.can_be_deleted():
-                    continue
+    def _delete_selected_nodes_with_workspace_rules(self):
+        selected_nodes = self.graph.selected_nodes()
+        parent_workspace = self._find_workspace_parent()
+        deleted_any = False
+        for node in selected_nodes:
+            if hasattr(node, "can_be_deleted") and not node.can_be_deleted():
+                continue
+            handled = False
+            try:
+                if (
+                    self is getattr(parent_workspace, "master_workflow", None)
+                    and parent_workspace is not None
+                    and hasattr(parent_workspace, "_remove_subflow_for_proxy_node")
+                ):
+                    handled = bool(parent_workspace._remove_subflow_for_proxy_node(node))
+            except Exception:
                 handled = False
-                try:
-                    if (
-                        self is getattr(parent_workspace, "master_workflow", None)
-                        and parent_workspace is not None
-                        and hasattr(parent_workspace, "_remove_subflow_for_proxy_node")
-                    ):
-                        handled = bool(parent_workspace._remove_subflow_for_proxy_node(node))
-                except Exception:
-                    handled = False
-                if not handled:
-                    self.graph.delete_node(node)
+            if not handled:
+                self.graph.delete_node(node)
+            deleted_any = True
+        if deleted_any:
             self.update_flow()
             self._sync_parent_proxy_wrapper_from_current_graph()
+        return deleted_any
+
+    def copy_selected_nodes(self):
+        try:
+            nodes = self.graph.selected_nodes()
+        except Exception:
+            nodes = []
+        if not nodes:
+            return
+        parent_workspace = self._find_workspace_parent()
+        if self._selection_contains_subflow_proxy(nodes):
+            return
+        if parent_workspace is not None:
+            parent_workspace._clipboard_subflows = {}
+        try:
+            self.graph.copy_nodes(nodes)
+        except Exception:
+            return
+        if self is getattr(parent_workspace, "master_workflow", None):
+            subflows = {}
+            for node in nodes:
+                if not isinstance(node, PyNode):
+                    continue
+                try:
+                    linked_workflow = parent_workspace._workflow_for_proxy_node(node)
+                except Exception:
+                    linked_workflow = None
+                if linked_workflow is None:
+                    continue
+                try:
+                    subflows[str(node.name() or "").strip()] = linked_workflow._serialize_independent_flow_json_data()
+                except Exception:
+                    pass
+            parent_workspace._clipboard_subflows = subflows
+
+    def cut_selected_nodes(self):
+        selected_nodes = self.graph.selected_nodes()
+        if not selected_nodes:
+            return
+        if self._selection_contains_subflow_proxy(selected_nodes):
+            return
+        try:
+            copied = self.graph.copy_nodes(selected_nodes)
+        except Exception:
+            copied = False
+        if copied is False:
+            return
+        self._delete_selected_nodes_with_workspace_rules()
+
+    def paste_nodes_from_clipboard(self):
+        try:
+            self.graph.paste_nodes()
+        except Exception:
+            return
+        pasted_nodes = self.graph.selected_nodes()
+
+        proxy_subflow_links = []
+        parent_workspace = self._find_workspace_parent()
+        clipboard_subflows = getattr(parent_workspace, "_clipboard_subflows", {}) if parent_workspace is not None else {}
+        for node in pasted_nodes:
+            original_name = str(node.name() or "").strip()
+            old_pos = node.pos()
+            if isinstance(node, DataNode):
+                new_name = self._sanitize_data_node_name(node.name(), exclude_node=node)
+                if new_name != node.name():
+                    node.set_name(new_name)
+                    try:
+                        node.set_pos(old_pos[0], old_pos[1])
+                    except Exception:
+                        pass
+            elif isinstance(node, PyNode):
+                old_name = original_name
+                new_name = self._sanitize_python_node_name(old_name, fallback="py_node", exclude_node=node)
+                if new_name != old_name:
+                    node.set_name(new_name)
+                    try:
+                        node.set_pos(old_pos[0], old_pos[1])
+                    except Exception:
+                        pass
+                    try:
+                        self._rename_pynode_notebook_and_wrapper(node, old_name, new_name)
+                    except Exception:
+                        pass
+                subflow_data = clipboard_subflows.get(original_name)
+                if isinstance(subflow_data, dict):
+                    proxy_subflow_links.append((node, subflow_data))
+
+        if self is getattr(parent_workspace, "master_workflow", None):
+            for proxy_node, subflow_data in proxy_subflow_links:
+                try:
+                    parent_workspace._create_copied_subflow_for_proxy(proxy_node, subflow_data)
+                except Exception:
+                    pass
+        self.update_flow()
+        self._sync_parent_proxy_wrapper_from_current_graph()
+        self.on_node_selected()
+
+    def _show_graph_context_menu(self, global_pos):
+        menu = QMenu(self)
+        selected_nodes = self.graph.selected_nodes()
+        has_proxy_selection = self._selection_contains_subflow_proxy(selected_nodes)
+        clipboard_text = QApplication.clipboard().text().strip()
+
+        copy_action = menu.addAction("Copy")
+        copy_action.setShortcut(QKeySequence("Ctrl+C"))
+        copy_action.setEnabled(bool(selected_nodes) and not has_proxy_selection)
+        copy_action.triggered.connect(self.copy_selected_nodes)
+
+        cut_action = menu.addAction("Cut")
+        cut_action.setShortcut(QKeySequence("Ctrl+X"))
+        cut_action.setEnabled(bool(selected_nodes) and not has_proxy_selection)
+        cut_action.triggered.connect(self.cut_selected_nodes)
+
+        paste_action = menu.addAction("Paste")
+        paste_action.setShortcut(QKeySequence("Ctrl+V"))
+        paste_action.setEnabled(bool(clipboard_text))
+        paste_action.triggered.connect(self.paste_nodes_from_clipboard)
+
+        menu.addSeparator()
+        save_action = menu.addAction("Save")
+        save_action.setShortcut(QKeySequence("Ctrl+S"))
+        save_action.triggered.connect(self.save_flow)
+
+        menu.exec(global_pos)
+
+    def _selection_contains_subflow_proxy(self, nodes=None):
+        try:
+            selected_nodes = nodes if nodes is not None else self.graph.selected_nodes()
+        except Exception:
+            selected_nodes = []
+        if not selected_nodes:
+            return False
+        parent_workspace = self._find_workspace_parent()
+        if self is not getattr(parent_workspace, "master_workflow", None):
+            return False
+        for node in selected_nodes:
+            if not isinstance(node, PyNode):
+                continue
+            try:
+                if parent_workspace._workflow_for_proxy_node(node) is not None:
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Delete:
+            self._delete_selected_nodes_with_workspace_rules()
         else:
             super().keyPressEvent(event)
 
@@ -3004,9 +4331,13 @@ class quest_workflow(QWidget):
                 QTimer.singleShot(0, self._handle_subworkflow_double_click)
             elif event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
                 QTimer.singleShot(0, self._sync_parent_proxy_wrapper_from_current_graph)
+            elif event.type() == QEvent.ContextMenu:
+                self._show_graph_context_menu(event.globalPos())
+                return True
             elif event.type() in (QEvent.Resize, QEvent.Show):
                 QTimer.singleShot(0, self._position_graph_help_overlay)
-                QTimer.singleShot(0, self._position_clear_canvas_button)
+                QTimer.singleShot(0, self._position_flow_control_toolbar)
+                QTimer.singleShot(0, self._position_edit_toolbar)
         except Exception:
             pass
         return super().eventFilter(obj, event)
@@ -3014,7 +4345,8 @@ class quest_workflow(QWidget):
     def showEvent(self, event):
         super().showEvent(event)
         self._position_graph_help_overlay()
-        self._position_clear_canvas_button()
+        self._position_flow_control_toolbar()
+        self._position_edit_toolbar()
         self._apply_pending_graph_frame()
 
     def request_graph_frame(self):
@@ -3068,31 +4400,6 @@ class quest_workspace(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(0)
 
-        self.toolbar = QToolBar("Node Tools", self)
-        self.toolbar.setFloatable(True)
-        self.toolbar.setMovable(True)
-        self.toolbar.setIconSize(QSize(40, 40))
-
-        d_icon = os.path.join(base_dir, "images", "icons", "data_icon.png")
-        t_icon = os.path.join(base_dir, "images", "icons", "text_icon.png")
-        p_icon = os.path.join(base_dir, "images", "icons", "python_icon.png")
-
-        data_node_icon = QIcon(d_icon)
-        text_node_icon = QIcon(t_icon)
-        py_node_icon = QIcon(p_icon)
-
-        self.action_text_node = QAction(text_node_icon, 'Add Text Node', self)
-        self.action_data_node = QAction(data_node_icon, 'Add Data Node', self)
-        self.action_py_node = QAction(py_node_icon, 'Add Py Node', self)
-
-        self.toolbar.addAction(self.action_text_node)
-        self.toolbar.addAction(self.action_data_node)
-        self.toolbar.addAction(self.action_py_node)
-
-        self.action_text_node.triggered.connect(lambda: self.active_workflow().create_text_node())
-        self.action_data_node.triggered.connect(lambda: self.active_workflow().create_data_node())
-        self.action_py_node.triggered.connect(lambda: self.active_workflow().create_py_node())
-
         self.tab_widget = QTabWidget()
         self.tab_widget.setObjectName("workspaceTabWidget")
         self.tab_widget.setStyleSheet("""
@@ -3127,6 +4434,7 @@ class quest_workspace(QWidget):
 
         self.workflows = []
         self.workflow_counter = 1
+        self._clipboard_subflows = {}
         self._plus_tab = QWidget()
 
         self.master_workflow = quest_workflow(self)
@@ -3264,9 +4572,44 @@ class quest_workspace(QWidget):
                 return candidate
             i += 1
 
-    def _sanitize_data_node_name(self, name, exclude_node=None):
-        base = self._sanitize_flow_name(name or "DataNode")
+    def _sanitize_python_identifier(self, name, fallback="node", suffix=None):
+        raw_name = str(name or "").strip() or fallback
+        snake = []
+        previous_was_separator = True
+        for index, ch in enumerate(raw_name):
+            if ch.isalnum():
+                if (
+                    ch.isupper()
+                    and snake
+                    and not previous_was_separator
+                    and index + 1 < len(raw_name)
+                    and raw_name[index + 1].islower()
+                ):
+                    snake.append("_")
+                snake.append(ch.lower())
+                previous_was_separator = False
+            else:
+                if not previous_was_separator:
+                    snake.append("_")
+                previous_was_separator = True
+        value = "".join(snake).strip("_") or fallback
+        while "__" in value:
+            value = value.replace("__", "_")
+        if value and value[0].isdigit():
+            value = f"_{value}"
+        if keyword.iskeyword(value):
+            value = f"{value}_{suffix or fallback}"
+        return value
+
+    def _sanitize_python_node_name(self, name, fallback="py_node", exclude_node=None):
+        base = self._sanitize_python_identifier(name, fallback=fallback, suffix="node")
         return self._make_unique_node_name(base, exclude_node=exclude_node)
+
+    def _sanitize_data_output_name(self, name):
+        return self._sanitize_python_identifier(name, fallback="output", suffix="value")
+
+    def _sanitize_data_node_name(self, name, exclude_node=None):
+        return self._sanitize_python_node_name(name, fallback="data_node", exclude_node=exclude_node)
 
     def _normalize_data_node_name(self, node, desired_name):
         if not isinstance(node, DataNode):
@@ -3553,8 +4896,8 @@ class quest_workspace(QWidget):
         # --- temp run ---
         code.append(IND*2 + "with tempfile.TemporaryDirectory() as tmpdir:")
         code.append(IND*3 + "f.save(tmpdir + os.sep)")
-        code.append(IND*3 + "result = f.run(python_executable=python_executable)")
-        code.append(IND*3 + "stdout = getattr(result, 'stdout', '') or ''")
+        code.append(IND*3 + "result = f.run(python_executable=python_executable, stream_output=True)")
+        code.append(IND*3 + "stdout = getattr(result, 'quest_stdout', '') or getattr(result, 'stdout', '') or ''")
 
         # --- parse output ---
         code.append(IND*2 + "start_marker = '__QUEST_SUBFLOW_RESULTS_START__'")
@@ -3732,6 +5075,39 @@ class quest_workspace(QWidget):
         if tab is None:
             return None
         return getattr(tab, "_workflow_instance", None)
+
+    def _create_copied_subflow_for_proxy(self, proxy_node, subflow_data):
+        if proxy_node is None or not isinstance(proxy_node, PyNode):
+            return None
+        if not isinstance(subflow_data, dict):
+            return None
+
+        requested_name = str(proxy_node.name() or "").strip() or str(subflow_data.get("flow_name") or "").strip() or f"Workflow {self.workflow_counter}"
+        workflow = self.create_workflow_tab(title=requested_name, create_proxy=False)
+        workflow._subflow_proxy_node = proxy_node
+        workflow._deserialize_flow_json_data(subflow_data)
+        workflow.set_flow_type("sub-flow")
+
+        target_name = self._make_unique_flow_name(str(proxy_node.name() or "").strip() or requested_name, exclude_workflow=workflow)
+        try:
+            workflow.flow_run_input.setText(target_name)
+        except Exception:
+            pass
+        try:
+            self._sync_subworkflow_proxy_node_name(workflow, target_name)
+        except Exception:
+            pass
+
+        try:
+            self.sync_workflow_ui(workflow)
+        except Exception:
+            pass
+        try:
+            self.activate_workflow(self.master_workflow)
+            self.sync_workflow_ui(self.master_workflow)
+        except Exception:
+            pass
+        return workflow
 
     def _find_unassigned_master_proxy_node_by_name(self, flow_name):
         target_name = str(flow_name or "").strip()
@@ -3947,6 +5323,7 @@ class quest_workspace(QWidget):
         self._clear_all_subflows()
         self.master_workflow._deserialize_flow_json_data(flow_json_data)
         self.master_workflow.flow_load_path.setText(self.master_workflow._display_flow_path(source_path))
+        self.master_workflow._set_current_flow_json_path(source_path)
         self.master_workflow.set_flow_type("master-flow")
 
         subflows_data = [d for d in flow_json_data.get("subflows_df", []) if isinstance(d, dict)]
@@ -3972,6 +5349,7 @@ class quest_workspace(QWidget):
             workflow._deserialize_flow_json_data(subflow_data)
             workflow.set_flow_type("sub-flow")
             workflow.flow_load_path.setText(workflow._display_flow_path(source_path))
+            workflow._set_current_flow_json_path("")
             try:
                 loaded_name = str(workflow.flow_run_input.text() or "").strip()
             except Exception:
@@ -4024,7 +5402,6 @@ class WMainWindow(QMainWindow):
         self.resize(1400, 900)
 
         self.quest_workspace_widget = quest_workspace(self)
-        self.addToolBar(Qt.LeftToolBarArea, self.quest_workspace_widget.toolbar)
         self.setCentralWidget(self.quest_workspace_widget)
 
         self._connect_flow_name_sync_signals()
@@ -4035,7 +5412,11 @@ class WMainWindow(QMainWindow):
         if workflow is None:
             return
         try:
-            workflow.flow_run_input.textChanged.disconnect(self.quest_workspace_widget.sync_active_workflow_tab_name_from_flow_name)
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                workflow.flow_run_input.textChanged.disconnect(
+                    self.quest_workspace_widget.sync_active_workflow_tab_name_from_flow_name
+                )
         except Exception:
             pass
         try:
