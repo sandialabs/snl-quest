@@ -1,5 +1,6 @@
 import sys
 import os
+import urllib.parse
 import warnings
 import keyword
 import tempfile
@@ -135,6 +136,7 @@ class EmbeddedNotebook(QWidget):
         self.server_port = None
         self.current_notebook_path = ""
         self.current_root_dir = ""
+        self.current_interface = "notebook"
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -166,6 +168,14 @@ class EmbeddedNotebook(QWidget):
         rel_path = os.path.relpath(nb_abs, root_dir).replace("\\", "/")
         return f"http://127.0.0.1:{self.server_port}/notebooks/{rel_path}"
 
+    def _build_lab_url(self, root_dir, relative_path=""):
+        root_dir = os.path.abspath(root_dir)
+        rel_path = str(relative_path or "").strip().replace("\\", "/").strip("/")
+        if rel_path:
+            encoded_path = urllib.parse.quote(rel_path, safe="/")
+            return f"http://127.0.0.1:{self.server_port}/lab/tree/{encoded_path}"
+        return f"http://127.0.0.1:{self.server_port}/lab"
+
     def _handle_server_output(self):
         if not self.server_process:
             return
@@ -178,9 +188,14 @@ class EmbeddedNotebook(QWidget):
         print(text)
         lower = text.lower()
         if 'http://127.0.0.1:' in lower or 'http://localhost:' in lower:
-            self.status_label.setText(f'Loaded notebook: {os.path.basename(self.current_notebook_path)}')
+            if self.current_interface == "lab":
+                self.status_label.setText(f'Loaded JupyterLab: {os.path.basename(self.current_root_dir) or self.current_root_dir}')
+            else:
+                self.status_label.setText(f'Loaded notebook: {os.path.basename(self.current_notebook_path)}')
         elif 'no module named notebook' in lower or ('error' in lower and 'notebook' in lower):
             self.status_label.setText('Failed to start Jupyter Notebook. Install the notebook package in this Python environment.')
+        elif 'no module named jupyterlab' in lower or ('error' in lower and 'jupyterlab' in lower):
+            self.status_label.setText('Failed to start JupyterLab. Install the jupyterlab package in this Python environment.')
 
     def stop_server(self):
         if self.server_process:
@@ -202,27 +217,39 @@ class EmbeddedNotebook(QWidget):
         self.server_process.start()
         return self.server_process.waitForStarted(5000)
 
-    def _start_jupyter_server(self, root_dir):
+    def _start_jupyter_server(self, root_dir, interface="notebook"):
         self.stop_server()
         self.server_port = self._find_free_port()
         self.current_root_dir = root_dir
+        self.current_interface = interface
 
-        args = [
-            '-m', 'notebook',
-            '--no-browser',
-            f'--NotebookApp.notebook_dir={root_dir}',
-            f'--NotebookApp.port={self.server_port}',
-            '--NotebookApp.token=',
-            '--NotebookApp.password=',
-            '--NotebookApp.allow_origin=*',
-        ]
+        if interface == "lab":
+            args = [
+                '-m', 'jupyter', 'lab',
+                '--no-browser',
+                f'--ServerApp.root_dir={root_dir}',
+                f'--ServerApp.port={self.server_port}',
+                '--ServerApp.token=',
+                '--ServerApp.password=',
+                '--ServerApp.allow_origin=*',
+            ]
+        else:
+            args = [
+                '-m', 'notebook',
+                '--no-browser',
+                f'--NotebookApp.notebook_dir={root_dir}',
+                f'--NotebookApp.port={self.server_port}',
+                '--NotebookApp.token=',
+                '--NotebookApp.password=',
+                '--NotebookApp.allow_origin=*',
+            ]
         return self._start_process(sys.executable, args, root_dir)
 
     def load_notebook(self, notebook_path):
         notebook_path = os.path.abspath(notebook_path)
         root_dir = os.path.abspath(os.path.dirname(notebook_path))
 
-        if self.server_process and self.server_process.state() == QProcess.Running and os.path.abspath(self.current_root_dir) == root_dir:
+        if self.server_process and self.server_process.state() == QProcess.Running and os.path.abspath(self.current_root_dir) == root_dir and self.current_interface == "notebook":
             self.current_notebook_path = notebook_path
             self.status_label.setText(f'Loading notebook: {os.path.basename(notebook_path)}')
 
@@ -242,7 +269,7 @@ class EmbeddedNotebook(QWidget):
         self.current_notebook_path = notebook_path
         self.status_label.setText(f'Starting Jupyter Notebook for: {os.path.basename(notebook_path)}')
 
-        if not self._start_jupyter_server(root_dir):
+        if not self._start_jupyter_server(root_dir, interface="notebook"):
             self.status_label.setText('Failed to start Jupyter Notebook. Install the notebook package in this Python environment.')
             return
 
@@ -256,6 +283,40 @@ class EmbeddedNotebook(QWidget):
                 pass
 
         QTimer.singleShot(4000, _first_load)
+
+    def load_lab(self, root_dir, relative_path=""):
+        root_dir = os.path.abspath(root_dir)
+        rel_path = str(relative_path or "").strip()
+
+        if self.server_process and self.server_process.state() == QProcess.Running and os.path.abspath(self.current_root_dir) == root_dir and self.current_interface == "lab":
+            self.status_label.setText(f'Loading JupyterLab: {os.path.basename(root_dir) or root_dir}')
+            self.webview.setUrl(QUrl("about:blank"))
+
+            def _load_lab_url():
+                try:
+                    self.webview.setUrl(QUrl(self._build_lab_url(root_dir, rel_path)))
+                    self.webview.show()
+                except Exception:
+                    pass
+
+            QTimer.singleShot(250, _load_lab_url)
+            return
+
+        self.status_label.setText(f'Starting JupyterLab for: {os.path.basename(root_dir) or root_dir}')
+        if not self._start_jupyter_server(root_dir, interface="lab"):
+            self.status_label.setText('Failed to start JupyterLab. Install the jupyterlab package in this Python environment.')
+            return
+
+        self.webview.setUrl(QUrl("about:blank"))
+
+        def _first_lab_load():
+            try:
+                self.webview.setUrl(QUrl(self._build_lab_url(root_dir, rel_path)))
+                self.webview.show()
+            except Exception:
+                pass
+
+        QTimer.singleShot(4000, _first_lab_load)
 
     def closeEvent(self, event):
         self.stop_server()
@@ -438,13 +499,8 @@ class quest_workflow(QWidget):
         self.flow_run_label = QLabel("Flow name:")
         self.flow_run_input = QLineEdit()
         self.flow_run_input.textChanged.connect(self._sync_flow_metadata_from_controls)
-        self.flow_run_button = QPushButton("Run")
-        self.flow_run_button.setFixedHeight(36)
-        self.flow_run_button.clicked.connect(self.run_flow)
-
         self.flow_run_layout.addWidget(self.flow_run_label)
         self.flow_run_layout.addWidget(self.flow_run_input)
-        self.flow_run_layout.addWidget(self.flow_run_button)
 
         self.flow_type_widget = QWidget()
         self.flow_type_widget.setFixedWidth(400)
@@ -496,6 +552,7 @@ class quest_workflow(QWidget):
         self.flow_result_label.setStyleSheet("QLabel { color: blue; }")
 
         self.flow_result_layout.addWidget(self.flow_result_label)
+
         self.flow_control_container = QWidget()
         self.flow_control_container.setFixedWidth(420)
         self.flow_control_layout = QVBoxLayout(self.flow_control_container)
@@ -606,7 +663,7 @@ class quest_workflow(QWidget):
         self.canvas_run_button = QPushButton("", self.flow_control_toolbar)
         self.canvas_run_button.setObjectName("canvasRunButton")
         self.canvas_run_button.setFixedSize(32, 32)
-        self.canvas_run_button.setToolTip("Run Flow")
+        self.canvas_run_button.setToolTip("Run Base Case")
         self.canvas_run_button.setIcon(
             self._load_workspace_icon("play_arrow_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
         )
@@ -1060,25 +1117,34 @@ class quest_workflow(QWidget):
         self.inputs_management_layout = QVBoxLayout(self.inputs_management_container)
         self.inputs_management_layout.setContentsMargins(0, 0, 0, 0)
         self.inputs_management_layout.setSpacing(6)
-        self.inputs_management_label = QLabel(
-            "Manage the Base Case and create additional case tabs from the current input table."
-        )
+        self.inputs_management_label = QLabel("")
         self.inputs_management_label.setWordWrap(True)
         self.inputs_management_case_tabs = QTabWidget()
         self.inputs_management_case_tabs.setDocumentMode(True)
+        self.inputs_management_case_tabs.setTabsClosable(True)
         self.inputs_management_case_tabs.currentChanged.connect(self._on_inputs_management_case_tab_changed)
+        self.inputs_management_case_tabs.tabCloseRequested.connect(self._on_inputs_management_case_tab_close_requested)
         self.inputs_management_save_button = QPushButton("Save Inputs as YAML")
         self.inputs_management_save_button.setFixedHeight(36)
         self.inputs_management_save_button.clicked.connect(self._save_inputs_management_yaml)
         self.inputs_management_load_button = QPushButton("Load Inputs from YAML")
         self.inputs_management_load_button.setFixedHeight(36)
         self.inputs_management_load_button.clicked.connect(self._load_inputs_management_yaml)
+        self.inputs_management_run_case_button = QPushButton("Run Case")
+        self.inputs_management_run_case_button.setFixedHeight(36)
+        self.inputs_management_run_case_button.clicked.connect(self.run_selected_input_case)
         self.inputs_management_buttons = QWidget()
-        self.inputs_management_buttons_layout = QHBoxLayout(self.inputs_management_buttons)
+        self.inputs_management_buttons_layout = QVBoxLayout(self.inputs_management_buttons)
         self.inputs_management_buttons_layout.setContentsMargins(0, 0, 0, 0)
         self.inputs_management_buttons_layout.setSpacing(6)
-        self.inputs_management_buttons_layout.addWidget(self.inputs_management_save_button)
-        self.inputs_management_buttons_layout.addWidget(self.inputs_management_load_button)
+        self.inputs_management_yaml_buttons = QWidget()
+        self.inputs_management_yaml_buttons_layout = QHBoxLayout(self.inputs_management_yaml_buttons)
+        self.inputs_management_yaml_buttons_layout.setContentsMargins(0, 0, 0, 0)
+        self.inputs_management_yaml_buttons_layout.setSpacing(6)
+        self.inputs_management_yaml_buttons_layout.addWidget(self.inputs_management_save_button)
+        self.inputs_management_yaml_buttons_layout.addWidget(self.inputs_management_load_button)
+        self.inputs_management_buttons_layout.addWidget(self.inputs_management_yaml_buttons)
+        self.inputs_management_buttons_layout.addWidget(self.inputs_management_run_case_button)
         self.inputs_management_layout.addWidget(self.inputs_management_label)
         self.inputs_management_layout.addWidget(self.inputs_management_case_tabs)
         self.inputs_management_layout.addWidget(self.inputs_management_buttons)
@@ -1345,6 +1411,10 @@ class quest_workflow(QWidget):
         self.connections_df = pd.DataFrame(columns=self.connections_df.columns)
         try:
             self.update_flow()
+        except Exception:
+            pass
+        try:
+            self._reset_inputs_management_case_tabs(base_records=[])
         except Exception:
             pass
         self._sync_parent_proxy_wrapper_from_current_graph()
@@ -2317,6 +2387,45 @@ class quest_workflow(QWidget):
                 except Exception:
                     pass
 
+    def _snapshot_flow_graph_data(self):
+        nodes_data = []
+        for node in self.graph.all_nodes():
+            nodes_data.append([
+                node.id,
+                node.name(),
+                getattr(node, 'node_type', ''),
+                getattr(node, 'node_input_variable', ''),
+                getattr(node, 'node_input_value', ''),
+                getattr(node, 'node_value_display', False),
+                getattr(node, 'node_is_path', False),
+                getattr(node, 'node_is_from_master', False),
+                getattr(node, 'node_expose_outputs', []),
+                getattr(node, 'node_function_wrapper', ''),
+                getattr(node, 'node_imports', ''),
+                getattr(node, 'node_notebook_path', ''),
+            ])
+
+        nodes_df = pd.DataFrame(
+            nodes_data,
+            columns=['node_id', 'node_name', 'node_type', 'node_input_variable', 'node_input_value', 'node_value_display', 'node_is_path', 'node_is_from_master', 'node_expose_outputs', 'node_function_wrapper', 'node_imports', 'node_notebook_path']
+        )
+
+        connections_data = []
+        graph_session = self.graph.serialize_session() or {}
+        for i, connection in enumerate(graph_session.get('connections', []) or [], start=1):
+            connections_data.append([
+                i,
+                connection['out'][0],
+                connection['in'][0],
+                {connection['out'][1]: connection['in'][1]},
+            ])
+
+        connections_df = pd.DataFrame(
+            connections_data,
+            columns=['connection_id', 'from_node', 'to_node', 'mapping']
+        )
+        return nodes_df, connections_df, graph_session
+
     def _data_nodes(self):
         try:
             nodes = self.graph.all_nodes()
@@ -2401,16 +2510,20 @@ class quest_workflow(QWidget):
         old_pos = node.pos()
 
         if "node_name" in record:
-            node.set_name(self._sanitize_data_node_name(record.get("node_name", node.name()), exclude_node=node))
+            target_name = self._sanitize_data_node_name(record.get("node_name", node.name()), exclude_node=node)
+            if str(node.name() or "") != str(target_name or ""):
+                node.set_name(target_name)
 
         if "variable_name" in record:
             variable_name = self._sanitize_data_output_name(record.get("variable_name", ""))
-            for out_port_name in list(node.outputs().keys()):
-                for connected_port in list(node.outputs()[out_port_name].connected_ports()):
-                    node.outputs()[out_port_name].disconnect_from(connected_port)
-                node.delete_output(out_port_name)
-            node.add_dynamic_output(variable_name)
-            node.node_input_variable = variable_name
+            current_variable_name = str(getattr(node, "node_input_variable", "") or "")
+            if current_variable_name != variable_name:
+                for out_port_name in list(node.outputs().keys()):
+                    for connected_port in list(node.outputs()[out_port_name].connected_ports()):
+                        node.outputs()[out_port_name].disconnect_from(connected_port)
+                    node.delete_output(out_port_name)
+                node.add_dynamic_output(variable_name)
+                node.node_input_variable = variable_name
 
         if "value" in record:
             node.node_input_value = str(record.get("value", "") or "")
@@ -2493,6 +2606,8 @@ class quest_workflow(QWidget):
         try:
             table.blockSignals(True)
             is_master_flow = (self.get_flow_type() == "master-flow")
+            case_info = self._inputs_management_case_info_for_table(table)
+            value_only_case = case_info is not None and not bool(case_info.get("sync_with_workflow"))
             normalized_records = sorted(
                 self._clone_inputs_management_records(records),
                 key=lambda record: str(record.get("node_name", "") or "").lower()
@@ -2508,10 +2623,17 @@ class quest_workflow(QWidget):
                 for column, value in enumerate(values):
                     item = QTableWidgetItem(value)
                     item.setData(Qt.UserRole, node_id)
+                    if value_only_case and column != 2:
+                        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+                        item.setForeground(QBrush(QColor("#94a3b8")))
+                        item.setBackground(QBrush(QColor("#f1f5f9")))
                     table.setItem(row, column, item)
                 path_combo = QComboBox()
                 path_combo.addItems(["False", "True"])
                 path_combo.setCurrentText("True" if self._coerce_yaml_bool(record.get("is_path")) else "False")
+                if value_only_case:
+                    path_combo.setEnabled(False)
+                    path_combo.setStyleSheet("QComboBox { background-color: #f1f5f9; color: #94a3b8; }")
                 path_combo.currentTextChanged.connect(
                     lambda text, current_table=table, current_node_id=node_id: self._on_inputs_management_path_changed(
                         current_table,
@@ -2523,7 +2645,9 @@ class quest_workflow(QWidget):
                 from_master_combo = QComboBox()
                 from_master_combo.addItems(["False", "True"])
                 from_master_combo.setCurrentText("True" if self._coerce_yaml_bool(record.get("is_from_master")) else "False")
-                from_master_combo.setEnabled(not is_master_flow)
+                from_master_combo.setEnabled((not is_master_flow) and (not value_only_case))
+                if value_only_case:
+                    from_master_combo.setStyleSheet("QComboBox { background-color: #f1f5f9; color: #94a3b8; }")
                 from_master_combo.currentTextChanged.connect(
                     lambda text, current_table=table, current_node_id=node_id: self._on_inputs_management_from_master_changed(
                         current_table,
@@ -2558,11 +2682,118 @@ class quest_workflow(QWidget):
             return None
         return case_info["table"]
 
-    def _new_inputs_management_case_name(self):
-        self._inputs_management_case_counter += 1
-        return f"Case {self._inputs_management_case_counter}"
+    def _active_inputs_management_case_name(self):
+        case_info = self._active_inputs_management_case_info()
+        if case_info is None:
+            return self._inputs_management_base_case_name()
+        return str(case_info.get("name", "") or self._inputs_management_base_case_name())
 
-    def _create_inputs_management_case_tab(self, case_name, records=None, make_current=False):
+    def _create_flow_runner_notebook_title(self, flow_name, input_case_name=None):
+        case_name = str(input_case_name or "").strip()
+        if not case_name:
+            return str(flow_name or "Flow")
+        return f"{flow_name or 'Flow'} - {case_name}"
+
+    def _all_inputs_management_case_names(self):
+        payload = self._serialize_inputs_management_json_data()
+        case_names = []
+        for case_info in payload:
+            case_name = str(case_info.get("name", "") or "").strip()
+            if case_name:
+                case_names.append(case_name)
+        if not case_names:
+            case_names.append(self._inputs_management_base_case_name())
+        return case_names
+
+    def _inputs_management_case_info_for_table(self, table):
+        for case_info in getattr(self, "inputs_management_cases", []):
+            if case_info.get("table") is table:
+                return case_info
+        return None
+
+    def _new_inputs_management_case_name(self):
+        next_index = 1 + len([
+            case_info for case_info in getattr(self, "inputs_management_cases", [])
+            if not bool(case_info.get("sync_with_workflow"))
+        ])
+        self._inputs_management_case_counter = next_index
+        return f"Case {next_index}"
+
+    def _update_inputs_management_case_counter(self, case_name):
+        text = str(case_name or "").strip()
+        match = re.fullmatch(r"Case\s+(\d+)", text, flags=re.IGNORECASE)
+        if not match:
+            return
+        self._inputs_management_case_counter = max(
+            int(getattr(self, "_inputs_management_case_counter", 0)),
+            int(match.group(1)),
+        )
+
+    def _renumber_inputs_management_case_tabs(self):
+        added_cases = [
+            case_info for case_info in self.inputs_management_cases
+            if not bool(case_info.get("sync_with_workflow"))
+        ]
+        for index, case_info in enumerate(added_cases, start=1):
+            new_name = f"Case {index}"
+            case_info["name"] = new_name
+            tab_index = self.inputs_management_case_tabs.indexOf(case_info.get("widget"))
+            if tab_index >= 0:
+                self.inputs_management_case_tabs.setTabText(tab_index, new_name)
+        self._inputs_management_case_counter = len(added_cases)
+
+    def _inputs_management_supports_cases(self):
+        return self.get_flow_type() == "master-flow"
+
+    def _inputs_management_base_case_name(self):
+        if self._inputs_management_supports_cases():
+            return "Base Case"
+        return "Local Inputs"
+
+    def _inputs_management_label_text(self):
+        if self._inputs_management_supports_cases():
+            return "Manage the Base Case and create additional case tabs from the current input table."
+        return "Manage the Local Inputs table for this sub-flow."
+
+    def _configure_inputs_management_case_availability(self):
+        if not hasattr(self, "inputs_management_label"):
+            return
+        self.inputs_management_label.setText(self._inputs_management_label_text())
+        if hasattr(self, "inputs_management_case_tabs"):
+            self._reset_inputs_management_case_tabs()
+
+    def _update_inputs_management_case_tab_buttons(self):
+        if not hasattr(self, "inputs_management_case_tabs"):
+            return
+        tab_bar = self.inputs_management_case_tabs.tabBar()
+        if tab_bar is None:
+            return
+        for index in range(self.inputs_management_case_tabs.count()):
+            widget = self.inputs_management_case_tabs.widget(index)
+            case_info = self._inputs_management_case_info_by_index(index)
+            is_removable_case = (
+                case_info is not None
+                and not bool(case_info.get("sync_with_workflow"))
+                and widget is not self.inputs_management_add_case_widget
+            )
+            if is_removable_case:
+                if tab_bar.tabButton(index, QTabBar.RightSide) is None:
+                    close_button = QToolButton(self.inputs_management_case_tabs)
+                    close_button.setAutoRaise(True)
+                    close_button.setCursor(Qt.PointingHandCursor)
+                    close_button.setIcon(self.style().standardIcon(QStyle.SP_TitleBarCloseButton))
+                    close_button.setIconSize(QSize(12, 12))
+                    close_button.clicked.connect(
+                        lambda checked=False, current_widget=widget: self._close_inputs_management_case_tab_by_widget(current_widget)
+                    )
+                    tab_bar.setTabButton(index, QTabBar.RightSide, close_button)
+            else:
+                existing_button = tab_bar.tabButton(index, QTabBar.RightSide)
+                if existing_button is not None:
+                    existing_button.deleteLater()
+                tab_bar.setTabButton(index, QTabBar.RightSide, None)
+
+    def _create_inputs_management_case_tab(self, case_name, records=None, make_current=False, sync_with_workflow=False):
         container = QWidget()
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -2576,7 +2807,9 @@ class quest_workflow(QWidget):
             "widget": container,
             "table": table,
             "records": self._merge_inputs_management_records(records or self._inputs_management_records()),
+            "sync_with_workflow": bool(sync_with_workflow),
         }
+        self._update_inputs_management_case_counter(case_info["name"])
 
         insert_index = self.inputs_management_case_tabs.count()
         add_index = self.inputs_management_case_tabs.indexOf(self.inputs_management_add_case_widget) if self.inputs_management_add_case_widget else -1
@@ -2585,6 +2818,7 @@ class quest_workflow(QWidget):
 
         self.inputs_management_cases.append(case_info)
         self.inputs_management_case_tabs.insertTab(insert_index, container, case_info["name"])
+        self._update_inputs_management_case_tab_buttons()
         self._populate_inputs_management_table(table, case_info["records"])
 
         if make_current:
@@ -2597,6 +2831,9 @@ class quest_workflow(QWidget):
         return case_info
 
     def _create_inputs_management_add_case_tab(self):
+        if not self._inputs_management_supports_cases():
+            self.inputs_management_add_case_widget = None
+            return
         self.inputs_management_add_case_widget = QWidget()
         placeholder_layout = QVBoxLayout(self.inputs_management_add_case_widget)
         placeholder_layout.setContentsMargins(12, 12, 12, 12)
@@ -2621,17 +2858,28 @@ class quest_workflow(QWidget):
             self.inputs_management_case_counter = 0
             self.inputs_management_add_case_widget = None
 
-            base_info = self._create_inputs_management_case_tab("Base Case", records=base_records or self._inputs_management_records())
-            self._create_inputs_management_add_case_tab()
+            base_info = self._create_inputs_management_case_tab(
+                self._inputs_management_base_case_name(),
+                records=base_records or self._inputs_management_records(),
+                sync_with_workflow=True,
+            )
+            if self._inputs_management_supports_cases():
+                self._create_inputs_management_add_case_tab()
 
-            for case_payload in additional_cases or []:
+            for case_payload in (additional_cases or []) if self._inputs_management_supports_cases() else []:
                 case_name = str(case_payload.get("name", "") or self._new_inputs_management_case_name())
                 if case_name == "Base Case":
                     case_name = self._new_inputs_management_case_name()
-                self._create_inputs_management_case_tab(case_name, records=case_payload.get("records", []))
+                self._create_inputs_management_case_tab(
+                    case_name,
+                    records=case_payload.get("records", []),
+                    sync_with_workflow=False,
+                )
 
             self.inputs_management_case_tabs.setCurrentWidget(base_info["widget"])
             self._last_inputs_management_case_index = self.inputs_management_case_tabs.currentIndex()
+            self._renumber_inputs_management_case_tabs()
+            self._update_inputs_management_case_tab_buttons()
         finally:
             self._inputs_management_case_switch_in_progress = False
 
@@ -2647,7 +2895,7 @@ class quest_workflow(QWidget):
         active_node_ids = {str(record.get("node_id", "")) for record in current_snapshot}
 
         for case_info in self.inputs_management_cases:
-            if case_info is active_case:
+            if bool(case_info.get("sync_with_workflow")):
                 case_info["records"] = self._clone_inputs_management_records(current_snapshot)
             else:
                 case_info["records"] = self._merge_inputs_management_records(case_info.get("records", []))
@@ -2685,16 +2933,24 @@ class quest_workflow(QWidget):
         self.update_flow()
         self.on_node_selected()
 
+    def _record_inputs_management_case_edit(self, case_info, node_id, field_name, value):
+        if case_info is None:
+            return
+        for record in case_info.get("records", []):
+            if str(record.get("node_id", "")) == str(node_id):
+                record[field_name] = value
+                break
+
     def _on_inputs_management_case_tab_changed(self, index):
         if self._inputs_management_case_switch_in_progress:
             return
 
         previous_case = self._inputs_management_case_info_by_index(self._last_inputs_management_case_index)
-        if previous_case is not None:
+        if previous_case is not None and bool(previous_case.get("sync_with_workflow")):
             previous_case["records"] = self._inputs_management_records()
 
         current_widget = self.inputs_management_case_tabs.widget(index)
-        if current_widget is self.inputs_management_add_case_widget:
+        if self._inputs_management_supports_cases() and current_widget is self.inputs_management_add_case_widget:
             source_case = previous_case or (self.inputs_management_cases[0] if self.inputs_management_cases else None)
             source_records = self._clone_inputs_management_records(
                 source_case["records"] if source_case else self._inputs_management_records()
@@ -2703,6 +2959,7 @@ class quest_workflow(QWidget):
                 self._new_inputs_management_case_name(),
                 records=source_records,
                 make_current=True,
+                sync_with_workflow=False,
             )
             self._last_inputs_management_case_index = self.inputs_management_case_tabs.indexOf(new_case["widget"])
             return
@@ -2711,15 +2968,56 @@ class quest_workflow(QWidget):
         if case_info is None:
             return
 
+        if bool(case_info.get("sync_with_workflow")):
+            self._inputs_management_case_switch_in_progress = True
+            try:
+                self._apply_inputs_management_case_to_graph(case_info["records"])
+            finally:
+                self._inputs_management_case_switch_in_progress = False
+
+            case_info["records"] = self._inputs_management_records()
+        else:
+            case_info["records"] = self._merge_inputs_management_records(case_info.get("records", []))
+        self._populate_inputs_management_table(case_info["table"], case_info["records"])
+        self._last_inputs_management_case_index = index
+
+    def _on_inputs_management_case_tab_close_requested(self, index):
+        case_info = self._inputs_management_case_info_by_index(index)
+        if case_info is None or bool(case_info.get("sync_with_workflow")):
+            return
+
+        widget = case_info.get("widget")
+        previous_active_index = self._last_inputs_management_case_index
+        fallback_widget = None
+        if self.inputs_management_cases:
+            fallback_widget = self.inputs_management_cases[0].get("widget")
+
         self._inputs_management_case_switch_in_progress = True
         try:
-            self._apply_inputs_management_case_to_graph(case_info["records"])
+            self.inputs_management_cases = [
+                existing_case
+                for existing_case in self.inputs_management_cases
+                if existing_case is not case_info
+            ]
+            self.inputs_management_case_tabs.removeTab(index)
+            if widget is not None:
+                widget.deleteLater()
+
+            if fallback_widget is not None:
+                self.inputs_management_case_tabs.setCurrentWidget(fallback_widget)
+            self._last_inputs_management_case_index = self.inputs_management_case_tabs.currentIndex()
+            if previous_active_index == index and self.inputs_management_cases:
+                self.inputs_management_cases[0]["records"] = self._clone_inputs_management_records(self._inputs_management_records())
         finally:
             self._inputs_management_case_switch_in_progress = False
 
-        case_info["records"] = self._inputs_management_records()
-        self._populate_inputs_management_table(case_info["table"], case_info["records"])
-        self._last_inputs_management_case_index = index
+        self._renumber_inputs_management_case_tabs()
+        self._update_inputs_management_case_tab_buttons()
+
+    def _close_inputs_management_case_tab_by_widget(self, widget):
+        index = self.inputs_management_case_tabs.indexOf(widget)
+        if index >= 0:
+            self._on_inputs_management_case_tab_close_requested(index)
 
     def _refresh_inputs_management_table(self, table=None):
         target_table = table or self._active_inputs_management_table()
@@ -2728,12 +3026,31 @@ class quest_workflow(QWidget):
 
         active_case = self._active_inputs_management_case_info()
         current_records = self._inputs_management_records()
-        self._populate_inputs_management_table(target_table, current_records)
-        if active_case is not None and active_case["table"] is target_table:
-            active_case["records"] = self._clone_inputs_management_records(current_records)
+        if active_case is None:
+            self._populate_inputs_management_table(target_table, current_records)
+            return
+
+        if bool(active_case.get("sync_with_workflow")):
+            self._populate_inputs_management_table(target_table, current_records)
+            if active_case["table"] is target_table:
+                active_case["records"] = self._clone_inputs_management_records(current_records)
+        else:
+            active_case["records"] = self._merge_inputs_management_records(active_case.get("records", []))
+            self._populate_inputs_management_table(target_table, active_case["records"])
 
     def _on_inputs_management_path_changed(self, table, node_id, value):
         if self._inputs_management_refresh_in_progress or table is not self._active_inputs_management_table():
+            return
+
+        active_case = self._active_inputs_management_case_info()
+        if active_case is not None and not bool(active_case.get("sync_with_workflow")):
+            self._record_inputs_management_case_edit(
+                active_case,
+                node_id,
+                "is_path",
+                str(value).strip().lower() == "true",
+            )
+            self._refresh_inputs_management_table(table)
             return
 
         node = self._data_node_by_id(node_id)
@@ -2754,6 +3071,17 @@ class quest_workflow(QWidget):
 
     def _on_inputs_management_from_master_changed(self, table, node_id, value):
         if self._inputs_management_refresh_in_progress or table is not self._active_inputs_management_table():
+            return
+
+        active_case = self._active_inputs_management_case_info()
+        if active_case is not None and not bool(active_case.get("sync_with_workflow")):
+            self._record_inputs_management_case_edit(
+                active_case,
+                node_id,
+                "is_from_master",
+                str(value).strip().lower() == "true",
+            )
+            self._refresh_inputs_management_table(table)
             return
 
         node = self._data_node_by_id(node_id)
@@ -2786,6 +3114,19 @@ class quest_workflow(QWidget):
         if self._inputs_management_refresh_in_progress or item is None or table is not self._active_inputs_management_table():
             return
 
+        active_case = self._active_inputs_management_case_info()
+        if active_case is not None and not bool(active_case.get("sync_with_workflow")):
+            field_name_by_column = {
+                0: "node_name",
+                1: "variable_name",
+                2: "value",
+            }
+            field_name = field_name_by_column.get(item.column())
+            if field_name is not None:
+                self._record_inputs_management_case_edit(active_case, item.data(Qt.UserRole), field_name, item.text())
+                self._refresh_inputs_management_table(table)
+            return
+
         node_id = item.data(Qt.UserRole)
         node = self._data_node_by_id(node_id)
         if node is None:
@@ -2794,12 +3135,14 @@ class quest_workflow(QWidget):
 
         column = item.column()
         old_pos = node.pos()
+        should_sync_proxy = False
 
         try:
             if column == 0:
                 new_name = self._sanitize_data_node_name(item.text(), exclude_node=node)
                 node.set_name(new_name)
                 self._propagate_inputs_management_field_to_all_cases(node_id, "node_name", new_name)
+                should_sync_proxy = True
             elif column == 1:
                 variable_name = self._sanitize_data_output_name(item.text())
                 for out_port_name in list(node.outputs().keys()):
@@ -2809,6 +3152,7 @@ class quest_workflow(QWidget):
                 node.add_dynamic_output(variable_name)
                 node.node_input_variable = variable_name
                 self._propagate_inputs_management_field_to_all_cases(node_id, "variable_name", variable_name)
+                should_sync_proxy = True
             elif column == 2:
                 node.node_input_value = item.text()
                 try:
@@ -2819,7 +3163,8 @@ class quest_workflow(QWidget):
             node.set_pos(old_pos[0], old_pos[1])
         finally:
             self._refresh_inputs_management_views()
-            self._sync_parent_proxy_wrapper_from_current_graph()
+            if should_sync_proxy:
+                self._sync_parent_proxy_wrapper_from_current_graph()
 
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) == 1 and selected_nodes[0] is node:
@@ -2827,7 +3172,7 @@ class quest_workflow(QWidget):
 
     def _inputs_management_cases_payload(self):
         active_case = self._active_inputs_management_case_info()
-        if active_case is not None:
+        if active_case is not None and bool(active_case.get("sync_with_workflow")):
             active_case["records"] = self._inputs_management_records()
 
         payload = []
@@ -2838,6 +3183,55 @@ class quest_workflow(QWidget):
                 "inputs": self._clone_inputs_management_records(case_info["records"]),
             })
         return payload
+
+    def _serialize_inputs_management_json_data(self):
+        payload = [{
+            "name": self._inputs_management_base_case_name(),
+            "inputs": self._clone_inputs_management_records(self._inputs_management_records()),
+        }]
+
+        for case_info in self.inputs_management_cases:
+            if bool(case_info.get("sync_with_workflow")):
+                continue
+            case_info["records"] = self._merge_inputs_management_records(case_info.get("records", []))
+            payload.append({
+                "name": str(case_info.get("name", "") or self._new_inputs_management_case_name()),
+                "inputs": self._clone_inputs_management_records(case_info["records"]),
+            })
+        return payload
+
+    def _load_inputs_management_json_data(self, inputs_payload):
+        current_base_records = self._inputs_management_records()
+        additional_cases = []
+
+        raw_cases = []
+        if isinstance(inputs_payload, list):
+            raw_cases = inputs_payload
+        elif isinstance(inputs_payload, dict):
+            candidate_cases = inputs_payload.get("cases", [])
+            if isinstance(candidate_cases, list):
+                raw_cases = candidate_cases
+
+        for index, case_payload in enumerate(raw_cases[1:], start=1):
+            if not isinstance(case_payload, dict):
+                continue
+            inputs = case_payload.get("inputs", [])
+            if not isinstance(inputs, list):
+                continue
+            case_name = str(case_payload.get("name", "") or "").strip() or f"Case {index}"
+            additional_cases.append({
+                "name": case_name,
+                "records": self._merge_inputs_management_records(inputs),
+            })
+
+        if not self._inputs_management_supports_cases():
+            additional_cases = []
+
+        self._reset_inputs_management_case_tabs(
+            base_records=current_base_records,
+            additional_cases=additional_cases,
+        )
+        self._refresh_inputs_management_views()
 
     def _save_inputs_management_yaml(self):
         cases_payload = self._inputs_management_cases_payload()
@@ -2918,7 +3312,7 @@ class quest_workflow(QWidget):
                 if not isinstance(inputs, list):
                     continue
                 case_name = str(case_payload.get("name", "") or "").strip() or (
-                    "Base Case" if index == 1 else f"Case {index - 1}"
+                    self._inputs_management_base_case_name() if index == 1 else f"Case {index - 1}"
                 )
                 case_payloads.append({
                     "name": case_name,
@@ -2928,7 +3322,7 @@ class quest_workflow(QWidget):
             records = payload.get("inputs", [])
             if isinstance(records, list):
                 case_payloads.append({
-                    "name": "Base Case",
+                    "name": self._inputs_management_base_case_name(),
                     "records": self._merge_inputs_management_records(records),
                 })
 
@@ -2939,6 +3333,11 @@ class quest_workflow(QWidget):
                 "The selected YAML file must contain either a 'cases' list or an 'inputs' list."
             )
             return
+
+        ignored_case_count = 0
+        if not self._inputs_management_supports_cases() and len(case_payloads) > 1:
+            ignored_case_count = len(case_payloads) - 1
+            case_payloads = case_payloads[:1]
 
         try:
             base_case = case_payloads[0]
@@ -2953,7 +3352,14 @@ class quest_workflow(QWidget):
             QMessageBox.information(
                 self,
                 "Inputs Loaded",
-                f"Loaded {len(case_payloads)} case tab(s) from:\n{path}"
+                (
+                    f"Loaded {len(case_payloads)} case tab(s) from:\n{path}"
+                    if ignored_case_count == 0
+                    else (
+                        f"Loaded {len(case_payloads)} case tab(s) from:\n{path}\n\n"
+                        f"Ignored {ignored_case_count} additional case tab(s) because Add Case is only available for master flows."
+                    )
+                )
             )
         except Exception as e:
             QMessageBox.critical(
@@ -2962,9 +3368,9 @@ class quest_workflow(QWidget):
                 f"Failed to apply inputs from YAML.\n\nDetails: {e}"
             )
 
-    def _create_flow_runner_notebook(self, script_path, flow_name):
+    def _create_flow_runner_notebook(self, script_path, flow_name, input_case_name=None):
         script_path = os.path.abspath(script_path)
-        flow_stub = self._sanitize_node_name_for_file(flow_name or 'flow_run')
+        flow_stub = self._sanitize_node_name_for_file(self._create_flow_runner_notebook_title(flow_name, input_case_name) or 'flow_run')
         notebook_path = os.path.join(os.path.dirname(script_path), f"{flow_stub}_runner.ipynb")
 
         kernel_name = self._ensure_kernel_for_python_path(sys.executable, self._quest_master_environment_label())
@@ -2988,7 +3394,7 @@ class quest_workflow(QWidget):
         }
         nb.cells = [
             nbf.v4.new_markdown_cell(
-                f"# {flow_name or 'Flow'} runner\n\n"
+                f"# {self._create_flow_runner_notebook_title(flow_name, input_case_name)} runner\n\n"
                 "Run the first code cell below to execute the generated Python flow script using `%run`."
             ),
             nbf.v4.new_code_cell(code),
@@ -2997,7 +3403,30 @@ class quest_workflow(QWidget):
             nbf.write(nb, f)
         return notebook_path
 
-    def _open_flow_runner_notebook(self, notebook_path):
+    def _open_flow_runner_notebook(self, notebook_path, open_new_window=False):
+        if open_new_window:
+            runner_notebook_view = EmbeddedNotebook()
+            runner_update_button = QPushButton("Close")
+            runner_notebook_window = PopOutNotebookEditor(
+                runner_notebook_view,
+                runner_update_button
+            )
+            runner_notebook_window.setWindowTitle("Flow Runner Notebook")
+            runner_update_button.clicked.connect(runner_notebook_window.close)
+            runner_notebook_view.load_notebook(notebook_path)
+            runner_notebook_window.show()
+            runner_notebook_window.raise_()
+            runner_notebook_window.activateWindow()
+            if not hasattr(self, "_runner_notebook_windows"):
+                self._runner_notebook_windows = []
+            self._runner_notebook_windows.append(runner_notebook_window)
+            runner_notebook_window.editorClosed.connect(
+                lambda current_window=runner_notebook_window: self._runner_notebook_windows.remove(current_window)
+                if hasattr(self, "_runner_notebook_windows") and current_window in self._runner_notebook_windows
+                else None
+            )
+            return
+
         if not hasattr(self, "runner_notebook_window") or self.runner_notebook_window is None:
             self.runner_notebook_view = EmbeddedNotebook()
             self.runner_update_button = QPushButton("Close")
@@ -3079,33 +3508,54 @@ class quest_workflow(QWidget):
 
         return script_path
 
-    def run_flow(self):
+    def _run_flow_for_input_case(self, input_case_name, open_new_notebook=False):
         try:
             self.update_flow()
             flow_name = self.flow_run_input.text()
-            self.flow = flow(flow_name=flow_name, nodes_df=self.nodes_df, connections_df=self.connections_df)
-            self.flow.set_inputs()
-            self.flow.get_outputs(key='Show')
-            self.flow.make()
+            self.flow = flow(
+                flow_name=flow_name,
+                nodes_df=self.nodes_df,
+                connections_df=self.connections_df,
+                inputs_df=self._serialize_inputs_management_json_data(),
+            )
+            self.flow.make(
+                input_case=input_case_name,
+                output_key='Show',
+            )
             self.flow.save('./')
             script_path = self._inject_flow_environment_into_script(
                 self.flow.py_file_name,
                 self.flow_environment_path,
                 base_dir,
             )
-            notebook_path = self._create_flow_runner_notebook(script_path, flow_name)
-            self._open_flow_runner_notebook(notebook_path)
+            notebook_path = self._create_flow_runner_notebook(script_path, flow_name, input_case_name=input_case_name)
+            self._open_flow_runner_notebook(notebook_path, open_new_window=open_new_notebook)
             self.flow_result_label.setText(f"Opened flow runner notebook:\n{notebook_path}")
         except subprocess.CalledProcessError as e:
             self.flow_result_label.setText(f"Failed to prepare notebook kernel:\n{e}")
         except Exception as e:
             self.flow_result_label.setText(f"Failed to run flow:\n{e}")
 
+    def run_flow(self):
+        self._run_flow_for_input_case(self._inputs_management_base_case_name())
+
+    def run_selected_input_case(self):
+        self._run_flow_for_input_case(self._active_inputs_management_case_name(), open_new_notebook=True)
+
     def set_flow_type(self, flow_type):
         flow_type = (flow_type or "sub-flow").strip().lower()
         if flow_type not in {"master-flow", "sub-flow"}:
             flow_type = "sub-flow"
+        current_flow_type = (self.flow_type_label_value.text() or "sub-flow").strip().lower()
+        if current_flow_type not in {"master-flow", "sub-flow"}:
+            current_flow_type = "sub-flow"
+        if current_flow_type == flow_type:
+            self.flow_type_label_value.setText(flow_type)
+            self.inputs_management_label.setText(self._inputs_management_label_text())
+            self._refresh_save_mode_options()
+            return
         self.flow_type_label_value.setText(flow_type)
+        self._configure_inputs_management_case_availability()
         self._refresh_save_mode_options()
 
     def _can_save_as_independent_flow(self):
@@ -3176,16 +3626,10 @@ class quest_workflow(QWidget):
         return name or "Untitled Flow"
 
     def _serialize_independent_flow_json_data(self):
-        self.update_envs()
-        previous_suspend = getattr(self, "_suspend_proxy_wrapper_sync", False)
-        self._suspend_proxy_wrapper_sync = True
-        try:
-            self.update_flow()
-        finally:
-            self._suspend_proxy_wrapper_sync = previous_suspend
-        nodes_df_json = self.nodes_df.to_json(orient='records')
-        connection_df_json = self.connections_df.to_json(orient='records')
-        layout_dict = self.graph.serialize_session()
+        self._sync_flow_metadata_from_controls()
+        nodes_df, connections_df, layout_dict = self._snapshot_flow_graph_data()
+        nodes_df_json = nodes_df.to_json(orient='records')
+        connection_df_json = connections_df.to_json(orient='records')
         self._sync_flow_metadata_from_controls()
         return {
             "flow_name": self.get_flow_display_name(),
@@ -3197,7 +3641,8 @@ class quest_workflow(QWidget):
             "flow_environment_path": self.flow_environment_path,
             "flow_layout": layout_dict,
             "nodes_df": json.loads(nodes_df_json),
-            "connections_df": json.loads(connection_df_json)
+            "connections_df": json.loads(connection_df_json),
+            "inputs_df": self._serialize_inputs_management_json_data(),
         }
 
     def _deserialize_flow_json_data(self, flow_json_data):
@@ -3281,6 +3726,7 @@ class quest_workflow(QWidget):
             else:
                 print(f"NO MATCH FOR NODE NAME: {repr(node_name)}")
         self.update_flow()
+        self._load_inputs_management_json_data(flow_json_data.get("inputs_df", []))
 
     def _set_current_flow_json_path(self, path):
         normalized = self._normalize_python_path(path)
@@ -3492,6 +3938,7 @@ class quest_workflow(QWidget):
                 self.flow_load_path.setText(self._display_flow_path(normalized_path))
                 self._set_current_flow_json_path(normalized_path)
                 self.set_flow_type('master-flow')
+                self._load_inputs_management_json_data(flow_json_data.get("inputs_df", []))
                 parent_workspace.activate_workflow(self)
                 parent_workspace.sync_workflow_ui(self)
                 QMessageBox.information(
@@ -4458,7 +4905,8 @@ class quest_workspace(QWidget):
 
     def _on_workspace_tab_changed(self, index):
         try:
-            if self.tab_widget.widget(index) is self._plus_tab:
+            current_widget = self.tab_widget.widget(index)
+            if current_widget is self._plus_tab:
                 self.create_workflow_tab()
             else:
                 self.sync_active_flow_name_from_tab_name()
@@ -4499,6 +4947,12 @@ class quest_workspace(QWidget):
         self._refresh_all_save_mode_options()
         if current_active is not workflow and current_active is not None:
             self.activate_workflow(current_active)
+
+    def _runner_notebook_tab_title(self, notebook_path):
+        notebook_name = os.path.splitext(os.path.basename(str(notebook_path or "")))[0]
+        if notebook_name.lower().endswith("_runner"):
+            notebook_name = notebook_name[:-7]
+        return notebook_name or "Runner"
 
     def _sanitize_flow_name(self, name):
         name = (name or "").strip() or "Workflow"
@@ -5325,6 +5779,7 @@ class quest_workspace(QWidget):
         self.master_workflow.flow_load_path.setText(self.master_workflow._display_flow_path(source_path))
         self.master_workflow._set_current_flow_json_path(source_path)
         self.master_workflow.set_flow_type("master-flow")
+        self.master_workflow._load_inputs_management_json_data(flow_json_data.get("inputs_df", []))
 
         subflows_data = [d for d in flow_json_data.get("subflows_df", []) if isinstance(d, dict)]
         proxy_nodes = self._master_proxy_nodes_in_load_order()

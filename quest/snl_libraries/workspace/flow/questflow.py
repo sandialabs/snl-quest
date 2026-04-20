@@ -4,6 +4,7 @@ import pandas as pd
 import json
 import subprocess
 import sys
+import re
 from quest.paths import get_path
 QUEST_ROOT = get_path()
 # from nodes.sequence import *
@@ -58,7 +59,7 @@ def sort_df_based_on_sequence(df, results):
     return sorted_df
 from quest.snl_libraries.workspace.flow.questflow import *
 class flow:
-    def __init__(self, flow_name, nodes_df=None, connections_df=None):
+    def __init__(self, flow_name, nodes_df=None, connections_df=None, inputs_df=None):
         """
         Initializes the Flow with a name, optional dataframes for nodes and connections with specific columns, and initializes
         py_dict dictionary based on the nodes_df if provided.
@@ -71,6 +72,7 @@ class flow:
         self.flow_name = flow_name
         self.nodes_df = pd.DataFrame(columns=['node_id', 'node_name', 'node_type', 'node_input_variable','node_input_value','node_function_wrapper', 'node_imports'])
         self.connections_df = pd.DataFrame(columns=['connection_id', 'from_node', 'to_node','mapping'])
+        self.inputs_df = []
         self.py_dict = {"imports": {}, "node_functions": {},"node_instantiations":{}, "set_inputs":{},"node_connections": {},"get_outputs":{}}
         self.py_dict["imports"]["main"] = (
             "import sys\n"
@@ -85,6 +87,7 @@ class flow:
         )
         self.py_file_name = ''
         self.main_py = ''
+        self._last_made_input_case = None
         if nodes_df is not None:
             for col in ['node_id', 'node_name', 'node_type', 'node_function_wrapper', 'node_imports']:
                 if col not in nodes_df.columns:
@@ -98,6 +101,9 @@ class flow:
                     raise ValueError(f"Missing '{col}' column in connections_df")
             for _, connection in connections_df.iterrows():
                 self.add_connection(connection)
+
+        if isinstance(inputs_df, list):
+            self.inputs_df = [dict(case_info) for case_info in inputs_df if isinstance(case_info, dict)]
          
         self._update_graph()
                    
@@ -243,26 +249,86 @@ class flow:
             connected_nodes+=self.sequence[i]
         self.connected_nodes=connected_nodes
 
-    def set_inputs(self):
+    def _base_input_case_name(self):
+        if isinstance(self.inputs_df, list) and self.inputs_df:
+            first_case_name = str(self.inputs_df[0].get("name", "") or "").strip()
+            if first_case_name:
+                return first_case_name
+        return "Base Case"
+
+    def _sanitize_case_name_for_file(self, case_name):
+        text = str(case_name or "").strip().lower()
+        text = re.sub(r'[^a-z0-9]+', '_', text)
+        text = text.strip('_')
+        return text or "base_case"
+
+    def _resolve_input_case_name(self, input_case=None):
+        requested = str(input_case or "").strip()
+        return requested or self._base_input_case_name()
+
+    def _resolve_case_inputs(self, input_case=None):
+        case_name = self._resolve_input_case_name(input_case)
+        for case_info in self.inputs_df:
+            if str(case_info.get("name", "") or "").strip() == case_name:
+                return case_info.get("inputs", []), case_name
+        if case_name != self._base_input_case_name():
+            raise ValueError(f"Input case '{case_name}' was not found.")
+        return [], self._base_input_case_name()
+
+    def _nodes_df_for_input_case(self, input_case=None):
+        effective_nodes_df = self.nodes_df.copy(deep=True)
+        case_inputs, case_name = self._resolve_case_inputs(input_case)
+        if not isinstance(case_inputs, list) or effective_nodes_df.empty:
+            return effective_nodes_df, case_name
+
+        id_to_index = {
+            str(row['node_id']): index
+            for index, row in effective_nodes_df.iterrows()
+        }
+        name_to_index = {
+            str(row['node_name']): index
+            for index, row in effective_nodes_df.iterrows()
+        }
+
+        for record in case_inputs:
+            if not isinstance(record, dict):
+                continue
+            node_index = None
+            node_id = str(record.get("node_id", "") or "").strip()
+            node_name = str(record.get("node_name", "") or "").strip()
+            if node_id and node_id in id_to_index:
+                node_index = id_to_index[node_id]
+            elif node_name and node_name in name_to_index:
+                node_index = name_to_index[node_name]
+            if node_index is None:
+                continue
+            if "value" in record:
+                effective_nodes_df.at[node_index, 'node_input_value'] = str(record.get("value", "") or "")
+        return effective_nodes_df, case_name
+
+    def set_inputs(self, nodes_df=None):
+        nodes_df = nodes_df if nodes_df is not None else self.nodes_df
          
         self._update_graph()
         # Check if start nodes of the flow are data nodes, if not raise error that start nodes must be data nodes
         for start_node in self.start_nodes:
-            start_node_type = self.nodes_df['node_type'][self.nodes_df['node_id']==start_node].values[0]
+            start_node_type = nodes_df['node_type'][nodes_df['node_id']==start_node].values[0]
             if start_node_type != 'data_node':
                 raise ValueError(f"Start node '{start_node}' must be a data node.")
             
         # Set input values for start nodes by adding proper python code into self.py_dict
+        self.py_dict['set_inputs'] = {}
         for start_node in self.start_nodes:
-            start_node_input_variable = self.nodes_df['node_input_variable'][self.nodes_df['node_id']==start_node].values[0]
-            start_node_input_value = self.nodes_df['node_input_value'][self.nodes_df['node_id']==start_node].values[0]
+            start_node_input_variable = nodes_df['node_input_variable'][nodes_df['node_id']==start_node].values[0]
+            start_node_input_value = nodes_df['node_input_value'][nodes_df['node_id']==start_node].values[0]
             self.py_dict['set_inputs'][start_node]=f"node{start_node}.set_inputs({start_node_input_variable}={start_node_input_value})"
 
-    def get_outputs(self, key=None):
+    def get_outputs(self, key=None, nodes_df=None):
+        nodes_df = nodes_df if nodes_df is not None else self.nodes_df
         self._update_graph()
-        
+        self.py_dict['get_outputs'] = {}
         for connected_node in self.connected_nodes:
-            connected_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==connected_node].values[0]
+            connected_node_name = nodes_df['node_name'][nodes_df['node_id']==connected_node].values[0]
             if key==None:
                 self.py_dict['get_outputs'][connected_node_name]=f"node{connected_node}_outputs=node{connected_node}.get_outputs()"
             elif key=='Show':
@@ -306,11 +372,12 @@ class flow:
     #                 raise ValueError(f"Missing '{col}' column in connections_df")
     #         for _, connection in connections_df.iterrows():
     #             self.add_connection(connection)
-    def make(self):
-        
+    def make(self, input_case=None, output_key=None):
+        effective_nodes_df, resolved_case_name = self._nodes_df_for_input_case(input_case)
         self._update_graph()
         # Update the flow graph and find the start nodes and flow sequence
         sorted_df=sort_df_based_on_sequence(self.connections_df,self.sequence)
+        self.set_inputs(nodes_df=effective_nodes_df)
 
         # Initialize separate lists for different parts of the program
         imports_lines = [self.py_dict["imports"]["main"]]
@@ -321,7 +388,7 @@ class flow:
         get_outputs_lines = []
 
         # Add imports, functions, and instantiations for each node in nodes_df
-        for _, row in self.nodes_df.iterrows():
+        for _, row in effective_nodes_df.iterrows():
             node_name = row['node_name']
             
             # Add import lines
@@ -348,8 +415,9 @@ class flow:
                 connections_lines.append(self.py_dict["node_connections"][connection_id])
 
         # Add get outputs commands for each connected node
+        self.get_outputs(key=output_key, nodes_df=effective_nodes_df)
         for connected_node in self.connected_nodes:
-            connected_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==connected_node].values[0]
+            connected_node_name = effective_nodes_df['node_name'][effective_nodes_df['node_id']==connected_node].values[0]
             if connected_node_name in self.py_dict["get_outputs"]:
                 get_outputs_lines.append(self.py_dict["get_outputs"][connected_node_name])
 
@@ -358,15 +426,23 @@ class flow:
     
         # Combine all lines into a single program string
         self.main_py = '\n'.join(program_lines)
+        self._last_made_input_case = resolved_case_name
         
     def save(self,path):
         flow_name=self.flow_name.replace(" ", "_")
         flow_name=flow_name.lower()
-        self.py_file_name = path + flow_name+'_program.py'
+        case_stub = self._sanitize_case_name_for_file(self._last_made_input_case or self._base_input_case_name())
+        self.py_file_name = path + flow_name + '_' + case_stub + '_program.py'
         with open(self.py_file_name , 'w') as py_file:
             py_file.write(self.main_py)
      
-    def run(self, python_executable=None, stream_output=False):
+    def run(self, python_executable=None, stream_output=False, input_case=None):
+        resolved_case_name = self._resolve_input_case_name(input_case)
+        if self._last_made_input_case != resolved_case_name:
+            self.make(input_case=resolved_case_name)
+            if self.py_file_name:
+                with open(self.py_file_name, 'w') as py_file:
+                    py_file.write(self.main_py)
         if self.py_file_name == '':
             print('Please make the flow Python program by running flow.make() first')
             return
