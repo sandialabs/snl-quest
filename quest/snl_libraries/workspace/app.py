@@ -1,6 +1,5 @@
 import sys
 import os
-import warnings
 import keyword
 import tempfile
 import pickle
@@ -518,16 +517,6 @@ class quest_workflow(QWidget):
         try:
             graph_view = self.graph_widget.findChild(QGraphicsView)
             if graph_view is not None:
-                graph_view.setObjectName("workspaceGraphView")
-                graph_view.setFrameShape(QFrame.StyledPanel)
-                graph_view.setLineWidth(1)
-                graph_view.setStyleSheet(
-                    "QGraphicsView#workspaceGraphView {"
-                    "border: 1px solid #d9e2ec;"
-                    "border-radius: 6px;"
-                    "background: white;"
-                    "}"
-                )
                 graph_view.installEventFilter(self)
                 if graph_view.viewport() is not None:
                     graph_view.viewport().installEventFilter(self)
@@ -575,15 +564,6 @@ class quest_workflow(QWidget):
         self.graph_help_overlay.adjustSize()
         self.graph_help_overlay.show()
         self._position_graph_help_overlay()
-        self.copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), self.graph_widget)
-        self.copy_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
-        self.copy_shortcut.activated.connect(self.copy_selected_nodes)
-        self.cut_shortcut = QShortcut(QKeySequence("Ctrl+X"), self.graph_widget)
-        self.cut_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
-        self.cut_shortcut.activated.connect(self.cut_selected_nodes)
-        self.paste_shortcut = QShortcut(QKeySequence("Ctrl+V"), self.graph_widget)
-        self.paste_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
-        self.paste_shortcut.activated.connect(self.paste_nodes_from_clipboard)
         self.clear_canvas_button = QPushButton("Clear Canvas", self.graph_widget)
         self.clear_canvas_button.setObjectName("clearCanvasButton")
         self.clear_canvas_button.setFixedHeight(34)
@@ -1840,58 +1820,6 @@ class quest_workflow(QWidget):
         cp_flow.get_outputs(key=None)
         cp_flow.make()
 
-        python_executable = ""
-        try:
-            if hasattr(self, "_sync_flow_metadata_from_controls"):
-                self._sync_flow_metadata_from_controls()
-        except Exception:
-            pass
-        try:
-            python_executable = str(getattr(self, "flow_environment_path", "") or "").strip()
-        except Exception:
-            python_executable = ""
-        if not python_executable:
-            try:
-                if hasattr(self, "env_path_input") and self.env_path_input is not None:
-                    python_executable = str(self.env_path_input.text() or "").strip()
-            except Exception:
-                pass
-
-        target_output_var = f"node{target_node.id}_outputs"
-        same_interpreter = False
-        try:
-            same_interpreter = (
-                bool(python_executable)
-                and os.path.isfile(python_executable)
-                and os.path.abspath(python_executable) == os.path.abspath(sys.executable)
-            )
-        except Exception:
-            same_interpreter = False
-
-        if python_executable and os.path.isfile(python_executable) and not same_interpreter:
-            append_lines = [
-                "import json",
-                "print('__QUEST_NODE_OUTPUTS_START__')",
-                f"print(json.dumps({target_output_var}, default=str))",
-                "print('__QUEST_NODE_OUTPUTS_END__')",
-            ]
-            cp_flow.main_py = cp_flow.main_py.rstrip() + "\n\n" + "\n".join(append_lines) + "\n"
-
-            with tempfile.TemporaryDirectory() as tmpdir:
-                cp_flow.save(tmpdir + os.sep)
-                result = cp_flow.run(python_executable=python_executable)
-                stdout = getattr(result, "stdout", "") or ""
-
-            start_marker = "__QUEST_NODE_OUTPUTS_START__"
-            end_marker = "__QUEST_NODE_OUTPUTS_END__"
-            if start_marker not in stdout or end_marker not in stdout:
-                raise RuntimeError("Could not find node outputs in stdout.\nSTDOUT:\n" + stdout)
-
-            payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()
-            if not payload:
-                return {}
-            return json.loads(payload)
-
         exec_scope = {}
         exec(cp_flow.main_py, exec_scope, exec_scope)
 
@@ -2069,68 +1997,33 @@ class quest_workflow(QWidget):
         self.runner_notebook_window.raise_()
         self.runner_notebook_window.activateWindow()
 
-    def _flow_environment_bootstrap(self, python_executable="", basedir=None):
-        quest_root = basedir or base_dir or get_path()
-        quest_root = os.path.abspath(str(quest_root)).replace("\\", "/")
-        python_executable = os.path.abspath(str(python_executable or "")).replace("\\", "/")
-        return (
-            "# QuESt flow bootstrap\n"
-            "import os\n"
-            "import sys\n"
-            "import subprocess\n"
-            f"QUEST_ROOT = r'{quest_root}'\n"
-            f"FLOW_PYTHON_EXECUTABLE = r'{python_executable}'\n"
-            "if os.path.dirname(QUEST_ROOT) not in sys.path:\n"
-            "    sys.path.append(os.path.dirname(QUEST_ROOT))\n"
-            "if (\n"
-            "    FLOW_PYTHON_EXECUTABLE\n"
-            "    and os.path.isfile(FLOW_PYTHON_EXECUTABLE)\n"
-            "    and os.path.abspath(sys.executable) != os.path.abspath(FLOW_PYTHON_EXECUTABLE)\n"
-            "    and os.environ.get('QUEST_FLOW_REEXEC') != '1'\n"
-            "):\n"
-            "    env = os.environ.copy()\n"
-            "    env['QUEST_FLOW_REEXEC'] = '1'\n"
-            "    env['PYTHONUNBUFFERED'] = '1'\n"
-            "    proc = subprocess.Popen(\n"
-            "        [FLOW_PYTHON_EXECUTABLE, '-u', __file__],\n"
-            "        env=env,\n"
-            "        stdout=subprocess.PIPE,\n"
-            "        stderr=subprocess.STDOUT,\n"
-            "        text=True,\n"
-            "        bufsize=1,\n"
-            "    )\n"
-            "    while True:\n"
-            "        line = proc.stdout.readline()\n"
-            "        if not line and proc.poll() is not None:\n"
-            "            break\n"
-            "        if line:\n"
-            "            print(line, end='')\n"
-            "    raise SystemExit(proc.wait())\n"
-        )
+    # def _quest_root_bootstrap(self, basedir=None):
+    #     quest_root = basedir or base_dir or get_path()
+    #     quest_root = os.path.abspath(str(quest_root)).replace("\\", "/")
+    #     return (
+    #         "import os\n"
+    #         "import sys\n"
+    #         f"QUEST_ROOT = r'{quest_root}'\n"
+    #         "if QUEST_ROOT not in sys.path:\n"
+    #         "    sys.path.insert(0, QUEST_ROOT)\n"
+    #     )
 
-    def _inject_flow_environment_into_script(self, script_path, python_executable="", basedir=None):
-        script_path = os.path.abspath(str(script_path))
-        if not os.path.exists(script_path):
-            return script_path
+    # def _inject_quest_root_into_script(self, script_path, basedir=None):
+    #     script_path = os.path.abspath(str(script_path))
+    #     if not os.path.exists(script_path):
+    #         return script_path
 
-        bootstrap = self._flow_environment_bootstrap(python_executable, basedir)
-        with open(script_path, 'r', encoding='utf-8') as f:
-            script_text = f.read()
+    #     bootstrap = self._quest_root_bootstrap(basedir)
+    #     with open(script_path, 'r', encoding='utf-8') as f:
+    #         script_text = f.read()
 
-        marker = "# QuESt flow bootstrap"
-        if marker in script_text:
-            script_text = script_text.split(marker, 1)[1]
-            marker_end = "from quest.snl_libraries.workspace.flow.questflow import *\n"
-            if marker_end in script_text:
-                script_text = script_text.split(marker_end, 1)[1]
-                script_text = (
-                    "from quest.snl_libraries.workspace.flow.questflow import *\n" + script_text
-                )
+    #     if "QUEST_ROOT = r'" in script_text:
+    #         return script_path
 
-        with open(script_path, 'w', encoding='utf-8') as f:
-            f.write(bootstrap + "\n" + script_text.lstrip())
+    #     with open(script_path, 'w', encoding='utf-8') as f:
+    #         f.write(bootstrap + "\n" + script_text)
 
-        return script_path
+    #     return script_path
 
     def run_flow(self):
         try:
@@ -2141,11 +2034,8 @@ class quest_workflow(QWidget):
             self.flow.get_outputs(key='Show')
             self.flow.make()
             self.flow.save('./')
-            script_path = self._inject_flow_environment_into_script(
-                self.flow.py_file_name,
-                self.flow_environment_path,
-                base_dir,
-            )
+            script_path = self.flow.py_file_name
+            # script_path = self._inject_quest_root_into_script(script_path, base_dir)
             notebook_path = self._create_flow_runner_notebook(script_path, flow_name)
             self._open_flow_runner_notebook(notebook_path)
             self.flow_result_label.setText(f"Opened flow runner notebook:\n{notebook_path}")
@@ -2784,13 +2674,10 @@ class quest_workflow(QWidget):
             self.name_input.setText(new_name)
             if (self.name_input.text() or "").strip() != (new_name or "").strip():
                 self.name_input.setText(new_name)
-        elif isinstance(node, PyNode):
-            new_name = self._sanitize_python_node_name(new_name or old_name, fallback="py_node", exclude_node=node)
-            self.name_input.setText(new_name)
 
         if not new_name:
             return
-        if isinstance(node, (DataNode, PyNode)):
+        if isinstance(node, DataNode):
             self.name_input.setText(new_name)
         if new_name == old_name:
             return
@@ -2994,8 +2881,7 @@ class quest_workflow(QWidget):
                     node.outputs()[out_port_name].disconnect_from(connected_port)
                 node.delete_output(out_port_name)
 
-            variable_name = self._sanitize_data_output_name(self.data_input.text())
-            self.data_input.setText(variable_name)
+            variable_name = self.data_input.text()
             node.add_dynamic_output(variable_name)
             node.node_input_variable = variable_name
 
@@ -3016,78 +2902,10 @@ class quest_workflow(QWidget):
             position = newest_node.pos()
         return position
 
-    def _existing_node_names(self, exclude_node=None):
-        names = []
-        try:
-            nodes = self.graph.all_nodes()
-        except Exception:
-            nodes = []
-        for node in nodes:
-            if exclude_node is not None and node is exclude_node:
-                continue
-            try:
-                name = str(node.name() or "").strip()
-            except Exception:
-                name = ""
-            if name:
-                names.append(name)
-        return names
-
-    def _make_unique_node_name(self, base_name, exclude_node=None):
-        base_name = (base_name or "").strip() or "node"
-        existing = set(self._existing_node_names(exclude_node=exclude_node))
-        if base_name not in existing:
-            return base_name
-        i = 2
-        while True:
-            candidate = f"{base_name}_{i}"
-            if candidate not in existing:
-                return candidate
-            i += 1
-
-    def _sanitize_python_identifier(self, name, fallback="node", suffix=None):
-        raw_name = str(name or "").strip() or fallback
-        snake = []
-        previous_was_separator = True
-        for index, ch in enumerate(raw_name):
-            if ch.isalnum():
-                if (
-                    ch.isupper()
-                    and snake
-                    and not previous_was_separator
-                    and index + 1 < len(raw_name)
-                    and raw_name[index + 1].islower()
-                ):
-                    snake.append("_")
-                snake.append(ch.lower())
-                previous_was_separator = False
-            else:
-                if not previous_was_separator:
-                    snake.append("_")
-                previous_was_separator = True
-        value = "".join(snake).strip("_") or fallback
-        while "__" in value:
-            value = value.replace("__", "_")
-        if value and value[0].isdigit():
-            value = f"_{value}"
-        if keyword.iskeyword(value):
-            value = f"{value}_{suffix or fallback}"
-        return value
-
-    def _sanitize_python_node_name(self, name, fallback="py_node", exclude_node=None):
-        base = self._sanitize_python_identifier(name, fallback=fallback, suffix="node")
-        return self._make_unique_node_name(base, exclude_node=exclude_node)
-
-    def _sanitize_data_output_name(self, name):
-        return self._sanitize_python_identifier(name, fallback="output", suffix="value")
-
-    def _sanitize_data_node_name(self, name, exclude_node=None):
-        return self._sanitize_python_node_name(name, fallback="data_node", exclude_node=exclude_node)
-
     def create_data_node(self):
         self.update_flow()
         self.node_counters["DataNode"] += 1
-        node_name = self._sanitize_data_node_name(f"data_node_{self.node_counters['DataNode']}")
+        node_name = f"DataNode{self.node_counters['DataNode']}"
         latest_pos = list(self.get_newest_node_position())
         new_pos = (latest_pos[0] + 100, latest_pos[1] + 100)
         node = self.graph.create_node('QuESt.Workspace.DataNode', name=node_name, color=(255, 255, 255), text_color=(0, 0, 0), pos=new_pos, selected=True, push_undo=True)
@@ -3105,7 +2923,7 @@ class quest_workflow(QWidget):
     def create_py_node(self):
         self.update_flow()
         self.node_counters["PyNode"] += 1
-        node_name = self._sanitize_python_node_name(f"py_node_{self.node_counters['PyNode']}", fallback="py_node")
+        node_name = f"PyNode{self.node_counters['PyNode']}"
         latest_pos = list(self.get_newest_node_position())
         new_pos = (latest_pos[0] + 100, latest_pos[1] + 100)
         node = self.graph.create_node('QuESt.Workspace.PyNode', name=node_name, color=(255, 255, 255), text_color=(0, 0, 0), pos=new_pos, selected=True, push_undo=True)
@@ -3123,172 +2941,27 @@ class quest_workflow(QWidget):
             )
         node.node_notebook_path = notebook_path
 
-    def _delete_selected_nodes_with_workspace_rules(self):
-        selected_nodes = self.graph.selected_nodes()
-        parent_workspace = self._find_workspace_parent()
-        deleted_any = False
-        for node in selected_nodes:
-            if hasattr(node, "can_be_deleted") and not node.can_be_deleted():
-                continue
-            handled = False
-            try:
-                if (
-                    self is getattr(parent_workspace, "master_workflow", None)
-                    and parent_workspace is not None
-                    and hasattr(parent_workspace, "_remove_subflow_for_proxy_node")
-                ):
-                    handled = bool(parent_workspace._remove_subflow_for_proxy_node(node))
-            except Exception:
-                handled = False
-            if not handled:
-                self.graph.delete_node(node)
-            deleted_any = True
-        if deleted_any:
-            self.update_flow()
-            self._sync_parent_proxy_wrapper_from_current_graph()
-        return deleted_any
-
-    def copy_selected_nodes(self):
-        try:
-            nodes = self.graph.selected_nodes()
-        except Exception:
-            nodes = []
-        if not nodes:
-            return
-        parent_workspace = self._find_workspace_parent()
-        if self._selection_contains_subflow_proxy(nodes):
-            return
-        if parent_workspace is not None:
-            parent_workspace._clipboard_subflows = {}
-        try:
-            self.graph.copy_nodes(nodes)
-        except Exception:
-            return
-        if self is getattr(parent_workspace, "master_workflow", None):
-            subflows = {}
-            for node in nodes:
-                if not isinstance(node, PyNode):
-                    continue
-                try:
-                    linked_workflow = parent_workspace._workflow_for_proxy_node(node)
-                except Exception:
-                    linked_workflow = None
-                if linked_workflow is None:
-                    continue
-                try:
-                    subflows[str(node.name() or "").strip()] = linked_workflow._serialize_independent_flow_json_data()
-                except Exception:
-                    pass
-            parent_workspace._clipboard_subflows = subflows
-
-    def cut_selected_nodes(self):
-        selected_nodes = self.graph.selected_nodes()
-        if not selected_nodes:
-            return
-        if self._selection_contains_subflow_proxy(selected_nodes):
-            return
-        try:
-            copied = self.graph.copy_nodes(selected_nodes)
-        except Exception:
-            copied = False
-        if copied is False:
-            return
-        self._delete_selected_nodes_with_workspace_rules()
-
-    def paste_nodes_from_clipboard(self):
-        try:
-            self.graph.paste_nodes()
-        except Exception:
-            return
-        pasted_nodes = self.graph.selected_nodes()
-
-        proxy_subflow_links = []
-        parent_workspace = self._find_workspace_parent()
-        clipboard_subflows = getattr(parent_workspace, "_clipboard_subflows", {}) if parent_workspace is not None else {}
-        for node in pasted_nodes:
-            original_name = str(node.name() or "").strip()
-            old_pos = node.pos()
-            if isinstance(node, DataNode):
-                new_name = self._sanitize_data_node_name(node.name(), exclude_node=node)
-                if new_name != node.name():
-                    node.set_name(new_name)
-                    try:
-                        node.set_pos(old_pos[0], old_pos[1])
-                    except Exception:
-                        pass
-            elif isinstance(node, PyNode):
-                old_name = original_name
-                new_name = self._sanitize_python_node_name(old_name, fallback="py_node", exclude_node=node)
-                if new_name != old_name:
-                    node.set_name(new_name)
-                    try:
-                        node.set_pos(old_pos[0], old_pos[1])
-                    except Exception:
-                        pass
-                    try:
-                        self._rename_pynode_notebook_and_wrapper(node, old_name, new_name)
-                    except Exception:
-                        pass
-                subflow_data = clipboard_subflows.get(original_name)
-                if isinstance(subflow_data, dict):
-                    proxy_subflow_links.append((node, subflow_data))
-
-        if self is getattr(parent_workspace, "master_workflow", None):
-            for proxy_node, subflow_data in proxy_subflow_links:
-                try:
-                    parent_workspace._create_copied_subflow_for_proxy(proxy_node, subflow_data)
-                except Exception:
-                    pass
-        self.update_flow()
-        self._sync_parent_proxy_wrapper_from_current_graph()
-        self.on_node_selected()
-
-    def _show_graph_context_menu(self, global_pos):
-        menu = QMenu(self)
-        selected_nodes = self.graph.selected_nodes()
-        has_proxy_selection = self._selection_contains_subflow_proxy(selected_nodes)
-        clipboard_text = QApplication.clipboard().text().strip()
-
-        copy_action = menu.addAction("Copy")
-        copy_action.setShortcut(QKeySequence("Ctrl+C"))
-        copy_action.setEnabled(bool(selected_nodes) and not has_proxy_selection)
-        copy_action.triggered.connect(self.copy_selected_nodes)
-
-        cut_action = menu.addAction("Cut")
-        cut_action.setShortcut(QKeySequence("Ctrl+X"))
-        cut_action.setEnabled(bool(selected_nodes) and not has_proxy_selection)
-        cut_action.triggered.connect(self.cut_selected_nodes)
-
-        paste_action = menu.addAction("Paste")
-        paste_action.setShortcut(QKeySequence("Ctrl+V"))
-        paste_action.setEnabled(bool(clipboard_text))
-        paste_action.triggered.connect(self.paste_nodes_from_clipboard)
-
-        menu.exec(global_pos)
-
-    def _selection_contains_subflow_proxy(self, nodes=None):
-        try:
-            selected_nodes = nodes if nodes is not None else self.graph.selected_nodes()
-        except Exception:
-            selected_nodes = []
-        if not selected_nodes:
-            return False
-        parent_workspace = self._find_workspace_parent()
-        if self is not getattr(parent_workspace, "master_workflow", None):
-            return False
-        for node in selected_nodes:
-            if not isinstance(node, PyNode):
-                continue
-            try:
-                if parent_workspace._workflow_for_proxy_node(node) is not None:
-                    return True
-            except Exception:
-                continue
-        return False
-
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Delete:
-            self._delete_selected_nodes_with_workspace_rules()
+            selected_nodes = self.graph.selected_nodes()
+            parent_workspace = self._find_workspace_parent()
+            for node in selected_nodes:
+                if hasattr(node, "can_be_deleted") and not node.can_be_deleted():
+                    continue
+                handled = False
+                try:
+                    if (
+                        self is getattr(parent_workspace, "master_workflow", None)
+                        and parent_workspace is not None
+                        and hasattr(parent_workspace, "_remove_subflow_for_proxy_node")
+                    ):
+                        handled = bool(parent_workspace._remove_subflow_for_proxy_node(node))
+                except Exception:
+                    handled = False
+                if not handled:
+                    self.graph.delete_node(node)
+            self.update_flow()
+            self._sync_parent_proxy_wrapper_from_current_graph()
         else:
             super().keyPressEvent(event)
 
@@ -3331,9 +3004,6 @@ class quest_workflow(QWidget):
                 QTimer.singleShot(0, self._handle_subworkflow_double_click)
             elif event.type() == QEvent.MouseButtonRelease and event.button() == Qt.LeftButton:
                 QTimer.singleShot(0, self._sync_parent_proxy_wrapper_from_current_graph)
-            elif event.type() == QEvent.ContextMenu:
-                self._show_graph_context_menu(event.globalPos())
-                return True
             elif event.type() in (QEvent.Resize, QEvent.Show):
                 QTimer.singleShot(0, self._position_graph_help_overlay)
                 QTimer.singleShot(0, self._position_clear_canvas_button)
@@ -3457,7 +3127,6 @@ class quest_workspace(QWidget):
 
         self.workflows = []
         self.workflow_counter = 1
-        self._clipboard_subflows = {}
         self._plus_tab = QWidget()
 
         self.master_workflow = quest_workflow(self)
@@ -3595,44 +3264,9 @@ class quest_workspace(QWidget):
                 return candidate
             i += 1
 
-    def _sanitize_python_identifier(self, name, fallback="node", suffix=None):
-        raw_name = str(name or "").strip() or fallback
-        snake = []
-        previous_was_separator = True
-        for index, ch in enumerate(raw_name):
-            if ch.isalnum():
-                if (
-                    ch.isupper()
-                    and snake
-                    and not previous_was_separator
-                    and index + 1 < len(raw_name)
-                    and raw_name[index + 1].islower()
-                ):
-                    snake.append("_")
-                snake.append(ch.lower())
-                previous_was_separator = False
-            else:
-                if not previous_was_separator:
-                    snake.append("_")
-                previous_was_separator = True
-        value = "".join(snake).strip("_") or fallback
-        while "__" in value:
-            value = value.replace("__", "_")
-        if value and value[0].isdigit():
-            value = f"_{value}"
-        if keyword.iskeyword(value):
-            value = f"{value}_{suffix or fallback}"
-        return value
-
-    def _sanitize_python_node_name(self, name, fallback="py_node", exclude_node=None):
-        base = self._sanitize_python_identifier(name, fallback=fallback, suffix="node")
-        return self._make_unique_node_name(base, exclude_node=exclude_node)
-
-    def _sanitize_data_output_name(self, name):
-        return self._sanitize_python_identifier(name, fallback="output", suffix="value")
-
     def _sanitize_data_node_name(self, name, exclude_node=None):
-        return self._sanitize_python_node_name(name, fallback="data_node", exclude_node=exclude_node)
+        base = self._sanitize_flow_name(name or "DataNode")
+        return self._make_unique_node_name(base, exclude_node=exclude_node)
 
     def _normalize_data_node_name(self, node, desired_name):
         if not isinstance(node, DataNode):
@@ -3919,8 +3553,8 @@ class quest_workspace(QWidget):
         # --- temp run ---
         code.append(IND*2 + "with tempfile.TemporaryDirectory() as tmpdir:")
         code.append(IND*3 + "f.save(tmpdir + os.sep)")
-        code.append(IND*3 + "result = f.run(python_executable=python_executable, stream_output=True)")
-        code.append(IND*3 + "stdout = getattr(result, 'quest_stdout', '') or getattr(result, 'stdout', '') or ''")
+        code.append(IND*3 + "result = f.run(python_executable=python_executable)")
+        code.append(IND*3 + "stdout = getattr(result, 'stdout', '') or ''")
 
         # --- parse output ---
         code.append(IND*2 + "start_marker = '__QUEST_SUBFLOW_RESULTS_START__'")
@@ -4098,39 +3732,6 @@ class quest_workspace(QWidget):
         if tab is None:
             return None
         return getattr(tab, "_workflow_instance", None)
-
-    def _create_copied_subflow_for_proxy(self, proxy_node, subflow_data):
-        if proxy_node is None or not isinstance(proxy_node, PyNode):
-            return None
-        if not isinstance(subflow_data, dict):
-            return None
-
-        requested_name = str(proxy_node.name() or "").strip() or str(subflow_data.get("flow_name") or "").strip() or f"Workflow {self.workflow_counter}"
-        workflow = self.create_workflow_tab(title=requested_name, create_proxy=False)
-        workflow._subflow_proxy_node = proxy_node
-        workflow._deserialize_flow_json_data(subflow_data)
-        workflow.set_flow_type("sub-flow")
-
-        target_name = self._make_unique_flow_name(str(proxy_node.name() or "").strip() or requested_name, exclude_workflow=workflow)
-        try:
-            workflow.flow_run_input.setText(target_name)
-        except Exception:
-            pass
-        try:
-            self._sync_subworkflow_proxy_node_name(workflow, target_name)
-        except Exception:
-            pass
-
-        try:
-            self.sync_workflow_ui(workflow)
-        except Exception:
-            pass
-        try:
-            self.activate_workflow(self.master_workflow)
-            self.sync_workflow_ui(self.master_workflow)
-        except Exception:
-            pass
-        return workflow
 
     def _find_unassigned_master_proxy_node_by_name(self, flow_name):
         target_name = str(flow_name or "").strip()
@@ -4434,11 +4035,7 @@ class WMainWindow(QMainWindow):
         if workflow is None:
             return
         try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                workflow.flow_run_input.textChanged.disconnect(
-                    self.quest_workspace_widget.sync_active_workflow_tab_name_from_flow_name
-                )
+            workflow.flow_run_input.textChanged.disconnect(self.quest_workspace_widget.sync_active_workflow_tab_name_from_flow_name)
         except Exception:
             pass
         try:

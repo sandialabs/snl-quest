@@ -222,19 +222,8 @@ class app_manager:
                 if (
                     os.path.exists(os.path.join(site_packages_dir, module_name))
                     or os.path.exists(os.path.join(site_packages_dir, f"{module_name}.py"))
-                    or os.path.exists(os.path.join(site_packages_dir, f"{module_name}.pth"))
                 ):
                     return True
-                try:
-                    entries = os.listdir(site_packages_dir)
-                except Exception:
-                    entries = []
-                prefix = f"{module_name.replace('-', '_')}-"
-                suffix = ".dist-info"
-                for entry in entries:
-                    normalized_entry = entry.lower().replace("-", "_")
-                    if normalized_entry.startswith(prefix.lower()) and normalized_entry.endswith(suffix):
-                        return True
             return False
 
         if module_name:

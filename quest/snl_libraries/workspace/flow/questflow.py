@@ -23,9 +23,6 @@ def find_start_nodes(graph_input):
     start_nodes = all_nodes - to_nodes
     return start_nodes
 
-def find_end_nodes(graph_input):
-    return {node for node, edges in graph_input.items() if not edges}
-
 def remove_nodes(graph_input, nodes_to_remove):
     for node in nodes_to_remove:
         del graph_input[node]
@@ -82,8 +79,7 @@ class flow:
             "import tempfile\n"
             "import pandas as pd\n"
             f"QUEST_ROOT = r'{QUEST_ROOT}'\n"
-            "if os.path.dirname(QUEST_ROOT) not in sys.path:\n"
-            "    sys.path.append(os.path.dirname(QUEST_ROOT))\n"
+            "sys.path.insert(0, os.path.dirname(QUEST_ROOT))\n"
             "from quest.snl_libraries.workspace.nodes.pynodes import python_node, data_node\n"
             "from quest.snl_libraries.workspace.flow.questflow import *\n"
         )
@@ -241,7 +237,6 @@ class flow:
         self.start_nodes = list(find_start_nodes(graph_temp))
         self.sequence = find_sequence(graph_temp)
         self.graph_dict = build_graph(self.connections_df)
-        self.end_nodes = list(find_end_nodes(self.graph_dict))
 
         connected_nodes=[]
         for i in range(len(self.sequence)):
@@ -266,12 +261,12 @@ class flow:
     def get_outputs(self, key=None):
         self._update_graph()
         
-        for output_node in self.end_nodes:
-            output_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==output_node].values[0]
+        for connected_node in self.connected_nodes:
+            connected_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==connected_node].values[0]
             if key==None:
-                self.py_dict['get_outputs'][output_node_name]=f"node{output_node}_outputs=node{output_node}.get_outputs()"
+                self.py_dict['get_outputs'][connected_node_name]=f"node{connected_node}_outputs=node{connected_node}.get_outputs()"
             elif key=='Show':
-                self.py_dict['get_outputs'][output_node_name]=f"print('{output_node_name}_outputs:',node{output_node}.get_outputs())"
+                self.py_dict['get_outputs'][connected_node_name]=f"print('{connected_node_name}_outputs:',node{connected_node}.get_outputs())"
             else:
                 raise ValueError("get_outputs key must be None or 'Show' ")
     # def load(self,flow_file_name):
@@ -352,11 +347,11 @@ class flow:
             if connection_id in self.py_dict["node_connections"]:
                 connections_lines.append(self.py_dict["node_connections"][connection_id])
 
-        # Add get outputs commands only for terminal nodes to avoid re-running intermediate nodes.
-        for output_node in self.end_nodes:
-            output_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==output_node].values[0]
-            if output_node_name in self.py_dict["get_outputs"]:
-                get_outputs_lines.append(self.py_dict["get_outputs"][output_node_name])
+        # Add get outputs commands for each connected node
+        for connected_node in self.connected_nodes:
+            connected_node_name = self.nodes_df['node_name'][self.nodes_df['node_id']==connected_node].values[0]
+            if connected_node_name in self.py_dict["get_outputs"]:
+                get_outputs_lines.append(self.py_dict["get_outputs"][connected_node_name])
 
         # Combine all parts into the final program
         program_lines = imports_lines + ['\n# Functions'] + functions_lines + ['\n# Instantiations'] + instantiations_lines + ['\n# Set inputs'] + set_inputs_lines + ['\n# Connections'] + connections_lines + ['\n# Get Outputs'] + get_outputs_lines
@@ -384,14 +379,13 @@ class flow:
             raise RuntimeError(f"Python executable not found: {python_exe}")
 
         env = os.environ.copy()
-        env["PYTHONUNBUFFERED"] = "1"
 
         if platform.system() == "Windows":
             scripts_dir = os.path.dirname(python_exe)
             venv_root = os.path.dirname(scripts_dir)
             env["VIRTUAL_ENV"] = venv_root
             env["PATH"] = scripts_dir + os.pathsep + env.get("PATH", "")
-            command = [python_exe, "-u", self.py_file_name]
+            command = [python_exe, self.py_file_name]
         else:
             activate_script_path = python_exe.replace('bin/python', 'bin/activate')
             if activate_script_path == python_exe:
@@ -399,7 +393,7 @@ class flow:
             venv_root = os.path.dirname(os.path.dirname(python_exe))
             env["VIRTUAL_ENV"] = venv_root
             env["PATH"] = os.path.join(venv_root, "bin") + os.pathsep + env.get("PATH", "")
-            command = ["/bin/bash", "-c", f"source '{activate_script_path}' && '{python_exe}' -u '{self.py_file_name}'"]
+            command = ["/bin/bash", "-c", f"source '{activate_script_path}' && '{python_exe}' '{self.py_file_name}'"]
 
         try:
             print(f"Running with command: {command}")
@@ -415,22 +409,17 @@ class flow:
                     env=env,
                 )
 
-                streamed_output = []
                 while proc.poll() is None:
                     line = proc.stdout.readline()
                     if line:
-                        streamed_output.append(line)
                         print(line, end="")
 
                 rest = proc.stdout.read()
                 if rest:
-                    streamed_output.append(rest)
                     print(rest, end="")
 
-                proc.quest_stdout = "".join(streamed_output)
-
                 if proc.returncode != 0:
-                    raise RuntimeError(proc.quest_stdout or "Flow execution failed")
+                    raise RuntimeError("Flow execution failed")
 
                 return proc
 

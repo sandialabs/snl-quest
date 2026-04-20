@@ -4,13 +4,6 @@ import ctypes
 
 # Configure the Qt graphics backend before importing any Qt widgets or creating QApplication.
 os.environ.setdefault("QT_OPENGL", "software")
-os.environ.setdefault("QT_QUICK_BACKEND", "software")
-os.environ.setdefault(
-    "QTWEBENGINE_CHROMIUM_FLAGS",
-    "--disable-gpu --disable-gpu-compositing --disable-gpu-rasterization "
-    "--disable-software-rasterizer --disable-features=VizDisplayCompositor "
-    "--log-level=3",
-)
 
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
@@ -26,11 +19,10 @@ from quest import __version__
 dirname = get_path()
 DISPLAY_VERSION = ".".join(__version__.split(".")[:2])
 
-# Prefer software rendering for Qt and the embedded Chromium views on systems
-# where hardware/OpenGL context creation is unreliable.
+# Force software OpenGL while still initializing WebEngine's shared GL context correctly.
 QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
-QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Software)
+QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.OpenGL)
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """

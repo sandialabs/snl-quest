@@ -1,7 +1,6 @@
 import json
 import os
 import re
-import warnings
 from PySide6.QtCore import (
     QEvent,
     QPropertyAnimation,
@@ -20,7 +19,6 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFormLayout,
     QFileDialog,
-    QFrame,
     QGridLayout,
     QLabel,
     QLineEdit,
@@ -65,10 +63,7 @@ class gui_connector():
         self.front.progress_bar.setValue(0)
         self.log_dialog = None
         self.log_browser = None
-        self.info_page = None
-        self._show_info_page = None
         self._post_uninstall_callback = None
-        self._last_action = None
         self.menu = QMenu()
         self.menu.addAction("Uninstall", self.app_removal)
         self.front.setting_button.setMenu(self.menu)
@@ -89,51 +84,14 @@ class gui_connector():
         self.log_browser.setOpenExternalLinks(True)
         layout.addWidget(self.log_browser)
 
-    def bind_info_page(self, info_page, show_callback=None):
-        """Attach this connector to an embedded info page log panel."""
-        self.info_page = info_page
-        self._show_info_page = show_callback
-
-    def reveal_info_page(self):
-        """Open the app's info page before writing log output there."""
-        if self._show_info_page is not None:
-            try:
-                self._show_info_page()
-            except Exception:
-                pass
-
-    def _disconnect_runner_signals(self):
-        """Avoid duplicate signal connections between repeated app actions."""
-        if not hasattr(self.back, "runner"):
-            return
-        signals = self.back.runner.signals
-        for signal, slot in (
-            (signals.output_line, self.append_install_log),
-            (signals.result, self.handle_install_result),
-            (signals.result, self.handle_uninstall_result),
-            (signals.finished, self.reset_gui),
-        ):
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", RuntimeWarning)
-                try:
-                    signal.disconnect(slot)
-                except Exception:
-                    pass
-
     def append_install_log(self, text):
         """Append process output to the visible install log."""
         self.ensure_log_dialog()
         if text:
             self.log_browser.append(text)
-            if self.info_page is not None:
-                self.info_page.append_log(text)
 
     def show_install_output(self):
-        """Reveal the install log in the embedded info page or fallback dialog."""
-        if self.info_page is not None:
-            self.reveal_info_page()
-            self.info_page.set_log_visible(True)
-            return
+        """Ensure the install log window is visible to the user."""
         self.ensure_log_dialog()
         self.log_dialog.show()
         self.log_dialog.raise_()
@@ -149,24 +107,14 @@ class gui_connector():
         """
         self.front.progress_bar.setRange(0,0)
         self.front.install_button.setEnabled(False)
-        self.show_install_output()
-        self.ensure_log_dialog()
-        if self.log_browser is not None:
-            self.log_browser.clear()
-        if self.info_page is not None:
-            self.info_page.clear_log()
-            self.info_page.set_log_visible(True)
-        app_installed = self.back.is_app_installed()
-        action_name = "launch" if app_installed else "install"
-        self._last_action = action_name
-        self.append_install_log(f"Preparing to {action_name} the app...")
         self.back.install()
-        self._disconnect_runner_signals()
+        self.show_install_output()
+        self.log_browser.clear()
         self.append_install_log(f"Starting process: {' '.join(self.back.runner.command)}")
         self.back.runner.signals.output_line.connect(self.append_install_log)
         self.back.runner.signals.result.connect(self.handle_install_result)
-        if app_installed:
-            self.front.install_button.setText("Launching")
+        if self.back.is_app_installed():
+            self.front.install_button.setText("Running")
         else:
             self.front.install_button.setText("Installing")
         self.back.runner.signals.finished.connect(self.reset_gui)
@@ -190,16 +138,10 @@ class gui_connector():
         self.front.install_button.setChecked(False)
         if self.back.is_app_installed():
             self.front.install_button.setText("Launch")
-            if self._last_action == "launch":
-                self.append_install_log("Launch finished.")
-            else:
-                self.append_install_log("Installation finished. The app appears to be installed.")
+            self.append_install_log("Installation finished. The app appears to be installed.")
         else:
             self.front.install_button.setText("Install")
-            if self._last_action == "uninstall":
-                self.append_install_log("Uninstall finished. The app is no longer detected as installed.")
-            else:
-                self.append_install_log("Installation finished, but the app is still not detected as installed.")
+            self.append_install_log("Installation finished, but the app is still not detected as installed.")
 
     def app_removal(self):
         """
@@ -213,17 +155,9 @@ class gui_connector():
         self.front.install_button.setChecked(True)
         self.front.install_button.setEnabled(False)
         self.front.install_button.setText('Uninstalling')
-        self._last_action = "uninstall"
-        self.show_install_output()
-        self.ensure_log_dialog()
-        if self.log_browser is not None:
-            self.log_browser.clear()
-        if self.info_page is not None:
-            self.info_page.clear_log()
-            self.info_page.set_log_visible(True)
-        self.append_install_log("Preparing to uninstall the app...")
         self.back.remove_app()
-        self._disconnect_runner_signals()
+        self.show_install_output()
+        self.log_browser.clear()
         self.append_install_log(f"Starting process: {' '.join(self.back.runner.command)}")
         self.back.runner.signals.output_line.connect(self.append_install_log)
         self.back.runner.signals.result.connect(self.handle_uninstall_result)
@@ -282,40 +216,6 @@ class InfoPage(QWidget):
         """
         super().__init__()
         self.layout = QVBoxLayout()
-        self.layout.setContentsMargins(14, 14, 14, 14)
-        self.layout.setSpacing(12)
-        self.setObjectName("infoPage")
-        self.setStyleSheet("""
-            QWidget#infoPage {
-                background: #f8fafc;
-                border: 1px solid #c7d1dd;
-                border-radius: 10px;
-            }
-            QFrame#infoSection, QFrame#logSection {
-                background: #ffffff;
-                border: 1px solid #d9e2ec;
-                border-radius: 8px;
-            }
-            QLabel#sectionTitle {
-                font-size: 14px;
-                font-weight: bold;
-                color: #334155;
-            }
-            QTextBrowser {
-                border: none;
-                background: transparent;
-            }
-        """)
-
-        self.info_section = QFrame()
-        self.info_section.setObjectName("infoSection")
-        self.info_section_layout = QVBoxLayout(self.info_section)
-        self.info_section_layout.setContentsMargins(14, 12, 14, 12)
-        self.info_section_layout.setSpacing(8)
-
-        self.info_label = QLabel("App Info")
-        self.info_label.setObjectName("sectionTitle")
-        self.info_section_layout.addWidget(self.info_label)
 
         self.text_browser = QTextBrowser()
         # Formatting the info content
@@ -330,40 +230,9 @@ class InfoPage(QWidget):
         </html>
         """
         self.text_browser.setHtml(html_content)
-        self.info_section_layout.addWidget(self.text_browser)
 
-        self.log_section = QFrame()
-        self.log_section.setObjectName("logSection")
-        self.log_section_layout = QVBoxLayout(self.log_section)
-        self.log_section_layout.setContentsMargins(14, 12, 14, 12)
-        self.log_section_layout.setSpacing(8)
-
-        self.log_label = QLabel("App Log")
-        self.log_label.setObjectName("sectionTitle")
-        self.log_browser = QTextBrowser()
-        self.log_browser.setOpenExternalLinks(True)
-        self.log_browser.setMinimumHeight(180)
-        self.log_browser.setPlaceholderText("Install, uninstall, and launch output will appear here.")
-        self.log_section_layout.addWidget(self.log_label)
-        self.log_section_layout.addWidget(self.log_browser)
-        self.log_section.hide()
-
-        self.layout.addWidget(self.info_section)
-        self.layout.addWidget(self.log_section)
+        self.layout.addWidget(self.text_browser)
         self.setLayout(self.layout)
-
-    def set_log_visible(self, visible):
-        self.log_section.setVisible(bool(visible))
-
-    def append_log(self, text):
-        if not text:
-            return
-        self.set_log_visible(True)
-        self.log_browser.append(text)
-
-    def clear_log(self):
-        self.log_browser.clear()
-        self.set_log_visible(False)
 
 
 
@@ -405,10 +274,6 @@ class info_drop():
 
         index = self.stack.addWidget(page)
         return index
-
-    def page_at(self, page_index):
-        widget = self.stack.widget(page_index)
-        return widget if isinstance(widget, InfoPage) else None
 
 
 
@@ -1161,10 +1026,6 @@ class home_page(QWidget, Ui_home_page):
             config["title"],
             config["contact"],
             config["info"],
-        )
-        connector.bind_info_page(
-            self.add_info_page.page_at(page_index),
-            partial(self.add_info_page.about_page_drop, page_index),
         )
         self.add_info_page.connect_about(front.about_button, page_index)
         row, column = config["grid_position"]
