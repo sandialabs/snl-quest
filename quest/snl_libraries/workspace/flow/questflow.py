@@ -485,17 +485,22 @@ class flow:
                     env=env,
                 )
 
+                captured_stdout = []
                 while proc.poll() is None:
                     line = proc.stdout.readline()
                     if line:
+                        captured_stdout.append(line)
                         print(line, end="")
 
                 rest = proc.stdout.read()
                 if rest:
+                    captured_stdout.append(rest)
                     print(rest, end="")
 
+                proc.quest_stdout = "".join(captured_stdout)
+
                 if proc.returncode != 0:
-                    raise RuntimeError("Flow execution failed")
+                    raise RuntimeError(proc.quest_stdout or "Flow execution failed")
 
                 return proc
 
