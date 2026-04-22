@@ -1,12 +1,17 @@
 import streamlit as st
 import streamlit.components.v1 as stc
-import matplotlib
 import pandas as pd
 from openai import OpenAI
 import configparser
 import contextlib
 import io
 import os
+
+try:
+    import matplotlib  # noqa: F401
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
 
 # Config file path
 config_file = 'config.ini'
@@ -150,9 +155,11 @@ def main():
                 else:
                     st.error("Please enter your OpenAI API key.")
         with col2:
-            
+             
             if "code" in st.session_state and st.session_state.code is not None:
                 try:
+                    if not HAS_MATPLOTLIB:
+                        st.warning("Matplotlib is not installed. Query results will still run, but generated plots cannot be displayed.")
                     pycode = extract_content(st.session_state.code)
                     show_button = st.button("Show results")
                     # df=pd.read_csv(st.session_state.uploaded_csv )
@@ -163,9 +170,10 @@ def main():
                         st.write(output[0])
                         df1=pd.DataFrame(st.session_state.results,columns=["Query History"])
                         st.dataframe(df1,width=800)
-                        image_path = './Lib/site-packages/quest/snl_libraries/gpt/data/graphs/latest_graph.png'
-                        st.image(image_path)
-                        
+                        if HAS_MATPLOTLIB:
+                            image_path = './Lib/site-packages/quest/snl_libraries/gpt/data/graphs/latest_graph.png'
+                            st.image(image_path)
+                         
                     else:
                         st.error("Please run the code to see the results")
                 except Exception as e:

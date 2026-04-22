@@ -997,7 +997,7 @@ class quest_workflow(QWidget):
         self.notebook_preview_highlighter = PythonSyntaxHighlighter(self.notebook_preview.document())
 
         self.py_button = QPushButton("Update Python Function")
-        self.py_button.clicked.connect(self.update_ports)
+        self.py_button.clicked.connect(self.update_python_function_button)
 
         self.py_node_outputs_button = QPushButton("View Node Outputs")
         self.py_node_outputs_button.clicked.connect(self.view_node_outputs_from_selected_node)
@@ -1948,6 +1948,12 @@ class quest_workflow(QWidget):
         if not has_json_code:
             return self._ensure_node_notebook(node)
         return self._write_notebook_from_legacy_python(node)
+
+    def _refresh_notebook_ui_after_file_load(self):
+        try:
+            self.on_node_selected()
+        except Exception:
+            pass
 
     def _rename_pynode_notebook_and_wrapper(self, node, old_name, new_name):
         old_func = f"{old_name}_function"
@@ -4118,6 +4124,7 @@ class quest_workflow(QWidget):
             self._set_current_flow_json_path(normalized_path)
             if parent_workspace is not None and hasattr(parent_workspace, 'sync_workflow_ui'):
                 parent_workspace.sync_workflow_ui(self)
+            self._refresh_notebook_ui_after_file_load()
             QMessageBox.information(
                 self,
                 "Flow Loaded",
@@ -4222,6 +4229,12 @@ class quest_workflow(QWidget):
                 except Exception:
                     preview_code = ""
                 self.notebook_preview.setPlainText(preview_code)
+                if self.is_popped_out and hasattr(self, "notebook_view") and notebook_path and os.path.exists(notebook_path):
+                    try:
+                        self._editor_to_notebook(notebook_path)
+                        self.notebook_view.load_notebook(notebook_path)
+                    except Exception:
+                        pass
                 self.data_widget.hide()
                 self.value_widget.hide()
                 self.text_widget.hide()
@@ -4485,6 +4498,28 @@ class quest_workflow(QWidget):
             print(node.properties())
             node.set_pos(old_pos[0], old_pos[1])
             self._refresh_inputs_management_views()
+
+    def update_python_function_button(self):
+        selected_nodes = self.graph.selected_nodes()
+        if len(selected_nodes) != 1:
+            return
+
+        node = selected_nodes[0]
+        if isinstance(node, PyNode):
+            parent_workspace = self._find_workspace_parent()
+            if parent_workspace is not None and hasattr(parent_workspace, "_workflow_for_proxy_node"):
+                try:
+                    linked_workflow = parent_workspace._workflow_for_proxy_node(node)
+                except Exception:
+                    linked_workflow = None
+                if linked_workflow is not None:
+                    try:
+                        parent_workspace._sync_proxy_wrapper_for_subflow(linked_workflow)
+                    except Exception as e:
+                        print(f"Failed to sync proxy wrapper from subflow: {e}")
+                    return
+
+        self.update_ports()
 
     def update_ports(self):
         selected_nodes = self.graph.selected_nodes()
@@ -6013,9 +6048,26 @@ class quest_workspace(QWidget):
                     self._sync_subworkflow_proxy_node_name(workflow, loaded_name)
                 except Exception:
                     pass
+            try:
+                self._sync_proxy_wrapper_for_subflow(workflow)
+            except Exception:
+                pass
             self.sync_workflow_ui(workflow)
 
         self.activate_workflow(self.master_workflow)
+        for workflow in self._subflow_workflows():
+            try:
+                self._sync_proxy_wrapper_for_subflow(workflow)
+            except Exception:
+                pass
+            try:
+                workflow._refresh_notebook_ui_after_file_load()
+            except Exception:
+                pass
+        try:
+            self.master_workflow._refresh_notebook_ui_after_file_load()
+        except Exception:
+            pass
         self.sync_workflow_ui(self.master_workflow)
 
     def create_workflow_tab(self, title=None, create_proxy=True):
