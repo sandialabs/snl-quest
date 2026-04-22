@@ -26,7 +26,7 @@ setup(
     install_requires=[
         "kivy==2.1.0",
         "scipy==1.12.0",
-        "pandas==2.2.1",
+        "pandas>=2.2.3,<2.3",
         "pyomo==6.7.1",
         "matplotlib==3.7.4",
         "kivy-garden==0.1.5",

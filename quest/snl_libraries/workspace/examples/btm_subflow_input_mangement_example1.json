@@ -2,14 +2,14 @@
     "flow_name": "Master_btm_flow_2026",
     "flow_type": "master-flow",
     "flow_environment_name": "Master_btm_flow_2026_env",
-    "flow_environment_path": "C:/work/quest210-py313/Scripts/python.exe",
+    "flow_environment_path": "C:/work/quest210_env/Scripts/python.exe",
     "flow_layout": {
         "graph": {
             "acyclic": true,
             "pipe_collision": false
         },
         "nodes": {
-            "0x20f4bbb3360": {
+            "0x23f5b1f7a10": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "pv_path",
@@ -53,7 +53,7 @@
                     "Text Caption": ""
                 }
             },
-            "0x20f4bbb3e10": {
+            "0x23f5b34f250": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "rate_path",
@@ -97,7 +97,7 @@
                     "Text Caption": ""
                 }
             },
-            "0x20f4bed82b0": {
+            "0x23f5b34f750": {
                 "type_": "QuESt.Workspace.DataNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                 "name": "load_path",
@@ -141,7 +141,7 @@
                     "Text Caption": ""
                 }
             },
-            "0x20f4bed8050": {
+            "0x23f2f995cd0": {
                 "type_": "QuESt.Workspace.PyNode",
                 "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                 "name": "btm_flow_2026_new",
@@ -175,17 +175,17 @@
                 "subgraph_session": {},
                 "input_ports": [
                     {
+                        "name": "rate_path1",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
                         "name": "pv_path",
                         "multi_connection": false,
                         "display_name": true
                     },
                     {
                         "name": "load_path",
-                        "multi_connection": false,
-                        "display_name": true
-                    },
-                    {
-                        "name": "rate_path1",
                         "multi_connection": false,
                         "display_name": true
                     }
@@ -207,31 +207,31 @@
         "connections": [
             {
                 "out": [
-                    "0x20f4bbb3360",
+                    "0x23f5b1f7a10",
                     "pv_path"
                 ],
                 "in": [
-                    "0x20f4bed8050",
+                    "0x23f2f995cd0",
                     "pv_path"
                 ]
             },
             {
                 "out": [
-                    "0x20f4bbb3e10",
+                    "0x23f5b34f250",
                     "rate_path"
                 ],
                 "in": [
-                    "0x20f4bed8050",
+                    "0x23f2f995cd0",
                     "rate_path1"
                 ]
             },
             {
                 "out": [
-                    "0x20f4bed82b0",
+                    "0x23f5b34f750",
                     "load_path"
                 ],
                 "in": [
-                    "0x20f4bed8050",
+                    "0x23f2f995cd0",
                     "load_path"
                 ]
             }
@@ -239,7 +239,7 @@
     },
     "nodes_df": [
         {
-            "node_id": "0x20f4bbb3360",
+            "node_id": "0x23f5b1f7a10",
             "node_name": "pv_path",
             "node_type": "data_node",
             "node_input_variable": "pv_path",
@@ -253,7 +253,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x20f4bbb3e10",
+            "node_id": "0x23f5b34f250",
             "node_name": "rate_path",
             "node_type": "data_node",
             "node_input_variable": "rate_path",
@@ -267,7 +267,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x20f4bed82b0",
+            "node_id": "0x23f5b34f750",
             "node_name": "load_path",
             "node_type": "data_node",
             "node_input_variable": "load_path",
@@ -281,7 +281,7 @@
             "node_notebook_path": ""
         },
         {
-            "node_id": "0x20f4bed8050",
+            "node_id": "0x23f2f995cd0",
             "node_name": "btm_flow_2026_new",
             "node_type": "python_node",
             "node_input_variable": "",
@@ -290,7 +290,7 @@
             "node_is_path": false,
             "node_is_from_master": false,
             "node_expose_outputs": [],
-            "node_function_wrapper": "def btm_flow_2026_new_function(pv_path=None, rate_path1=None, load_path=None):\n    def update_subflow(subflow_nodes_df, **kwargs):\n        for idx, row in subflow_nodes_df.iterrows():\n            if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:\n                node_name = str(row.get('node_name', '')).strip()\n                if node_name in kwargs:\n                    subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])\n        return subflow_nodes_df\n\n    def normalize_subflow_inputs(subflow_inputs_df):\n        normalized_inputs = []\n        for index, case_info in enumerate(subflow_inputs_df or []):\n            if not isinstance(case_info, dict):\n                continue\n            case_name = str(case_info.get('name', '') or '').strip()\n            if not case_name or (index == 0 and case_name == 'Base Case'):\n                case_name = f'Subcase {index}'\n            case_inputs = case_info.get('inputs', [])\n            if not isinstance(case_inputs, list):\n                case_inputs = []\n            normalized_inputs.append({'name': case_name, 'inputs': case_inputs})\n        if not normalized_inputs:\n            normalized_inputs.append({'name': 'Subcase 0', 'inputs': []})\n        return normalized_inputs\n\n    def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, subflow_inputs_df, input_case=None, python_executable=None):\n        f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df, inputs_df=subflow_inputs_df)\n        f.make(input_case=input_case)\n        append_lines = []\n        append_lines.append('import json')\n        append_lines.append('_quest_subflow_results = {}')\n        append_lines.append(\"if 'node0x20f4beda190_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['data_manager'] = node0x20f4beda190_outputs\")\n        append_lines.append(\"if 'node0x20f4beda3f0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['load_profile'] = node0x20f4beda3f0_outputs\")\n        append_lines.append(\"if 'node0x20f4beda060_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['pv_profile'] = node0x20f4beda060_outputs\")\n        append_lines.append(\"if 'node0x20f4beda520_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['rate_structure_new'] = node0x20f4beda520_outputs\")\n        append_lines.append(\"if 'node0x20f4beda650_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_request'] = node0x20f4beda650_outputs\")\n        append_lines.append(\"if 'node0x20f4beda780_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_process'] = node0x20f4beda780_outputs\")\n        append_lines.append(\"if 'node0x20f4beda9e0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['ess_parameters'] = node0x20f4beda9e0_outputs\")\n        append_lines.append(\"if 'node0x20f4bedafd0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['results'] = node0x20f4bedafd0_outputs\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_START__')\")\n        append_lines.append(\"print(json.dumps(_quest_subflow_results, default=str))\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_END__')\")\n        f.main_py = f.main_py.rstrip() + '\\n\\n' + '\\n'.join(append_lines) + '\\n'\n        with tempfile.TemporaryDirectory() as tmpdir:\n            f.save(tmpdir + os.sep)\n            result = f.run(python_executable=python_executable, stream_output=True, input_case=input_case)\n            stdout = getattr(result, 'quest_stdout', None)\n            if stdout is None:\n                stdout = getattr(result, 'stdout', '') or ''\n            if hasattr(stdout, 'read'):\n                try:\n                    stdout = stdout.read()\n                except Exception:\n                    stdout = str(stdout)\n            elif not isinstance(stdout, str):\n                stdout = str(stdout)\n        start_marker = '__QUEST_SUBFLOW_RESULTS_START__'\n        end_marker = '__QUEST_SUBFLOW_RESULTS_END__'\n        if start_marker not in stdout or end_marker not in stdout:\n            raise RuntimeError('Could not find subflow results in stdout.\\nSTDOUT:\\n' + stdout)\n        payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()\n        if not payload:\n            return {}\n        return json.loads(payload)\n\n    subflow_name = 'btm_flow_2026_new'\n    subflow_nodes_df = pd.DataFrame([{'node_id': '0x20f4bed9cd0', 'node_name': 'BTM Optimization Handler', 'node_type': 'back_node', 'node_input_variable': '', 'node_input_value': 'This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4beda190', 'node_name': 'data_manager', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def data_manager_function(data_path):\\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\\n    return {'dms': dms}\", 'node_imports': 'from btm.es_gui.tools.btm.btm_dms import BtmDMS\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\data_manager.ipynb'}, {'node_id': '0x20f4beda2c0', 'node_name': 'data_location', 'node_type': 'data_node', 'node_input_variable': 'data_path', 'node_input_value': '\"/data/\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4beda3f0', 'node_name': 'load_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def load_profile_function(load_data_path):\\n    load_profile = {'name': 'data_center_10MW', 'path': load_data_path}\\n    return {'load_profile': load_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\load_profile.ipynb'}, {'node_id': '0x20f4bed9f30', 'node_name': 'pv_path', 'node_type': 'data_node', 'node_input_variable': 'pv_path', 'node_input_value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4beda060', 'node_name': 'pv_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def pv_profile_function(pv_data_path):\\n    pv_profile = {'name': 'ZeroPV', 'path': pv_data_path}\\n    return {'pv_profile': pv_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\pv_profile.ipynb'}, {'node_id': '0x20f4bed9e00', 'node_name': 'rate_path1', 'node_type': 'data_node', 'node_input_variable': 'rate_path', 'node_input_value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4beda520', 'node_name': 'rate_structure_new', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def rate_structure_new_function(rate_path):\\n    with open(rate_path, 'r') as file:\\n        rate_structure = json.load(file)\\n    return {'rate_structure': rate_structure}\", 'node_imports': 'import json\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\rate_structure_new.ipynb'}, {'node_id': '0x20f4beda650', 'node_name': 'btm_op_request', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\\n    return {'btm_op_request': op_handler_request}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_request.ipynb'}, {'node_id': '0x20f4beda780', 'node_name': 'btm_op_process', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_process_function(btm_op_request, dms, solver_name):\\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\\n    btm_solved_op, handler_status = btm_op_handler.process_requests(btm_op_request)\\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}\", 'node_imports': 'from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_process.ipynb'}, {'node_id': '0x20f4beda8b0', 'node_name': 'power_rating', 'node_type': 'data_node', 'node_input_variable': 'power', 'node_input_value': '100', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4beda9e0', 'node_name': 'ess_parameters', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def ess_parameters_function(power, energy, rte):\\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\\n    return {'ess_parameters': [params]}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\ess_parameters.ipynb'}, {'node_id': '0x20f4bedab10', 'node_name': 'energy_capacity', 'node_type': 'data_node', 'node_input_variable': 'energy', 'node_input_value': '400', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4bedac40', 'node_name': 'rte', 'node_type': 'data_node', 'node_input_variable': 'rte', 'node_input_value': '0.88', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4bedad70', 'node_name': 'solver', 'node_type': 'data_node', 'node_input_variable': 'solver_name', 'node_input_value': '\"glpk\"', 'node_value_display': True, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4bedaea0', 'node_name': 'load_path', 'node_type': 'data_node', 'node_input_variable': 'load_path', 'node_input_value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x20f4bedafd0', 'node_name': 'results', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': ['saved_location', 'checkpoints'], 'node_function_wrapper': \"def results_function(solved_ops, saved_location):\\n    os.makedirs(saved_location, exist_ok=True)\\n    checkpoints = {}\\n    for op in solved_ops:\\n        op_results = op[1].results\\n        file_name = op[0]\\n        file_name = re.sub('[^\\\\\\\\w\\\\\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\\n        file_name = saved_location + '/' + file_name\\n        op_results.to_csv(file_name, index=False)\\n        checkpoints[file_name] = file_name\\n    return {'saved_location': saved_location, 'checkpoints': checkpoints}\", 'node_imports': 'import os\\nimport re\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\results.ipynb'}, {'node_id': '0x20f4bedb100', 'node_name': 'results_location', 'node_type': 'data_node', 'node_input_variable': 'rs_location', 'node_input_value': '\"./results/workspace\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}])\n    subflow_connections_df = pd.DataFrame([{'connection_id': 1, 'from_node': '0x20f4beda2c0', 'to_node': '0x20f4beda190', 'mapping': {'data_path': 'data_path'}}, {'connection_id': 2, 'from_node': '0x20f4beda190', 'to_node': '0x20f4beda780', 'mapping': {'dms': 'dms'}}, {'connection_id': 3, 'from_node': '0x20f4bedaea0', 'to_node': '0x20f4beda3f0', 'mapping': {'load_path': 'load_data_path'}}, {'connection_id': 4, 'from_node': '0x20f4beda3f0', 'to_node': '0x20f4beda650', 'mapping': {'load_profile': 'load_profile'}}, {'connection_id': 5, 'from_node': '0x20f4bed9f30', 'to_node': '0x20f4beda060', 'mapping': {'pv_path': 'pv_data_path'}}, {'connection_id': 6, 'from_node': '0x20f4beda060', 'to_node': '0x20f4beda650', 'mapping': {'pv_profile': 'pv_profile'}}, {'connection_id': 7, 'from_node': '0x20f4bed9e00', 'to_node': '0x20f4beda520', 'mapping': {'rate_path': 'rate_path'}}, {'connection_id': 8, 'from_node': '0x20f4beda520', 'to_node': '0x20f4beda650', 'mapping': {'rate_structure': 'rate_structure'}}, {'connection_id': 9, 'from_node': '0x20f4beda9e0', 'to_node': '0x20f4beda650', 'mapping': {'ess_parameters': 'ess_parameters'}}, {'connection_id': 10, 'from_node': '0x20f4beda650', 'to_node': '0x20f4beda780', 'mapping': {'btm_op_request': 'btm_op_request'}}, {'connection_id': 11, 'from_node': '0x20f4bedad70', 'to_node': '0x20f4beda780', 'mapping': {'solver_name': 'solver_name'}}, {'connection_id': 12, 'from_node': '0x20f4beda780', 'to_node': '0x20f4bedafd0', 'mapping': {'btm_solved_ops': 'solved_ops'}}, {'connection_id': 13, 'from_node': '0x20f4beda8b0', 'to_node': '0x20f4beda9e0', 'mapping': {'power': 'power'}}, {'connection_id': 14, 'from_node': '0x20f4bedab10', 'to_node': '0x20f4beda9e0', 'mapping': {'energy': 'energy'}}, {'connection_id': 15, 'from_node': '0x20f4bedac40', 'to_node': '0x20f4beda9e0', 'mapping': {'rte': 'rte'}}, {'connection_id': 16, 'from_node': '0x20f4bedb100', 'to_node': '0x20f4bedafd0', 'mapping': {'rs_location': 'saved_location'}}])\n    subflow_inputs_df = normalize_subflow_inputs([{'name': 'Subcase 0', 'inputs': [{'node_id': '0x20f4beda2c0', 'node_name': 'data_location', 'variable_name': 'data_path', 'value': '\"/data/\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x20f4bedab10', 'node_name': 'energy_capacity', 'variable_name': 'energy', 'value': '400', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bedaea0', 'node_name': 'load_path', 'variable_name': 'load_path', 'value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4beda8b0', 'node_name': 'power_rating', 'variable_name': 'power', 'value': '100', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bed9f30', 'node_name': 'pv_path', 'variable_name': 'pv_path', 'value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4bed9e00', 'node_name': 'rate_path1', 'variable_name': 'rate_path', 'value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4bedb100', 'node_name': 'results_location', 'variable_name': 'rs_location', 'value': '\"./results/workspace\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x20f4bedac40', 'node_name': 'rte', 'variable_name': 'rte', 'value': '0.88', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bedad70', 'node_name': 'solver', 'variable_name': 'solver_name', 'value': '\"glpk\"', 'is_path': False, 'is_from_master': False}]}, {'name': 'Subcase 1', 'inputs': [{'node_id': '0x20f4beda2c0', 'node_name': 'data_location', 'variable_name': 'data_path', 'value': '\"/data/\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x20f4bedab10', 'node_name': 'energy_capacity', 'variable_name': 'energy', 'value': '600', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bedaea0', 'node_name': 'load_path', 'variable_name': 'load_path', 'value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4beda8b0', 'node_name': 'power_rating', 'variable_name': 'power', 'value': '100', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bed9f30', 'node_name': 'pv_path', 'variable_name': 'pv_path', 'value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4bed9e00', 'node_name': 'rate_path1', 'variable_name': 'rate_path', 'value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4bedb100', 'node_name': 'results_location', 'variable_name': 'rs_location', 'value': '\"./results/workspace\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x20f4bedac40', 'node_name': 'rte', 'variable_name': 'rte', 'value': '0.88', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bedad70', 'node_name': 'solver', 'variable_name': 'solver_name', 'value': '\"glpk\"', 'is_path': False, 'is_from_master': False}]}, {'name': 'Subcase 2', 'inputs': [{'node_id': '0x20f4beda2c0', 'node_name': 'data_location', 'variable_name': 'data_path', 'value': '\"/data/\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x20f4bedab10', 'node_name': 'energy_capacity', 'variable_name': 'energy', 'value': '800', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bedaea0', 'node_name': 'load_path', 'variable_name': 'load_path', 'value': '\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4beda8b0', 'node_name': 'power_rating', 'variable_name': 'power', 'value': '100', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bed9f30', 'node_name': 'pv_path', 'variable_name': 'pv_path', 'value': '\"C:/work/quest20c/quest2/ZeroPV1.json\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4bed9e00', 'node_name': 'rate_path1', 'variable_name': 'rate_path', 'value': '\"C:/work/quest20c/quest2/Dominion1MWtou.json\"', 'is_path': True, 'is_from_master': True}, {'node_id': '0x20f4bedb100', 'node_name': 'results_location', 'variable_name': 'rs_location', 'value': '\"./results/workspace\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x20f4bedac40', 'node_name': 'rte', 'variable_name': 'rte', 'value': '0.88', 'is_path': False, 'is_from_master': False}, {'node_id': '0x20f4bedad70', 'node_name': 'solver', 'variable_name': 'solver_name', 'value': '\"glpk\"', 'is_path': False, 'is_from_master': False}]}])\n    subflow_nodes_df = update_subflow(subflow_nodes_df, pv_path=pv_path, rate_path1=rate_path1, load_path=load_path)\n    subcase_names = [str(case_info.get('name', '') or '').strip() or f'Subcase {index}' for index, case_info in enumerate(subflow_inputs_df)]\n    case_results = {}\n    for subcase_name in subcase_names:\n        print(f\"\\033[94mRun {subflow_name}'s {subcase_name}\\033[0m\")\n        case_results[subcase_name] = run_subflow(\n            subflow_name,\n            subflow_nodes_df.copy(deep=True),\n            subflow_connections_df.copy(deep=True),\n            subflow_inputs_df,\n            input_case=subcase_name,\n            python_executable='C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe'\n        )\n    has_multiple_subcases = len(subcase_names) > 1\n    return {\n        'saved_location': ({subcase_name: case_results.get(subcase_name, {}).get('results', {}).get('saved_location') for subcase_name in subcase_names} if has_multiple_subcases else case_results.get(subcase_names[0], {}).get('results', {}).get('saved_location')),\n        'checkpoints': ({subcase_name: case_results.get(subcase_name, {}).get('results', {}).get('checkpoints') for subcase_name in subcase_names} if has_multiple_subcases else case_results.get(subcase_names[0], {}).get('results', {}).get('checkpoints')),\n    }",
+            "node_function_wrapper": "def btm_flow_2026_new_function(pv_path=None, rate_path1=None, load_path=None):\n    def update_subflow(subflow_nodes_df, **kwargs):\n        for idx, row in subflow_nodes_df.iterrows():\n            if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:\n                node_name = str(row.get('node_name', '')).strip()\n                if node_name in kwargs:\n                    subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])\n        return subflow_nodes_df\n\n    def normalize_subflow_inputs(subflow_inputs_df):\n        normalized_inputs = []\n        for index, case_info in enumerate(subflow_inputs_df or []):\n            if not isinstance(case_info, dict):\n                continue\n            case_name = str(case_info.get('name', '') or '').strip()\n            if not case_name or (index == 0 and case_name == 'Base Case'):\n                case_name = f'Subcase {index}'\n            case_inputs = case_info.get('inputs', [])\n            if not isinstance(case_inputs, list):\n                case_inputs = []\n            normalized_inputs.append({'name': case_name, 'inputs': case_inputs})\n        if not normalized_inputs:\n            normalized_inputs.append({'name': 'Subcase 0', 'inputs': []})\n        return normalized_inputs\n\n    def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, subflow_inputs_df, input_case=None, python_executable=None):\n        f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df, inputs_df=subflow_inputs_df)\n        f.make(input_case=input_case)\n        append_lines = []\n        append_lines.append('import json')\n        append_lines.append('_quest_subflow_results = {}')\n        append_lines.append(\"if 'node0x23f5b296b10_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['data_manager'] = node0x23f5b296b10_outputs\")\n        append_lines.append(\"if 'node0x23f5b296ea0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['load_profile'] = node0x23f5b296ea0_outputs\")\n        append_lines.append(\"if 'node0x23f5b297360_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['pv_profile'] = node0x23f5b297360_outputs\")\n        append_lines.append(\"if 'node0x23f5b2976f0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['rate_structure_new'] = node0x23f5b2976f0_outputs\")\n        append_lines.append(\"if 'node0x23f5b297820_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_request'] = node0x23f5b297820_outputs\")\n        append_lines.append(\"if 'node0x23f5b297950_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['btm_op_process'] = node0x23f5b297950_outputs\")\n        append_lines.append(\"if 'node0x23f5b297bb0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['ess_parameters'] = node0x23f5b297bb0_outputs\")\n        append_lines.append(\"if 'node0x23f3ab282b0_outputs' in globals():\")\n        append_lines.append(\"    _quest_subflow_results['results'] = node0x23f3ab282b0_outputs\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_START__')\")\n        append_lines.append(\"print(json.dumps(_quest_subflow_results, default=str))\")\n        append_lines.append(\"print('__QUEST_SUBFLOW_RESULTS_END__')\")\n        f.main_py = f.main_py.rstrip() + '\\n\\n' + '\\n'.join(append_lines) + '\\n'\n        with tempfile.TemporaryDirectory() as tmpdir:\n            f.save(tmpdir + os.sep)\n            result = f.run(python_executable=python_executable, stream_output=True, input_case=input_case)\n            stdout = getattr(result, 'quest_stdout', None)\n            if stdout is None:\n                stdout = getattr(result, 'stdout', '') or ''\n            if hasattr(stdout, 'read'):\n                try:\n                    stdout = stdout.read()\n                except Exception:\n                    stdout = str(stdout)\n            elif not isinstance(stdout, str):\n                stdout = str(stdout)\n        start_marker = '__QUEST_SUBFLOW_RESULTS_START__'\n        end_marker = '__QUEST_SUBFLOW_RESULTS_END__'\n        if start_marker not in stdout or end_marker not in stdout:\n            raise RuntimeError('Could not find subflow results in stdout.\\nSTDOUT:\\n' + stdout)\n        payload = stdout.split(start_marker, 1)[1].split(end_marker, 1)[0].strip()\n        if not payload:\n            return {}\n        return json.loads(payload)\n\n    subflow_name = 'btm_flow_2026_new'\n    subflow_nodes_df = pd.DataFrame([{'node_id': '0x23f5b295810', 'node_name': 'BTM Optimization Handler', 'node_type': 'back_node', 'node_input_variable': '', 'node_input_value': 'This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure.', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f5b296b10', 'node_name': 'data_manager', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def data_manager_function(data_path):\\n    dms = BtmDMS(max_memory=1000000, save_data=True, save_name='btm_dms.p', home_path=data_path)\\n    return {'dms': dms}\", 'node_imports': 'from btm.es_gui.tools.btm.btm_dms import BtmDMS\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\data_manager.ipynb'}, {'node_id': '0x23f5b296d70', 'node_name': 'data_location', 'node_type': 'data_node', 'node_input_variable': 'data_path', 'node_input_value': '\"/data/\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f5b296ea0', 'node_name': 'load_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def load_profile_function(load_data_path):\\n    load_profile = {'name': 'data_center_10MW', 'path': load_data_path}\\n    return {'load_profile': load_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\load_profile.ipynb'}, {'node_id': '0x23f5b297100', 'node_name': 'pv_path', 'node_type': 'data_node', 'node_input_variable': 'pv_path', 'node_input_value': '', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f5b297360', 'node_name': 'pv_profile', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def pv_profile_function(pv_data_path):\\n    pv_profile = {'name': 'ZeroPV', 'path': pv_data_path}\\n    return {'pv_profile': pv_profile}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\pv_profile.ipynb'}, {'node_id': '0x23f5b297490', 'node_name': 'rate_path1', 'node_type': 'data_node', 'node_input_variable': 'rate_path', 'node_input_value': '', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f5b2976f0', 'node_name': 'rate_structure_new', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def rate_structure_new_function(rate_path):\\n    with open(rate_path, 'r') as file:\\n        rate_structure = json.load(file)\\n    return {'rate_structure': rate_structure}\", 'node_imports': 'import json\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\rate_structure_new.ipynb'}, {'node_id': '0x23f5b297820', 'node_name': 'btm_op_request', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_request_function(rate_structure, pv_profile, load_profile, ess_parameters):\\n    op_handler_request = {'rate_structure': rate_structure, 'load_profile': load_profile, 'pv_profile': pv_profile, 'params': ess_parameters}\\n    return {'btm_op_request': op_handler_request}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_request.ipynb'}, {'node_id': '0x23f5b297950', 'node_name': 'btm_op_process', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def btm_op_process_function(btm_op_request, dms, solver_name):\\n    btm_op_handler = BtmOptimizerHandler(solver_name=solver_name, dms=dms)\\n    btm_solved_op, handler_status = btm_op_handler.process_requests(btm_op_request)\\n    return {'btm_solved_ops': btm_solved_op, 'handler_status': handler_status}\", 'node_imports': 'from btm.es_gui.apps.btm.op_handler_workspace import BtmOptimizerHandler\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\btm_op_process.ipynb'}, {'node_id': '0x23f5b297a80', 'node_name': 'power_rating', 'node_type': 'data_node', 'node_input_variable': 'power', 'node_input_value': '100', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f5b297bb0', 'node_name': 'ess_parameters', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': \"def ess_parameters_function(power, energy, rte):\\n    params = {'Power_rating': power, 'Energy_capacity': energy, 'Round_trip_efficiency': rte, 'Transformer_rating': 10000, 'State_of_charge_min': 0.1, 'State_of_charge_max': 0.9, 'State_of_charge_init': 0.5}\\n    return {'ess_parameters': [params]}\", 'node_imports': '', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\ess_parameters.ipynb'}, {'node_id': '0x23f5b297ce0', 'node_name': 'energy_capacity', 'node_type': 'data_node', 'node_input_variable': 'energy', 'node_input_value': '400', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f5b297e10', 'node_name': 'rte', 'node_type': 'data_node', 'node_input_variable': 'rte', 'node_input_value': '0.88', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f3ab28050', 'node_name': 'solver', 'node_type': 'data_node', 'node_input_variable': 'solver_name', 'node_input_value': '\"glpk\"', 'node_value_display': True, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f3ab28180', 'node_name': 'load_path', 'node_type': 'data_node', 'node_input_variable': 'load_path', 'node_input_value': '', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': True, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}, {'node_id': '0x23f3ab282b0', 'node_name': 'results', 'node_type': 'python_node', 'node_input_variable': '', 'node_input_value': '', 'node_value_display': False, 'node_is_path': False, 'node_is_from_master': False, 'node_expose_outputs': ['saved_location', 'checkpoints'], 'node_function_wrapper': \"def results_function(solved_ops, saved_location):\\n    os.makedirs(saved_location, exist_ok=True)\\n    checkpoints = {}\\n    for op in solved_ops:\\n        op_results = op[1].results\\n        file_name = op[0]\\n        file_name = re.sub('[^\\\\\\\\w\\\\\\\\s-]', '', file_name).replace(' ', '_') + '.csv'\\n        file_name = saved_location + '/' + file_name\\n        op_results.to_csv(file_name, index=False)\\n        checkpoints[file_name] = file_name\\n    return {'saved_location': saved_location, 'checkpoints': checkpoints}\", 'node_imports': 'import os\\nimport re\\n', 'node_notebook_path': 'c:\\\\work\\\\quest20c\\\\node_notebooks\\\\results.ipynb'}, {'node_id': '0x23f3ab283e0', 'node_name': 'results_location', 'node_type': 'data_node', 'node_input_variable': 'rs_location', 'node_input_value': '\"./results/workspace\"', 'node_value_display': False, 'node_is_path': True, 'node_is_from_master': False, 'node_expose_outputs': [], 'node_function_wrapper': '', 'node_imports': '', 'node_notebook_path': ''}])\n    subflow_connections_df = pd.DataFrame([{'connection_id': 1, 'from_node': '0x23f5b296d70', 'to_node': '0x23f5b296b10', 'mapping': {'data_path': 'data_path'}}, {'connection_id': 2, 'from_node': '0x23f5b296b10', 'to_node': '0x23f5b297950', 'mapping': {'dms': 'dms'}}, {'connection_id': 3, 'from_node': '0x23f3ab28180', 'to_node': '0x23f5b296ea0', 'mapping': {'load_path': 'load_data_path'}}, {'connection_id': 4, 'from_node': '0x23f5b296ea0', 'to_node': '0x23f5b297820', 'mapping': {'load_profile': 'load_profile'}}, {'connection_id': 5, 'from_node': '0x23f5b297100', 'to_node': '0x23f5b297360', 'mapping': {'pv_path': 'pv_data_path'}}, {'connection_id': 6, 'from_node': '0x23f5b297360', 'to_node': '0x23f5b297820', 'mapping': {'pv_profile': 'pv_profile'}}, {'connection_id': 7, 'from_node': '0x23f5b297490', 'to_node': '0x23f5b2976f0', 'mapping': {'rate_path': 'rate_path'}}, {'connection_id': 8, 'from_node': '0x23f5b2976f0', 'to_node': '0x23f5b297820', 'mapping': {'rate_structure': 'rate_structure'}}, {'connection_id': 9, 'from_node': '0x23f5b297bb0', 'to_node': '0x23f5b297820', 'mapping': {'ess_parameters': 'ess_parameters'}}, {'connection_id': 10, 'from_node': '0x23f5b297820', 'to_node': '0x23f5b297950', 'mapping': {'btm_op_request': 'btm_op_request'}}, {'connection_id': 11, 'from_node': '0x23f3ab28050', 'to_node': '0x23f5b297950', 'mapping': {'solver_name': 'solver_name'}}, {'connection_id': 12, 'from_node': '0x23f5b297950', 'to_node': '0x23f3ab282b0', 'mapping': {'btm_solved_ops': 'solved_ops'}}, {'connection_id': 13, 'from_node': '0x23f5b297a80', 'to_node': '0x23f5b297bb0', 'mapping': {'power': 'power'}}, {'connection_id': 14, 'from_node': '0x23f5b297ce0', 'to_node': '0x23f5b297bb0', 'mapping': {'energy': 'energy'}}, {'connection_id': 15, 'from_node': '0x23f5b297e10', 'to_node': '0x23f5b297bb0', 'mapping': {'rte': 'rte'}}, {'connection_id': 16, 'from_node': '0x23f3ab283e0', 'to_node': '0x23f3ab282b0', 'mapping': {'rs_location': 'saved_location'}}])\n    subflow_inputs_df = normalize_subflow_inputs([{'name': 'Subcase 0', 'inputs': [{'node_id': '0x23f5b296d70', 'node_name': 'data_location', 'variable_name': 'data_path', 'value': '\"/data/\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x23f5b297ce0', 'node_name': 'energy_capacity', 'variable_name': 'energy', 'value': '400', 'is_path': False, 'is_from_master': False}, {'node_id': '0x23f3ab28180', 'node_name': 'load_path', 'variable_name': 'load_path', 'value': '', 'is_path': True, 'is_from_master': True}, {'node_id': '0x23f5b297a80', 'node_name': 'power_rating', 'variable_name': 'power', 'value': '100', 'is_path': False, 'is_from_master': False}, {'node_id': '0x23f5b297100', 'node_name': 'pv_path', 'variable_name': 'pv_path', 'value': '', 'is_path': True, 'is_from_master': True}, {'node_id': '0x23f5b297490', 'node_name': 'rate_path1', 'variable_name': 'rate_path', 'value': '', 'is_path': True, 'is_from_master': True}, {'node_id': '0x23f3ab283e0', 'node_name': 'results_location', 'variable_name': 'rs_location', 'value': '\"./results/workspace\"', 'is_path': True, 'is_from_master': False}, {'node_id': '0x23f5b297e10', 'node_name': 'rte', 'variable_name': 'rte', 'value': '0.88', 'is_path': False, 'is_from_master': False}, {'node_id': '0x23f3ab28050', 'node_name': 'solver', 'variable_name': 'solver_name', 'value': '\"glpk\"', 'is_path': False, 'is_from_master': False}]}])\n    subflow_nodes_df = update_subflow(subflow_nodes_df, pv_path=pv_path, rate_path1=rate_path1, load_path=load_path)\n    subcase_names = [str(case_info.get('name', '') or '').strip() or f'Subcase {index}' for index, case_info in enumerate(subflow_inputs_df)]\n    case_results = {}\n    for subcase_name in subcase_names:\n        print(f\"\\033[94mRun {subflow_name}'s {subcase_name}\\033[0m\")\n        case_results[subcase_name] = run_subflow(\n            subflow_name,\n            subflow_nodes_df.copy(deep=True),\n            subflow_connections_df.copy(deep=True),\n            subflow_inputs_df,\n            input_case=subcase_name,\n            python_executable='C:/work/quest210_env/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe'\n        )\n    has_multiple_subcases = len(subcase_names) > 1\n    return {\n        'saved_location': ({subcase_name: case_results.get(subcase_name, {}).get('results', {}).get('saved_location') for subcase_name in subcase_names} if has_multiple_subcases else case_results.get(subcase_names[0], {}).get('results', {}).get('saved_location')),\n        'checkpoints': ({subcase_name: case_results.get(subcase_name, {}).get('results', {}).get('checkpoints') for subcase_name in subcase_names} if has_multiple_subcases else case_results.get(subcase_names[0], {}).get('results', {}).get('checkpoints')),\n    }",
             "node_imports": "",
             "node_notebook_path": "C:\\work\\quest210\\snl-quest\\node_notebooks\\btm_flow_2026_new_0x137bf464c30.ipynb"
         }
@@ -298,24 +298,24 @@
     "connections_df": [
         {
             "connection_id": 1,
-            "from_node": "0x20f4bbb3360",
-            "to_node": "0x20f4bed8050",
+            "from_node": "0x23f5b1f7a10",
+            "to_node": "0x23f2f995cd0",
             "mapping": {
                 "pv_path": "pv_path"
             }
         },
         {
             "connection_id": 2,
-            "from_node": "0x20f4bbb3e10",
-            "to_node": "0x20f4bed8050",
+            "from_node": "0x23f5b34f250",
+            "to_node": "0x23f2f995cd0",
             "mapping": {
                 "rate_path": "rate_path1"
             }
         },
         {
             "connection_id": 3,
-            "from_node": "0x20f4bed82b0",
-            "to_node": "0x20f4bed8050",
+            "from_node": "0x23f5b34f750",
+            "to_node": "0x23f2f995cd0",
             "mapping": {
                 "load_path": "load_path"
             }
@@ -326,7 +326,7 @@
             "name": "Base Case",
             "inputs": [
                 {
-                    "node_id": "0x20f4bed82b0",
+                    "node_id": "0x23f5b34f750",
                     "node_name": "load_path",
                     "variable_name": "load_path",
                     "value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
@@ -334,7 +334,7 @@
                     "is_from_master": false
                 },
                 {
-                    "node_id": "0x20f4bbb3360",
+                    "node_id": "0x23f5b1f7a10",
                     "node_name": "pv_path",
                     "variable_name": "pv_path",
                     "value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
@@ -342,7 +342,7 @@
                     "is_from_master": false
                 },
                 {
-                    "node_id": "0x20f4bbb3e10",
+                    "node_id": "0x23f5b34f250",
                     "node_name": "rate_path",
                     "variable_name": "rate_path",
                     "value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
@@ -357,14 +357,14 @@
             "flow_name": "btm_flow_2026_new",
             "flow_type": "sub-flow",
             "flow_environment_name": "btm_flow_2026_new_env",
-            "flow_environment_path": "C:/work/quest210-py313/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe",
+            "flow_environment_path": "C:/work/quest210_env/Lib/site-packages/quest/app_envs/env_btm/Scripts/python.exe",
             "flow_layout": {
                 "graph": {
                     "acyclic": true,
                     "pipe_collision": false
                 },
                 "nodes": {
-                    "0x20f4bed9cd0": {
+                    "0x23f5b295810": {
                         "type_": "QuESt.Workspace.BackNode",
                         "icon": null,
                         "name": "BTM Optimization Handler",
@@ -400,7 +400,7 @@
                             "backdrop_text": "This is the workprocess for setting up a behind the meter optimization  that estimates the cost saving for utility customers using btm ess given the load, pv profiles and rate structure."
                         }
                     },
-                    "0x20f4beda190": {
+                    "0x23f5b296b10": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "data_manager",
@@ -447,7 +447,7 @@
                             }
                         ]
                     },
-                    "0x20f4beda2c0": {
+                    "0x23f5b296d70": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "data_location",
@@ -491,7 +491,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4beda3f0": {
+                    "0x23f5b296ea0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "load_profile",
@@ -538,7 +538,7 @@
                             }
                         ]
                     },
-                    "0x20f4bed9f30": {
+                    "0x23f5b297100": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "pv_path",
@@ -582,7 +582,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4beda060": {
+                    "0x23f5b297360": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "pv_profile",
@@ -629,7 +629,7 @@
                             }
                         ]
                     },
-                    "0x20f4bed9e00": {
+                    "0x23f5b297490": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "rate_path1",
@@ -673,7 +673,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4beda520": {
+                    "0x23f5b2976f0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "rate_structure_new",
@@ -720,7 +720,7 @@
                             }
                         ]
                     },
-                    "0x20f4beda650": {
+                    "0x23f5b297820": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "btm_op_request",
@@ -782,7 +782,7 @@
                             }
                         ]
                     },
-                    "0x20f4beda780": {
+                    "0x23f5b297950": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "btm_op_process",
@@ -844,7 +844,7 @@
                             }
                         ]
                     },
-                    "0x20f4beda8b0": {
+                    "0x23f5b297a80": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "power_rating",
@@ -865,7 +865,7 @@
                             0
                         ],
                         "disabled": false,
-                        "selected": false,
+                        "selected": true,
                         "visible": true,
                         "width": 180,
                         "height": 80,
@@ -888,7 +888,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4beda9e0": {
+                    "0x23f5b297bb0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "ess_parameters",
@@ -945,7 +945,7 @@
                             }
                         ]
                     },
-                    "0x20f4bedab10": {
+                    "0x23f5b297ce0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "energy_capacity",
@@ -989,7 +989,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4bedac40": {
+                    "0x23f5b297e10": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "rte",
@@ -1033,7 +1033,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4bedad70": {
+                    "0x23f3ab28050": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "solver",
@@ -1077,7 +1077,7 @@
                             "Text Caption": "\"glpk\""
                         }
                     },
-                    "0x20f4bedaea0": {
+                    "0x23f3ab28180": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "load_path",
@@ -1121,7 +1121,7 @@
                             "Text Caption": ""
                         }
                     },
-                    "0x20f4bedafd0": {
+                    "0x23f3ab282b0": {
                         "type_": "QuESt.Workspace.PyNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/python_icon.png",
                         "name": "results",
@@ -1178,7 +1178,7 @@
                             }
                         ]
                     },
-                    "0x20f4bedb100": {
+                    "0x23f3ab283e0": {
                         "type_": "QuESt.Workspace.DataNode",
                         "icon": "C:/work/quest20c/quest2/lib/site-packages/quest/images/icons/data_icon.png",
                         "name": "results_location",
@@ -1226,161 +1226,161 @@
                 "connections": [
                     {
                         "in": [
-                            "0x20f4beda190",
+                            "0x23f5b296b10",
                             "data_path"
                         ],
                         "out": [
-                            "0x20f4beda2c0",
+                            "0x23f5b296d70",
                             "data_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda190",
+                            "0x23f5b296b10",
                             "dms"
                         ],
                         "in": [
-                            "0x20f4beda780",
+                            "0x23f5b297950",
                             "dms"
                         ]
                     },
                     {
                         "in": [
-                            "0x20f4beda3f0",
+                            "0x23f5b296ea0",
                             "load_data_path"
                         ],
                         "out": [
-                            "0x20f4bedaea0",
+                            "0x23f3ab28180",
                             "load_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda3f0",
+                            "0x23f5b296ea0",
                             "load_profile"
                         ],
                         "in": [
-                            "0x20f4beda650",
+                            "0x23f5b297820",
                             "load_profile"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4bed9f30",
+                            "0x23f5b297100",
                             "pv_path"
                         ],
                         "in": [
-                            "0x20f4beda060",
+                            "0x23f5b297360",
                             "pv_data_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda060",
+                            "0x23f5b297360",
                             "pv_profile"
                         ],
                         "in": [
-                            "0x20f4beda650",
+                            "0x23f5b297820",
                             "pv_profile"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4bed9e00",
+                            "0x23f5b297490",
                             "rate_path"
                         ],
                         "in": [
-                            "0x20f4beda520",
+                            "0x23f5b2976f0",
                             "rate_path"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda520",
+                            "0x23f5b2976f0",
                             "rate_structure"
                         ],
                         "in": [
-                            "0x20f4beda650",
+                            "0x23f5b297820",
                             "rate_structure"
                         ]
                     },
                     {
                         "in": [
-                            "0x20f4beda650",
+                            "0x23f5b297820",
                             "ess_parameters"
                         ],
                         "out": [
-                            "0x20f4beda9e0",
+                            "0x23f5b297bb0",
                             "ess_parameters"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda650",
+                            "0x23f5b297820",
                             "btm_op_request"
                         ],
                         "in": [
-                            "0x20f4beda780",
+                            "0x23f5b297950",
                             "btm_op_request"
                         ]
                     },
                     {
                         "in": [
-                            "0x20f4beda780",
+                            "0x23f5b297950",
                             "solver_name"
                         ],
                         "out": [
-                            "0x20f4bedad70",
+                            "0x23f3ab28050",
                             "solver_name"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda780",
+                            "0x23f5b297950",
                             "btm_solved_ops"
                         ],
                         "in": [
-                            "0x20f4bedafd0",
+                            "0x23f3ab282b0",
                             "solved_ops"
                         ]
                     },
                     {
                         "out": [
-                            "0x20f4beda8b0",
+                            "0x23f5b297a80",
                             "power"
                         ],
                         "in": [
-                            "0x20f4beda9e0",
+                            "0x23f5b297bb0",
                             "power"
                         ]
                     },
                     {
                         "in": [
-                            "0x20f4beda9e0",
+                            "0x23f5b297bb0",
                             "energy"
                         ],
                         "out": [
-                            "0x20f4bedab10",
+                            "0x23f5b297ce0",
                             "energy"
                         ]
                     },
                     {
                         "in": [
-                            "0x20f4beda9e0",
+                            "0x23f5b297bb0",
                             "rte"
                         ],
                         "out": [
-                            "0x20f4bedac40",
+                            "0x23f5b297e10",
                             "rte"
                         ]
                     },
                     {
                         "in": [
-                            "0x20f4bedafd0",
+                            "0x23f3ab282b0",
                             "saved_location"
                         ],
                         "out": [
-                            "0x20f4bedb100",
+                            "0x23f3ab283e0",
                             "rs_location"
                         ]
                     }
@@ -1388,7 +1388,7 @@
             },
             "nodes_df": [
                 {
-                    "node_id": "0x20f4bed9cd0",
+                    "node_id": "0x23f5b295810",
                     "node_name": "BTM Optimization Handler",
                     "node_type": "back_node",
                     "node_input_variable": "",
@@ -1402,7 +1402,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4beda190",
+                    "node_id": "0x23f5b296b10",
                     "node_name": "data_manager",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1416,7 +1416,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\data_manager.ipynb"
                 },
                 {
-                    "node_id": "0x20f4beda2c0",
+                    "node_id": "0x23f5b296d70",
                     "node_name": "data_location",
                     "node_type": "data_node",
                     "node_input_variable": "data_path",
@@ -1430,7 +1430,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4beda3f0",
+                    "node_id": "0x23f5b296ea0",
                     "node_name": "load_profile",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1444,11 +1444,11 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\load_profile.ipynb"
                 },
                 {
-                    "node_id": "0x20f4bed9f30",
+                    "node_id": "0x23f5b297100",
                     "node_name": "pv_path",
                     "node_type": "data_node",
                     "node_input_variable": "pv_path",
-                    "node_input_value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
+                    "node_input_value": "",
                     "node_value_display": false,
                     "node_is_path": true,
                     "node_is_from_master": true,
@@ -1458,7 +1458,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4beda060",
+                    "node_id": "0x23f5b297360",
                     "node_name": "pv_profile",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1472,11 +1472,11 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\pv_profile.ipynb"
                 },
                 {
-                    "node_id": "0x20f4bed9e00",
+                    "node_id": "0x23f5b297490",
                     "node_name": "rate_path1",
                     "node_type": "data_node",
                     "node_input_variable": "rate_path",
-                    "node_input_value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
+                    "node_input_value": "",
                     "node_value_display": false,
                     "node_is_path": true,
                     "node_is_from_master": true,
@@ -1486,7 +1486,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4beda520",
+                    "node_id": "0x23f5b2976f0",
                     "node_name": "rate_structure_new",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1500,7 +1500,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\rate_structure_new.ipynb"
                 },
                 {
-                    "node_id": "0x20f4beda650",
+                    "node_id": "0x23f5b297820",
                     "node_name": "btm_op_request",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1514,7 +1514,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_op_request.ipynb"
                 },
                 {
-                    "node_id": "0x20f4beda780",
+                    "node_id": "0x23f5b297950",
                     "node_name": "btm_op_process",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1528,7 +1528,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\btm_op_process.ipynb"
                 },
                 {
-                    "node_id": "0x20f4beda8b0",
+                    "node_id": "0x23f5b297a80",
                     "node_name": "power_rating",
                     "node_type": "data_node",
                     "node_input_variable": "power",
@@ -1542,7 +1542,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4beda9e0",
+                    "node_id": "0x23f5b297bb0",
                     "node_name": "ess_parameters",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1556,7 +1556,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\ess_parameters.ipynb"
                 },
                 {
-                    "node_id": "0x20f4bedab10",
+                    "node_id": "0x23f5b297ce0",
                     "node_name": "energy_capacity",
                     "node_type": "data_node",
                     "node_input_variable": "energy",
@@ -1570,7 +1570,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4bedac40",
+                    "node_id": "0x23f5b297e10",
                     "node_name": "rte",
                     "node_type": "data_node",
                     "node_input_variable": "rte",
@@ -1584,7 +1584,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4bedad70",
+                    "node_id": "0x23f3ab28050",
                     "node_name": "solver",
                     "node_type": "data_node",
                     "node_input_variable": "solver_name",
@@ -1598,11 +1598,11 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4bedaea0",
+                    "node_id": "0x23f3ab28180",
                     "node_name": "load_path",
                     "node_type": "data_node",
                     "node_input_variable": "load_path",
-                    "node_input_value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
+                    "node_input_value": "",
                     "node_value_display": false,
                     "node_is_path": true,
                     "node_is_from_master": true,
@@ -1612,7 +1612,7 @@
                     "node_notebook_path": ""
                 },
                 {
-                    "node_id": "0x20f4bedafd0",
+                    "node_id": "0x23f3ab282b0",
                     "node_name": "results",
                     "node_type": "python_node",
                     "node_input_variable": "",
@@ -1629,7 +1629,7 @@
                     "node_notebook_path": "c:\\work\\quest20c\\node_notebooks\\results.ipynb"
                 },
                 {
-                    "node_id": "0x20f4bedb100",
+                    "node_id": "0x23f3ab283e0",
                     "node_name": "results_location",
                     "node_type": "data_node",
                     "node_input_variable": "rs_location",
@@ -1646,128 +1646,128 @@
             "connections_df": [
                 {
                     "connection_id": 1,
-                    "from_node": "0x20f4beda2c0",
-                    "to_node": "0x20f4beda190",
+                    "from_node": "0x23f5b296d70",
+                    "to_node": "0x23f5b296b10",
                     "mapping": {
                         "data_path": "data_path"
                     }
                 },
                 {
                     "connection_id": 2,
-                    "from_node": "0x20f4beda190",
-                    "to_node": "0x20f4beda780",
+                    "from_node": "0x23f5b296b10",
+                    "to_node": "0x23f5b297950",
                     "mapping": {
                         "dms": "dms"
                     }
                 },
                 {
                     "connection_id": 3,
-                    "from_node": "0x20f4bedaea0",
-                    "to_node": "0x20f4beda3f0",
+                    "from_node": "0x23f3ab28180",
+                    "to_node": "0x23f5b296ea0",
                     "mapping": {
                         "load_path": "load_data_path"
                     }
                 },
                 {
                     "connection_id": 4,
-                    "from_node": "0x20f4beda3f0",
-                    "to_node": "0x20f4beda650",
+                    "from_node": "0x23f5b296ea0",
+                    "to_node": "0x23f5b297820",
                     "mapping": {
                         "load_profile": "load_profile"
                     }
                 },
                 {
                     "connection_id": 5,
-                    "from_node": "0x20f4bed9f30",
-                    "to_node": "0x20f4beda060",
+                    "from_node": "0x23f5b297100",
+                    "to_node": "0x23f5b297360",
                     "mapping": {
                         "pv_path": "pv_data_path"
                     }
                 },
                 {
                     "connection_id": 6,
-                    "from_node": "0x20f4beda060",
-                    "to_node": "0x20f4beda650",
+                    "from_node": "0x23f5b297360",
+                    "to_node": "0x23f5b297820",
                     "mapping": {
                         "pv_profile": "pv_profile"
                     }
                 },
                 {
                     "connection_id": 7,
-                    "from_node": "0x20f4bed9e00",
-                    "to_node": "0x20f4beda520",
+                    "from_node": "0x23f5b297490",
+                    "to_node": "0x23f5b2976f0",
                     "mapping": {
                         "rate_path": "rate_path"
                     }
                 },
                 {
                     "connection_id": 8,
-                    "from_node": "0x20f4beda520",
-                    "to_node": "0x20f4beda650",
+                    "from_node": "0x23f5b2976f0",
+                    "to_node": "0x23f5b297820",
                     "mapping": {
                         "rate_structure": "rate_structure"
                     }
                 },
                 {
                     "connection_id": 9,
-                    "from_node": "0x20f4beda9e0",
-                    "to_node": "0x20f4beda650",
+                    "from_node": "0x23f5b297bb0",
+                    "to_node": "0x23f5b297820",
                     "mapping": {
                         "ess_parameters": "ess_parameters"
                     }
                 },
                 {
                     "connection_id": 10,
-                    "from_node": "0x20f4beda650",
-                    "to_node": "0x20f4beda780",
+                    "from_node": "0x23f5b297820",
+                    "to_node": "0x23f5b297950",
                     "mapping": {
                         "btm_op_request": "btm_op_request"
                     }
                 },
                 {
                     "connection_id": 11,
-                    "from_node": "0x20f4bedad70",
-                    "to_node": "0x20f4beda780",
+                    "from_node": "0x23f3ab28050",
+                    "to_node": "0x23f5b297950",
                     "mapping": {
                         "solver_name": "solver_name"
                     }
                 },
                 {
                     "connection_id": 12,
-                    "from_node": "0x20f4beda780",
-                    "to_node": "0x20f4bedafd0",
+                    "from_node": "0x23f5b297950",
+                    "to_node": "0x23f3ab282b0",
                     "mapping": {
                         "btm_solved_ops": "solved_ops"
                     }
                 },
                 {
                     "connection_id": 13,
-                    "from_node": "0x20f4beda8b0",
-                    "to_node": "0x20f4beda9e0",
+                    "from_node": "0x23f5b297a80",
+                    "to_node": "0x23f5b297bb0",
                     "mapping": {
                         "power": "power"
                     }
                 },
                 {
                     "connection_id": 14,
-                    "from_node": "0x20f4bedab10",
-                    "to_node": "0x20f4beda9e0",
+                    "from_node": "0x23f5b297ce0",
+                    "to_node": "0x23f5b297bb0",
                     "mapping": {
                         "energy": "energy"
                     }
                 },
                 {
                     "connection_id": 15,
-                    "from_node": "0x20f4bedac40",
-                    "to_node": "0x20f4beda9e0",
+                    "from_node": "0x23f5b297e10",
+                    "to_node": "0x23f5b297bb0",
                     "mapping": {
                         "rte": "rte"
                     }
                 },
                 {
                     "connection_id": 16,
-                    "from_node": "0x20f4bedb100",
-                    "to_node": "0x20f4bedafd0",
+                    "from_node": "0x23f3ab283e0",
+                    "to_node": "0x23f3ab282b0",
                     "mapping": {
                         "rs_location": "saved_location"
                     }
@@ -1778,7 +1778,7 @@
                     "name": "Subcase 0",
                     "inputs": [
                         {
-                            "node_id": "0x20f4beda2c0",
+                            "node_id": "0x23f5b296d70",
                             "node_name": "data_location",
                             "variable_name": "data_path",
                             "value": "\"/data/\"",
@@ -1786,7 +1786,7 @@
                             "is_from_master": false
                         },
                         {
-                            "node_id": "0x20f4bedab10",
+                            "node_id": "0x23f5b297ce0",
                             "node_name": "energy_capacity",
                             "variable_name": "energy",
                             "value": "400",
@@ -1794,15 +1794,15 @@
                             "is_from_master": false
                         },
                         {
-                            "node_id": "0x20f4bedaea0",
+                            "node_id": "0x23f3ab28180",
                             "node_name": "load_path",
                             "variable_name": "load_path",
-                            "value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
+                            "value": "",
                             "is_path": true,
                             "is_from_master": true
                         },
                         {
-                            "node_id": "0x20f4beda8b0",
+                            "node_id": "0x23f5b297a80",
                             "node_name": "power_rating",
                             "variable_name": "power",
                             "value": "100",
@@ -1810,23 +1810,23 @@
                             "is_from_master": false
                         },
                         {
-                            "node_id": "0x20f4bed9f30",
+                            "node_id": "0x23f5b297100",
                             "node_name": "pv_path",
                             "variable_name": "pv_path",
-                            "value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
+                            "value": "",
                             "is_path": true,
                             "is_from_master": true
                         },
                         {
-                            "node_id": "0x20f4bed9e00",
+                            "node_id": "0x23f5b297490",
                             "node_name": "rate_path1",
                             "variable_name": "rate_path",
-                            "value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
+                            "value": "",
                             "is_path": true,
                             "is_from_master": true
                         },
                         {
-                            "node_id": "0x20f4bedb100",
+                            "node_id": "0x23f3ab283e0",
                             "node_name": "results_location",
                             "variable_name": "rs_location",
                             "value": "\"./results/workspace\"",
@@ -1834,7 +1834,7 @@
                             "is_from_master": false
                         },
                         {
-                            "node_id": "0x20f4bedac40",
+                            "node_id": "0x23f5b297e10",
                             "node_name": "rte",
                             "variable_name": "rte",
                             "value": "0.88",
@@ -1842,161 +1842,7 @@
                             "is_from_master": false
                         },
                         {
-                            "node_id": "0x20f4bedad70",
-                            "node_name": "solver",
-                            "variable_name": "solver_name",
-                            "value": "\"glpk\"",
-                            "is_path": false,
-                            "is_from_master": false
-                        }
-                    ]
-                },
-                {
-                    "name": "Subcase 1",
-                    "inputs": [
-                        {
-                            "node_id": "0x20f4beda2c0",
-                            "node_name": "data_location",
-                            "variable_name": "data_path",
-                            "value": "\"/data/\"",
-                            "is_path": true,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedab10",
-                            "node_name": "energy_capacity",
-                            "variable_name": "energy",
-                            "value": "600",
-                            "is_path": false,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedaea0",
-                            "node_name": "load_path",
-                            "variable_name": "load_path",
-                            "value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
-                            "is_path": true,
-                            "is_from_master": true
-                        },
-                        {
-                            "node_id": "0x20f4beda8b0",
-                            "node_name": "power_rating",
-                            "variable_name": "power",
-                            "value": "100",
-                            "is_path": false,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bed9f30",
-                            "node_name": "pv_path",
-                            "variable_name": "pv_path",
-                            "value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
-                            "is_path": true,
-                            "is_from_master": true
-                        },
-                        {
-                            "node_id": "0x20f4bed9e00",
-                            "node_name": "rate_path1",
-                            "variable_name": "rate_path",
-                            "value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
-                            "is_path": true,
-                            "is_from_master": true
-                        },
-                        {
-                            "node_id": "0x20f4bedb100",
-                            "node_name": "results_location",
-                            "variable_name": "rs_location",
-                            "value": "\"./results/workspace\"",
-                            "is_path": true,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedac40",
-                            "node_name": "rte",
-                            "variable_name": "rte",
-                            "value": "0.88",
-                            "is_path": false,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedad70",
-                            "node_name": "solver",
-                            "variable_name": "solver_name",
-                            "value": "\"glpk\"",
-                            "is_path": false,
-                            "is_from_master": false
-                        }
-                    ]
-                },
-                {
-                    "name": "Subcase 2",
-                    "inputs": [
-                        {
-                            "node_id": "0x20f4beda2c0",
-                            "node_name": "data_location",
-                            "variable_name": "data_path",
-                            "value": "\"/data/\"",
-                            "is_path": true,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedab10",
-                            "node_name": "energy_capacity",
-                            "variable_name": "energy",
-                            "value": "800",
-                            "is_path": false,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedaea0",
-                            "node_name": "load_path",
-                            "variable_name": "load_path",
-                            "value": "\"C:/work/quest20c/quest2/data_center_virginia_10MW.csv\"",
-                            "is_path": true,
-                            "is_from_master": true
-                        },
-                        {
-                            "node_id": "0x20f4beda8b0",
-                            "node_name": "power_rating",
-                            "variable_name": "power",
-                            "value": "100",
-                            "is_path": false,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bed9f30",
-                            "node_name": "pv_path",
-                            "variable_name": "pv_path",
-                            "value": "\"C:/work/quest20c/quest2/ZeroPV1.json\"",
-                            "is_path": true,
-                            "is_from_master": true
-                        },
-                        {
-                            "node_id": "0x20f4bed9e00",
-                            "node_name": "rate_path1",
-                            "variable_name": "rate_path",
-                            "value": "\"C:/work/quest20c/quest2/Dominion1MWtou.json\"",
-                            "is_path": true,
-                            "is_from_master": true
-                        },
-                        {
-                            "node_id": "0x20f4bedb100",
-                            "node_name": "results_location",
-                            "variable_name": "rs_location",
-                            "value": "\"./results/workspace\"",
-                            "is_path": true,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedac40",
-                            "node_name": "rte",
-                            "variable_name": "rte",
-                            "value": "0.88",
-                            "is_path": false,
-                            "is_from_master": false
-                        },
-                        {
-                            "node_id": "0x20f4bedad70",
+                            "node_id": "0x23f3ab28050",
                             "node_name": "solver",
                             "variable_name": "solver_name",
                             "value": "\"glpk\"",

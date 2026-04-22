@@ -2800,6 +2800,15 @@ class quest_workflow(QWidget):
         if table is self._active_inputs_management_table():
             self._refresh_inputs_management_browse_button_state(table)
 
+    def _inputs_management_path_text_to_fs_path(self, value):
+        text = str(value or "").strip()
+        if len(text) >= 2 and text[0] == text[-1] and text[0] in ("'", '"'):
+            text = text[1:-1]
+        return text
+
+    def _inputs_management_fs_path_to_value_text(self, path):
+        return json.dumps(str(path or ""))
+
     def _browse_inputs_management_path(self):
         table = self._active_inputs_management_table()
         if table is None:
@@ -2811,7 +2820,8 @@ class quest_workflow(QWidget):
 
         current_value_item = table.item(row, 2)
         current_value = current_value_item.text().strip() if current_value_item is not None else ""
-        start_dir = current_value if os.path.exists(current_value) else os.path.dirname(current_value) if current_value else os.getcwd()
+        current_fs_path = self._inputs_management_path_text_to_fs_path(current_value)
+        start_dir = current_fs_path if os.path.exists(current_fs_path) else os.path.dirname(current_fs_path) if current_fs_path else os.getcwd()
 
         dialog = QFileDialog(self)
         dialog.setWindowTitle("Select File or Folder")
@@ -2828,7 +2838,7 @@ class quest_workflow(QWidget):
                     node_id = self._selected_inputs_management_node_id(table)
                     current_value_item.setData(Qt.UserRole, node_id)
                     table.setItem(row, 2, current_value_item)
-                current_value_item.setText(selected_path)
+                current_value_item.setText(self._inputs_management_fs_path_to_value_text(selected_path))
         self._refresh_inputs_management_browse_button_state(table)
 
     def _create_flow_runner_notebook_title(self, flow_name, input_case_name=None):
@@ -3225,7 +3235,7 @@ class quest_workflow(QWidget):
         if len(selected_nodes) == 1 and selected_nodes[0] is node:
             self.on_node_selected()
 
-        self._refresh_inputs_management_table(table)
+        self._refresh_inputs_management_views()
         self._refresh_inputs_management_browse_button_state(table)
 
     def _on_inputs_management_from_master_changed(self, table, node_id, value):
@@ -3267,7 +3277,7 @@ class quest_workflow(QWidget):
         if len(selected_nodes) == 1 and selected_nodes[0] is node:
             self.on_node_selected()
 
-        self._refresh_inputs_management_table(table)
+        self._refresh_inputs_management_views()
 
     def _on_inputs_management_item_changed(self, table, item):
         if self._inputs_management_refresh_in_progress or item is None or table is not self._active_inputs_management_table():
@@ -5349,9 +5359,9 @@ class quest_workspace(QWidget):
                 continue
             if not bool(getattr(node, "node_is_from_master", False)):
                 continue
-            candidate = str(node.name() or "").strip()
-            if candidate and candidate not in names:
-                names.append(candidate)
+            node_name = str(node.name() or "").strip()
+            if node_name and node_name not in names:
+                names.append(node_name)
         return names
 
     def _subflow_proxy_output_names(self, workflow):
@@ -5445,10 +5455,11 @@ class quest_workspace(QWidget):
         input_names = []
         for row in nodes_records:
             try:
-                if str(row.get("node_type", "")).strip() == "data_node" and bool(row.get("node_is_from_master", False)):
-                    name = str(row.get("node_name", "")).strip()
-                    if name and name not in input_names:
-                        input_names.append(name)
+                if str(row.get("node_type", "")).strip() != "data_node" or not bool(row.get("node_is_from_master", False)):
+                    continue
+                node_name = str(row.get("node_name", "") or "").strip()
+                if node_name and node_name not in input_names:
+                    input_names.append(node_name)
             except Exception:
                 pass
 
@@ -5499,14 +5510,33 @@ class quest_workspace(QWidget):
         # --- wrapper function ---
         code.append(f"def {wrapper_name}({signature}):")
 
-        # --- update_subflow ---
-        code.append(IND + "def update_subflow(subflow_nodes_df, **kwargs):")
-        code.append(IND*2 + "for idx, row in subflow_nodes_df.iterrows():")
-        code.append(IND*3 + "if row.get('node_type') == 'data_node' and row.get('node_is_from_master') == True:")
-        code.append(IND*4 + "node_name = str(row.get('node_name', '')).strip()")
-        code.append(IND*4 + "if node_name in kwargs:")
-        code.append(IND*5 + "subflow_nodes_df.at[idx, 'node_input_value'] = repr(kwargs[node_name])")
-        code.append(IND*2 + "return subflow_nodes_df")
+        # --- apply master inputs into subflow inputs_df ---
+        code.append(IND + "def apply_master_inputs_to_subflow_inputs(subflow_inputs_df, **kwargs):")
+        code.append(IND*2 + "updated_cases = []")
+        code.append(IND*2 + "for case_info in subflow_inputs_df or []:")
+        code.append(IND*3 + "if not isinstance(case_info, dict):")
+        code.append(IND*4 + "continue")
+        code.append(IND*3 + "updated_case = dict(case_info)")
+        code.append(IND*3 + "case_inputs = case_info.get('inputs', [])")
+        code.append(IND*3 + "if not isinstance(case_inputs, list):")
+        code.append(IND*4 + "case_inputs = []")
+        code.append(IND*3 + "updated_inputs = []")
+        code.append(IND*3 + "for record in case_inputs:")
+        code.append(IND*4 + "if not isinstance(record, dict):")
+        code.append(IND*5 + "continue")
+        code.append(IND*4 + "updated_record = dict(record)")
+        code.append(IND*4 + "is_from_master = str(updated_record.get('is_from_master', '')).strip().lower() == 'true' if not isinstance(updated_record.get('is_from_master'), bool) else bool(updated_record.get('is_from_master'))")
+        code.append(IND*4 + "if is_from_master:")
+        code.append(IND*5 + "node_name = str(updated_record.get('node_name', '')).strip()")
+        code.append(IND*5 + "incoming_value = None")
+        code.append(IND*5 + "if node_name in kwargs and kwargs.get(node_name) is not None:")
+        code.append(IND*6 + "incoming_value = kwargs.get(node_name)")
+        code.append(IND*5 + "if incoming_value is not None:")
+        code.append(IND*6 + "updated_record['value'] = repr(incoming_value)")
+        code.append(IND*4 + "updated_inputs.append(updated_record)")
+        code.append(IND*3 + "updated_case['inputs'] = updated_inputs")
+        code.append(IND*3 + "updated_cases.append(updated_case)")
+        code.append(IND*2 + "return updated_cases")
         code.append("")
 
         # --- run_subflow ---
@@ -5527,8 +5557,51 @@ class quest_workspace(QWidget):
         code.append(IND*2 + "return normalized_inputs")
         code.append("")
 
+        code.append(IND + "def materialize_subflow_nodes_df(subflow_nodes_df, subflow_inputs_df, input_case=None):")
+        code.append(IND*2 + "case_inputs = []")
+        code.append(IND*2 + "fallback_inputs = []")
+        code.append(IND*2 + "for index, case_info in enumerate(subflow_inputs_df or []):")
+        code.append(IND*3 + "if not isinstance(case_info, dict):")
+        code.append(IND*4 + "continue")
+        code.append(IND*3 + "case_name = str(case_info.get('name', '') or '').strip() or f'Subcase {index}'")
+        code.append(IND*3 + "inputs = case_info.get('inputs', [])")
+        code.append(IND*3 + "if not isinstance(inputs, list):")
+        code.append(IND*4 + "inputs = []")
+        code.append(IND*3 + "if not fallback_inputs:")
+        code.append(IND*4 + "fallback_inputs = inputs")
+        code.append(IND*3 + "if input_case is not None and case_name == input_case:")
+        code.append(IND*4 + "case_inputs = inputs")
+        code.append(IND*4 + "break")
+        code.append(IND*2 + "if not case_inputs:")
+        code.append(IND*3 + "case_inputs = fallback_inputs")
+        code.append(IND*2 + "case_inputs_by_id = {}")
+        code.append(IND*2 + "case_inputs_by_name = {}")
+        code.append(IND*2 + "for record in case_inputs:")
+        code.append(IND*3 + "if not isinstance(record, dict):")
+        code.append(IND*4 + "continue")
+        code.append(IND*3 + "node_id = str(record.get('node_id', '') or '').strip()")
+        code.append(IND*3 + "node_name = str(record.get('node_name', '') or '').strip()")
+        code.append(IND*3 + "if node_id:")
+        code.append(IND*4 + "case_inputs_by_id[node_id] = record")
+        code.append(IND*3 + "if node_name:")
+        code.append(IND*4 + "case_inputs_by_name[node_name] = record")
+        code.append(IND*2 + "nodes_df = subflow_nodes_df.copy(deep=True)")
+        code.append(IND*2 + "nodes_records = []")
+        code.append(IND*2 + "for row in nodes_df.to_dict('records'):")
+        code.append(IND*3 + "updated_row = dict(row)")
+        code.append(IND*3 + "if str(updated_row.get('node_type', '')).strip() == 'data_node':")
+        code.append(IND*4 + "node_id = str(updated_row.get('node_id', '') or '').strip()")
+        code.append(IND*4 + "node_name = str(updated_row.get('node_name', '') or '').strip()")
+        code.append(IND*4 + "record = case_inputs_by_id.get(node_id) or case_inputs_by_name.get(node_name)")
+        code.append(IND*4 + "if isinstance(record, dict) and 'value' in record:")
+        code.append(IND*5 + "updated_row['node_input_value'] = record.get('value', '')")
+        code.append(IND*3 + "nodes_records.append(updated_row)")
+        code.append(IND*2 + "return pd.DataFrame(nodes_records)")
+        code.append("")
+
         code.append(IND + "def run_subflow(subflow_name, subflow_nodes_df, subflow_connections_df, subflow_inputs_df, input_case=None, python_executable=None):")
-        code.append(IND*2 + "f = flow(flow_name=subflow_name, nodes_df=subflow_nodes_df, connections_df=subflow_connections_df, inputs_df=subflow_inputs_df)")
+        code.append(IND*2 + "materialized_nodes_df = materialize_subflow_nodes_df(subflow_nodes_df, subflow_inputs_df, input_case=input_case)")
+        code.append(IND*2 + "f = flow(flow_name=subflow_name, nodes_df=materialized_nodes_df, connections_df=subflow_connections_df, inputs_df=subflow_inputs_df)")
         code.append(IND*2 + "f.make(input_case=input_case)")
 
         # --- append_lines ---
@@ -5596,9 +5669,9 @@ class quest_workspace(QWidget):
 
         if input_names:
             args = ", ".join([f"{name}={name}" for name in input_names])
-            code.append(IND + f"subflow_nodes_df = update_subflow(subflow_nodes_df, {args})")
+            code.append(IND + f"subflow_inputs_df = apply_master_inputs_to_subflow_inputs(subflow_inputs_df, {args})")
         else:
-            code.append(IND + "subflow_nodes_df = update_subflow(subflow_nodes_df)")
+            code.append(IND + "subflow_inputs_df = apply_master_inputs_to_subflow_inputs(subflow_inputs_df)")
 
         code.append(IND + "subcase_names = [str(case_info.get('name', '') or '').strip() or f'Subcase {index}' for index, case_info in enumerate(subflow_inputs_df)]")
         code.append(IND + "case_results = {}")

@@ -26,7 +26,7 @@ setup(
     install_requires=[
         "kivy==2.3.0",
         "numpy==1.26.4",
-        "pandas==2.2.1",
+        "pandas>=2.2.3,<2.3",
         "pyomo==6.7.1",
         "matplotlib==3.7.4",
         "six==1.16.0",
