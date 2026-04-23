@@ -6,14 +6,18 @@ REM Set the path to the setup.py file
 set SETUP_PATH=%~dp0..\..\..\app_envs\env_planning\snl_quest_planning
 
 set planning_dir=snl_quest_planning
+set PLANNING_REPO_URL=https://github.com/sandialabs/quest_planning.git
+set PLANNING_BRANCH=reliability
+set PLANNING_REPO_PATH=%VENV_PATH%\%planning_dir%
 python -m venv %VENV_PATH%
 call "%VENV_PATH%\Scripts\activate"
 
-mkdir "%VENV_PATH%\%planning_dir%"
+if exist "%PLANNING_REPO_PATH%" rmdir /s /q "%PLANNING_REPO_PATH%"
+git clone --branch %PLANNING_BRANCH% --single-branch %PLANNING_REPO_URL% "%PLANNING_REPO_PATH%"
 
-git clone https://github.com/sandialabs/quest_planning.git "%VENV_PATH%\snl_quest_planning"
-
-pip install -e "%SETUP_PATH%"
+REM gurobipy==11.0.1 is not available for this Python build, so install the package
+REM without dependency resolution and let the existing environment dependencies be reused.
+pip install -e "%SETUP_PATH%" --no-deps
 REM Define the GLPK URL and destination
 set URL=https://sourceforge.net/projects/winglpk/files/winglpk/GLPK-4.65/winglpk-4.65.zip/download
 set OUTPUT=%VENV_PATH%\glpk.zip
@@ -28,7 +32,7 @@ if not exist %OUTPUT% (
 )
 
 REM Extract GLPK
-powershell -Command "Expand-Archive -Path %OUTPUT% -DestinationPath %VENV_PATH%\glpk"
+powershell -Command "Expand-Archive -Path %OUTPUT% -DestinationPath %VENV_PATH%\glpk -Force"
 
 REM Check if the extraction was successful
 if errorlevel 1 (

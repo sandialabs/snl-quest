@@ -145,7 +145,7 @@
       "contact": "Cody Newlun cjnewlu@sandia.gov",
       "info": "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.",
       "image_relpath": "images/logo/custom_QP_logo.png",
-      "env_relpath": "app_envs/env_planning/snl_quest_planning",
+      "env_relpath": "app_envs/env_planning",
       "script_relpath": "app/tools/script_files/plan.bat",
       "env_delete_relpath": "app_envs/env_planning",
       "solve_relpath": "app_envs/env_planning/glpk/GLPK-4.65/w64",

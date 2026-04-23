@@ -1,6 +1,8 @@
 import sys
 import os
 import ctypes
+import stat
+import subprocess
 
 # Configure the Qt graphics backend before importing any Qt widgets or creating QApplication.
 os.environ.setdefault("QT_OPENGL", "software")
@@ -12,8 +14,16 @@ os.environ.setdefault(
     "--log-level=3",
 )
 
-from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtWidgets import QMainWindow, QApplication, QSizeGrip, QWidget, QMessageBox, QFileSystemModel
+from PySide6.QtGui import QIcon, QPixmap, QFont
+from PySide6.QtWidgets import (
+    QMainWindow,
+    QApplication,
+    QSizeGrip,
+    QWidget,
+    QMessageBox,
+    QFileSystemModel,
+    QFileDialog,
+)
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess, QCoreApplication
 from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
 
@@ -122,9 +132,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.hide_quest.clicked.connect(self.quest_hide_window)
 
         # Navigating the settings page
-        self.appearance_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.appearance_page))
-        self.environments_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.environments_page))
+        self.appearance_button.hide()
+        self.environments_button.setChecked(True)
+        self.stackedWidget_3.setCurrentWidget(self.environments_page)
         self.api_keys_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.api_keys_page))
+        self.additional_settings_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.ph1))
+        self.environments_button.clicked.connect(lambda: self.stackedWidget_3.setCurrentWidget(self.environments_page))
+        self._normalize_settings_menu_button_widths()
+        self._normalize_settings_fonts()
 
         # Creating config for API page
         self.config = ConfigParser()
@@ -141,6 +156,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.env_view.clicked.connect(self.file_clicked)
         self.env_path.setReadOnly(True)
         self.env_path.setText(env_dir)
+        self._setup_updates_page()
 
         # Creating a toggle for themes
         # saved_theme = self.load_theme_pref()
@@ -164,6 +180,308 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         """
         file_path = self.file_model.filePath(index)
         self.env_path.setText(file_path)
+
+    def _normalize_settings_menu_button_widths(self):
+        """Keep the visible Settings menu buttons the same width."""
+        menu_buttons = [self.environments_button, self.api_keys_button, self.additional_settings_button]
+        try:
+            target_width = max(button.sizeHint().width() for button in menu_buttons)
+        except ValueError:
+            return
+        for button in menu_buttons:
+            button.setFixedWidth(target_width)
+
+    def _normalize_settings_fonts(self):
+        """Use the same font family as the rest of the QuESt shell on Settings controls."""
+        title_font = QFont("Segoe UI", 16)
+        title_font.setBold(True)
+        section_font = QFont("Segoe UI", 12)
+        section_font.setBold(True)
+        body_font = QFont("Segoe UI", 10)
+
+        self.label_3.setFont(title_font)
+        self.label_4.setFont(section_font)
+        self.label_2.setFont(section_font)
+        self.label_7.setFont(section_font)
+
+        for button in [
+            self.environments_button,
+            self.api_keys_button,
+            self.additional_settings_button,
+            self.add_path,
+            self.local_repo_browse_button,
+            self.update_repo_button,
+        ]:
+            button.setFont(body_font)
+
+        for widget in [
+            self.env_path,
+            self.api_entry,
+            self.env_view,
+            self.local_repo_entry,
+            self.github_repo_entry,
+            self.local_repo_label,
+            self.github_repo_label,
+            self.updates_log,
+        ]:
+            widget.setFont(body_font)
+
+    def _setup_updates_page(self):
+        """Initialize default values and interactions for the Updates settings page."""
+        settings = QSettings("Sandia", "Quest")
+        local_repo = settings.value("updates/local_repo", self._default_local_repository())
+        github_repo = settings.value("updates/github_repo", self._default_github_repository())
+
+        self.local_repo_entry.setText(str(local_repo))
+        self.github_repo_entry.setText(str(github_repo))
+        self.local_repo_browse_button.clicked.connect(self._browse_local_repository)
+        self.update_repo_button.clicked.connect(self._run_updates_page_update)
+        self.local_repo_entry.textChanged.connect(self._save_update_settings)
+        self.github_repo_entry.textChanged.connect(self._save_update_settings)
+        self._load_recent_update_log()
+
+    def _default_github_repository(self):
+        return "https://github.com/sandialabs/snl-quest.git"
+
+    def _current_env_root(self):
+        python_executable = os.path.abspath(sys.executable)
+        return os.path.dirname(os.path.dirname(python_executable))
+
+    def _looks_like_quest_repo(self, path):
+        if not path:
+            return False
+        candidate = os.path.abspath(path)
+        return (
+            os.path.isdir(candidate)
+            and os.path.isfile(os.path.join(candidate, "setup.py"))
+            and os.path.isdir(os.path.join(candidate, "quest"))
+        )
+
+    def _default_local_repository(self):
+        package_parent = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        env_root = self._current_env_root()
+        env_parent = os.path.dirname(env_root)
+        candidates = [
+            package_parent,
+            os.path.join(env_parent, "snl-quest"),
+            os.path.join(env_parent, "snl-quest-master"),
+            os.path.join(os.getcwd(), "snl-quest"),
+            os.getcwd(),
+        ]
+
+        for candidate in candidates:
+            if self._looks_like_quest_repo(candidate):
+                return os.path.abspath(candidate)
+        return os.path.abspath(candidates[0])
+
+    def _save_update_settings(self):
+        settings = QSettings("Sandia", "Quest")
+        settings.setValue("updates/local_repo", self.local_repo_entry.text().strip())
+        settings.setValue("updates/github_repo", self.github_repo_entry.text().strip())
+
+    def _load_recent_update_log(self):
+        settings = QSettings("Sandia", "Quest")
+        log_path = settings.value("updates/log_path", "", type=str)
+        if not log_path or not os.path.isfile(log_path):
+            return
+
+        try:
+            with open(log_path, "r", encoding="utf-8", errors="replace") as log_file:
+                contents = log_file.read().strip()
+        except OSError:
+            return
+
+        if contents:
+            self.updates_log.clear()
+            for line in contents.splitlines():
+                self.updates_log.append(line)
+
+    def _browse_local_repository(self):
+        starting_dir = self.local_repo_entry.text().strip() or self._default_local_repository()
+        selected_dir = QFileDialog.getExistingDirectory(
+            self,
+            "Select Local QuESt Repository",
+            starting_dir,
+        )
+        if selected_dir:
+            self.local_repo_entry.setText(selected_dir)
+
+    def _script_path_for_repository(self, local_repo):
+        script_name = "update.bat" if sys.platform.startswith("win") else "update.sh"
+        return os.path.join(local_repo, script_name)
+
+    def _update_log_path_for_repository(self, local_repo):
+        return os.path.join(local_repo, "update.log")
+
+    def _build_update_script(self, local_repo, github_repo, current_pid, log_path):
+        env_root = self._current_env_root()
+        python_executable = os.path.abspath(sys.executable)
+
+        if sys.platform.startswith("win"):
+            activate_script = os.path.join(env_root, "Scripts", "activate.bat")
+            return (
+                "@echo off\n"
+                "setlocal\n"
+                f'set "QUEST_UPDATE_LOG={log_path}"\n'
+                f'echo QuESt update started at %DATE% %TIME% > "%QUEST_UPDATE_LOG%"\n'
+                f'echo Waiting for QuESt process {current_pid} to exit...>> "%QUEST_UPDATE_LOG%"\n'
+                ":wait_for_quest\n"
+                f'tasklist /FI "PID eq {current_pid}" 2>NUL | find "{current_pid}" >NUL\n'
+                "if %ERRORLEVEL%==0 (\n"
+                "  timeout /t 1 /nobreak >NUL\n"
+                "  goto wait_for_quest\n"
+                ")\n"
+                f'call "{activate_script}" >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                "if errorlevel 1 goto update_failed\n"
+                f'cd /d "{local_repo}"\n'
+                "if errorlevel 1 goto update_failed\n"
+                f'echo Pulling latest QuESt changes from {github_repo}...>> "%QUEST_UPDATE_LOG%"\n'
+                f'git remote set-url origin "{github_repo}" >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                "if errorlevel 1 goto update_failed\n"
+                'git pull origin HEAD >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                "if errorlevel 1 goto update_failed\n"
+                'echo Reinstalling QuESt into the active environment...>> "%QUEST_UPDATE_LOG%"\n'
+                f'"{python_executable}" -m pip install --upgrade . >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                "if errorlevel 1 goto update_failed\n"
+                'echo Relaunching QuESt...>> "%QUEST_UPDATE_LOG%"\n'
+                f'start "" "{python_executable}" -m quest\n'
+                'echo Update completed successfully.>> "%QUEST_UPDATE_LOG%"\n'
+                "exit /b 0\n"
+                ":update_failed\n"
+                'echo Update failed with exit code %ERRORLEVEL%.>> "%QUEST_UPDATE_LOG%"\n'
+                "exit /b %ERRORLEVEL%\n"
+            )
+
+        activate_script = os.path.join(env_root, "bin", "activate")
+        return (
+            "#!/usr/bin/env bash\n"
+            "set -euo pipefail\n"
+            f'LOG_PATH="{log_path}"\n'
+            'echo "QuESt update started at $(date)" > "$LOG_PATH"\n'
+            f'echo "Waiting for QuESt process {current_pid} to exit..." >> "$LOG_PATH"\n'
+            f"while kill -0 {current_pid} 2>/dev/null; do sleep 1; done\n"
+            f'source "{activate_script}" >> "$LOG_PATH" 2>&1\n'
+            f'cd "{local_repo}"\n'
+            f'echo "Pulling latest QuESt changes from {github_repo}..." >> "$LOG_PATH"\n'
+            f'git remote set-url origin "{github_repo}" >> "$LOG_PATH" 2>&1\n'
+            'git pull origin HEAD >> "$LOG_PATH" 2>&1\n'
+            'echo "Reinstalling QuESt into the active environment..." >> "$LOG_PATH"\n'
+            f'"{python_executable}" -m pip install --upgrade . >> "$LOG_PATH" 2>&1\n'
+            'echo "Relaunching QuESt..." >> "$LOG_PATH"\n'
+            f'"{python_executable}" -m quest >> "$LOG_PATH" 2>&1 &\n'
+            'echo "Update completed successfully." >> "$LOG_PATH"\n'
+        )
+
+    def _create_update_script(self, local_repo, github_repo, current_pid):
+        script_path = self._script_path_for_repository(local_repo)
+        log_path = self._update_log_path_for_repository(local_repo)
+        script_contents = self._build_update_script(local_repo, github_repo, current_pid, log_path)
+        with open(script_path, "w", encoding="utf-8", newline="\n") as script_file:
+            script_file.write(script_contents)
+        if not sys.platform.startswith("win"):
+            current_mode = os.stat(script_path).st_mode
+            os.chmod(script_path, current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        return script_path, log_path
+
+    def _append_update_log(self, message):
+        if not message:
+            return
+        for line in str(message).splitlines():
+            self.updates_log.append(line)
+
+    def _check_repository_update_needed(self, local_repo, github_repo):
+        """Return (needs_update, message) after checking the remote repo state."""
+        commands = [
+            ["git", "remote", "set-url", "origin", github_repo],
+            ["git", "fetch", "origin"],
+            ["git", "rev-parse", "HEAD"],
+            ["git", "rev-parse", "FETCH_HEAD"],
+        ]
+        outputs = []
+
+        for command in commands:
+            result = subprocess.run(
+                command,
+                cwd=local_repo,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            stdout = (result.stdout or "").strip()
+            stderr = (result.stderr or "").strip()
+            if stdout:
+                outputs.append(stdout)
+            if stderr:
+                outputs.append(stderr)
+            if result.returncode != 0:
+                message = stderr or stdout or f"Command failed: {' '.join(command)}"
+                return True, message
+
+        if len(outputs) >= 2:
+            local_head = outputs[-2].splitlines()[-1].strip()
+            remote_head = outputs[-1].splitlines()[-1].strip()
+            if local_head == remote_head:
+                return False, "Local repository is already up to date with Github."
+
+        return True, "Remote updates detected. Preparing update script."
+
+    def _launch_detached_update(self, script_path):
+        if sys.platform.startswith("win"):
+            return QProcess.startDetached("cmd.exe", ["/c", script_path])
+        return QProcess.startDetached("/bin/bash", [script_path])
+
+    def _run_updates_page_update(self):
+        local_repo = os.path.abspath(self.local_repo_entry.text().strip())
+        github_repo = self.github_repo_entry.text().strip()
+
+        if not local_repo or not os.path.isdir(local_repo):
+            QMessageBox.warning(self, "Invalid Local Repository", "Please choose a valid local QuESt repository folder.")
+            return
+        if not self._looks_like_quest_repo(local_repo):
+            QMessageBox.warning(self, "Invalid Repository", "The selected folder does not look like a QuESt repository.")
+            return
+        if not github_repo:
+            QMessageBox.warning(self, "Missing Github Repository", "Please enter a Github repository URL.")
+            return
+
+        self._save_update_settings()
+        self.updates_log.clear()
+        needs_update, status_message = self._check_repository_update_needed(local_repo, github_repo)
+        self._append_update_log(status_message)
+        if not needs_update:
+            return
+
+        try:
+            script_path, log_path = self._create_update_script(local_repo, github_repo, os.getpid())
+        except Exception as exc:
+            QMessageBox.critical(self, "Update Script Error", f"Could not create the update script:\n{exc}")
+            return
+
+        settings = QSettings("Sandia", "Quest")
+        settings.setValue("updates/log_path", log_path)
+        self._append_update_log(f"Created update script: {script_path}")
+        self._append_update_log(f"Update log file: {log_path}")
+        self._append_update_log(f"Local repository: {local_repo}")
+        self._append_update_log(f"Github repository: {github_repo}")
+        self._append_update_log("QuESt must close before the installed package can be updated.")
+
+        reply = QMessageBox.question(
+            self,
+            "Restart For Update",
+            "QuESt needs to close to finish this update. Start the detached updater and restart QuESt when it completes?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.Yes,
+        )
+        if reply != QMessageBox.Yes:
+            self._append_update_log("Update canceled before launch.")
+            return
+
+        if not self._launch_detached_update(script_path):
+            QMessageBox.critical(self, "Update Launch Error", "The detached update process could not be started.")
+            return
+
+        self._append_update_log("Detached updater started. QuESt will close now and relaunch after the update.")
+        self.close()
 
     def save_config(self):
         """

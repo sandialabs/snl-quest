@@ -488,8 +488,9 @@ class Ui_MainWindow(object):
         self.appearance_button.setChecked(True)
         self.appearance_button.setAutoExclusive(True)
         self.appearance_button.setFlat(True)
+        self.appearance_button.setIcon(QIcon())
 
-        self.verticalLayout_16.addWidget(self.appearance_button, 0, Qt.AlignLeft)
+        self.verticalLayout_16.addWidget(self.appearance_button, 0, Qt.AlignHCenter)
 
         self.environments_button = QPushButton(self.settings_menu)
         self.environments_button.setObjectName(u"environments_button")
@@ -501,8 +502,9 @@ class Ui_MainWindow(object):
         self.environments_button.setCheckable(True)
         self.environments_button.setAutoExclusive(True)
         self.environments_button.setFlat(True)
+        self.environments_button.setIcon(QIcon())
 
-        self.verticalLayout_16.addWidget(self.environments_button, 0, Qt.AlignLeft)
+        self.verticalLayout_16.addWidget(self.environments_button, 0, Qt.AlignHCenter)
 
         self.api_keys_button = QPushButton(self.settings_menu)
         self.api_keys_button.setObjectName(u"api_keys_button")
@@ -514,8 +516,21 @@ class Ui_MainWindow(object):
         self.api_keys_button.setCheckable(True)
         self.api_keys_button.setAutoExclusive(True)
         self.api_keys_button.setFlat(True)
+        self.api_keys_button.setIcon(QIcon())
 
-        self.verticalLayout_16.addWidget(self.api_keys_button, 0, Qt.AlignLeft)
+        self.verticalLayout_16.addWidget(self.api_keys_button, 0, Qt.AlignHCenter)
+
+        self.additional_settings_button = QPushButton(self.settings_menu)
+        self.additional_settings_button.setObjectName(u"additional_settings_button")
+        self.additional_settings_button.setStyleSheet(u"")
+        self.additional_settings_button.setIcon(icon12)
+        self.additional_settings_button.setIconSize(QSize(24, 24))
+        self.additional_settings_button.setCheckable(True)
+        self.additional_settings_button.setAutoExclusive(True)
+        self.additional_settings_button.setFlat(True)
+        self.additional_settings_button.setIcon(QIcon())
+
+        self.verticalLayout_16.addWidget(self.additional_settings_button, 0, Qt.AlignHCenter)
 
         self.verticalSpacer_2 = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 
@@ -757,9 +772,73 @@ class Ui_MainWindow(object):
         self.frame_7.setObjectName(u"frame_7")
         self.frame_7.setFrameShape(QFrame.NoFrame)
         self.frame_7.setFrameShadow(QFrame.Raised)
+        self.verticalLayout_35 = QVBoxLayout(self.frame_7)
+        self.verticalLayout_35.setSpacing(16)
+        self.verticalLayout_35.setObjectName(u"verticalLayout_35")
+        self.verticalLayout_35.setContentsMargins(24, 24, 24, 24)
         self.label_7 = QLabel(self.frame_7)
         self.label_7.setObjectName(u"label_7")
-        self.label_7.setGeometry(QRect(210, 230, 341, 21))
+
+        self.verticalLayout_35.addWidget(self.label_7)
+
+        self.frame_14 = QFrame(self.frame_7)
+        self.frame_14.setObjectName(u"frame_14")
+        self.frame_14.setFrameShape(QFrame.NoFrame)
+        self.frame_14.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_44 = QHBoxLayout(self.frame_14)
+        self.horizontalLayout_44.setSpacing(12)
+        self.horizontalLayout_44.setObjectName(u"horizontalLayout_44")
+        self.horizontalLayout_44.setContentsMargins(0, 0, 0, 0)
+        self.local_repo_label = QLabel(self.frame_14)
+        self.local_repo_label.setObjectName(u"local_repo_label")
+        self.local_repo_label.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_44.addWidget(self.local_repo_label)
+
+        self.local_repo_entry = QLineEdit(self.frame_14)
+        self.local_repo_entry.setObjectName(u"local_repo_entry")
+
+        self.horizontalLayout_44.addWidget(self.local_repo_entry)
+
+        self.local_repo_browse_button = QPushButton(self.frame_14)
+        self.local_repo_browse_button.setObjectName(u"local_repo_browse_button")
+
+        self.horizontalLayout_44.addWidget(self.local_repo_browse_button)
+
+
+        self.verticalLayout_35.addWidget(self.frame_14)
+
+        self.frame_15 = QFrame(self.frame_7)
+        self.frame_15.setObjectName(u"frame_15")
+        self.frame_15.setFrameShape(QFrame.NoFrame)
+        self.frame_15.setFrameShadow(QFrame.Raised)
+        self.horizontalLayout_45 = QHBoxLayout(self.frame_15)
+        self.horizontalLayout_45.setSpacing(12)
+        self.horizontalLayout_45.setObjectName(u"horizontalLayout_45")
+        self.horizontalLayout_45.setContentsMargins(0, 0, 0, 0)
+        self.github_repo_label = QLabel(self.frame_15)
+        self.github_repo_label.setObjectName(u"github_repo_label")
+        self.github_repo_label.setMinimumSize(QSize(140, 0))
+
+        self.horizontalLayout_45.addWidget(self.github_repo_label)
+
+        self.github_repo_entry = QLineEdit(self.frame_15)
+        self.github_repo_entry.setObjectName(u"github_repo_entry")
+
+        self.horizontalLayout_45.addWidget(self.github_repo_entry)
+
+        self.update_repo_button = QPushButton(self.frame_15)
+        self.update_repo_button.setObjectName(u"update_repo_button")
+
+        self.horizontalLayout_45.addWidget(self.update_repo_button)
+
+
+        self.verticalLayout_35.addWidget(self.frame_15)
+
+        self.updates_log = QTextBrowser(self.frame_7)
+        self.updates_log.setObjectName(u"updates_log")
+
+        self.verticalLayout_35.addWidget(self.updates_log)
 
         self.verticalLayout_33.addWidget(self.frame_7)
 
@@ -932,6 +1011,7 @@ class Ui_MainWindow(object):
         self.appearance_button.setText(QCoreApplication.translate("MainWindow", u"       Appearance             ", None))
         self.environments_button.setText(QCoreApplication.translate("MainWindow", u"      Environments           ", None))
         self.api_keys_button.setText(QCoreApplication.translate("MainWindow", u"          API Key               ", None))
+        self.additional_settings_button.setText(QCoreApplication.translate("MainWindow", u"           Updates               ", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"Appearance", None))
         self.light_mode_button.setText(QCoreApplication.translate("MainWindow", u"Light Mode", None))
 #if QT_CONFIG(tooltip)
@@ -951,7 +1031,21 @@ class Ui_MainWindow(object):
         self.load_api.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Load</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.load_api.setText("")
-        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Place Holder 1", None))
+        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Updates", None))
+        self.local_repo_label.setText(QCoreApplication.translate("MainWindow", u"Local Repository", None))
+        self.local_repo_entry.setPlaceholderText(QCoreApplication.translate("MainWindow", u"path/to/local/snl-quest", None))
+        self.local_repo_browse_button.setText(QCoreApplication.translate("MainWindow", u"Browse", None))
+        self.github_repo_label.setText(QCoreApplication.translate("MainWindow", u"Github Repository", None))
+        self.github_repo_entry.setPlaceholderText(QCoreApplication.translate("MainWindow", u"https://github.com/sandialabs/snl-quest.git", None))
+        self.update_repo_button.setText(QCoreApplication.translate("MainWindow", u"Update", None))
+        self.updates_log.setHtml(QCoreApplication.translate("MainWindow", u"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><meta charset=\"utf-8\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"hr { height: 1px; border-width: 0; }\n"
+"li.unchecked::marker { content: \"\\2610\"; }\n"
+"li.checked::marker { content: \"\\2612\"; }\n"
+"</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Update logs will appear here.</p></body></html>", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"PlaceHolder 2", None))
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Developed by Sandia National Laboratories", None))
         self.version_label.setText(QCoreApplication.translate("MainWindow", u"ver 2.0.b ", None))
