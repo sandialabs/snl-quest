@@ -36,12 +36,12 @@ python -m pip --version || (
 
 REM Clone repo into the env folder
 echo Cloning quest_PCM repo...
-git clone https://github.com/ercabrer/quest_PCM "%REPO_PATH%"
+git clone --branch quest_integration --single-branch https://github.com/sandialabs/quest_PCM "%REPO_PATH%"
 
 REM Install the package in editable mode
 echo Installing quest_PCM package...
 python -m pip install --upgrade pip
-python -m pip install -e "%REPO_PATH%" || (
+python -m pip install "%REPO_PATH%" || (
     echo ERROR: quest_PCM install failed
     exit /b 1
 )
