@@ -253,6 +253,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         candidate = os.path.abspath(path)
         return (
             os.path.isdir(candidate)
+            and os.path.isdir(os.path.join(candidate, ".git"))
             and os.path.isfile(os.path.join(candidate, "setup.py"))
             and os.path.isdir(os.path.join(candidate, "quest"))
         )
@@ -324,6 +325,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "setlocal\n"
                 f'set "QUEST_UPDATE_LOG={log_path}"\n'
                 f'echo QuESt update started at %DATE% %TIME% > "%QUEST_UPDATE_LOG%"\n'
+                f'echo Waiting for QuESt process {current_pid} to exit...\n'
                 f'echo Waiting for QuESt process {current_pid} to exit...>> "%QUEST_UPDATE_LOG%"\n'
                 ":wait_for_quest\n"
                 f'tasklist /FI "PID eq {current_pid}" 2>NUL | find "{current_pid}" >NUL\n'
@@ -331,23 +333,31 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "  timeout /t 1 /nobreak >NUL\n"
                 "  goto wait_for_quest\n"
                 ")\n"
-                f'call "{activate_script}" >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                "echo Activating current QuESt environment...\n"
+                'echo Activating current QuESt environment...>> "%QUEST_UPDATE_LOG%"\n'
+                f'call "{activate_script}"\n'
                 "if errorlevel 1 goto update_failed\n"
-                f'cd /d "{local_repo}"\n'
-                "if errorlevel 1 goto update_failed\n"
+                "echo.\n"
+                f'echo Pulling latest QuESt changes from {github_repo}...\n'
                 f'echo Pulling latest QuESt changes from {github_repo}...>> "%QUEST_UPDATE_LOG%"\n'
-                f'git remote set-url origin "{github_repo}" >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                f'git -C "{local_repo}" remote set-url origin "{github_repo}"\n'
                 "if errorlevel 1 goto update_failed\n"
-                'git pull origin HEAD >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                f'git -C "{local_repo}" pull origin\n'
                 "if errorlevel 1 goto update_failed\n"
+                "echo.\n"
+                "echo Reinstalling QuESt into the active environment...\n"
                 'echo Reinstalling QuESt into the active environment...>> "%QUEST_UPDATE_LOG%"\n'
-                f'"{python_executable}" -m pip install --upgrade . >> "%QUEST_UPDATE_LOG%" 2>&1\n'
+                f'"{python_executable}" -m pip install --upgrade "{local_repo}"\n'
                 "if errorlevel 1 goto update_failed\n"
+                "echo.\n"
+                "echo Relaunching QuESt...\n"
                 'echo Relaunching QuESt...>> "%QUEST_UPDATE_LOG%"\n'
                 f'start "" "{python_executable}" -m quest\n'
+                "echo Update completed successfully.\n"
                 'echo Update completed successfully.>> "%QUEST_UPDATE_LOG%"\n'
                 "exit /b 0\n"
                 ":update_failed\n"
+                "echo Update failed with exit code %ERRORLEVEL%.\n"
                 'echo Update failed with exit code %ERRORLEVEL%.>> "%QUEST_UPDATE_LOG%"\n'
                 "exit /b %ERRORLEVEL%\n"
             )
@@ -361,12 +371,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             f'echo "Waiting for QuESt process {current_pid} to exit..." >> "$LOG_PATH"\n'
             f"while kill -0 {current_pid} 2>/dev/null; do sleep 1; done\n"
             f'source "{activate_script}" >> "$LOG_PATH" 2>&1\n'
-            f'cd "{local_repo}"\n'
             f'echo "Pulling latest QuESt changes from {github_repo}..." >> "$LOG_PATH"\n'
-            f'git remote set-url origin "{github_repo}" >> "$LOG_PATH" 2>&1\n'
-            'git pull origin HEAD >> "$LOG_PATH" 2>&1\n'
+            f'git -C "{local_repo}" remote set-url origin "{github_repo}" >> "$LOG_PATH" 2>&1\n'
+            f'git -C "{local_repo}" pull origin >> "$LOG_PATH" 2>&1\n'
             'echo "Reinstalling QuESt into the active environment..." >> "$LOG_PATH"\n'
-            f'"{python_executable}" -m pip install --upgrade . >> "$LOG_PATH" 2>&1\n'
+            f'"{python_executable}" -m pip install --upgrade "{local_repo}" >> "$LOG_PATH" 2>&1\n'
             'echo "Relaunching QuESt..." >> "$LOG_PATH"\n'
             f'"{python_executable}" -m quest >> "$LOG_PATH" 2>&1 &\n'
             'echo "Update completed successfully." >> "$LOG_PATH"\n'
@@ -378,6 +387,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         script_contents = self._build_update_script(local_repo, github_repo, current_pid, log_path)
         with open(script_path, "w", encoding="utf-8", newline="\n") as script_file:
             script_file.write(script_contents)
+        with open(log_path, "w", encoding="utf-8", newline="\n") as log_file:
+            log_file.write("QuESt update prepared.\n")
+            log_file.write(f"Repository: {local_repo}\n")
+            log_file.write(f"Remote: {github_repo}\n")
+            log_file.write("Waiting for QuESt to close so the update can begin.\n")
         if not sys.platform.startswith("win"):
             current_mode = os.stat(script_path).st_mode
             os.chmod(script_path, current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
@@ -427,7 +441,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def _launch_detached_update(self, script_path):
         if sys.platform.startswith("win"):
-            return QProcess.startDetached("cmd.exe", ["/c", script_path])
+            return QProcess.startDetached(
+                "cmd.exe",
+                ["/c", "start", "QuESt Updater", "cmd.exe", "/k", script_path],
+            )
         return QProcess.startDetached("/bin/bash", [script_path])
 
     def _run_updates_page_update(self):
@@ -481,6 +498,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return
 
         self._append_update_log("Detached updater started. QuESt will close now and relaunch after the update.")
+        QMessageBox.information(
+            self,
+            "Updater Started",
+            (
+                "The detached QuESt updater has started.\n\n"
+                f"You can follow the progress in:\n{log_path}\n\n"
+                "On Windows, a separate updater console window should stay open while the update runs."
+            ),
+        )
         self.close()
 
     def save_config(self):
