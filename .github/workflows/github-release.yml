@@ -1,0 +1,127 @@
+name: Create GitHub release
+
+on:
+  push:
+    tags:
+      - "v[0-9]*.[0-9]*.[0-9]*"
+      - "[0-9]*.[0-9]*.[0-9]*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to release (tag, branch, or commit SHA)
+        required: true
+        default: main
+      tag_name:
+        description: Tag name to create or update on the release
+        required: true
+
+jobs:
+  details:
+    name: Resolve release metadata
+    runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      release_version: ${{ steps.release.outputs.release_version }}
+      prerelease: ${{ steps.release.outputs.prerelease }}
+    steps:
+      - name: Resolve tag details
+        id: release
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG_NAME="${{ inputs.tag_name }}"
+          elif [ "${{ github.ref_type }}" = "tag" ]; then
+            TAG_NAME="${GITHUB_REF#refs/tags/}"
+          else
+            echo "This workflow must run from a tag push or manual dispatch."
+            exit 1
+          fi
+
+          RELEASE_VERSION="${TAG_NAME#v}"
+          if [[ ! "$RELEASE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+((a|b|rc)[0-9]+)?$ ]]; then
+            echo "Tag $TAG_NAME is not a supported release version."
+            exit 1
+          fi
+
+          if [[ "$RELEASE_VERSION" =~ (a|b|rc)[0-9]+$ ]]; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build release artifacts
+    needs: details
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.ref || github.ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build twine
+
+      - name: Confirm tag matches version.txt
+        shell: bash
+        run: |
+          FILE_VERSION="$(tr -d '[:space:]' < version.txt)"
+          if [ "$FILE_VERSION" != "${{ needs.details.outputs.release_version }}" ]; then
+            echo "version.txt contains $FILE_VERSION but release tag expects ${{ needs.details.outputs.release_version }}"
+            exit 1
+          fi
+
+      - name: Build source and wheel distributions
+        run: python -m build
+
+      - name: Validate built distributions
+        run: python -m twine check dist/*
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-release-artifacts
+          path: dist/
+
+  release:
+    name: Publish GitHub release
+    needs: [details, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: github-release-artifacts
+          path: dist/
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release view "${{ needs.details.outputs.tag_name }}" >/dev/null 2>&1 && EXISTS=true || EXISTS=false
+          if [ "${{ needs.details.outputs.prerelease }}" = "true" ]; then
+            PRERELEASE_FLAG="--prerelease"
+          else
+            PRERELEASE_FLAG=""
+          fi
+
+          if [ "$EXISTS" = true ]; then
+            gh release upload "${{ needs.details.outputs.tag_name }}" dist/* --clobber
+          else
+            gh release create "${{ needs.details.outputs.tag_name }}" dist/* \
+              --title "${{ needs.details.outputs.tag_name }}" \
+              --generate-notes \
+              $PRERELEASE_FLAG
+          fi
