@@ -13,3 +13,4 @@ config.ini
 venv/
 quest_20/
 quest_20b/
+.DS_Store

@@ -1,0 +1,39 @@
+name: Build package
+
+on:
+  push:
+    # Only run automatically when the release version file changes.
+    paths:
+      - version.txt
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    name: Build package
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip build twine
+
+      - name: Build source and wheel distributions
+        run: python -m build
+
+      - name: Validate built distributions
+        run: python -m twine check dist/*
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/
