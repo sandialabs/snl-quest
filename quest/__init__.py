@@ -1,1 +1,14 @@
-__version__ = "2.1.0"
+from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
+
+
+def _read_local_version() -> str:
+    return Path(__file__).resolve().parent.parent.joinpath("version.txt").read_text(
+        encoding="utf-8"
+    ).strip()
+
+
+try:
+    __version__ = version("Quest")
+except PackageNotFoundError:
+    __version__ = _read_local_version()

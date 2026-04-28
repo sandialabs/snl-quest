@@ -1,12 +1,15 @@
-from setuptools import setup, find_packages
+from pathlib import Path
 
-from quest import __version__
+from setuptools import find_packages, setup
+
+
+ROOT = Path(__file__).parent
 
 DISTNAME = "Quest"
-VERSION = __version__
+VERSION = ROOT.joinpath("version.txt").read_text(encoding="utf-8").strip()
 PYTHON_REQUIRES = ">=3.9, <3.14"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
-LONG_DESCRIPTION = open("README.md").read()
+LONG_DESCRIPTION = ROOT.joinpath("README.md").read_text(encoding="utf-8")
 AUTHOR = "Sandia National Laboratories"
 MAINTAINER_EMAIL = "tunguy@sandia.gov"
 LICENSE = "BSD 3-clause"
