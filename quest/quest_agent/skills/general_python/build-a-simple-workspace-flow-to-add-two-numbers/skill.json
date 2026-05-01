@@ -1,0 +1,424 @@
+{
+  "schema_version": "1.0",
+  "skill_id": "build-a-simple-workspace-flow-to-add-two-numbers",
+  "version": 1,
+  "parent_skill_id": null,
+  "title": "Build a simple Workspace flow to add two numbers",
+  "slug": "build-a-simple-workspace-flow-to-add-two-numbers",
+  "skill_type": "general_python",
+  "summary": "Create and save a QuESt Workspace flow that documents a simple addition task, defines two numeric data inputs, connects them to a Python node configured to output their sum, and saves the flow as a reusable JSON workflow file.",
+  "status": "draft",
+  "created_at": "2026-04-29T10:52:40-06:00",
+  "updated_at": "2026-04-29T10:52:40-06:00",
+  "created_by": "quest_agent",
+  "source": {
+    "session_id": "",
+    "derived_from_run_id": ""
+  },
+  "task": {
+    "description": "Create and save a QuESt Workspace flow that documents a simple addition task, defines two numeric data inputs, connects them to a Python node configured to output their sum, and saves the flow as a reusable JSON workflow file.",
+    "pinned_context_summary": "No pinned context was provided. The recorded workflow shows a Workspace-only example flow named Master that demonstrates adding two numbers using two data nodes, one Python node, and one descriptive text node, then saving the flow to add_2num.json.",
+    "task_fingerprint": "sha256:5a365231b4e43f8d28a79a2a59ec54d9dc253713d6e2e2530605bff8a1c40094",
+    "context_fingerprint": "sha256:4b730733be33065f348c939b02d2b533f9ecb691246439403c6c79e4805820ed"
+  },
+  "classification": {
+    "tags": [
+      "workspace",
+      "flow-building",
+      "python-node",
+      "data-node",
+      "text-node",
+      "example-flow",
+      "addition"
+    ],
+    "domains": []
+  },
+  "tools": {
+    "recommended": [
+      "workspace"
+    ],
+    "required": [
+      "workspace"
+    ],
+    "optional": []
+  },
+  "files": {
+    "attachments": [],
+    "workflow_json": "workflow/final_workflow.json"
+  },
+  "action_record": {
+    "path": "artifacts/action_record.json",
+    "records": [
+      {
+        "scope": "skill",
+        "action": "start_recording",
+        "target": "Master",
+        "details": {
+          "flow_type": "master-flow"
+        },
+        "workspace_action": {},
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_text_node",
+        "target": "TextNode1",
+        "details": {
+          "node_id": "0x1c13b6f5010",
+          "node_type": "text"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "text",
+          "count": 1,
+          "name": "TextNode1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "rename_node",
+        "target": "Description",
+        "details": {
+          "old_name": "TextNode1",
+          "node_type": "back_node"
+        },
+        "workspace_action": {
+          "type": "rename_selected_node",
+          "new_name": "Description"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_text_node",
+        "target": "Description",
+        "details": {
+          "text": "This flow is for adding two numbers"
+        },
+        "workspace_action": {
+          "type": "update_selected_text_node",
+          "text": "This flow is for adding two numbers"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_1",
+        "details": {
+          "node_id": "0x1c13b427c50",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_2",
+        "details": {
+          "node_id": "0x1c13b427250",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_2"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_py_node",
+        "target": "py_node_1",
+        "details": {
+          "node_id": "0x1c10fa6f490",
+          "node_type": "py",
+          "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c10fa6f490.ipynb"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "py",
+          "count": 1,
+          "name": "py_node_1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "rename_node",
+        "target": "number1",
+        "details": {
+          "old_name": "data_node_1",
+          "node_type": "data_node"
+        },
+        "workspace_action": {
+          "type": "rename_selected_node",
+          "new_name": "number1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number1",
+        "details": {
+          "variable_name": "a"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "a"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_node_value",
+        "target": "number1",
+        "details": {
+          "variable_name": "a",
+          "value": "10",
+          "value_display": true,
+          "is_path": false
+        },
+        "workspace_action": {
+          "type": "update_selected_data_node_value",
+          "variable_name": "a",
+          "value": "10",
+          "value_display": true,
+          "is_path": false
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_node_value",
+        "target": "number1",
+        "details": {
+          "variable_name": "a",
+          "value": "10",
+          "value_display": true,
+          "is_path": false
+        },
+        "workspace_action": {
+          "type": "update_selected_data_node_value",
+          "variable_name": "a",
+          "value": "10",
+          "value_display": true,
+          "is_path": false
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "rename_node",
+        "target": "number2",
+        "details": {
+          "old_name": "data_node_2",
+          "node_type": "data_node"
+        },
+        "workspace_action": {
+          "type": "rename_selected_node",
+          "new_name": "number2"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number2",
+        "details": {
+          "variable_name": "b"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "b"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_py_node_ports",
+        "target": "py_node_1",
+        "details": {
+          "inputs": [
+            "x",
+            "y"
+          ],
+          "outputs": [
+            "output"
+          ],
+          "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c10fa6f490.ipynb"
+        },
+        "workspace_action": {
+          "type": "update_py_node_ports",
+          "inputs": [
+            "x",
+            "y"
+          ],
+          "outputs": [
+            "output"
+          ],
+          "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c10fa6f490.ipynb"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "rename_node",
+        "target": "sum",
+        "details": {
+          "old_name": "py_node_1",
+          "node_type": "python_node"
+        },
+        "workspace_action": {
+          "type": "rename_selected_node",
+          "new_name": "sum"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number1.a -> sum.x",
+        "details": {
+          "source_node": "number1",
+          "source_port": "a",
+          "target_node": "sum",
+          "target_port": "x"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number1",
+          "target_node": "sum",
+          "mapping": {
+            "a": "x"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number2.b -> sum.y",
+        "details": {
+          "source_node": "number2",
+          "source_port": "b",
+          "target_node": "sum",
+          "target_port": "y"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number2",
+          "target_node": "sum",
+          "mapping": {
+            "b": "y"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "flow",
+        "action": "save_flow_as",
+        "target": "Master",
+        "details": {
+          "path": "C:/work/quest210/snl-quest/quest/snl_libraries/workspace/examples/add_2num.json",
+          "save_mode": "master",
+          "flow_type": "master-flow"
+        },
+        "workspace_action": {
+          "type": "save_flow_as",
+          "path": "C:/work/quest210/snl-quest/quest/snl_libraries/workspace/examples/add_2num.json",
+          "save_mode": "master"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      }
+    ]
+  },
+  "inputs": {
+    "required_file_types": [
+      ".json"
+    ],
+    "expected_inputs": [
+      {
+        "name": "flow_save_path",
+        "type": "string",
+        "description": "Destination path and filename for the saved Workspace flow JSON."
+      },
+      {
+        "name": "first_number",
+        "type": "number",
+        "description": "Optional sample value for the first input data node."
+      },
+      {
+        "name": "second_number",
+        "type": "number",
+        "description": "Optional sample value for the second input data node."
+      },
+      {
+        "name": "description_text",
+        "type": "string",
+        "description": "Optional explanatory text for the Description node."
+      }
+    ]
+  },
+  "plan": {
+    "workflow_strategy": "Use Workspace to assemble a minimal master flow: add a descriptive text node, create two data nodes for numeric inputs, create and configure a Python node with two inputs and one output, connect the data nodes to the Python node, and save the completed flow as a JSON file.",
+    "step_summary": [
+      "Start a master flow recording in Workspace.",
+      "Create a text node, rename it to Description, and add explanatory text stating the flow adds two numbers.",
+      "Create two data nodes to represent the numeric inputs.",
+      "Rename the first data node to number1, set its variable name to a, and assign a sample value of 10.",
+      "Rename the second data node to number2 and set its variable name to b.",
+      "Create a Python node, configure its ports with inputs x and y and output output, then rename it to sum.",
+      "Connect number1.a to sum.x.",
+      "Connect number2.b to sum.y.",
+      "Save the master flow as a JSON file for reuse."
+    ]
+  },
+  "validation": {
+    "status": "draft",
+    "criteria": [
+      "A text node named Description exists and contains explanatory text about adding two numbers.",
+      "Two data nodes exist, named number1 and number2.",
+      "The number1 data node exposes variable a.",
+      "The number2 data node exposes variable b.",
+      "A Python node named sum exists with inputs x and y and output output.",
+      "There is a connection from number1.a to sum.x.",
+      "There is a connection from number2.b to sum.y.",
+      "The flow is successfully saved as a .json file."
+    ],
+    "last_validated_at": ""
+  },
+  "limitations": [
+    "The recording configures Python node ports but does not include the internal Python code that performs the addition.",
+    "The second data node value was not explicitly set in the recording.",
+    "This skill describes Workspace flow construction only and does not guarantee execution behavior without implementing the Python node logic.",
+    "The example is limited to a simple two-input addition pattern and may need adaptation for broader arithmetic workflows."
+  ]
+}

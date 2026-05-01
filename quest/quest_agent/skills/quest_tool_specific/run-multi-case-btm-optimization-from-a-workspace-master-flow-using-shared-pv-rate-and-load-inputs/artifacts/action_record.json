@@ -1,0 +1,44 @@
+[
+  {
+    "scope": "skill",
+    "action": "start_recording",
+    "target": "Master",
+    "details": {
+      "flow_type": "master-flow"
+    },
+    "workspace_action": {},
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "flow",
+    "action": "load_flow",
+    "target": "Master_btm_flow_2026",
+    "details": {
+      "path": "C:/work/quest210/snl-quest/quest/snl_libraries/workspace/examples/btm_subflow_input_mangement_example1.json",
+      "flow_type": "master-flow",
+      "subflow_count": 1
+    },
+    "workspace_action": {
+      "type": "load_flow",
+      "path": "C:/work/quest210/snl-quest/quest/snl_libraries/workspace/examples/btm_subflow_input_mangement_example1.json",
+      "flow_type": "master-flow"
+    },
+    "flow_name": "Master_btm_flow_2026",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "flow",
+    "action": "add_input_case",
+    "target": "Subcase 1",
+    "details": {
+      "flow_type": "sub-flow"
+    },
+    "workspace_action": {
+      "type": "add_input_case",
+      "case_name": "Subcase 1"
+    },
+    "flow_name": "btm_flow_2026_new",
+    "flow_type": "sub-flow"
+  }
+]

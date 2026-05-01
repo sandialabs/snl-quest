@@ -1,0 +1,583 @@
+{
+  "flow_name": "Master",
+  "flow_type": "master-flow",
+  "flow_environment_name": "Master_env",
+  "flow_environment_path": "C:/work/quest210-py313/Scripts/python.exe",
+  "flow_layout": {
+    "graph": {
+      "acyclic": true,
+      "pipe_collision": false
+    },
+    "nodes": {
+      "0x26f2c18ee40": {
+        "type_": "QuESt.Workspace.BackNode",
+        "icon": null,
+        "name": "Description",
+        "color": [
+          255,
+          255,
+          155
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": false,
+        "visible": true,
+        "width": 106.0,
+        "height": 106.0,
+        "pos": [
+          100.0,
+          100.0
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": false,
+        "subgraph_session": {},
+        "custom": {
+          "backdrop_text": "This flow adds five numbers and then squares the sum."
+        }
+      },
+      "0x26f2ddc6e90": {
+        "type_": "QuESt.Workspace.DataNode",
+        "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+        "name": "number1",
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": false,
+        "visible": true,
+        "width": 180,
+        "height": 80,
+        "pos": [
+          200.0,
+          200.0
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": true,
+        "subgraph_session": {},
+        "input_ports": [],
+        "output_ports": [
+          {
+            "name": "a",
+            "multi_connection": true,
+            "display_name": true
+          }
+        ],
+        "custom": {
+          "Text Caption": ""
+        }
+      },
+      "0x26f2ddc7110": {
+        "type_": "QuESt.Workspace.DataNode",
+        "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+        "name": "number2",
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": false,
+        "visible": true,
+        "width": 180,
+        "height": 80,
+        "pos": [
+          209.58747135217732,
+          352.2383498854087
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": true,
+        "subgraph_session": {},
+        "input_ports": [],
+        "output_ports": [
+          {
+            "name": "b",
+            "multi_connection": true,
+            "display_name": true
+          }
+        ],
+        "custom": {
+          "Text Caption": ""
+        }
+      },
+      "0x26f05b13950": {
+        "type_": "QuESt.Workspace.DataNode",
+        "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+        "name": "number3",
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": false,
+        "visible": true,
+        "width": 180,
+        "height": 80,
+        "pos": [
+          215.1566080977846,
+          498.44919786096256
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": true,
+        "subgraph_session": {},
+        "input_ports": [],
+        "output_ports": [
+          {
+            "name": "c",
+            "multi_connection": true,
+            "display_name": true
+          }
+        ],
+        "custom": {
+          "Text Caption": ""
+        }
+      },
+      "0x26f2c346520": {
+        "type_": "QuESt.Workspace.DataNode",
+        "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+        "name": "number4",
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": false,
+        "visible": true,
+        "width": 180,
+        "height": 80,
+        "pos": [
+          220.7257448433918,
+          658.7242169595111
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": true,
+        "subgraph_session": {},
+        "input_ports": [],
+        "output_ports": [
+          {
+            "name": "d",
+            "multi_connection": true,
+            "display_name": true
+          }
+        ],
+        "custom": {
+          "Text Caption": ""
+        }
+      },
+      "0x26f29d81350": {
+        "type_": "QuESt.Workspace.DataNode",
+        "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+        "name": "number5",
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": false,
+        "visible": true,
+        "width": 180,
+        "height": 80,
+        "pos": [
+          216.24904507257435,
+          810.9625668449196
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": true,
+        "subgraph_session": {},
+        "input_ports": [],
+        "output_ports": [
+          {
+            "name": "e",
+            "multi_connection": true,
+            "display_name": true
+          }
+        ],
+        "custom": {
+          "Text Caption": ""
+        }
+      },
+      "0x26f29d810f0": {
+        "type_": "QuESt.Workspace.PyNode",
+        "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\python_icon.png",
+        "name": "sum_and_square",
+        "color": [
+          255,
+          255,
+          255
+        ],
+        "border_color": [
+          74,
+          84,
+          85,
+          255
+        ],
+        "text_color": [
+          0,
+          0,
+          0
+        ],
+        "disabled": false,
+        "selected": true,
+        "visible": true,
+        "width": 180,
+        "height": 149.5,
+        "pos": [
+          586.4820473644002,
+          492.0511841100076
+        ],
+        "layout_direction": 0,
+        "port_deletion_allowed": true,
+        "subgraph_session": {},
+        "input_ports": [
+          {
+            "name": "a",
+            "multi_connection": false,
+            "display_name": true
+          },
+          {
+            "name": "b",
+            "multi_connection": false,
+            "display_name": true
+          },
+          {
+            "name": "c",
+            "multi_connection": false,
+            "display_name": true
+          },
+          {
+            "name": "d",
+            "multi_connection": false,
+            "display_name": true
+          },
+          {
+            "name": "e",
+            "multi_connection": false,
+            "display_name": true
+          }
+        ],
+        "output_ports": [
+          {
+            "name": "sum",
+            "multi_connection": true,
+            "display_name": true
+          },
+          {
+            "name": "squared_result",
+            "multi_connection": true,
+            "display_name": true
+          }
+        ]
+      }
+    },
+    "connections": [
+      {
+        "out": [
+          "0x26f2ddc6e90",
+          "a"
+        ],
+        "in": [
+          "0x26f29d810f0",
+          "a"
+        ]
+      },
+      {
+        "out": [
+          "0x26f2ddc7110",
+          "b"
+        ],
+        "in": [
+          "0x26f29d810f0",
+          "b"
+        ]
+      },
+      {
+        "out": [
+          "0x26f05b13950",
+          "c"
+        ],
+        "in": [
+          "0x26f29d810f0",
+          "c"
+        ]
+      },
+      {
+        "out": [
+          "0x26f2c346520",
+          "d"
+        ],
+        "in": [
+          "0x26f29d810f0",
+          "d"
+        ]
+      },
+      {
+        "out": [
+          "0x26f29d81350",
+          "e"
+        ],
+        "in": [
+          "0x26f29d810f0",
+          "e"
+        ]
+      }
+    ]
+  },
+  "nodes_df": [
+    {
+      "node_id": "0x26f2c18ee40",
+      "node_name": "Description",
+      "node_type": "back_node",
+      "node_input_variable": "",
+      "node_input_value": "This flow adds five numbers and then squares the sum.",
+      "node_value_display": true,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "",
+      "node_imports": "",
+      "node_notebook_path": ""
+    },
+    {
+      "node_id": "0x26f2ddc6e90",
+      "node_name": "number1",
+      "node_type": "data_node",
+      "node_input_variable": "a",
+      "node_input_value": "1",
+      "node_value_display": true,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "",
+      "node_imports": "",
+      "node_notebook_path": ""
+    },
+    {
+      "node_id": "0x26f2ddc7110",
+      "node_name": "number2",
+      "node_type": "data_node",
+      "node_input_variable": "b",
+      "node_input_value": "2",
+      "node_value_display": true,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "",
+      "node_imports": "",
+      "node_notebook_path": ""
+    },
+    {
+      "node_id": "0x26f05b13950",
+      "node_name": "number3",
+      "node_type": "data_node",
+      "node_input_variable": "c",
+      "node_input_value": "3",
+      "node_value_display": true,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "",
+      "node_imports": "",
+      "node_notebook_path": ""
+    },
+    {
+      "node_id": "0x26f2c346520",
+      "node_name": "number4",
+      "node_type": "data_node",
+      "node_input_variable": "d",
+      "node_input_value": "4",
+      "node_value_display": true,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "",
+      "node_imports": "",
+      "node_notebook_path": ""
+    },
+    {
+      "node_id": "0x26f29d81350",
+      "node_name": "number5",
+      "node_type": "data_node",
+      "node_input_variable": "e",
+      "node_input_value": "5",
+      "node_value_display": true,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "",
+      "node_imports": "",
+      "node_notebook_path": ""
+    },
+    {
+      "node_id": "0x26f29d810f0",
+      "node_name": "sum_and_square",
+      "node_type": "python_node",
+      "node_input_variable": "",
+      "node_input_value": "",
+      "node_value_display": false,
+      "node_is_path": false,
+      "node_is_from_master": false,
+      "node_expose_outputs": [],
+      "node_function_wrapper": "def sum_and_square_function(a, b, c, d, e):\n    total = a + b + c + d + e\n    squared = total ** 2\n    return {'sum': total, 'squared_result': squared}",
+      "node_imports": "",
+      "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\sum_and_square_0x26f29d810f0.ipynb"
+    }
+  ],
+  "connections_df": [
+    {
+      "connection_id": 1,
+      "from_node": "0x26f2ddc6e90",
+      "to_node": "0x26f29d810f0",
+      "mapping": {
+        "a": "a"
+      }
+    },
+    {
+      "connection_id": 2,
+      "from_node": "0x26f2ddc7110",
+      "to_node": "0x26f29d810f0",
+      "mapping": {
+        "b": "b"
+      }
+    },
+    {
+      "connection_id": 3,
+      "from_node": "0x26f05b13950",
+      "to_node": "0x26f29d810f0",
+      "mapping": {
+        "c": "c"
+      }
+    },
+    {
+      "connection_id": 4,
+      "from_node": "0x26f2c346520",
+      "to_node": "0x26f29d810f0",
+      "mapping": {
+        "d": "d"
+      }
+    },
+    {
+      "connection_id": 5,
+      "from_node": "0x26f29d81350",
+      "to_node": "0x26f29d810f0",
+      "mapping": {
+        "e": "e"
+      }
+    }
+  ],
+  "inputs_df": [
+    {
+      "name": "Base Case",
+      "inputs": [
+        {
+          "node_id": "0x26f2ddc6e90",
+          "node_name": "number1",
+          "variable_name": "a",
+          "value": "1",
+          "is_path": false,
+          "is_from_master": false
+        },
+        {
+          "node_id": "0x26f2ddc7110",
+          "node_name": "number2",
+          "variable_name": "b",
+          "value": "2",
+          "is_path": false,
+          "is_from_master": false
+        },
+        {
+          "node_id": "0x26f05b13950",
+          "node_name": "number3",
+          "variable_name": "c",
+          "value": "3",
+          "is_path": false,
+          "is_from_master": false
+        },
+        {
+          "node_id": "0x26f2c346520",
+          "node_name": "number4",
+          "variable_name": "d",
+          "value": "4",
+          "is_path": false,
+          "is_from_master": false
+        },
+        {
+          "node_id": "0x26f29d81350",
+          "node_name": "number5",
+          "variable_name": "e",
+          "value": "5",
+          "is_path": false,
+          "is_from_master": false
+        }
+      ]
+    }
+  ]
+}

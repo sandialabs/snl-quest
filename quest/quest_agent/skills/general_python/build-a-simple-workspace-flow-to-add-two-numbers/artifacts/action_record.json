@@ -1,0 +1,311 @@
+[
+  {
+    "scope": "skill",
+    "action": "start_recording",
+    "target": "Master",
+    "details": {
+      "flow_type": "master-flow"
+    },
+    "workspace_action": {},
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_text_node",
+    "target": "TextNode1",
+    "details": {
+      "node_id": "0x1c13b6f5010",
+      "node_type": "text"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "text",
+      "count": 1,
+      "name": "TextNode1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "rename_node",
+    "target": "Description",
+    "details": {
+      "old_name": "TextNode1",
+      "node_type": "back_node"
+    },
+    "workspace_action": {
+      "type": "rename_selected_node",
+      "new_name": "Description"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_text_node",
+    "target": "Description",
+    "details": {
+      "text": "This flow is for adding two numbers"
+    },
+    "workspace_action": {
+      "type": "update_selected_text_node",
+      "text": "This flow is for adding two numbers"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_data_node",
+    "target": "data_node_1",
+    "details": {
+      "node_id": "0x1c13b427c50",
+      "node_type": "data"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "data",
+      "count": 1,
+      "name": "data_node_1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_data_node",
+    "target": "data_node_2",
+    "details": {
+      "node_id": "0x1c13b427250",
+      "node_type": "data"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "data",
+      "count": 1,
+      "name": "data_node_2"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_py_node",
+    "target": "py_node_1",
+    "details": {
+      "node_id": "0x1c10fa6f490",
+      "node_type": "py",
+      "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c10fa6f490.ipynb"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "py",
+      "count": 1,
+      "name": "py_node_1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "rename_node",
+    "target": "number1",
+    "details": {
+      "old_name": "data_node_1",
+      "node_type": "data_node"
+    },
+    "workspace_action": {
+      "type": "rename_selected_node",
+      "new_name": "number1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_data_node_ports",
+    "target": "number1",
+    "details": {
+      "variable_name": "a"
+    },
+    "workspace_action": {
+      "type": "update_data_node_ports",
+      "variable_name": "a"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_node_value",
+    "target": "number1",
+    "details": {
+      "variable_name": "a",
+      "value": "10",
+      "value_display": true,
+      "is_path": false
+    },
+    "workspace_action": {
+      "type": "update_selected_data_node_value",
+      "variable_name": "a",
+      "value": "10",
+      "value_display": true,
+      "is_path": false
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_node_value",
+    "target": "number1",
+    "details": {
+      "variable_name": "a",
+      "value": "10",
+      "value_display": true,
+      "is_path": false
+    },
+    "workspace_action": {
+      "type": "update_selected_data_node_value",
+      "variable_name": "a",
+      "value": "10",
+      "value_display": true,
+      "is_path": false
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "rename_node",
+    "target": "number2",
+    "details": {
+      "old_name": "data_node_2",
+      "node_type": "data_node"
+    },
+    "workspace_action": {
+      "type": "rename_selected_node",
+      "new_name": "number2"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_data_node_ports",
+    "target": "number2",
+    "details": {
+      "variable_name": "b"
+    },
+    "workspace_action": {
+      "type": "update_data_node_ports",
+      "variable_name": "b"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_py_node_ports",
+    "target": "py_node_1",
+    "details": {
+      "inputs": [
+        "x",
+        "y"
+      ],
+      "outputs": [
+        "output"
+      ],
+      "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c10fa6f490.ipynb"
+    },
+    "workspace_action": {
+      "type": "update_py_node_ports",
+      "inputs": [
+        "x",
+        "y"
+      ],
+      "outputs": [
+        "output"
+      ],
+      "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c10fa6f490.ipynb"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "rename_node",
+    "target": "sum",
+    "details": {
+      "old_name": "py_node_1",
+      "node_type": "python_node"
+    },
+    "workspace_action": {
+      "type": "rename_selected_node",
+      "new_name": "sum"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "connection",
+    "action": "connect_nodes",
+    "target": "number1.a -> sum.x",
+    "details": {
+      "source_node": "number1",
+      "source_port": "a",
+      "target_node": "sum",
+      "target_port": "x"
+    },
+    "workspace_action": {
+      "type": "connect_nodes",
+      "source_node": "number1",
+      "target_node": "sum",
+      "mapping": {
+        "a": "x"
+      }
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "connection",
+    "action": "connect_nodes",
+    "target": "number2.b -> sum.y",
+    "details": {
+      "source_node": "number2",
+      "source_port": "b",
+      "target_node": "sum",
+      "target_port": "y"
+    },
+    "workspace_action": {
+      "type": "connect_nodes",
+      "source_node": "number2",
+      "target_node": "sum",
+      "mapping": {
+        "b": "y"
+      }
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "flow",
+    "action": "save_flow_as",
+    "target": "Master",
+    "details": {
+      "path": "C:/work/quest210/snl-quest/quest/snl_libraries/workspace/examples/add_2num.json",
+      "save_mode": "master",
+      "flow_type": "master-flow"
+    },
+    "workspace_action": {
+      "type": "save_flow_as",
+      "path": "C:/work/quest210/snl-quest/quest/snl_libraries/workspace/examples/add_2num.json",
+      "save_mode": "master"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  }
+]

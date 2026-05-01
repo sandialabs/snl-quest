@@ -1,10 +1,12 @@
 import sys
 import os
+import shutil
 import urllib.parse
 import warnings
 import keyword
 import tempfile
 import pickle
+import importlib
 import inspect, ast, json, socket, subprocess, html, re
 import pandas as pd
 import yaml
@@ -20,8 +22,66 @@ from NodeGraphQt.qgraphics.node_base import NodeItem
 from quest.paths import get_path
 import quest
 base_dir = get_path()
+try:
+    from quest.quest_agent import get_quest_agent_root, load_skill_library, build_skills_manifest, run_chat_router, run_grounded_chat_reply, run_structured_task_match, run_workspace_action_plan, write_active_tool_registry, develop_skill_from_record, format_action_records_table
+    from quest.quest_agent import chat_service as quest_agent_chat_service
+    from quest.quest_agent import context_service as quest_agent_context_service
+    from quest.quest_agent import workspace_actions as quest_agent_workspace_actions
+    from quest.quest_agent import deep_agent as quest_agent_deep_agent
+except Exception:
+    get_quest_agent_root = None
+    load_skill_library = None
+    build_skills_manifest = None
+    run_chat_router = None
+    run_grounded_chat_reply = None
+    run_structured_task_match = None
+    run_workspace_action_plan = None
+    develop_skill_from_record = None
+    format_action_records_table = None
+    quest_agent_chat_service = None
+    quest_agent_context_service = None
+    quest_agent_workspace_actions = None
+    quest_agent_deep_agent = None
+    write_active_tool_registry = None
 
 from quest.snl_libraries.workspace.flow.questflow import *
+
+
+def _refresh_quest_agent_runtime():
+    global get_quest_agent_root, load_skill_library, build_skills_manifest
+    global run_chat_router, run_grounded_chat_reply, run_structured_task_match
+    global run_workspace_action_plan, write_active_tool_registry
+    global develop_skill_from_record, format_action_records_table
+    global quest_agent_chat_service, quest_agent_context_service
+    global quest_agent_workspace_actions, quest_agent_deep_agent
+
+    try:
+        skill_library_module = importlib.reload(importlib.import_module("quest.quest_agent.skill_library"))
+        tool_registry_module = importlib.reload(importlib.import_module("quest.quest_agent.tool_registry"))
+        llm_matcher_module = importlib.reload(importlib.import_module("quest.quest_agent.llm_matcher"))
+        context_service_module = importlib.reload(importlib.import_module("quest.quest_agent.context_service"))
+        chat_service_module = importlib.reload(importlib.import_module("quest.quest_agent.chat_service"))
+        workspace_actions_module = importlib.reload(importlib.import_module("quest.quest_agent.workspace_actions"))
+        deep_agent_module = importlib.reload(importlib.import_module("quest.quest_agent.deep_agent"))
+        skill_development_module = importlib.reload(importlib.import_module("quest.quest_agent.skill_development"))
+
+        get_quest_agent_root = skill_library_module.get_quest_agent_root
+        load_skill_library = skill_library_module.load_skill_library
+        build_skills_manifest = skill_library_module.build_skills_manifest
+        run_chat_router = llm_matcher_module.run_chat_router
+        run_grounded_chat_reply = llm_matcher_module.run_grounded_chat_reply
+        run_structured_task_match = llm_matcher_module.run_structured_task_match
+        run_workspace_action_plan = llm_matcher_module.run_workspace_action_plan
+        write_active_tool_registry = tool_registry_module.write_active_tool_registry
+        develop_skill_from_record = skill_development_module.develop_skill_from_record
+        format_action_records_table = skill_development_module.format_action_records_table
+        quest_agent_chat_service = chat_service_module
+        quest_agent_context_service = context_service_module
+        quest_agent_workspace_actions = workspace_actions_module
+        quest_agent_deep_agent = deep_agent_module
+        return True
+    except Exception:
+        return False
 
 
 _ORIGINAL_NODEITEM_AUTO_SWITCH_MODE = NodeItem.auto_switch_mode
@@ -482,6 +542,8 @@ class PyNode(BaseNode):
 class quest_workflow(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.panel_width = 525
+        self.panel_content_width = 500
         self.setStyleSheet("""
         QLabel, QLineEdit, QTextEdit, QTabWidget {
             color: black;
@@ -514,10 +576,31 @@ class quest_workflow(QWidget):
         self._last_auto_environment_name = self.flow_environment_name
         self._pending_graph_frame = False
         self._current_flow_json_path = ""
+        self.quest_agent_state = {
+            "task_text": "",
+            "pinned_task_text": "",
+            "chat_messages": [],
+            "chat_attachments": [],
+            "current_flow_attachment_path": "",
+            "loaded_skills": [],
+            "skill_errors": [],
+            "loaded_tools": [],
+            "tool_errors": [],
+            "task_match_results": {},
+            "selected_model": "GPT-5.4",
+            "skill_recording_enabled": False,
+            "skill_action_log": [],
+            "suspend_skill_connection_recording": False,
+            "pending_canvas_plan": {},
+            "pending_canvas_steps": [],
+            "pending_canvas_step_index": 0,
+            "pending_canvas_prompt": "",
+            "pending_canvas_waiting": False,
+        }
 
         self.layout = QHBoxLayout(self)
         self.flow_run_widget = QWidget()
-        self.flow_run_widget.setFixedWidth(400)
+        self.flow_run_widget.setFixedWidth(self.panel_content_width)
         self.flow_run_layout = QHBoxLayout(self.flow_run_widget)
         self.flow_run_label = QLabel("Flow name:")
         self.flow_run_input = QLineEdit()
@@ -526,7 +609,7 @@ class quest_workflow(QWidget):
         self.flow_run_layout.addWidget(self.flow_run_input)
 
         self.flow_type_widget = QWidget()
-        self.flow_type_widget.setFixedWidth(400)
+        self.flow_type_widget.setFixedWidth(self.panel_content_width)
         self.flow_type_layout = QHBoxLayout(self.flow_type_widget)
         self.flow_type_label_title = QLabel("Flow type:")
         self.flow_type_label_value = QLabel("sub-flow")
@@ -536,7 +619,7 @@ class quest_workflow(QWidget):
         self.flow_type_layout.addStretch(1)
 
         self.flow_save_widget = QWidget()
-        self.flow_save_widget.setFixedWidth(400)
+        self.flow_save_widget.setFixedWidth(self.panel_content_width)
         self.flow_save_layout = QVBoxLayout(self.flow_save_widget)
         self.flow_save_label = QLabel("Save to json file:")
         self.flow_save_mode_combo = QComboBox()
@@ -554,7 +637,7 @@ class quest_workflow(QWidget):
         self.flow_save_layout.addWidget(self.flow_save_button)
 
         self.flow_load_widget = QWidget()
-        self.flow_load_widget.setFixedWidth(400)
+        self.flow_load_widget.setFixedWidth(self.panel_content_width)
         self.flow_load_layout = QVBoxLayout(self.flow_load_widget)
         self.flow_load_label = QLabel("Load from json file:")
         self.flow_load_path = QLabel()
@@ -568,7 +651,7 @@ class quest_workflow(QWidget):
         self.flow_load_layout.addWidget(self.flow_load_button)
 
         self.flow_result_widget = QWidget()
-        self.flow_result_widget.setFixedWidth(400)
+        self.flow_result_widget.setFixedWidth(self.panel_content_width)
         self.flow_result_layout = QVBoxLayout(self.flow_result_widget)
         self.flow_result_label = QLabel()
         self.flow_result_label.setWordWrap(True)
@@ -577,7 +660,7 @@ class quest_workflow(QWidget):
         self.flow_result_layout.addWidget(self.flow_result_label)
 
         self.flow_control_container = QWidget()
-        self.flow_control_container.setFixedWidth(420)
+        self.flow_control_container.setFixedWidth(self.panel_width)
         self.flow_control_layout = QVBoxLayout(self.flow_control_container)
         self.flow_control_layout.addWidget(self.flow_run_widget)
         self.flow_control_layout.addWidget(self.flow_type_widget)
@@ -592,6 +675,10 @@ class quest_workflow(QWidget):
         self.graph.register_node(DataNode)
         self.graph.register_node(PyNode)
         self.graph.register_node(BackNode)
+        try:
+            self.graph.port_connected.connect(self._on_graph_port_connected)
+        except Exception:
+            pass
         self.graph_widget = self.graph.widget
         try:
             self.graph_widget.installEventFilter(self)
@@ -606,7 +693,7 @@ class quest_workflow(QWidget):
                 graph_view.setStyleSheet(
                     "QGraphicsView#workspaceGraphView {"
                     "border: 1px solid #94a3b8;"
-                    "border-radius: 0px;"
+                    "border-radius: 2px;"
                     "background: white;"
                     "}"
                 )
@@ -657,6 +744,33 @@ class quest_workflow(QWidget):
         self.graph_help_overlay.adjustSize()
         self.graph_help_overlay.show()
         self._position_graph_help_overlay()
+        self.graph_status_overlay = QFrame(self.graph_widget)
+        self.graph_status_overlay.setObjectName("graphStatusOverlay")
+        self.graph_status_overlay.setAttribute(Qt.WA_TransparentForMouseEvents, True)
+        self.graph_status_overlay.setStyleSheet(
+            "QFrame#graphStatusOverlay {"
+            "background: transparent;"
+            "border: none;"
+            "}"
+            "QLabel#graphStatusOverlayLabel {"
+            "color: #2563eb;"
+            "font-size: 10pt;"
+            "font-weight: 600;"
+            "padding: 0px;"
+            "background: transparent;"
+            "border: none;"
+            "}"
+        )
+        self.graph_status_layout = QHBoxLayout(self.graph_status_overlay)
+        self.graph_status_layout.setContentsMargins(0, 0, 0, 0)
+        self.graph_status_layout.setSpacing(0)
+        self.graph_status_label = QLabel("")
+        self.graph_status_label.setObjectName("graphStatusOverlayLabel")
+        self.graph_status_layout.addWidget(self.graph_status_label)
+        self.graph_status_overlay.hide()
+        self._graph_status_timer = QTimer(self)
+        self._graph_status_timer.setSingleShot(True)
+        self._graph_status_timer.timeout.connect(self.graph_status_overlay.hide)
         self.copy_shortcut = QShortcut(QKeySequence("Ctrl+C"), self.graph_widget)
         self.copy_shortcut.setContext(Qt.WidgetWithChildrenShortcut)
         self.copy_shortcut.activated.connect(self.copy_selected_nodes)
@@ -709,6 +823,37 @@ class quest_workflow(QWidget):
         )
         self.canvas_run_button.clicked.connect(self.run_flow)
         self.flow_control_toolbar.addWidget(self.canvas_run_button)
+        self.quest_agent_record_skill_button = QPushButton("", self.flow_control_toolbar)
+        self.quest_agent_record_skill_button.setObjectName("canvasRecordSkillButton")
+        self.quest_agent_record_skill_button.setCheckable(True)
+        self.quest_agent_record_skill_button.setFixedSize(32, 32)
+        self.quest_agent_record_skill_button.setToolTip("Record Skill Actions")
+        self.quest_agent_record_skill_button.setIcon(
+            self._load_workspace_icon("fiber_manual_record_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")
+        )
+        self.quest_agent_record_skill_button.setIconSize(QSize(18, 18))
+        self.quest_agent_record_skill_button.setStyleSheet(
+            "QPushButton#canvasRecordSkillButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #475569;"
+            "border: 2px solid #cbd5e1;"
+            "border-radius: 8px;"
+            "padding: 0px;"
+            "}"
+            "QPushButton#canvasRecordSkillButton:hover {"
+            "background: #f8fafc;"
+            "border-color: #93c5fd;"
+            "}"
+            "QPushButton#canvasRecordSkillButton:checked {"
+            "background: #fef2f2;"
+            "border-color: #ef4444;"
+            "}"
+            "QPushButton#canvasRecordSkillButton:pressed {"
+            "background: #fee2e2;"
+            "}"
+        )
+        self.quest_agent_record_skill_button.toggled.connect(self._toggle_quest_agent_skill_recording)
+        self.flow_control_toolbar.addWidget(self.quest_agent_record_skill_button)
         self.canvas_open_button = QPushButton("", self.flow_control_toolbar)
         self.canvas_open_button.setObjectName("canvasOpenButton")
         self.canvas_open_button.setFixedSize(32, 32)
@@ -815,6 +960,26 @@ class quest_workflow(QWidget):
             "background: rgba(239, 246, 255, 245);"
             "border-color: #93c5fd;"
         )
+        self.canvas_ai_button = QPushButton("", self.edit_toolbar)
+        self.canvas_ai_button.setObjectName("canvasAiButton")
+        self.canvas_ai_button.setFixedSize(32, 32)
+        self.canvas_ai_button.setIcon(self._create_ai_icon())
+        self.canvas_ai_button.setIconSize(QSize(22, 22))
+        self.canvas_ai_button.setToolTip("Open QuESt Agent")
+        self.canvas_ai_button.setStyleSheet(
+            "QPushButton#canvasAiButton {"
+            f"{self.edit_node_button_style}"
+            "padding: 0px;"
+            "}"
+            "QPushButton#canvasAiButton:hover {"
+            f"{self.edit_node_button_hover_style}"
+            "}"
+            "QPushButton#canvasAiButton:pressed {"
+            "background: rgba(191, 219, 254, 250);"
+            "}"
+        )
+        self.canvas_ai_button.clicked.connect(self.open_quest_agent_panel)
+        self.edit_toolbar.addWidget(self.canvas_ai_button)
         self.canvas_text_node_button = QPushButton("", self.edit_toolbar)
         self.canvas_text_node_button.setObjectName("canvasTextNodeButton")
         self.canvas_text_node_button.setFixedSize(32, 32)
@@ -910,19 +1075,19 @@ class quest_workflow(QWidget):
         self.layout.addWidget(self.graph_widget)
 
         self.id_widget = QWidget()
-        self.id_widget.setFixedWidth(400)
+        self.id_widget.setFixedWidth(self.panel_content_width)
         self.id_layout = QHBoxLayout(self.id_widget)
         self.id_label = QLabel("Node ID:")
         self.id_layout.addWidget(self.id_label)
 
         self.type_widget = QWidget()
-        self.type_widget.setFixedWidth(400)
+        self.type_widget.setFixedWidth(self.panel_content_width)
         self.type_layout = QHBoxLayout(self.type_widget)
         self.type_label = QLabel("Node Type:")
         self.type_layout.addWidget(self.type_label)
 
         self.name_widget = QWidget()
-        self.name_widget.setFixedWidth(400)
+        self.name_widget.setFixedWidth(self.panel_content_width)
         self.name_layout = QHBoxLayout(self.name_widget)
         self.name_label = QLabel("Node name:")
         self.name_input = QLineEdit()
@@ -933,7 +1098,7 @@ class quest_workflow(QWidget):
         self.name_layout.addWidget(self.name_button)
 
         self.node_env_widget = QWidget()
-        self.node_env_widget.setFixedWidth(400)
+        self.node_env_widget.setFixedWidth(self.panel_content_width)
         self.node_env_layout = QHBoxLayout(self.node_env_widget)
         self.node_env_label = QLabel("Environment:")
         self.node_env_combo = QComboBox()
@@ -943,7 +1108,7 @@ class quest_workflow(QWidget):
         self.node_env_widget.hide()
 
         self.data_widget = QWidget()
-        self.data_widget.setFixedWidth(400)
+        self.data_widget.setFixedWidth(self.panel_content_width)
         self.data_layout = QHBoxLayout(self.data_widget)
         self.data_label = QLabel("Output name:")
         self.data_input = QLineEdit()
@@ -955,7 +1120,7 @@ class quest_workflow(QWidget):
         self.data_widget.hide()
 
         self.value_widget = QWidget()
-        self.value_widget.setFixedWidth(400)
+        self.value_widget.setFixedWidth(self.panel_content_width)
         self.value_layout = QVBoxLayout(self.value_widget)
         self.value_label = QLabel("Output value:")
         self.value_input = QLineEdit()
@@ -985,7 +1150,7 @@ class quest_workflow(QWidget):
         self.value_widget.hide()
 
         self.py_widget = QWidget()
-        self.py_widget.setFixedWidth(400)
+        self.py_widget.setFixedWidth(self.panel_content_width)
 
         self.py_layout = QVBoxLayout(self.py_widget)
         self.py_label = QLabel("Python Wrapper Notebook:")
@@ -1045,7 +1210,7 @@ class quest_workflow(QWidget):
         self.node_outputs_windows = []
 
         self.text_widget = QWidget()
-        self.text_widget.setFixedWidth(400)
+        self.text_widget.setFixedWidth(self.panel_content_width)
         self.text_layout = QVBoxLayout(self.text_widget)
         self.text_editor = QLabel("Caption:")
         self.text_input = QTextEdit()
@@ -1060,13 +1225,13 @@ class quest_workflow(QWidget):
         self.text_layout.addWidget(self.text_button)
 
         self.env_settings_container = QWidget()
-        self.env_settings_container.setFixedWidth(400)
+        self.env_settings_container.setFixedWidth(self.panel_content_width)
         self.env_settings_layout = QVBoxLayout(self.env_settings_container)
         self.env_settings_layout.setContentsMargins(0, 0, 0, 0)
         self.env_settings_layout.setSpacing(6)
 
         self.env_name_widget = QWidget()
-        self.env_name_widget.setFixedWidth(400)
+        self.env_name_widget.setFixedWidth(self.panel_content_width)
         self.env_name_layout = QHBoxLayout(self.env_name_widget)
         self.env_name_layout.setContentsMargins(0, 0, 0, 0)
         self.env_name_label = QLabel("Environment name:")
@@ -1076,7 +1241,7 @@ class quest_workflow(QWidget):
         self.env_name_layout.addWidget(self.env_name_input)
 
         self.env_select_widget = QWidget()
-        self.env_select_widget.setFixedWidth(400)
+        self.env_select_widget.setFixedWidth(self.panel_content_width)
         self.env_select_layout = QHBoxLayout(self.env_select_widget)
         self.env_select_layout.setContentsMargins(0, 0, 0, 0)
         self.env_select_label = QLabel("Detected envs:")
@@ -1086,7 +1251,7 @@ class quest_workflow(QWidget):
         self.env_select_layout.addWidget(self.env_select_combo)
 
         self.env_path_widget = QWidget()
-        self.env_path_widget.setFixedWidth(400)
+        self.env_path_widget.setFixedWidth(self.panel_content_width)
         self.env_path_layout = QHBoxLayout(self.env_path_widget)
         self.env_path_layout.setContentsMargins(0, 0, 0, 0)
         self.env_path_label = QLabel("Environment path:")
@@ -1097,7 +1262,7 @@ class quest_workflow(QWidget):
         self.env_path_layout.addWidget(self.env_path_input)
 
         self.env_browse_widget = QWidget()
-        self.env_browse_widget.setFixedWidth(400)
+        self.env_browse_widget.setFixedWidth(self.panel_content_width)
         self.env_browse_layout = QHBoxLayout(self.env_browse_widget)
         self.env_browse_layout.setContentsMargins(0, 0, 0, 0)
         self.env_browse_layout.addStretch(1)
@@ -1122,7 +1287,7 @@ class quest_workflow(QWidget):
         self.flow_control_layout.insertWidget(0, self.env_settings_container)
 
         self.properties_container = QWidget()
-        self.properties_container.setFixedWidth(420)
+        self.properties_container.setFixedWidth(self.panel_width)
         self.properties_layout = QVBoxLayout(self.properties_container)
 
         self.properties_layout.addWidget(self.id_widget)
@@ -1136,7 +1301,7 @@ class quest_workflow(QWidget):
         self.properties_layout.setAlignment(Qt.AlignTop)
 
         self.inputs_management_container = QWidget()
-        self.inputs_management_container.setFixedWidth(420)
+        self.inputs_management_container.setFixedWidth(self.panel_width)
         self.inputs_management_layout = QVBoxLayout(self.inputs_management_container)
         self.inputs_management_layout.setContentsMargins(0, 0, 0, 0)
         self.inputs_management_layout.setSpacing(6)
@@ -1177,13 +1342,512 @@ class quest_workflow(QWidget):
         self.inputs_management_layout.addWidget(self.inputs_management_case_tabs)
         self.inputs_management_layout.addWidget(self.inputs_management_buttons)
 
+        self.quest_agent_container = QWidget()
+        self.quest_agent_container.setFixedWidth(self.panel_width)
+        self.quest_agent_layout = QVBoxLayout(self.quest_agent_container)
+        self.quest_agent_layout.setContentsMargins(4, 4, 4, 4)
+        self.quest_agent_layout.setSpacing(8)
+        self.quest_agent_panel_collapsed = True
+
+        self.quest_agent_header = QWidget()
+        self.quest_agent_header_layout = QHBoxLayout(self.quest_agent_header)
+        self.quest_agent_header_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_header_layout.setSpacing(6)
+
+        self.quest_agent_header_label = QLabel("QuESt Agent")
+        self.quest_agent_header_label.setStyleSheet(
+            "QLabel { color: #1e3a8a; font-size: 10pt; font-weight: 700; }"
+        )
+
+        self.quest_agent_header_layout.addWidget(self.quest_agent_header_label)
+        self.quest_agent_header_layout.addStretch(1)
+
+        self.quest_agent_inner_tabs = QTabWidget()
+        self.quest_agent_inner_tabs.setMaximumWidth(self.panel_width - 8)
+        self.quest_agent_inner_tabs.setStyleSheet(
+            "QTabWidget::pane {"
+            "border: none;"
+            "background: transparent;"
+            "}"
+            "QTabBar::tab {"
+            "background: rgba(255, 255, 255, 210);"
+            "color: #475569;"
+            "font-size: 9pt;"
+            "padding: 5px 12px;"
+            "border: 1px solid #d9e2ec;"
+            "border-bottom: none;"
+            "border-top-left-radius: 8px;"
+            "border-top-right-radius: 8px;"
+            "margin-right: 4px;"
+            "}"
+            "QTabBar::tab:selected {"
+            "background: #ffffff;"
+            "color: #1e3a8a;"
+            "font-weight: 700;"
+            "}"
+            "QTabBar::tab:hover {"
+            "background: #f8fafc;"
+            "}"
+        )
+
+        self.quest_agent_chat_tab = QWidget()
+        self.quest_agent_chat_tab_layout = QVBoxLayout(self.quest_agent_chat_tab)
+        self.quest_agent_chat_tab_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_chat_tab_layout.setSpacing(8)
+
+        self.quest_agent_skills_tab = QWidget()
+        self.quest_agent_skills_tab_layout = QVBoxLayout(self.quest_agent_skills_tab)
+        self.quest_agent_skills_tab_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_skills_tab_layout.setSpacing(8)
+        self.quest_agent_skills_tab_layout.setAlignment(Qt.AlignTop)
+
+        self.quest_agent_tools_tab = QWidget()
+        self.quest_agent_tools_tab_layout = QVBoxLayout(self.quest_agent_tools_tab)
+        self.quest_agent_tools_tab_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_tools_tab_layout.setSpacing(8)
+        self.quest_agent_tools_tab_layout.setAlignment(Qt.AlignTop)
+
+        self.quest_agent_skills_header = QWidget()
+        self.quest_agent_skills_header_layout = QHBoxLayout(self.quest_agent_skills_header)
+        self.quest_agent_skills_header_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_skills_header_layout.setSpacing(6)
+
+        self.quest_agent_skills_library_label = QLabel("Skills Library")
+        self.quest_agent_skills_library_label.setStyleSheet("QLabel { color: #475569; font-size: 9pt; font-weight: 600; }")
+
+        self.quest_agent_skills_refresh_button = QPushButton("Refresh")
+        self.quest_agent_skills_refresh_button.setFixedHeight(26)
+        self.quest_agent_skills_refresh_button.setStyleSheet(
+            "QPushButton { background: rgba(255, 255, 255, 240); color: #475569; border: 1px solid #cbd5e1; border-radius: 10px; padding: 4px 10px; font-size: 9pt; }"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+        )
+        self.quest_agent_skills_refresh_button.clicked.connect(self._load_quest_agent_skill_library)
+
+        self.quest_agent_skills_header_layout.addWidget(self.quest_agent_skills_library_label)
+        self.quest_agent_skills_header_layout.addStretch(1)
+        self.quest_agent_skills_header_layout.addWidget(self.quest_agent_skills_refresh_button)
+
+        self.quest_agent_tools_header = QWidget()
+        self.quest_agent_tools_header_layout = QHBoxLayout(self.quest_agent_tools_header)
+        self.quest_agent_tools_header_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_tools_header_layout.setSpacing(6)
+
+        self.quest_agent_tools_refresh_button = QPushButton("Refresh")
+        self.quest_agent_tools_refresh_button.setFixedHeight(26)
+        self.quest_agent_tools_refresh_button.setStyleSheet(
+            "QPushButton { background: rgba(255, 255, 255, 240); color: #475569; border: 1px solid #cbd5e1; border-radius: 10px; padding: 4px 10px; font-size: 9pt; }"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+        )
+        self.quest_agent_tools_refresh_button.clicked.connect(self._load_quest_agent_tool_registry)
+
+        self.quest_agent_tools_header_layout.addStretch(1)
+        self.quest_agent_tools_header_layout.addWidget(self.quest_agent_tools_refresh_button)
+
+        self.quest_agent_skill_list = QListWidget()
+        self.quest_agent_skill_list.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_skill_list.setMinimumHeight(88)
+        self.quest_agent_skill_list.setMaximumHeight(120)
+        self.quest_agent_skill_list.setStyleSheet(
+            "QListWidget {"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 10px;"
+            "background: #ffffff;"
+            "padding: 4px;"
+            "font-size: 9pt;"
+            "}"
+        )
+        self.quest_agent_skill_list.currentItemChanged.connect(self._on_quest_agent_skill_selected)
+
+        self.quest_agent_tool_list = QListWidget()
+        self.quest_agent_tool_list.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_tool_list.setMinimumHeight(88)
+        self.quest_agent_tool_list.setMaximumHeight(120)
+        self.quest_agent_tool_list.setStyleSheet(
+            "QListWidget {"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 10px;"
+            "background: #ffffff;"
+            "padding: 4px;"
+            "font-size: 9pt;"
+            "}"
+        )
+        self.quest_agent_tool_list.currentItemChanged.connect(self._on_quest_agent_tool_selected)
+
+        self.quest_agent_match_results = QTextEdit()
+        self.quest_agent_match_results.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_match_results.setMinimumHeight(140)
+        self.quest_agent_match_results.setMaximumHeight(170)
+        self.quest_agent_match_results.setReadOnly(True)
+        self.quest_agent_match_results.setPlaceholderText("Project summary updates when you analyze the current request and context.")
+        self.quest_agent_match_results.setStyleSheet(
+            "QTextEdit {"
+            "border: 1px solid #e2e8f0;"
+            "border-radius: 10px;"
+            "background: #f8fafc;"
+            "padding: 6px;"
+            "font-size: 9pt;"
+            "color: #334155;"
+            "}"
+        )
+
+        self.quest_agent_match_button_row = QWidget()
+        self.quest_agent_match_button_row.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_match_button_row_layout = QHBoxLayout(self.quest_agent_match_button_row)
+        self.quest_agent_match_button_row_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_match_button_row_layout.setSpacing(0)
+
+        self.quest_agent_match_button = QPushButton("Analyze Flow")
+        self.quest_agent_match_button.setFixedHeight(28)
+        self.quest_agent_match_button.setStyleSheet(
+            "QPushButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #475569;"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 12px;"
+            "padding: 4px 12px;"
+            "font-size: 9pt;"
+            "font-weight: 600;"
+            "}"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+        )
+        self.quest_agent_match_button.clicked.connect(lambda: self._trigger_quest_agent_task_match("manual request"))
+        self.quest_agent_match_button_row_layout.addStretch(1)
+        self.quest_agent_match_button_row_layout.addWidget(self.quest_agent_match_button)
+        self._refresh_quest_agent_match_button_text()
+
+        self.quest_agent_skill_preview = QTextEdit()
+        self.quest_agent_skill_preview.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_skill_preview.setMinimumHeight(78)
+        self.quest_agent_skill_preview.setMaximumHeight(96)
+        self.quest_agent_skill_preview.setReadOnly(True)
+        self.quest_agent_skill_preview.setPlaceholderText("Select a skill to preview its summary, type, and tools.")
+        self.quest_agent_skill_preview.setStyleSheet(
+            "QTextEdit {"
+            "border: 1px solid #e2e8f0;"
+            "border-radius: 10px;"
+            "background: #f8fafc;"
+            "padding: 6px;"
+            "font-size: 9pt;"
+            "color: #334155;"
+            "}"
+        )
+
+        self.quest_agent_skill_record_box = QTextEdit()
+        self.quest_agent_skill_record_box.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_skill_record_box.setMinimumHeight(120)
+        self.quest_agent_skill_record_box.setMaximumHeight(180)
+        self.quest_agent_skill_record_box.setReadOnly(True)
+        self.quest_agent_skill_record_box.setPlaceholderText("Recorded workspace actions will appear here when Record Skill is enabled.")
+        self.quest_agent_skill_record_box.setStyleSheet(
+            "QTextEdit {"
+            "border: 1px solid #e2e8f0;"
+            "border-radius: 10px;"
+            "background: #f8fafc;"
+            "padding: 6px;"
+            "font-family: Consolas, 'Courier New', monospace;"
+            "font-size: 8.5pt;"
+            "color: #334155;"
+            "}"
+        )
+
+        self.quest_agent_develop_skill_row = QWidget()
+        self.quest_agent_develop_skill_row_layout = QHBoxLayout(self.quest_agent_develop_skill_row)
+        self.quest_agent_develop_skill_row_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_develop_skill_row_layout.setSpacing(6)
+        self.quest_agent_develop_skill_row_layout.addStretch(1)
+
+        self.quest_agent_clear_skill_record_button = QPushButton("Clear Record")
+        self.quest_agent_clear_skill_record_button.setFixedHeight(28)
+        self.quest_agent_clear_skill_record_button.setStyleSheet(
+            "QPushButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #475569;"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 12px;"
+            "padding: 4px 12px;"
+            "font-size: 9pt;"
+            "font-weight: 600;"
+            "}"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+            "QPushButton:disabled { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }"
+        )
+        self.quest_agent_clear_skill_record_button.clicked.connect(self._clear_quest_agent_skill_record)
+        self.quest_agent_develop_skill_row_layout.addWidget(self.quest_agent_clear_skill_record_button)
+
+        self.quest_agent_develop_skill_button = QPushButton("Develop Skill")
+        self.quest_agent_develop_skill_button.setFixedHeight(28)
+        self.quest_agent_develop_skill_button.setStyleSheet(
+            "QPushButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #475569;"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 12px;"
+            "padding: 4px 12px;"
+            "font-size: 9pt;"
+            "font-weight: 600;"
+            "}"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+            "QPushButton:disabled { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }"
+        )
+        self.quest_agent_develop_skill_button.clicked.connect(self._develop_quest_agent_skill)
+        self.quest_agent_develop_skill_row_layout.addWidget(self.quest_agent_develop_skill_button)
+
+        self.quest_agent_tool_preview = QTextEdit()
+        self.quest_agent_tool_preview.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_tool_preview.setMinimumHeight(78)
+        self.quest_agent_tool_preview.setMaximumHeight(96)
+        self.quest_agent_tool_preview.setReadOnly(True)
+        self.quest_agent_tool_preview.setPlaceholderText("Select a tool to preview its summary, roles, and launch details.")
+        self.quest_agent_tool_preview.setStyleSheet(
+            "QTextEdit {"
+            "border: 1px solid #e2e8f0;"
+            "border-radius: 10px;"
+            "background: #f8fafc;"
+            "padding: 6px;"
+            "font-size: 9pt;"
+            "color: #334155;"
+            "}"
+        )
+
+        self.quest_agent_chat_history = QScrollArea()
+        self.quest_agent_chat_history.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_chat_history.setMinimumHeight(180)
+        self.quest_agent_chat_history.setWidgetResizable(True)
+        self.quest_agent_chat_history.setFrameShape(QFrame.NoFrame)
+        self.quest_agent_chat_history.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.quest_agent_chat_history.setStyleSheet(
+            "QScrollArea {"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 14px;"
+            "background: transparent;"
+            "}"
+            "QScrollArea > QWidget > QWidget {"
+            "background: #ffffff;"
+            "border-radius: 14px;"
+            "}"
+        )
+        self.quest_agent_chat_history.viewport().setStyleSheet(
+            "background: transparent; border-radius: 14px;"
+        )
+
+        self.quest_agent_chat_history_content = QWidget()
+        self.quest_agent_chat_history_content.setStyleSheet("background: transparent; border-radius: 14px;")
+        self.quest_agent_chat_history_layout = QVBoxLayout(self.quest_agent_chat_history_content)
+        self.quest_agent_chat_history_layout.setContentsMargins(6, 6, 6, 6)
+        self.quest_agent_chat_history_layout.setSpacing(6)
+        self.quest_agent_chat_history.setWidget(self.quest_agent_chat_history_content)
+
+        self.quest_agent_clear_history_row = QWidget()
+        self.quest_agent_clear_history_row.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_clear_history_row.setStyleSheet("QWidget { border: none; background: transparent; }")
+        self.quest_agent_clear_history_row_layout = QHBoxLayout(self.quest_agent_clear_history_row)
+        self.quest_agent_clear_history_row_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_clear_history_row_layout.setSpacing(0)
+        self.quest_agent_clear_history_row_layout.addStretch(1)
+
+        self.quest_agent_clear_history_button = QPushButton("Clear History")
+        self.quest_agent_clear_history_button.setFixedHeight(28)
+        self.quest_agent_clear_history_button.setCursor(Qt.PointingHandCursor)
+        self.quest_agent_clear_history_button.setStyleSheet(
+            "QPushButton {"
+            "background: #ffffff;"
+            "color: #475569;"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 14px;"
+            "font-size: 9.5pt;"
+            "font-weight: 600;"
+            "padding: 4px 12px;"
+            "}"
+            "QPushButton:hover {"
+            "background: #f8fafc;"
+            "border-color: #93c5fd;"
+            "color: #334155;"
+            "}"
+            "QPushButton:pressed {"
+            "background: #eff6ff;"
+            "border-color: #60a5fa;"
+            "}"
+        )
+        self.quest_agent_clear_history_button.clicked.connect(self._clear_quest_agent_chat_history_messages)
+        self.quest_agent_clear_history_row_layout.addWidget(self.quest_agent_clear_history_button, 0, Qt.AlignRight)
+
+        self.quest_agent_chat_files = QListWidget()
+        self.quest_agent_chat_files.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_chat_files.setMinimumHeight(54)
+        self.quest_agent_chat_files.setMaximumHeight(72)
+        self.quest_agent_chat_files.setStyleSheet(
+            "QListWidget {"
+            "border: 1px solid #e2e8f0;"
+            "border-radius: 10px;"
+            "background: #f8fafc;"
+            "padding: 4px;"
+            "font-size: 10pt;"
+            "}"
+        )
+
+        self.quest_agent_chat_card = QWidget()
+        self.quest_agent_chat_card.setMaximumWidth(self.panel_width - 16)
+        self.quest_agent_chat_card.setStyleSheet(
+            "QWidget {"
+            "background: #ffffff;"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 18px;"
+            "}"
+        )
+        self.quest_agent_chat_card_layout = QVBoxLayout(self.quest_agent_chat_card)
+        self.quest_agent_chat_card_layout.setContentsMargins(12, 10, 12, 10)
+        self.quest_agent_chat_card_layout.setSpacing(8)
+
+        self.quest_agent_chat_input = QTextEdit()
+        self.quest_agent_chat_input.setMinimumHeight(68)
+        self.quest_agent_chat_input.setMaximumHeight(96)
+        self.quest_agent_chat_input.setFrameShape(QFrame.NoFrame)
+        self.quest_agent_chat_input.setStyleSheet(
+            "QTextEdit {"
+            "border: none;"
+            "background: transparent;"
+            "font-size: 10.5pt;"
+            "padding: 0px;"
+            "}"
+        )
+        self._refresh_quest_agent_chat_input_placeholder()
+
+        self.quest_agent_chat_controls = QWidget()
+        self.quest_agent_chat_controls.setStyleSheet("QWidget { border: none; background: transparent; }")
+        self.quest_agent_chat_controls_layout = QHBoxLayout(self.quest_agent_chat_controls)
+        self.quest_agent_chat_controls_layout.setContentsMargins(0, 0, 0, 0)
+        self.quest_agent_chat_controls_layout.setSpacing(8)
+
+        self.quest_agent_add_file_button = QPushButton("")
+        self.quest_agent_add_file_button.setFixedSize(30, 30)
+        self.quest_agent_add_file_button.setToolTip("Add prompt files")
+        self.quest_agent_add_file_button.setIcon(self._load_workspace_icon("add_2_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png"))
+        self.quest_agent_add_file_button.setIconSize(QSize(16, 16))
+        self.quest_agent_add_file_button.setStyleSheet(
+            "QPushButton { border-radius: 15px; border: 2px solid #cbd5e1; background: rgba(255, 255, 255, 240); padding: 0px; }"
+            "QPushButton:hover { background: rgba(239, 246, 255, 245); border-color: #93c5fd; }"
+            "QPushButton:pressed { background: rgba(219, 234, 254, 250); }"
+        )
+        self.quest_agent_add_file_button.clicked.connect(self._browse_quest_agent_chat_attachments)
+
+        self.quest_agent_model_combo = QComboBox()
+        self.quest_agent_model_combo.setFixedWidth(108)
+        self.quest_agent_model_combo.setFixedHeight(30)
+        self.quest_agent_model_combo.setFrame(False)
+        self.quest_agent_model_combo.setStyleSheet(
+            "QComboBox {"
+            "border: 2px solid #cbd5e1;"
+            "border-radius: 15px;"
+            "background-color: rgba(255, 255, 255, 240);"
+            "selection-background-color: rgba(255, 255, 255, 240);"
+            "padding: 0px 20px 0px 10px;"
+            "margin: 0px;"
+            "color: #475569;"
+            "min-height: 26px;"
+            "}"
+            "QComboBox:hover {"
+            "background-color: rgba(239, 246, 255, 245);"
+            "border-color: #93c5fd;"
+            "}"
+            "QComboBox:on {"
+            "background-color: rgba(219, 234, 254, 250);"
+            "border-color: #93c5fd;"
+            "}"
+            "QComboBox::drop-down {"
+            "subcontrol-origin: padding;"
+            "subcontrol-position: top right;"
+            "width: 18px;"
+            "border: none;"
+            "background: transparent;"
+            "border-top-right-radius: 15px;"
+            "border-bottom-right-radius: 15px;"
+            "}"
+            "QComboBox::down-arrow {"
+            "image: url('" + self._normalize_python_path(os.path.join(base_dir, "images", "icons", "keyboard_arrow_down_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png")) + "');"
+            "width: 20px;"
+            "height: 20px;"
+            "}"
+            "QComboBox QAbstractItemView {"
+            "background: #ffffff;"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 2px;"
+            "selection-background-color: #f8fafc;"
+            "selection-color: #111827;"
+            "outline: 0;"
+            "}"
+        )
+        self.quest_agent_model_combo.addItems(["GPT-5.4", "GPT-5.4 Mini", "GPT-5.2 Codex", "GPT-4.1", "o4-mini"])
+        self.quest_agent_model_combo.setCurrentText(self.quest_agent_state.get("selected_model", "GPT-5.4"))
+        self.quest_agent_model_combo.currentTextChanged.connect(self._update_quest_agent_selected_model)
+
+        self.quest_agent_send_button = QPushButton("")
+        self.quest_agent_send_button.setFixedSize(32, 32)
+        self.quest_agent_send_button.setToolTip("Send prompt")
+        self.quest_agent_send_button.setIcon(self._load_workspace_icon("arrow_upward_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48 (1).png"))
+        self.quest_agent_send_button.setIconSize(QSize(16, 16))
+        self.quest_agent_send_button.setStyleSheet(
+            "QPushButton { border-radius: 16px; border: 2px solid #cbd5e1; background: rgba(255, 255, 255, 240); padding: 0px; }"
+            "QPushButton:hover { background: rgba(239, 246, 255, 245); border-color: #93c5fd; }"
+            "QPushButton:pressed { background: rgba(219, 234, 254, 250); }"
+        )
+        self.quest_agent_send_button.clicked.connect(self._send_quest_agent_chat_message)
+
+        self.quest_agent_chat_controls_layout.addWidget(self.quest_agent_add_file_button)
+        self.quest_agent_chat_controls_layout.addWidget(self.quest_agent_model_combo)
+        self.quest_agent_chat_controls_layout.addStretch(1)
+        self.quest_agent_chat_controls_layout.addWidget(self.quest_agent_send_button)
+
+        self.quest_agent_chat_card_layout.addWidget(self.quest_agent_chat_input)
+        self.quest_agent_chat_card_layout.addWidget(self.quest_agent_chat_controls)
+
+
+        self.quest_agent_skills_tab_layout.addWidget(self.quest_agent_skill_list, 0)
+        self.quest_agent_skills_tab_layout.addWidget(self.quest_agent_skills_header, 0)
+        self.quest_agent_skills_tab_layout.addWidget(self.quest_agent_skill_preview, 0)
+        self.quest_agent_skills_tab_layout.addWidget(self.quest_agent_skill_record_box, 0)
+        self.quest_agent_skills_tab_layout.addWidget(self.quest_agent_develop_skill_row, 0)
+        self.quest_agent_skills_tab_layout.addStretch(1)
+
+        self.quest_agent_tools_tab_layout.addWidget(self.quest_agent_tool_list, 0)
+        self.quest_agent_tools_tab_layout.addWidget(self.quest_agent_tools_header, 0)
+        self.quest_agent_tools_tab_layout.addWidget(self.quest_agent_tool_preview, 0)
+        self.quest_agent_tools_tab_layout.addStretch(1)
+
+        self.quest_agent_chat_tab_layout.addWidget(self.quest_agent_match_results, 0)
+        self.quest_agent_chat_tab_layout.addWidget(self.quest_agent_match_button_row, 0)
+        self.quest_agent_chat_tab_layout.addWidget(self.quest_agent_chat_history, 1)
+        self.quest_agent_chat_tab_layout.addWidget(self.quest_agent_clear_history_row, 0)
+        self.quest_agent_chat_tab_layout.addWidget(self.quest_agent_chat_files, 0)
+        self.quest_agent_chat_tab_layout.addWidget(self.quest_agent_chat_card, 0)
+
+        self.quest_agent_inner_tabs.addTab(self.quest_agent_chat_tab, "Chat")
+        self.quest_agent_inner_tabs.addTab(self.quest_agent_skills_tab, "Skills")
+        self.quest_agent_inner_tabs.addTab(self.quest_agent_tools_tab, "Tool Registry")
+
+        self.quest_agent_layout.addWidget(self.quest_agent_header, 0)
+        self.quest_agent_layout.addWidget(self.quest_agent_inner_tabs, 1)
+        self._refresh_quest_agent_context_box()
+        self._load_quest_agent_skill_library()
+        self._load_quest_agent_tool_registry()
+        self._refresh_quest_agent_skill_record_display()
+
         self.tab_widget = QTabWidget()
-        self.tab_widget.setFixedWidth(420)
+        self.tab_widget.setFixedWidth(self.panel_width)
         self.tab_layout = QHBoxLayout(self.tab_widget)
         self.tab_widget.addTab(self.properties_container, "Node Settings")
         self.tab_widget.addTab(self.inputs_management_container, "Inputs Management")
         self.tab_widget.addTab(self.flow_control_container, "Flow Control")
+        self.layout.addWidget(self.quest_agent_container)
         self.layout.addWidget(self.tab_widget)
+        self.layout.setStretch(0, 1)
+        self.layout.setStretch(1, 0)
+        self.layout.setStretch(2, 0)
+        self._refresh_quest_agent_panel_visibility()
 
         self.graph.node_selected.connect(self.on_node_selected)
         self.graph.node_selection_changed.connect(self.on_node_selected)
@@ -1203,6 +1867,8 @@ class quest_workflow(QWidget):
         self._refresh_inputs_management_views()
         self._sync_flow_metadata_from_controls()
         self._refresh_save_mode_options()
+        self._refresh_quest_agent_chat_history()
+        self._refresh_quest_agent_chat_attachment_list()
 
 
 
@@ -1313,6 +1979,15 @@ class quest_workflow(QWidget):
                 self.flow_result_label.setText(
                     f"Environment updated:\n{self.flow_environment_name}\n{self.flow_environment_path}"
                 )
+            self._record_quest_agent_skill_action(
+                scope="flow",
+                action="set_environment",
+                target=self.get_flow_display_name(),
+                details={
+                    "environment_name": self.flow_environment_name,
+                    "environment_path": self.flow_environment_path,
+                },
+            )
         except Exception as e:
             if hasattr(self, 'flow_result_label'):
                 self.flow_result_label.setText(f"Failed to update environment:\n{e}")
@@ -1343,6 +2018,33 @@ class quest_workflow(QWidget):
         self.graph_help_overlay.setGeometry(x, y, overlay_size.width(), overlay_size.height())
         self.graph_help_overlay.raise_()
 
+    def _position_graph_status_overlay(self):
+        if not hasattr(self, "graph_status_overlay") or self.graph_status_overlay is None:
+            return
+        if not hasattr(self, "graph_widget") or self.graph_widget is None:
+            return
+        margin = 16
+        self.graph_status_overlay.adjustSize()
+        overlay_size = self.graph_status_overlay.sizeHint()
+        x = max(margin, int((self.graph_widget.width() - overlay_size.width()) / 2))
+        y = margin
+        self.graph_status_overlay.setGeometry(x, y, overlay_size.width(), overlay_size.height())
+        self.graph_status_overlay.raise_()
+
+    def _show_temporary_canvas_status(self, message, duration_ms=2600):
+        if not hasattr(self, "graph_status_overlay") or self.graph_status_overlay is None:
+            return
+        text = str(message or "").strip()
+        if not text:
+            return
+        self.graph_status_label.setText(text)
+        self._position_graph_status_overlay()
+        self.graph_status_overlay.show()
+        self.graph_status_overlay.raise_()
+        if hasattr(self, "_graph_status_timer") and self._graph_status_timer is not None:
+            self._graph_status_timer.stop()
+            self._graph_status_timer.start(max(500, int(duration_ms or 0)))
+
     def _position_edit_toolbar(self):
         if not hasattr(self, "edit_toolbar") or self.edit_toolbar is None:
             return
@@ -1366,6 +2068,2570 @@ class quest_workflow(QWidget):
         toolbar_size = self.flow_control_toolbar.sizeHint()
         self.flow_control_toolbar.setGeometry(margin, margin, toolbar_size.width(), toolbar_size.height())
         self.flow_control_toolbar.raise_()
+
+    def open_quest_agent_panel(self):
+        if bool(getattr(self, "quest_agent_panel_collapsed", False)):
+            self._set_quest_agent_panel_collapsed(False)
+        else:
+            self._set_quest_agent_panel_collapsed(True)
+            return
+        if hasattr(self, "quest_agent_inner_tabs") and hasattr(self, "quest_agent_chat_tab"):
+            self.quest_agent_inner_tabs.setCurrentWidget(self.quest_agent_chat_tab)
+        if hasattr(self, "quest_agent_chat_input"):
+            self.quest_agent_chat_input.setFocus()
+
+    def _refresh_quest_agent_panel_visibility(self):
+        collapsed = bool(getattr(self, "quest_agent_panel_collapsed", False))
+        if hasattr(self, "quest_agent_container"):
+            self.quest_agent_container.setVisible(not collapsed)
+
+    def _set_quest_agent_panel_collapsed(self, collapsed):
+        self.quest_agent_panel_collapsed = bool(collapsed)
+        self._refresh_quest_agent_panel_visibility()
+
+    def _toggle_quest_agent_skill_recording(self, checked):
+        enabled = bool(checked)
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "_set_quest_agent_skill_recording_enabled"):
+            parent_workspace._set_quest_agent_skill_recording_enabled(enabled, origin_workflow=self)
+        else:
+            self.quest_agent_state["skill_recording_enabled"] = enabled
+        if enabled:
+            if parent_workspace is not None and hasattr(parent_workspace, "_get_quest_agent_skill_action_log"):
+                existing_records = list(parent_workspace._get_quest_agent_skill_action_log())
+            else:
+                existing_records = list(self.quest_agent_state.get("skill_action_log", []))
+            self._record_quest_agent_skill_action(
+                scope="skill",
+                action="resume_recording" if existing_records else "start_recording",
+                target=self.get_flow_display_name(),
+                details={"flow_type": self.get_flow_type()},
+            )
+        self._refresh_quest_agent_skill_record_display()
+
+    def _clear_quest_agent_skill_record(self):
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "_get_quest_agent_skill_action_log"):
+            records = list(parent_workspace._get_quest_agent_skill_action_log())
+        else:
+            records = list(self.quest_agent_state.get("skill_action_log", []))
+        if not records:
+            return
+        confirmed = QMessageBox.question(
+            self,
+            "Clear Record",
+            "Clear the current recorded skill actions?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if confirmed != QMessageBox.Yes:
+            return
+        if parent_workspace is not None and hasattr(parent_workspace, "_clear_quest_agent_skill_action_log"):
+            parent_workspace._clear_quest_agent_skill_action_log()
+        else:
+            self.quest_agent_state["skill_action_log"] = []
+            self._refresh_quest_agent_skill_record_display()
+
+    def _record_quest_agent_skill_action(self, scope, action, target="", details=None, workspace_action=None):
+        if not bool(self.quest_agent_state.get("skill_recording_enabled", False)):
+            return
+        record = {
+            "scope": str(scope or "").strip(),
+            "action": str(action or "").strip(),
+            "target": str(target or "").strip(),
+            "details": dict(details or {}),
+            "workspace_action": dict(workspace_action or {}) if isinstance(workspace_action, dict) else {},
+            "flow_name": self.get_flow_display_name(),
+            "flow_type": self.get_flow_type(),
+        }
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "_append_quest_agent_skill_action_record"):
+            parent_workspace._append_quest_agent_skill_action_record(record)
+        else:
+            records = list(self.quest_agent_state.get("skill_action_log", []))
+            records.append(record)
+            self.quest_agent_state["skill_action_log"] = records
+            self._refresh_quest_agent_skill_record_display()
+
+    def _on_graph_port_connected(self, input_port, output_port):
+        if bool(self.quest_agent_state.get("suspend_skill_connection_recording", False)):
+            return
+        try:
+            target_node = input_port.node()
+            target_port_name = str(input_port.name() or "").strip()
+        except Exception:
+            target_node = None
+            target_port_name = ""
+        try:
+            source_node = output_port.node()
+            source_port_name = str(output_port.name() or "").strip()
+        except Exception:
+            source_node = None
+            source_port_name = ""
+
+        source_node_name = str(source_node.name() if source_node is not None and hasattr(source_node, "name") else "").strip()
+        target_node_name = str(target_node.name() if target_node is not None and hasattr(target_node, "name") else "").strip()
+        if not source_node_name or not target_node_name or not source_port_name or not target_port_name:
+            return
+
+        self._record_quest_agent_skill_action(
+            scope="connection",
+            action="connect_nodes",
+            target=f"{source_node_name}.{source_port_name} -> {target_node_name}.{target_port_name}",
+            details={
+                "source_node": source_node_name,
+                "source_port": source_port_name,
+                "target_node": target_node_name,
+                "target_port": target_port_name,
+            },
+            workspace_action={
+                "type": "connect_nodes",
+                "source_node": source_node_name,
+                "target_node": target_node_name,
+                "mapping": {source_port_name: target_port_name},
+            },
+        )
+
+    def _refresh_quest_agent_skill_record_display(self):
+        if hasattr(self, "quest_agent_record_skill_button"):
+            checked = bool(self.quest_agent_state.get("skill_recording_enabled", False))
+            if self.quest_agent_record_skill_button.isChecked() != checked:
+                self.quest_agent_record_skill_button.blockSignals(True)
+                self.quest_agent_record_skill_button.setChecked(checked)
+                self.quest_agent_record_skill_button.blockSignals(False)
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "_get_quest_agent_skill_action_log"):
+            records = list(parent_workspace._get_quest_agent_skill_action_log())
+        else:
+            records = list(self.quest_agent_state.get("skill_action_log", []))
+        if hasattr(self, "quest_agent_skill_record_box"):
+            if format_action_records_table is None:
+                self.quest_agent_skill_record_box.setPlainText("")
+            else:
+                self.quest_agent_skill_record_box.setPlainText(format_action_records_table(records))
+        if hasattr(self, "quest_agent_develop_skill_button"):
+            self.quest_agent_develop_skill_button.setEnabled(len(records) > 0)
+        if hasattr(self, "quest_agent_clear_skill_record_button"):
+            self.quest_agent_clear_skill_record_button.setEnabled(len(records) > 0)
+
+    def _develop_quest_agent_skill(self):
+        if develop_skill_from_record is None or get_quest_agent_root is None:
+            QMessageBox.warning(
+                self,
+                "Develop Skill",
+                "QuESt Agent skill development is not available in this environment."
+            )
+            return
+
+        if bool(self.quest_agent_state.get("skill_recording_enabled", False)):
+            self.quest_agent_state["skill_recording_enabled"] = False
+            self._refresh_quest_agent_skill_record_display()
+
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "_get_quest_agent_skill_action_log"):
+            records = list(parent_workspace._get_quest_agent_skill_action_log())
+        else:
+            records = list(self.quest_agent_state.get("skill_action_log", []))
+        if not records:
+            QMessageBox.information(
+                self,
+                "Develop Skill",
+                "No recorded actions are available yet. Turn on Record Skill and build the workflow first."
+            )
+            return
+
+        self.quest_agent_develop_skill_button.setEnabled(False)
+        QApplication.processEvents()
+        try:
+            result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+            parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+            project_description = ""
+            if parent_workspace is not None and hasattr(parent_workspace, "_get_shared_project_description"):
+                try:
+                    project_description = str(parent_workspace._get_shared_project_description() or "").strip()
+                except Exception:
+                    project_description = ""
+            if not project_description:
+                project_description = str(result.get("project_description", "") or "").strip()
+            flow_description = str(result.get("flow_description", "") or "").strip()
+            pinned_context = (
+                quest_agent_context_service.extract_pinned_context(self.quest_agent_state.get("chat_messages", []))
+                if quest_agent_context_service is not None else []
+            )
+            current_flow_json_data = self._serialize_independent_flow_json_data() if hasattr(self, "_serialize_independent_flow_json_data") else {}
+            if isinstance(current_flow_json_data, dict):
+                current_flow_json_data["flow_type"] = self.get_flow_type()
+            quest_agent_root = get_quest_agent_root()
+            developed = develop_skill_from_record(
+                project_description=project_description,
+                flow_description=flow_description,
+                task_match_result=result,
+                action_records=records,
+                pinned_context=pinned_context,
+                attached_files=list(self.quest_agent_state.get("chat_attachments", [])),
+                current_flow_json_data=current_flow_json_data,
+                selected_model=str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4",
+                quest_agent_root=quest_agent_root,
+            )
+            self._load_quest_agent_skill_library()
+            self.quest_agent_inner_tabs.setCurrentWidget(self.quest_agent_skills_tab)
+            QMessageBox.information(
+                self,
+                "Skill Developed",
+                f"Created skill '{developed.get('title', 'Untitled Skill')}' in:\n{developed.get('folder_path', '')}"
+            )
+        except Exception as exc:
+            QMessageBox.critical(
+                self,
+                "Develop Skill Error",
+                f"Failed to develop a skill from the recorded actions.\n\nDetails: {exc}"
+            )
+        finally:
+            self._refresh_quest_agent_skill_record_display()
+
+    def _refresh_quest_agent_context_box(self):
+        self._refresh_quest_agent_chat_attachment_list()
+
+    def _load_quest_agent_skill_library(self):
+        loaded_skills = []
+        skill_errors = []
+
+        if load_skill_library is not None and get_quest_agent_root is not None:
+            try:
+                quest_agent_root = get_quest_agent_root()
+                result = load_skill_library(quest_agent_root)
+                loaded_skills = list(result.get("skills", []))
+                skill_errors = list(result.get("errors", []))
+            except Exception as exc:
+                skill_errors = [f"Failed to load skill library: {exc}"]
+        else:
+            skill_errors = ["quest.quest_agent is not available in this environment."]
+
+        self.quest_agent_state["loaded_skills"] = loaded_skills
+        self.quest_agent_state["skill_errors"] = skill_errors
+        self._refresh_quest_agent_skill_browser()
+
+    def _load_quest_agent_tool_registry(self):
+        loaded_tools = []
+        tool_errors = []
+
+        if write_active_tool_registry is not None and get_quest_agent_root is not None:
+            try:
+                quest_agent_root = get_quest_agent_root()
+                registry = write_active_tool_registry(quest_agent_root)
+                loaded_tools = list(registry.get("tools", []))
+            except Exception as exc:
+                tool_errors = [f"Failed to load tool registry: {exc}"]
+        else:
+            tool_errors = ["quest.quest_agent tool registry is not available in this environment."]
+
+        self.quest_agent_state["loaded_tools"] = loaded_tools
+        self.quest_agent_state["tool_errors"] = tool_errors
+        self._refresh_quest_agent_tool_browser()
+
+    def _get_quest_agent_match_inputs(self):
+        draft_prompt = ""
+        if hasattr(self, "quest_agent_chat_input"):
+            draft_prompt = str(self.quest_agent_chat_input.toPlainText()).strip()
+        if quest_agent_context_service is None:
+            return draft_prompt, [], []
+        return quest_agent_context_service.get_match_inputs(
+            self.quest_agent_state,
+            draft_prompt,
+            self._normalize_python_path,
+        )
+
+    def _quest_agent_workspace_is_recommended(self):
+        if quest_agent_context_service is None:
+            return False
+        return quest_agent_context_service.workspace_is_recommended(
+            self.quest_agent_state.get("task_match_results", {})
+        )
+
+    def _quest_agent_has_workflow_json_context(self):
+        if quest_agent_context_service is None:
+            return False
+        return quest_agent_context_service.has_workflow_json_context(
+            self.quest_agent_state,
+            self._normalize_python_path,
+        )
+
+    def _get_quest_agent_implicit_context_files(self):
+        if quest_agent_context_service is None:
+            return []
+        return quest_agent_context_service.get_implicit_context_files(
+            self.quest_agent_state,
+            self._normalize_python_path,
+            os.path.dirname(os.path.abspath(__file__)),
+            self.quest_agent_state.get("task_match_results", {}),
+        )
+
+    def _build_quest_agent_code_context_summary(self, path):
+        if quest_agent_context_service is None:
+            return {}
+        return quest_agent_context_service.build_code_context_summary(
+            path,
+            self._normalize_python_path,
+        )
+
+    def _get_quest_agent_implicit_code_context(self):
+        if quest_agent_context_service is None:
+            return []
+        return quest_agent_context_service.get_implicit_code_context(
+            self.quest_agent_state,
+            self._normalize_python_path,
+            os.path.dirname(os.path.abspath(__file__)),
+            self.quest_agent_state.get("task_match_results", {}),
+        )
+
+    def _get_quest_agent_python_node_wrapper_rules(self):
+        if quest_agent_context_service is None:
+            return {}
+        return quest_agent_context_service.get_python_node_wrapper_rules(
+            self.quest_agent_state,
+            self._normalize_python_path,
+            os.path.dirname(os.path.abspath(__file__)),
+            self.quest_agent_state.get("task_match_results", {}),
+        )
+
+    def _get_quest_agent_skill_execution_recipes(self):
+        if quest_agent_context_service is None:
+            return {}
+        return quest_agent_context_service.get_skill_execution_recipes(
+            self.quest_agent_state,
+            self._normalize_python_path,
+        )
+
+    def _get_quest_agent_effective_context_files(self):
+        if quest_agent_context_service is None:
+            return []
+        return quest_agent_context_service.get_effective_context_files(
+            self.quest_agent_state,
+            self._normalize_python_path,
+        )
+
+    def _get_quest_agent_attached_workflow_json_context(self):
+        attached_context = []
+        if quest_agent_context_service is not None:
+            attached_context = quest_agent_context_service.get_attached_workflow_json_context(
+                self.quest_agent_state,
+                self._normalize_python_path,
+            )
+        current_flow_context = self._get_quest_agent_current_flow_json_context()
+        if current_flow_context:
+            current_key = (
+                str(current_flow_context.get("flow_name", "") or "").strip(),
+                str(current_flow_context.get("flow_type", "") or "").strip(),
+                int(current_flow_context.get("node_count", 0) or 0),
+                int(current_flow_context.get("connection_count", 0) or 0),
+            )
+            filtered = []
+            for item in list(attached_context or []):
+                item_key = (
+                    str(item.get("flow_name", "") or "").strip(),
+                    str(item.get("flow_type", "") or "").strip(),
+                    int(item.get("node_count", 0) or 0),
+                    int(item.get("connection_count", 0) or 0),
+                )
+                if item_key == current_key:
+                    continue
+                filtered.append(item)
+            return [current_flow_context] + filtered
+        return attached_context
+
+    def _get_quest_agent_current_flow_json_context(self):
+        if quest_agent_context_service is None or not hasattr(self, "_serialize_independent_flow_json_data"):
+            return {}
+        try:
+            flow_json_data = self._serialize_independent_flow_json_data()
+        except Exception:
+            return {}
+        if not isinstance(flow_json_data, dict):
+            return {}
+        flow_type = ""
+        try:
+            flow_type = str(self.get_flow_type() or "").strip()
+        except Exception:
+            flow_type = ""
+        if flow_type:
+            flow_json_data["flow_type"] = flow_type
+        if flow_type == "master-flow":
+            parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+            if parent_workspace is not None and hasattr(parent_workspace, "_subflow_workflows"):
+                try:
+                    flow_json_data["subflows_df"] = [
+                        workflow._serialize_independent_flow_json_data()
+                        for workflow in list(parent_workspace._subflow_workflows())
+                    ]
+                except Exception:
+                    pass
+        source_name = f"{self.get_flow_display_name()} (current canvas)"
+        return quest_agent_context_service.build_workflow_json_context_entry(
+            flow_json_data,
+            source_name=source_name,
+        )
+
+    def _trigger_quest_agent_task_match(self, reason=""):
+        if not hasattr(self, "quest_agent_match_results"):
+            return
+        message = "Analyzing project and current flow..."
+        if reason:
+            message = f"Analyzing project and current flow after {reason}..."
+        self.quest_agent_match_results.setPlainText(message)
+        QApplication.processEvents()
+        self._run_quest_agent_task_match()
+
+    def _run_quest_agent_task_match(self):
+        if not hasattr(self, "quest_agent_match_results"):
+            return {}
+
+        if run_structured_task_match is None:
+            self.quest_agent_match_results.setPlainText("quest.quest_agent structured matcher is not available in this environment.")
+            return {}
+
+        task_description, pinned_context, attached_files = self._get_quest_agent_match_inputs()
+        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+
+        try:
+            result = self._compute_quest_agent_task_match_result(
+                task_description,
+                pinned_context,
+                attached_files,
+                selected_model,
+            )
+            self._store_quest_agent_task_match_result(result)
+            self._refresh_quest_agent_task_match_preview()
+            return result
+        except Exception as exc:
+            self.quest_agent_match_results.setPlainText(f"Project analysis failed.\n\nDetails: {exc}")
+            return {}
+
+    def _maybe_refresh_quest_agent_analysis_before_planning(self, prompt_text, model_name, route_result=None):
+        if quest_agent_chat_service is None:
+            return {}
+        canvas_context = self._get_quest_agent_canvas_context()
+        try:
+            should_refresh = bool(quest_agent_chat_service.should_refresh_analysis_before_canvas_plan(
+                prompt_text,
+                self.quest_agent_state,
+                route_result,
+                canvas_context,
+            ))
+        except Exception:
+            should_refresh = False
+        if not should_refresh:
+            return {}
+
+        self._update_last_quest_agent_status_message(
+            "QuESt Agent is analyzing the current flow before planning the next canvas steps..."
+        )
+        _, pinned_context, attached_files = self._get_quest_agent_match_inputs()
+        result = self._compute_quest_agent_task_match_result(
+            prompt_text,
+            pinned_context,
+            attached_files,
+            model_name,
+        )
+        self._store_quest_agent_task_match_result(result)
+        self._refresh_quest_agent_task_match_preview()
+        return result
+
+    def _compute_quest_agent_task_match_result(self, task_description, pinned_context, attached_files, selected_model):
+        quest_agent_root = get_quest_agent_root() if get_quest_agent_root is not None else None
+        return run_structured_task_match(
+            task_description=task_description,
+            pinned_context=pinned_context,
+            attached_files=attached_files,
+            attached_workflow_jsons=self._get_quest_agent_attached_workflow_json_context(),
+            workspace_relationship_context=self._get_quest_agent_workspace_relationship_context(),
+            implicit_code_context=self._get_quest_agent_implicit_code_context(),
+            python_node_wrapper_rules=self._get_quest_agent_python_node_wrapper_rules(),
+            selected_model=selected_model,
+            quest_agent_root=quest_agent_root,
+        )
+
+    def _store_quest_agent_task_match_result(self, result):
+        result = dict(result or {})
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        shared_project_description = ""
+        if parent_workspace is not None and hasattr(parent_workspace, "_get_shared_project_description"):
+            try:
+                shared_project_description = str(parent_workspace._get_shared_project_description() or "").strip()
+            except Exception:
+                shared_project_description = ""
+        project_description = str(result.get("project_description", "") or "").strip()
+        if project_description and parent_workspace is not None and hasattr(parent_workspace, "_set_shared_project_description"):
+            self.quest_agent_state["task_match_results"] = result
+            try:
+                parent_workspace._set_shared_project_description(project_description)
+            except Exception:
+                pass
+        else:
+            if shared_project_description and not project_description:
+                result["project_description"] = shared_project_description
+            self.quest_agent_state["task_match_results"] = result
+        return result
+
+    def _refresh_quest_agent_task_match_preview(self):
+        if not hasattr(self, "quest_agent_match_results"):
+            return
+
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        shared_project_description = ""
+        if parent_workspace is not None and hasattr(parent_workspace, "_get_shared_project_description"):
+            try:
+                shared_project_description = str(parent_workspace._get_shared_project_description() or "").strip()
+            except Exception:
+                shared_project_description = ""
+        if shared_project_description:
+            result["project_description"] = shared_project_description
+            stored_result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+            if stored_result.get("project_description", "") != shared_project_description:
+                stored_result["project_description"] = shared_project_description
+                self.quest_agent_state["task_match_results"] = stored_result
+        if not result:
+            self.quest_agent_match_results.setPlainText("")
+            return
+
+        lines = []
+        project_description = str(result.get("project_description", "") or "").strip()
+        if project_description:
+            lines.append(f"Project Description: {project_description}")
+            lines.append("")
+
+        flow_description = str(result.get("flow_description", "") or "").strip()
+        if flow_description:
+            lines.append(f"Flow Description: {flow_description}")
+            lines.append("")
+
+        strategy = str(result.get("strategy", "") or "").strip()
+        if strategy:
+            lines.append(f"Strategy: {strategy}")
+            lines.append("")
+
+        tool_matches = list(result.get("tool_matches", []))
+        lines.append("Related Tools:")
+        if tool_matches:
+            for item in tool_matches:
+                lines.append(f"- {item.get('name', 'Unknown Tool')} [{item.get('tool_id', '')}] | confidence={item.get('confidence', 0)}")
+                reason = str(item.get("reason", "") or "").strip()
+                if reason:
+                    lines.append(f"  {reason}")
+        else:
+            lines.append("- None")
+        lines.append("")
+
+        skill_matches = list(result.get("skill_matches", []))
+        lines.append("Related Skills:")
+        if skill_matches:
+            for item in skill_matches:
+                lines.append(f"- {item.get('title', 'Unknown Skill')} [{item.get('skill_type', '')}] | confidence={item.get('confidence', 0)}")
+                reason = str(item.get("reason", "") or "").strip()
+                if reason:
+                    lines.append(f"  {reason}")
+        else:
+            lines.append("- None")
+        notes = [str(note).strip() for note in list(result.get("notes", []) or []) if str(note).strip()]
+        if notes:
+            lines.append("")
+            lines.append("Notes:")
+            for note in notes:
+                lines.append(f"- {note}")
+        self.quest_agent_match_results.setPlainText("\n".join(lines))
+
+    def _build_quest_agent_assistant_reply_from_match(self):
+        if quest_agent_chat_service is None:
+            return {
+                "reply": "I couldn't analyze the current request yet. Try sending the prompt again after confirming your API key is available.",
+            }
+        return quest_agent_chat_service.build_fallback_reply(
+            self.quest_agent_state.get("task_match_results", {})
+        )
+
+    def _generate_quest_agent_assistant_reply(self, user_prompt, model_name):
+        if quest_agent_chat_service is None:
+            return self._build_quest_agent_assistant_reply_from_match()
+        return quest_agent_chat_service.generate_assistant_reply(
+            user_prompt,
+            model_name,
+            self.quest_agent_state,
+            self._get_quest_agent_chat_context_payload(),
+            run_grounded_chat_reply,
+        )
+
+    def _run_quest_agent_flow_review(self, prompt_text="", model_name=""):
+        if run_structured_task_match is None:
+            return {"reply": "", "result": {}}
+        selected_model = str(model_name or self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        task_description, pinned_context, attached_files = self._get_quest_agent_match_inputs()
+        normalized_prompt = self._normalize_quest_agent_prompt_text(prompt_text)
+        if normalized_prompt:
+            task_description = normalized_prompt
+        try:
+            result = self._compute_quest_agent_task_match_result(
+                task_description,
+                pinned_context,
+                attached_files,
+                selected_model,
+            )
+            self._store_quest_agent_task_match_result(result)
+            self._refresh_quest_agent_task_match_preview()
+        except Exception as exc:
+            return {"reply": f"Analyze Flow could not complete.\n\nDetails: {exc}", "result": {}}
+
+        if quest_agent_chat_service is None:
+            fallback = self._build_quest_agent_assistant_reply_from_match()
+            fallback["result"] = result
+            return fallback
+        review_reply = quest_agent_chat_service.build_fallback_reply(result)
+        review_text = str(dict(review_reply or {}).get("reply", "") or "").strip()
+        if review_text:
+            return {"reply": "Final review after Analyze Flow:\n\n" + review_text, "result": result}
+        return {"reply": "Final review after Analyze Flow: no additional gaps were detected.", "result": result}
+
+    def _quest_agent_analysis_result_has_actionable_gaps(self, result):
+        analysis = dict(result or {})
+        flow_description = str(analysis.get("flow_description", "") or "").strip().casefold()
+        notes = [str(note).strip().casefold() for note in list(analysis.get("notes", []) or []) if str(note).strip()]
+        haystacks = [flow_description] + notes
+        gap_signals = (
+            "unconnected",
+            "no connections",
+            "missing connection",
+            "no inferred input or output ports",
+            "missing input port",
+            "missing output port",
+            "empty input values",
+            "default output port named output",
+            "currently has no inferred input",
+            "there are no connections on the canvas",
+        )
+        return any(signal in haystack for haystack in haystacks for signal in gap_signals)
+
+    def _compose_quest_agent_analysis_fixup_prompt(self, overall_goal, analysis_result):
+        analysis = dict(analysis_result or {})
+        lines = []
+        goal_text = str(overall_goal or "").strip()
+        if goal_text:
+            lines.append(f"Overall goal: {goal_text}")
+        flow_description = str(analysis.get("flow_description", "") or "").strip()
+        if flow_description:
+            lines.append(f"Current flow analysis: {flow_description}")
+        notes = [str(note).strip() for note in list(analysis.get("notes", []) or []) if str(note).strip()]
+        if notes:
+            lines.append("Additional analysis notes:")
+            for note in notes[:5]:
+                lines.append(f"- {note}")
+        standardized_summary = self._quest_agent_standardized_flow_summary(self._get_quest_agent_target_workflow())
+        if standardized_summary:
+            lines.append("Standardized current flow facts:")
+            lines.append(standardized_summary)
+        lines.append("Create a step-by-step canvas fix-up plan that only completes the missing parts in the existing flow.")
+        lines.append("Reuse the current nodes whenever possible. Do not rebuild the flow from scratch and do not create duplicate nodes if the intended nodes already exist.")
+        lines.append("Prefer actions such as updating existing node names, setting variable names or wrappers, creating missing ports, and adding the missing connections.")
+        lines.append("Return the full remaining fix-up plan, not just one step.")
+        return "\n".join(line for line in lines if str(line).strip())
+
+    def _quest_agent_standardized_flow_summary(self, workflow):
+        if workflow is None:
+            return ""
+        snapshot = self._quest_agent_snapshot_workflow(workflow)
+        nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
+        edges = set(snapshot.get("edges", set()) or set())
+        if not nodes_by_name:
+            return ""
+        data_entries = []
+        py_entries = []
+        for record in nodes_by_name.values():
+            node_name = str(record.get("node_name", "") or "").strip()
+            node_type = str(record.get("node_type", "") or "").strip()
+            if not node_name:
+                continue
+            if node_type == "DataNode":
+                variable_name = str(record.get("node_input_variable", "") or "").strip()
+                node_value = str(record.get("node_input_value", "") or "").strip()
+                data_entries.append(f"{node_name}[variable={variable_name or 'output'}, value={node_value}]")
+            elif node_type == "PyNode":
+                wrapper_text = str(record.get("node_function_wrapper", "") or "").strip()
+                expected_inputs, expected_outputs = self._quest_agent_expected_ports_from_wrapper(wrapper_text)
+                connected_inputs = sorted({
+                    target_port
+                    for _, _, target_name, target_port in edges
+                    if target_name == node_name.casefold()
+                })
+                missing_inputs = [port for port in expected_inputs if str(port or "").strip().casefold() not in set(connected_inputs)]
+                py_entries.append(
+                    f"{node_name}[inputs_expected={expected_inputs}, outputs_expected={expected_outputs}, "
+                    f"inputs_connected={connected_inputs}, inputs_missing={missing_inputs}]"
+                )
+        connections = sorted(
+            f"{source}.{source_port}->{target}.{target_port}"
+            for source, source_port, target, target_port in edges
+        )
+        lines = []
+        if data_entries:
+            lines.append("data_nodes: " + "; ".join(data_entries))
+        if py_entries:
+            lines.append("python_nodes: " + "; ".join(py_entries))
+        lines.append("connections: " + (", ".join(connections) if connections else "(none)"))
+        return "\n".join(lines)
+
+    def _quest_agent_missing_connection_fixup_steps(self, workflow):
+        if workflow is None:
+            return []
+        snapshot = self._quest_agent_snapshot_workflow(workflow)
+        nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
+        edges = set(snapshot.get("edges", set()) or set())
+        if not nodes_by_name:
+            return []
+        data_sources_by_variable = {}
+        for record in nodes_by_name.values():
+            if str(record.get("node_type", "") or "").strip() != "DataNode":
+                continue
+            node_name = str(record.get("node_name", "") or "").strip()
+            variable_name = str(record.get("node_input_variable", "") or "").strip()
+            if not node_name or not variable_name:
+                continue
+            data_sources_by_variable.setdefault(variable_name.casefold(), []).append((node_name, variable_name))
+
+        steps = []
+        seen = set()
+        for record in nodes_by_name.values():
+            if str(record.get("node_type", "") or "").strip() != "PyNode":
+                continue
+            py_name = str(record.get("node_name", "") or "").strip()
+            wrapper_text = str(record.get("node_function_wrapper", "") or "").strip()
+            expected_inputs, _ = self._quest_agent_expected_ports_from_wrapper(wrapper_text)
+            if not py_name or not expected_inputs:
+                continue
+            connected_inputs = {
+                target_port.casefold()
+                for _, _, target_name, target_port in edges
+                if target_name == py_name.casefold()
+            }
+            for input_name in expected_inputs:
+                input_key = str(input_name or "").strip().casefold()
+                if not input_key or input_key in connected_inputs:
+                    continue
+                matching_sources = list(data_sources_by_variable.get(input_key, []) or [])
+                if len(matching_sources) != 1:
+                    continue
+                source_name, source_port = matching_sources[0]
+                edge_key = (source_name.casefold(), source_port.casefold(), py_name.casefold(), input_key)
+                if edge_key in seen:
+                    continue
+                seen.add(edge_key)
+                steps.append({
+                    "reply": "",
+                    "actions": [{
+                        "type": "connect_nodes",
+                        "source_node": source_name,
+                        "target_node": py_name,
+                        "mapping": {source_port: input_name},
+                    }],
+                })
+        return steps
+
+    def _quest_agent_analysis_deterministic_fixup_steps(self, analysis_result, workflow=None):
+        analysis = dict(analysis_result or {})
+        flow_description = str(analysis.get("flow_description", "") or "").strip()
+        notes = [str(note).strip() for note in list(analysis.get("notes", []) or []) if str(note).strip()]
+        text = "\n".join(part for part in [flow_description] + notes if part)
+        if not text:
+            current_workflow = workflow or self._get_quest_agent_target_workflow()
+            return self._quest_agent_missing_connection_fixup_steps(current_workflow)
+        current_workflow = workflow or self._get_quest_agent_target_workflow()
+        snapshot = self._quest_agent_snapshot_workflow(current_workflow) if current_workflow is not None else {}
+        nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
+        steps = list(self._quest_agent_missing_connection_fixup_steps(current_workflow))
+
+        py_node_name = ""
+        py_node_match = re.search(r"Python node named\s+([A-Za-z_][\w\-]*)", text, flags=re.IGNORECASE)
+        if py_node_match:
+            py_node_name = str(py_node_match.group(1) or "").strip()
+        if not py_node_name:
+            py_candidates = [
+                str(record.get("node_name", "") or "").strip()
+                for record in nodes_by_name.values()
+                if str(record.get("node_type", "") or "").strip() == "PyNode"
+            ]
+            if len(py_candidates) == 1:
+                py_node_name = py_candidates[0]
+
+        connection_patterns = [
+            r"([A-Za-z_][\w\-]*)\s+is present but not connected to input\s+([A-Za-z_]\w*)",
+            r"([A-Za-z_][\w\-]*)\s+is not connected to input\s+([A-Za-z_]\w*)",
+            r"missing connection from\s+([A-Za-z_][\w\-]*)\s+to\s+([A-Za-z_]\w*)",
+        ]
+        seen_connections = set()
+        for pattern in connection_patterns:
+            for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+                source_name = str(match.group(1) or "").strip()
+                target_port = str(match.group(2) or "").strip()
+                if not source_name or not target_port:
+                    continue
+                source_record = dict(nodes_by_name.get(source_name.casefold(), {}) or {})
+                source_port = str(source_record.get("node_input_variable", "") or "").strip() or "output"
+                target_name = py_node_name
+                if not target_name:
+                    continue
+                edge_key = (source_name.casefold(), source_port.casefold(), target_name.casefold(), target_port.casefold())
+                if edge_key in seen_connections:
+                    continue
+                seen_connections.add(edge_key)
+                steps.append({
+                    "reply": "",
+                    "actions": [{
+                        "type": "connect_nodes",
+                        "source_node": source_name,
+                        "target_node": target_name,
+                        "mapping": {source_port: target_port},
+                    }],
+                })
+        return steps
+
+    def _route_quest_agent_chat_turn(self, user_prompt, model_name):
+        if quest_agent_chat_service is None:
+            return {
+                "action": "analyze_task" if not self.quest_agent_state.get("task_match_results", {}) else "answer_only",
+                "reason": "",
+                "task_focus": str(user_prompt or "").strip(),
+            }
+        return quest_agent_chat_service.route_chat_turn(
+            user_prompt,
+            model_name,
+            self.quest_agent_state,
+            self._get_quest_agent_chat_context_payload(),
+            run_chat_router,
+        )
+
+    def _get_quest_agent_target_workflow(self):
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "active_workflow"):
+            try:
+                workflow = parent_workspace.active_workflow()
+                if workflow is not None:
+                    return workflow
+            except Exception:
+                pass
+        return self
+
+    def _get_quest_agent_canvas_context(self):
+        if quest_agent_context_service is None:
+            return {}
+        return quest_agent_context_service.get_canvas_context(
+            self._get_quest_agent_target_workflow()
+        )
+
+    def _get_quest_agent_workspace_relationship_context(self):
+        if quest_agent_context_service is None:
+            return {
+                "current_flow_name": "",
+                "current_flow_type": "",
+                "is_master_flow": False,
+                "is_subflow": False,
+                "master_flow_name": "",
+                "linked_proxy_name": "",
+                "sibling_subflows": [],
+                "subflow_count": 0,
+            }
+        return quest_agent_context_service.get_workspace_relationship_context(
+            self._get_quest_agent_target_workflow()
+        )
+
+    def _get_quest_agent_chat_context_payload(self):
+        return {
+            "pinned_context": (
+                quest_agent_context_service.extract_pinned_context(self.quest_agent_state.get("chat_messages", []))
+                if quest_agent_context_service is not None else []
+            ),
+            "recent_messages": list(self.quest_agent_state.get("chat_messages", [])),
+            "attached_files": self._get_quest_agent_effective_context_files(),
+            "attached_workflow_jsons": self._get_quest_agent_attached_workflow_json_context(),
+            "workspace_relationship_context": self._get_quest_agent_workspace_relationship_context(),
+            "implicit_code_context": self._get_quest_agent_implicit_code_context(),
+            "python_node_wrapper_rules": self._get_quest_agent_python_node_wrapper_rules(),
+            "skill_execution_recipes": self._get_quest_agent_skill_execution_recipes(),
+        }
+
+    def _clear_quest_agent_pending_canvas_plan(self):
+        self.quest_agent_state["pending_canvas_plan"] = {}
+        self.quest_agent_state["pending_canvas_steps"] = []
+        self.quest_agent_state["pending_canvas_step_index"] = 0
+        self.quest_agent_state["pending_canvas_prompt"] = ""
+        self.quest_agent_state["pending_canvas_waiting"] = False
+
+    def _get_quest_agent_pending_canvas_steps(self):
+        return list(self.quest_agent_state.get("pending_canvas_steps", []) or [])
+
+    def _has_quest_agent_pending_canvas_plan(self):
+        steps = self._get_quest_agent_pending_canvas_steps()
+        step_index = int(self.quest_agent_state.get("pending_canvas_step_index", 0) or 0)
+        return bool(steps) and step_index < len(steps)
+
+    def _normalize_quest_agent_prompt_text(self, prompt_text):
+        return str(prompt_text or "").strip()
+
+    def _interpret_quest_agent_pending_canvas_control(self, prompt_text):
+        if not self._has_quest_agent_pending_canvas_plan():
+            return ""
+        lowered = self._normalize_quest_agent_prompt_text(prompt_text).casefold()
+        if not lowered:
+            return ""
+        if lowered in {"next", "continue", "proceed", "approve", "approved", "yes", "y", "ok", "okay", "go ahead", "do it", "apply", "implement"}:
+            return "execute_next"
+        if lowered.startswith("next ") or lowered.startswith("continue ") or lowered.startswith("approve "):
+            return "execute_next"
+        if "show plan" in lowered or "show the plan" in lowered or lowered == "plan":
+            return "show_plan"
+        if lowered in {"cancel", "stop", "discard", "clear plan", "cancel plan", "never mind", "nevermind"}:
+            return "cancel_plan"
+        if any(token in lowered for token in ("change", "modify", "adjust", "revise", "instead")):
+            return "revise_plan"
+        return ""
+
+    def _expand_quest_agent_canvas_plan_steps(self, action_plan):
+        steps = []
+        for action in list(dict(action_plan or {}).get("actions", []) or []):
+            item = dict(action or {})
+            action_type = str(item.get("type", "") or "").strip()
+            count = max(1, min(5, int(item.get("count", 1) or 1)))
+            if action_type == "create_node" and count > 1:
+                for _ in range(count):
+                    cloned = dict(item)
+                    cloned["count"] = 1
+                    steps.append({"reply": "", "actions": [cloned]})
+            else:
+                steps.append({"reply": "", "actions": [item]})
+        if not steps or str(dict((steps[-1].get("actions", []) or [{}])[0] or {}).get("type", "") or "").strip() != "validate_flow":
+            steps.append({
+                "reply": "",
+                "actions": [{
+                    "type": "validate_flow",
+                    "goal_prompt": str(dict(action_plan or {}).get("goal_prompt", "") or "").strip(),
+                }],
+            })
+        return steps
+
+    def _describe_quest_agent_canvas_action(self, action):
+        item = dict(action or {})
+        action_type = str(item.get("type", "") or "").strip()
+        if action_type == "create_node":
+            node_type = str(item.get("node_type", "") or "").strip() or "node"
+            node_name = str(item.get("name", "") or "").strip()
+            variable_name = str(item.get("variable_name", "") or "").strip()
+            if node_type == "data":
+                value_text = str(item.get("value", "") or "").strip()
+                if node_name and variable_name:
+                    if value_text:
+                        return f"Create data node `{node_name}` with variable `{variable_name}` initialized to `{value_text}`."
+                    return f"Create data node `{node_name}` with variable `{variable_name}`."
+                if node_name:
+                    if value_text:
+                        return f"Create data node `{node_name}` initialized to `{value_text}`."
+                    return f"Create data node `{node_name}`."
+                if value_text:
+                    return f"Create data node initialized to `{value_text}`."
+            elif node_type == "py":
+                if node_name:
+                    return f"Create Python node `{node_name}`."
+            elif node_type == "text":
+                if node_name:
+                    return f"Create text node `{node_name}`."
+            return f"Create {node_type} node."
+        if action_type == "update_node":
+            node_name = str(item.get("node_name", "") or item.get("name", "") or "").strip() or "node"
+            node_type = str(item.get("node_type", "") or "").strip()
+            value_text = str(item.get("value", "") or "")
+            variable_name = str(item.get("variable_name", "") or "").strip()
+            text_value = str(item.get("text", "") or "").strip()
+            new_name = str(item.get("new_name", "") or "").strip()
+            if value_text and node_type == "data":
+                return f"Update data node `{node_name}` value to `{value_text}`."
+            if value_text:
+                return f"Update node `{node_name}` value to `{value_text}`."
+            if variable_name:
+                return f"Update node `{node_name}` variable to `{variable_name}`."
+            if new_name:
+                return f"Rename existing node `{node_name}` to `{new_name}`."
+            if text_value:
+                return f"Update text for node `{node_name}`."
+            if str(item.get("wrapper", "") or item.get("code", "") or "").strip():
+                return f"Update Python node `{node_name}` wrapper."
+            return f"Update existing node `{node_name}`."
+        if action_type == "validate_flow":
+            return "Validate current flow and prepare the next fix-up plan if anything is still missing."
+        if action_type == "add_subflow":
+            flow_name = str(item.get("flow_name", "") or item.get("subflow_name", "") or item.get("name", "") or "").strip()
+            return f"Create subflow `{flow_name}`." if flow_name else "Create a subflow."
+        if action_type == "connect_nodes":
+            source_name = str(item.get("source_node", "") or item.get("from_node", "") or "").strip()
+            target_name = str(item.get("target_node", "") or item.get("to_node", "") or "").strip()
+            mapping = item.get("mapping")
+            if isinstance(mapping, dict) and mapping:
+                mapping_text = ", ".join(f"{left}->{right}" for left, right in mapping.items())
+                return f"Connect `{source_name}` to `{target_name}` with `{mapping_text}`."
+            source_port = str(item.get("source_port", "") or "").strip()
+            target_port = str(item.get("target_port", "") or "").strip()
+            if source_port or target_port:
+                return f"Connect `{source_name}.{source_port or '?'}` to `{target_name}.{target_port or '?'}`."
+            return f"Connect `{source_name}` to `{target_name}`."
+        if action_type == "rename_selected_node":
+            new_name = str(item.get("new_name", "") or "").strip()
+            return f"Rename the selected node to `{new_name}`." if new_name else "Rename the selected node."
+        if action_type == "update_selected_text_node":
+            return "Update the selected text node."
+        if action_type == "delete_selected_nodes":
+            return "Delete the selected node(s)."
+        if action_type == "load_workflow_json":
+            source_skill_id = str(item.get("source_skill_id", "") or "").strip()
+            workflow_path = str(item.get("workflow_path", "") or "").strip()
+            if source_skill_id:
+                return f"Load the matched workflow template from skill `{source_skill_id}`."
+            if workflow_path:
+                return f"Load workflow JSON from `{workflow_path}`."
+            return "Load the drafted workflow JSON into the current flow."
+        return action_type or "Canvas action"
+
+    def _should_show_quest_agent_plan_reply_text(self, action_plan, steps):
+        reply_text = str(dict(action_plan or {}).get("reply", "") or "").strip()
+        if not reply_text:
+            return False
+        if not steps:
+            return True
+        lowered = reply_text.casefold()
+        if any(token in lowered for token in ("proposed canvas plan", "revised remaining plan", "current remaining plan", "next step")):
+            return False
+        if any(line.lstrip().startswith(f"{index}.") for index in range(1, 7) for line in reply_text.splitlines()):
+            return False
+        return len(reply_text.splitlines()) <= 2
+
+    def _describe_quest_agent_planning_path(self, action_plan):
+        path_id = str(dict(action_plan or {}).get("planning_path", "") or "").strip()
+        if not path_id:
+            return "", ""
+        labels = {
+            "edit_current_flow": "Edit Current Flow",
+            "reuse_skill_workflow_json": "Reuse Skill Workflow JSON",
+            "manual_canvas_build": "Manual Canvas Build",
+            "draft_workflow_json_then_load": "Draft Workflow JSON Then Load",
+        }
+        return labels.get(path_id, path_id.replace("_", " ").title()), str(dict(action_plan or {}).get("path_reason", "") or "").strip()
+
+    def _build_quest_agent_canvas_plan_preview(self, action_plan):
+        steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
+        if not steps:
+            if quest_agent_chat_service is not None:
+                return quest_agent_chat_service.build_canvas_action_reply(action_plan, [])
+            return {"reply": "I did not find any executable canvas steps."}
+        lines = []
+        reply_text = str(dict(action_plan or {}).get("reply", "") or "").strip()
+        if self._should_show_quest_agent_plan_reply_text(action_plan, steps):
+            lines.append(reply_text)
+            lines.append("")
+        planning_path_label, planning_path_reason = self._describe_quest_agent_planning_path(action_plan)
+        if planning_path_label:
+            lines.append(f"Build path: {planning_path_label}")
+            if planning_path_reason:
+                lines.append(f"Reason: {planning_path_reason}")
+            lines.append("")
+        lines.append("Proposed canvas plan:")
+        for index, step_plan in enumerate(steps, start=1):
+            action = dict((step_plan.get("actions", []) or [{}])[0] or {})
+            lines.append(f"{index}. {self._describe_quest_agent_canvas_action(action)}")
+        first_action = dict((steps[0].get("actions", []) or [{}])[0] or {})
+        lines.append("")
+        lines.append(f"Next step (1/{len(steps)}): {self._describe_quest_agent_canvas_action(first_action)}")
+        lines.append("Use the actions below to execute, review, or cancel this plan. You can still send a revised request to change it.")
+        return {
+            "reply": "\n".join(lines),
+            "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+        }
+
+    def _store_quest_agent_pending_canvas_plan(self, prompt_text, action_plan):
+        steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
+        self.quest_agent_state["pending_canvas_plan"] = dict(action_plan or {})
+        self.quest_agent_state["pending_canvas_steps"] = steps
+        self.quest_agent_state["pending_canvas_step_index"] = 0
+        self.quest_agent_state["pending_canvas_prompt"] = self._normalize_quest_agent_prompt_text(prompt_text)
+        self.quest_agent_state["pending_canvas_waiting"] = bool(steps)
+        return steps
+
+    def _build_quest_agent_pending_canvas_reminder(self):
+        if not self._has_quest_agent_pending_canvas_plan():
+            return ""
+        steps = self._get_quest_agent_pending_canvas_steps()
+        step_index = int(self.quest_agent_state.get("pending_canvas_step_index", 0) or 0)
+        next_action = dict((steps[step_index].get("actions", []) or [{}])[0] or {})
+        return (
+            f"Pending canvas plan step ({step_index + 1}/{len(steps)}): "
+            f"{self._describe_quest_agent_canvas_action(next_action)}\n"
+            "Use the actions below to continue, review the full plan, or cancel it."
+        )
+
+    def _quest_agent_pending_plan_action_suggestions(self, include_approve=False):
+        suggestions = []
+        suggestions.append({"label": "Next", "prompt": "next", "primary": True})
+        suggestions.append({"label": "Show Plan", "prompt": "show plan"})
+        suggestions.append({"label": "Cancel", "prompt": "cancel"})
+        return suggestions
+
+    def _compose_quest_agent_canvas_revision_prompt(self, revision_text):
+        base_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
+        steps = self._get_quest_agent_pending_canvas_steps()
+        step_index = int(self.quest_agent_state.get("pending_canvas_step_index", 0) or 0)
+        remaining_steps = steps[step_index:] if step_index < len(steps) else []
+        lines = []
+        if base_prompt:
+            lines.append(f"Overall goal: {base_prompt}")
+        if steps:
+            lines.append(
+                f"Current plan progress: {min(step_index, len(steps))} of {len(steps)} step(s) already completed on the canvas."
+            )
+        if remaining_steps:
+            lines.append("Current remaining plan:")
+            for index, step_plan in enumerate(remaining_steps, start=1):
+                action = dict((step_plan.get("actions", []) or [{}])[0] or {})
+                lines.append(f"{index}. {self._describe_quest_agent_canvas_action(action)}")
+        lines.append("Latest authoritative revision request:")
+        lines.append(self._normalize_quest_agent_prompt_text(revision_text))
+        lines.append("Revision rule: when the latest revision request conflicts with the earlier goal or remaining plan, follow the latest revision request.")
+        lines.append("Revise the overall remaining plan using the current canvas state and the latest authoritative revision request.")
+        lines.append("Return the full revised remaining plan, not just the first changed step.")
+        return "\n".join(line for line in lines if str(line).strip())
+
+    def _quest_agent_flow_display_name(self, workflow):
+        if workflow is None:
+            return ""
+        try:
+            if hasattr(workflow, "get_flow_display_name"):
+                return str(workflow.get_flow_display_name() or "").strip()
+        except Exception:
+            pass
+        try:
+            return str(getattr(workflow, "flow_name", "") or "").strip()
+        except Exception:
+            return ""
+
+    def _quest_agent_find_workflow_by_name(self, flow_name):
+        requested = str(flow_name or "").strip()
+        if not requested:
+            return None
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is None:
+            return None
+        for workflow in list(getattr(parent_workspace, "workflows", []) or []):
+            try:
+                if self._quest_agent_flow_display_name(workflow).casefold() == requested.casefold():
+                    return workflow
+            except Exception:
+                continue
+        return None
+
+    def _quest_agent_snapshot_workflow(self, workflow):
+        try:
+            if hasattr(workflow, "update_flow"):
+                workflow.update_flow()
+        except Exception:
+            pass
+        nodes_by_name = {}
+        edges = set()
+        try:
+            nodes_df, connections_df, _ = workflow._snapshot_flow_graph_data()
+            node_records = list(nodes_df.to_dict(orient="records") or []) if hasattr(nodes_df, "to_dict") else []
+            connection_records = list(connections_df.to_dict(orient="records") or []) if hasattr(connections_df, "to_dict") else []
+        except Exception:
+            node_records = []
+            connection_records = []
+        nodes_by_id = {}
+        for record in node_records:
+            node_id = str(record.get("node_id", "") or "").strip()
+            node_name = str(record.get("node_name", "") or "").strip()
+            if node_id:
+                nodes_by_id[node_id] = record
+            if node_name:
+                nodes_by_name[node_name.casefold()] = record
+        for record in connection_records:
+            from_id = str(record.get("from_node", "") or "").strip()
+            to_id = str(record.get("to_node", "") or "").strip()
+            source_name = str(dict(nodes_by_id.get(from_id, {}) or {}).get("node_name", "") or "").strip()
+            target_name = str(dict(nodes_by_id.get(to_id, {}) or {}).get("node_name", "") or "").strip()
+            mapping = record.get("mapping", {})
+            if isinstance(mapping, dict):
+                for source_port, target_port in mapping.items():
+                    edges.add((
+                        source_name.casefold(),
+                        str(source_port or "").strip().casefold(),
+                        target_name.casefold(),
+                        str(target_port or "").strip().casefold(),
+                    ))
+        return {"nodes_by_name": nodes_by_name, "edges": edges}
+
+    def _quest_agent_expected_ports_from_wrapper(self, wrapper_text):
+        source = str(wrapper_text or "").strip()
+        if not source:
+            return [], []
+        try:
+            parsed = ast.parse(source)
+        except Exception:
+            return [], []
+        func_defs = [node for node in ast.walk(parsed) if isinstance(node, ast.FunctionDef)]
+        func_def = func_defs[0] if func_defs else None
+        if func_def is None:
+            return [], []
+        inputs = []
+        for arg in list(func_def.args.args or []):
+            arg_name = str(getattr(arg, "arg", "") or "").strip()
+            if arg_name and arg_name not in inputs:
+                inputs.append(arg_name)
+        outputs = []
+        for node in ast.walk(func_def):
+            if isinstance(node, ast.Return) and isinstance(node.value, ast.Dict):
+                for key in list(node.value.keys or []):
+                    if isinstance(key, ast.Constant):
+                        text = str(key.value or "").strip()
+                    elif isinstance(key, ast.Str):
+                        text = str(key.s or "").strip()
+                    else:
+                        text = ""
+                    if text and text not in outputs:
+                        outputs.append(text)
+                break
+        return inputs, outputs
+
+    def _quest_agent_action_is_satisfied(self, workflow, action):
+        item = dict(action or {})
+        action_type = str(item.get("type", "") or "").strip()
+        if workflow is None:
+            return False
+        snapshot = self._quest_agent_snapshot_workflow(workflow)
+        nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
+        if action_type == "create_node":
+            node_type = str(item.get("node_type", "") or "").strip()
+            node_name = str(item.get("name", "") or "").strip()
+            if not node_name:
+                return True
+            record = dict(nodes_by_name.get(node_name.casefold(), {}) or {})
+            if not record:
+                return False
+            if node_type == "data":
+                expected_var = str(item.get("variable_name", "") or "").strip()
+                if expected_var and str(record.get("node_input_variable", "") or "").strip() != expected_var:
+                    return False
+            elif node_type == "py":
+                expected_wrapper = str(item.get("wrapper", "") or item.get("code", "") or "").strip()
+                actual_wrapper = str(record.get("node_function_wrapper", "") or "").strip()
+                if expected_wrapper and not actual_wrapper:
+                    return False
+                expected_inputs, expected_outputs = self._quest_agent_expected_ports_from_wrapper(actual_wrapper or expected_wrapper)
+                graph = getattr(workflow, "graph", None)
+                live_node = None
+                if graph is not None:
+                    try:
+                        for candidate in list(graph.all_nodes()):
+                            if str(candidate.name() or "").strip().casefold() == node_name.casefold():
+                                live_node = candidate
+                                break
+                    except Exception:
+                        live_node = None
+                if live_node is not None:
+                    try:
+                        live_inputs = set(str(name or "").strip() for name in dict(live_node.inputs()).keys())
+                    except Exception:
+                        live_inputs = set()
+                    try:
+                        live_outputs = set(str(name or "").strip() for name in dict(live_node.outputs()).keys())
+                    except Exception:
+                        live_outputs = set()
+                    if any(name not in live_inputs for name in expected_inputs):
+                        return False
+                    if any(name not in live_outputs for name in expected_outputs):
+                        return False
+            return True
+        if action_type == "add_subflow":
+            flow_name = str(item.get("flow_name", "") or item.get("subflow_name", "") or item.get("name", "") or "").strip()
+            return bool(self._quest_agent_find_workflow_by_name(flow_name)) if flow_name else True
+        if action_type == "connect_nodes":
+            source_name = str(item.get("source_node", "") or item.get("from_node", "") or "").strip()
+            target_name = str(item.get("target_node", "") or item.get("to_node", "") or "").strip()
+            mapping = item.get("mapping")
+            if isinstance(mapping, dict) and mapping:
+                for source_port, target_port in mapping.items():
+                    edge = (
+                        source_name.casefold(),
+                        str(source_port or "").strip().casefold(),
+                        target_name.casefold(),
+                        str(target_port or "").strip().casefold(),
+                    )
+                    if edge not in set(snapshot.get("edges", set()) or set()):
+                        return False
+                return True
+            source_port = str(item.get("source_port", "") or "").strip()
+            target_port = str(item.get("target_port", "") or "").strip()
+            edge = (
+                source_name.casefold(),
+                source_port.casefold(),
+                target_name.casefold(),
+                target_port.casefold(),
+            )
+            return edge in set(snapshot.get("edges", set()) or set())
+        return True
+
+    def _quest_agent_missing_canvas_steps_from_plan(self):
+        if not self._has_quest_agent_pending_canvas_plan():
+            return []
+        steps = self._get_quest_agent_pending_canvas_steps()
+        current_workflow = self._get_quest_agent_target_workflow()
+        missing_steps = []
+        for step_plan in steps:
+            action = dict((step_plan.get("actions", []) or [{}])[0] or {})
+            action_type = str(action.get("type", "") or "").strip()
+            if action_type == "validate_flow":
+                continue
+            if action_type == "add_subflow":
+                if not self._quest_agent_action_is_satisfied(current_workflow, action):
+                    missing_steps.append(step_plan)
+                flow_name = str(action.get("flow_name", "") or action.get("subflow_name", "") or action.get("name", "") or "").strip()
+                target_workflow = self._quest_agent_find_workflow_by_name(flow_name) if flow_name else None
+                if target_workflow is not None:
+                    current_workflow = target_workflow
+                continue
+            if not self._quest_agent_action_is_satisfied(current_workflow, action):
+                missing_steps.append(step_plan)
+        return missing_steps
+
+    def _finalize_quest_agent_canvas_validation_step(self, reply_text=""):
+        pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
+        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        review_reply = self._run_quest_agent_flow_review(pending_prompt, selected_model)
+        review_text = str(dict(review_reply or {}).get("reply", "") or "").strip()
+        review_result = dict(review_reply.get("result", {}) or {}) if isinstance(review_reply, dict) else {}
+        current_workflow = self._get_quest_agent_target_workflow()
+        final_parts = []
+        if str(reply_text or "").strip():
+            final_parts.append(str(reply_text).strip())
+        if review_text:
+            final_parts.append(review_text)
+        missing_steps = []
+        if self._quest_agent_analysis_result_has_actionable_gaps(review_result):
+            missing_steps = self._quest_agent_analysis_deterministic_fixup_steps(review_result, current_workflow)
+            try:
+                if not missing_steps:
+                    fixup_prompt = self._compose_quest_agent_analysis_fixup_prompt(pending_prompt, review_result)
+                    fixup_plan = self._plan_quest_agent_canvas_actions(fixup_prompt, selected_model)
+                    fixup_steps = self._expand_quest_agent_canvas_plan_steps(fixup_plan)
+                    if fixup_steps:
+                        fixup_steps = [
+                            dict(step or {})
+                            for step in fixup_steps
+                            if str(dict((dict(step or {}).get("actions", []) or [{}])[0] or {}).get("type", "") or "").strip() != "validate_flow"
+                        ]
+                    if fixup_steps:
+                        missing_steps = fixup_steps
+            except Exception:
+                missing_steps = list(missing_steps or [])
+        if missing_steps:
+            pending_actions = [dict((step.get('actions', []) or [{}])[0] or {}) for step in missing_steps]
+            self.quest_agent_state["pending_canvas_plan"] = {"reply": "Suggested fix-up plan", "actions": pending_actions}
+            self.quest_agent_state["pending_canvas_steps"] = self._expand_quest_agent_canvas_plan_steps(self.quest_agent_state["pending_canvas_plan"])
+            self.quest_agent_state["pending_canvas_step_index"] = 0
+            self.quest_agent_state["pending_canvas_prompt"] = pending_prompt
+            self.quest_agent_state["pending_canvas_waiting"] = True
+            final_parts.append("Recommended next steps to complete missing parts:")
+            for index, step_plan in enumerate(self.quest_agent_state["pending_canvas_steps"], start=1):
+                next_action = dict((step_plan.get("actions", []) or [{}])[0] or {})
+                final_parts.append(f"{index}. {self._describe_quest_agent_canvas_action(next_action)}")
+            final_parts.append("Use the actions below to apply the first recommended fix, review the full plan, or cancel it.")
+            return {
+                "reply": "\n\n".join(part for part in final_parts if str(part).strip()),
+                "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+            }
+        self._clear_quest_agent_pending_canvas_plan()
+        final_parts.append("Plan complete.")
+        return {"reply": "\n\n".join(part for part in final_parts if str(part).strip())}
+
+    def _execute_next_quest_agent_canvas_plan_step(self):
+        if not self._has_quest_agent_pending_canvas_plan():
+            return {"reply": "There is no pending canvas plan to execute."}
+        steps = self._get_quest_agent_pending_canvas_steps()
+        step_index = int(self.quest_agent_state.get("pending_canvas_step_index", 0) or 0)
+        step_plan = dict(steps[step_index] or {})
+        current_action = dict((step_plan.get("actions", []) or [{}])[0] or {})
+        current_action_type = str(current_action.get("type", "") or "").strip()
+        if current_action_type == "validate_flow":
+            step_index += 1
+            self.quest_agent_state["pending_canvas_step_index"] = step_index
+            self.quest_agent_state["pending_canvas_waiting"] = step_index < len(steps)
+            return self._finalize_quest_agent_canvas_validation_step("Validated the current flow against the goal.")
+        executed = self._execute_quest_agent_canvas_actions(step_plan)
+        if quest_agent_chat_service is not None:
+            step_reply = quest_agent_chat_service.build_canvas_action_reply(step_plan, executed)
+        else:
+            step_reply = {"reply": "Applied the next canvas step." if executed else "I did not apply any canvas changes."}
+        reply_text = str(dict(step_reply or {}).get("reply", "") or "").strip()
+        if executed:
+            step_index += 1
+            self.quest_agent_state["pending_canvas_step_index"] = step_index
+            self.quest_agent_state["pending_canvas_waiting"] = step_index < len(steps)
+            if step_index >= len(steps):
+                return self._finalize_quest_agent_canvas_validation_step(reply_text)
+            next_action = dict((steps[step_index].get("actions", []) or [{}])[0] or {})
+            next_text = (
+                f"Next step ({step_index + 1}/{len(steps)}): {self._describe_quest_agent_canvas_action(next_action)}\n"
+                "Use the actions below to execute it, review the full plan, or cancel it."
+            )
+            return {
+                "reply": reply_text + "\n\n" + next_text if reply_text else next_text,
+                "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+            }
+        pause_text = (
+            f"Plan paused at step {step_index + 1}/{len(steps)}: {self._describe_quest_agent_canvas_action(current_action)}\n"
+            "Use the actions below to retry the step, review the plan, or cancel it. You can still send a revised request."
+        )
+        return {
+            "reply": reply_text + "\n\n" + pause_text if reply_text else pause_text,
+            "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+        }
+
+    def _plan_quest_agent_canvas_actions(self, user_prompt, model_name):
+        if quest_agent_chat_service is None:
+            return {"reply": "", "actions": []}
+        return quest_agent_chat_service.plan_canvas_actions(
+            user_prompt,
+            model_name,
+            self.quest_agent_state,
+            self._get_quest_agent_chat_context_payload(),
+            self._get_quest_agent_canvas_context(),
+            run_workspace_action_plan,
+        )
+
+    def _execute_quest_agent_canvas_actions(self, action_plan):
+        if quest_agent_workspace_actions is None:
+            return []
+        return quest_agent_workspace_actions.execute_canvas_actions(
+            self._get_quest_agent_target_workflow(),
+            action_plan,
+        )
+
+    def _append_quest_agent_status_message(self, model_name, content):
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        messages.append({
+            "role": "assistant",
+            "model": model_name,
+            "content": str(content or "").strip() or "QuESt Agent is working...",
+            "pinned": False,
+            "attachments": [],
+            "status_message": True,
+        })
+        self.quest_agent_state["chat_messages"] = messages
+        self.quest_agent_state["chat_force_scroll_bottom"] = True
+        self._append_quest_agent_chat_widget_for_message_index(len(messages) - 1, stick_bottom=True)
+        QApplication.processEvents()
+
+    def _update_last_quest_agent_status_message(self, content):
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        updated_index = -1
+        for index in range(len(messages) - 1, -1, -1):
+            message = dict(messages[index])
+            if not bool(message.get("status_message", False)):
+                continue
+            message["content"] = str(content or "").strip() or "QuESt Agent is working..."
+            messages[index] = message
+            updated_index = index
+            break
+        self.quest_agent_state["chat_messages"] = messages
+        self._update_last_quest_agent_status_widget(updated_index)
+        QApplication.processEvents()
+
+    def _finalize_last_quest_agent_status_message(self, final_content):
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if isinstance(final_content, dict):
+            final_reply_text = str(final_content.get("reply", "") or "").strip() or "Done."
+            action_suggestions = list(final_content.get("action_suggestions", []) or [])
+        else:
+            final_reply_text = str(final_content or "").strip() or "Done."
+            action_suggestions = []
+        for index in range(len(messages) - 1, -1, -1):
+            message = dict(messages[index])
+            if not bool(message.get("status_message", False)):
+                continue
+            message.pop("status_message", None)
+            message["content"] = final_reply_text
+            if action_suggestions:
+                message["action_suggestions"] = action_suggestions
+            else:
+                message.pop("action_suggestions", None)
+            messages[index] = message
+            break
+        else:
+            message = {
+                "role": "assistant",
+                "model": str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4",
+                "content": final_reply_text,
+                "pinned": False,
+                "attachments": [],
+            }
+            if action_suggestions:
+                message["action_suggestions"] = action_suggestions
+            messages.append(message)
+        self.quest_agent_state["chat_messages"] = messages
+        self.quest_agent_state["chat_force_scroll_bottom"] = True
+        self._replace_last_quest_agent_chat_widget(max(0, len(messages) - 1), stick_bottom=True)
+
+    def _process_quest_agent_chat_turn(self, prompt_text, model_name):
+        _refresh_quest_agent_runtime()
+        pending_control = self._interpret_quest_agent_pending_canvas_control(prompt_text)
+        effective_prompt = prompt_text
+        if pending_control == "cancel_plan":
+            self._clear_quest_agent_pending_canvas_plan()
+            self._finalize_last_quest_agent_status_message({"reply": "Cleared the pending canvas plan."})
+            return
+        if pending_control == "show_plan":
+            final_reply = self._build_quest_agent_canvas_plan_preview(self.quest_agent_state.get("pending_canvas_plan", {}))
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+        if pending_control == "execute_next":
+            self._update_last_quest_agent_status_message("QuESt Agent is applying the next planned canvas step...")
+            final_reply = self._execute_next_quest_agent_canvas_plan_step()
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+        if pending_control == "revise_plan":
+            effective_prompt = self._compose_quest_agent_canvas_revision_prompt(prompt_text)
+        route_result = self._route_quest_agent_chat_turn(effective_prompt, model_name)
+        if pending_control == "revise_plan":
+            route_result["action"] = "execute_canvas_action"
+        route_action = str(route_result.get("action", "")).strip()
+        if route_action == "analyze_task":
+            self._update_last_quest_agent_status_message("QuESt Agent is analyzing the task and checking tools and skills...")
+            self._trigger_quest_agent_task_match("chat request")
+            final_reply = self._generate_quest_agent_assistant_reply(effective_prompt, model_name)
+            if self._has_quest_agent_pending_canvas_plan():
+                reminder = self._build_quest_agent_pending_canvas_reminder()
+                if reminder:
+                    reminder_text = str(dict(final_reply or {}).get("reply", "") or "").strip()
+                    final_reply = {
+                        "reply": reminder_text + "\n\n" + reminder if reminder_text else reminder,
+                        "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+                    }
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+        if route_action == "execute_canvas_action":
+            try:
+                self._maybe_refresh_quest_agent_analysis_before_planning(
+                    effective_prompt,
+                    model_name,
+                    route_result,
+                )
+                self._update_last_quest_agent_status_message("QuESt Agent is planning canvas actions for the current workflow...")
+                action_plan = self._plan_quest_agent_canvas_actions(effective_prompt, model_name)
+                stored_prompt = effective_prompt if pending_control == "revise_plan" else prompt_text
+                self._store_quest_agent_pending_canvas_plan(stored_prompt, action_plan)
+                final_reply = self._build_quest_agent_canvas_plan_preview(action_plan)
+            except Exception as exc:
+                if quest_agent_chat_service is not None:
+                    final_reply = quest_agent_chat_service.build_canvas_action_reply({}, [], error=exc)
+                else:
+                    final_reply = {"reply": f"I couldn't apply the requested canvas changes.\n\nDetails: {exc}"}
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+        else:
+            self._update_last_quest_agent_status_message("QuESt Agent is preparing a response from the current context...")
+        final_reply = self._generate_quest_agent_assistant_reply(effective_prompt, model_name)
+        if self._has_quest_agent_pending_canvas_plan():
+            reminder = self._build_quest_agent_pending_canvas_reminder()
+            if reminder:
+                final_reply = {"reply": str(dict(final_reply or {}).get("reply", "") or "").strip() + "\n\n" + reminder}
+        self._finalize_last_quest_agent_status_message(final_reply)
+
+    def _refresh_quest_agent_skill_browser(self):
+        if not hasattr(self, "quest_agent_skill_list"):
+            return
+
+        self.quest_agent_skill_list.clear()
+        loaded_skills = list(self.quest_agent_state.get("loaded_skills", []))
+        skill_errors = list(self.quest_agent_state.get("skill_errors", []))
+
+        if loaded_skills:
+            for skill in loaded_skills:
+                try:
+                    title = str(getattr(skill, "title", "") or "").strip() or str(getattr(skill, "skill_id", "Unnamed Skill"))
+                    skill_type = str(getattr(skill, "skill_type", "") or "").strip()
+                    status = str(getattr(skill, "status", "") or "").strip()
+                    label = title
+                    if skill_type or status:
+                        label += f" [{skill_type or 'unknown'} | {status or 'unknown'}]"
+                    item = QListWidgetItem()
+                    item.setData(Qt.UserRole, skill)
+                    widget = self._build_quest_agent_skill_row_widget(label, skill)
+                    self.quest_agent_skill_list.addItem(item)
+                    self.quest_agent_skill_list.setItemWidget(item, widget)
+                    widget.adjustSize()
+                    item.setSizeHint(widget.sizeHint())
+                except Exception:
+                    continue
+            self.quest_agent_skill_list.setCurrentRow(0)
+            return
+
+        if skill_errors:
+            for error in skill_errors:
+                message = str(getattr(error, "error", error)).strip() or "Unknown skill loading error."
+                item = QListWidgetItem("Error: " + message)
+                item.setFlags(Qt.NoItemFlags)
+                self.quest_agent_skill_list.addItem(item)
+            if hasattr(self, "quest_agent_skill_preview"):
+                self.quest_agent_skill_preview.setPlainText("Skill library scan found errors. Use Refresh after fixing them.")
+            return
+
+        placeholder = QListWidgetItem("No skills found.")
+        placeholder.setFlags(Qt.NoItemFlags)
+        self.quest_agent_skill_list.addItem(placeholder)
+        if hasattr(self, "quest_agent_skill_preview"):
+            self.quest_agent_skill_preview.setPlainText("")
+
+    def _build_quest_agent_skill_row_widget(self, text, skill):
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(6, 2, 6, 2)
+        layout.setSpacing(6)
+
+        label = QLabel(str(text or ""))
+        label.setWordWrap(True)
+        label.setToolTip(str(text or ""))
+        label.setStyleSheet(
+            "QLabel {"
+            "background: transparent;"
+            "color: #334155;"
+            "font-size: 9pt;"
+            "border: none;"
+            "}"
+        )
+        layout.addWidget(label, 1)
+
+        remove_button = QPushButton("")
+        remove_button.setFixedSize(20, 20)
+        remove_button.setToolTip("Remove skill")
+        remove_button.setIcon(self._load_workspace_icon("close_FILL0_wght200_GRAD0_opsz24.png"))
+        remove_button.setIconSize(QSize(12, 12))
+        remove_button.setStyleSheet(
+            "QPushButton { border: 1px solid transparent; background: transparent; color: #475569; border-radius: 10px; padding: 0px; font-weight: 600; }"
+            "QPushButton:hover { border-color: #ef4444; color: #334155; }"
+            "QPushButton:pressed { border-color: #dc2626; color: #1f2937; }"
+        )
+        remove_button.clicked.connect(
+            lambda _checked=False, skill_record=skill: self._remove_quest_agent_skill(skill_record)
+        )
+        layout.addWidget(remove_button, 0, Qt.AlignVCenter)
+        return container
+
+    def _remove_quest_agent_skill(self, skill):
+        if skill is None:
+            return
+        skill_title = str(getattr(skill, "title", "") or getattr(skill, "skill_id", "Selected skill")).strip() or "Selected skill"
+        skill_folder_path = str(getattr(skill, "folder_path", "") or "").strip()
+        if not skill_folder_path:
+            QMessageBox.warning(
+                self,
+                "Remove Skill",
+                "The selected skill does not have a valid folder path."
+            )
+            return
+        confirmed = QMessageBox.question(
+            self,
+            "Remove Skill",
+            f"Remove skill '{skill_title}' from the Skills Library?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if confirmed != QMessageBox.Yes:
+            return
+        try:
+            shutil.rmtree(skill_folder_path)
+            if build_skills_manifest is not None and get_quest_agent_root is not None:
+                build_skills_manifest(get_quest_agent_root())
+            self._load_quest_agent_skill_library()
+        except Exception as exc:
+            QMessageBox.critical(
+                self,
+                "Remove Skill Error",
+                f"Failed to remove the selected skill.\n\nDetails: {exc}"
+            )
+
+    def _refresh_quest_agent_tool_browser(self):
+        if not hasattr(self, "quest_agent_tool_list"):
+            return
+
+        self.quest_agent_tool_list.clear()
+        loaded_tools = list(self.quest_agent_state.get("loaded_tools", []))
+        tool_errors = list(self.quest_agent_state.get("tool_errors", []))
+
+        if loaded_tools:
+            for tool in loaded_tools:
+                try:
+                    name = str(tool.get("name", "") or "").strip() or str(tool.get("tool_id", "Unnamed Tool"))
+                    tool_id = str(tool.get("tool_id", "") or "").strip()
+                    label = name
+                    if tool_id:
+                        label += f" [{tool_id}]"
+                    item = QListWidgetItem(label)
+                    item.setData(Qt.UserRole, tool)
+                    self.quest_agent_tool_list.addItem(item)
+                except Exception:
+                    continue
+            self.quest_agent_tool_list.setCurrentRow(0)
+            return
+
+        if tool_errors:
+            for error in tool_errors:
+                message = str(error).strip() or "Unknown tool registry error."
+                item = QListWidgetItem("Error: " + message)
+                item.setFlags(Qt.NoItemFlags)
+                self.quest_agent_tool_list.addItem(item)
+            if hasattr(self, "quest_agent_tool_preview"):
+                self.quest_agent_tool_preview.setPlainText("Tool registry refresh found errors. Use Refresh after fixing them.")
+            return
+
+        placeholder = QListWidgetItem("No tools found.")
+        placeholder.setFlags(Qt.NoItemFlags)
+        self.quest_agent_tool_list.addItem(placeholder)
+        if hasattr(self, "quest_agent_tool_preview"):
+            self.quest_agent_tool_preview.setPlainText("")
+
+    def _on_quest_agent_skill_selected(self, current, previous):
+        if not hasattr(self, "quest_agent_skill_preview"):
+            return
+        if current is None:
+            self.quest_agent_skill_preview.setPlainText("")
+            return
+
+        skill = current.data(Qt.UserRole)
+        if skill is None:
+            self.quest_agent_skill_preview.setPlainText(str(current.text() or ""))
+            return
+
+        try:
+            title = str(getattr(skill, "title", "") or "").strip()
+            skill_type = str(getattr(skill, "skill_type", "") or "").strip()
+            status = str(getattr(skill, "status", "") or "").strip()
+            summary = str(getattr(skill, "summary", "") or "").strip()
+            recommended_tools = list(getattr(skill, "recommended_tools", []) or [])
+            required_tools = list(getattr(skill, "required_tools", []) or [])
+            preview_lines = [
+                f"Title: {title or 'Unnamed Skill'}",
+                f"Type: {skill_type or 'unknown'}",
+                f"Status: {status or 'unknown'}",
+                f"Recommended Tools: {', '.join(recommended_tools) if recommended_tools else 'None'}",
+                f"Required Tools: {', '.join(required_tools) if required_tools else 'None'}",
+                "",
+                summary or "No summary available.",
+            ]
+            self.quest_agent_skill_preview.setPlainText("\n".join(preview_lines))
+        except Exception as exc:
+            self.quest_agent_skill_preview.setPlainText(f"Failed to preview skill.\n\nDetails: {exc}")
+
+    def _on_quest_agent_tool_selected(self, current, previous):
+        if not hasattr(self, "quest_agent_tool_preview"):
+            return
+        if current is None:
+            self.quest_agent_tool_preview.setPlainText("")
+            return
+
+        tool = current.data(Qt.UserRole)
+        if tool is None:
+            self.quest_agent_tool_preview.setPlainText(str(current.text() or ""))
+            return
+
+        try:
+            name = str(tool.get("name", "") or "").strip()
+            tool_id = str(tool.get("tool_id", "") or "").strip()
+            description = str(tool.get("description", "") or "").strip()
+            workflow_roles = list(tool.get("workflow_roles", []) or [])
+            input_types = list(tool.get("input_types", []) or [])
+            output_types = list(tool.get("output_types", []) or [])
+            launch_type = str(tool.get("launch_type", "") or "").strip()
+            launch_value = str(tool.get("launch_value", "") or "").strip()
+            preview_lines = [
+                f"Name: {name or 'Unnamed Tool'}",
+                f"ID: {tool_id or 'unknown'}",
+                f"Workflow Roles: {', '.join(workflow_roles) if workflow_roles else 'None'}",
+                f"Input Types: {', '.join(input_types) if input_types else 'None'}",
+                f"Output Types: {', '.join(output_types) if output_types else 'None'}",
+                f"Launch: {launch_type or 'unknown'} -> {launch_value or 'n/a'}",
+                "",
+                description or "No description available.",
+            ]
+            self.quest_agent_tool_preview.setPlainText("\n".join(preview_lines))
+        except Exception as exc:
+            self.quest_agent_tool_preview.setPlainText(f"Failed to preview tool.\n\nDetails: {exc}")
+
+    def _toggle_quest_agent_chat_message_pin(self, message_index, is_checked):
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if message_index < 0 or message_index >= len(messages):
+            return
+        message = dict(messages[message_index])
+        if str(message.get("role", "")).strip().lower() != "user":
+            return
+        message["pinned"] = bool(is_checked)
+        messages[message_index] = message
+        self.quest_agent_state["chat_messages"] = messages
+        self._rebuild_quest_agent_pinned_context()
+        self._refresh_quest_agent_chat_history()
+        self._trigger_quest_agent_task_match("context pin update")
+
+    def _rebuild_quest_agent_pinned_context(self):
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        pinned_texts = []
+        for message in messages:
+            if str(message.get("role", "")).strip().lower() != "user":
+                continue
+            if not bool(message.get("pinned", False)):
+                continue
+            content = str(message.get("content", "")).strip()
+            if content:
+                pinned_texts.append(content)
+        context_text = "\n\n".join(pinned_texts)
+        self.quest_agent_state["task_text"] = context_text
+        self.quest_agent_state["pinned_task_text"] = context_text
+        self._refresh_quest_agent_context_box()
+
+    def _clear_quest_agent_chat_history_messages(self):
+        self.quest_agent_state["chat_messages"] = []
+        self.quest_agent_state["task_text"] = ""
+        self.quest_agent_state["pinned_task_text"] = ""
+        self.quest_agent_state["chat_force_scroll_bottom"] = False
+        self._clear_quest_agent_pending_canvas_plan()
+        self._rebuild_quest_agent_pinned_context()
+        self._refresh_quest_agent_chat_history()
+        self._refresh_quest_agent_chat_input_placeholder()
+        if hasattr(self, "quest_agent_chat_input"):
+            self.quest_agent_chat_input.setFocus()
+
+    def _update_quest_agent_selected_model(self, model_name):
+        self.quest_agent_state["selected_model"] = str(model_name or "").strip()
+
+    def _browse_quest_agent_chat_attachments(self):
+        paths, _ = QFileDialog.getOpenFileNames(
+            self,
+            "Select QuESt Agent Prompt Files",
+            os.getcwd(),
+            "All Files (*)"
+        )
+        if not paths:
+            return
+        existing = list(self.quest_agent_state.get("chat_attachments", []))
+        seen = {os.path.normcase(self._normalize_python_path(path)) for path in existing}
+        for path in paths:
+            normalized = self._normalize_python_path(path)
+            normalized_key = os.path.normcase(normalized) if normalized else ""
+            if normalized and normalized_key not in seen:
+                existing.append(normalized)
+                seen.add(normalized_key)
+        self.quest_agent_state["chat_attachments"] = existing
+        self._refresh_quest_agent_chat_attachment_list()
+        self._trigger_quest_agent_task_match("file attachment")
+
+    def _set_quest_agent_current_flow_attachment(self, path):
+        normalized = self._normalize_python_path(path)
+        if not normalized:
+            return
+
+        attachments = list(self.quest_agent_state.get("chat_attachments", []))
+        previous_path = self._normalize_python_path(self.quest_agent_state.get("current_flow_attachment_path", ""))
+        previous_key = os.path.normcase(previous_path) if previous_path else ""
+        normalized_key = os.path.normcase(normalized)
+
+        if previous_key and previous_key != normalized_key:
+            attachments = [
+                existing_path for existing_path in attachments
+                if os.path.normcase(self._normalize_python_path(existing_path)) != previous_key
+            ]
+
+        if normalized_key not in {
+            os.path.normcase(self._normalize_python_path(existing_path))
+            for existing_path in attachments
+        }:
+            attachments.append(normalized)
+
+        self.quest_agent_state["chat_attachments"] = attachments
+        self.quest_agent_state["current_flow_attachment_path"] = normalized
+        self._refresh_quest_agent_chat_attachment_list()
+
+    def _remove_quest_agent_chat_attachment(self, item):
+        path = item.data(Qt.UserRole) if item is not None else None
+        if not path:
+            return
+        remaining = [
+            existing_path for existing_path in list(self.quest_agent_state.get("chat_attachments", []))
+            if existing_path != path
+        ]
+        self.quest_agent_state["chat_attachments"] = remaining
+        current_flow_attachment_path = self._normalize_python_path(self.quest_agent_state.get("current_flow_attachment_path", ""))
+        if current_flow_attachment_path and os.path.normcase(self._normalize_python_path(path)) == os.path.normcase(current_flow_attachment_path):
+            self.quest_agent_state["current_flow_attachment_path"] = ""
+        self._refresh_quest_agent_chat_attachment_list()
+        self._trigger_quest_agent_task_match("file removal")
+
+    def _remove_quest_agent_context_entry(self, entry_kind, entry_value):
+        if entry_kind == "attached":
+            remaining = [
+                existing_path for existing_path in list(self.quest_agent_state.get("chat_attachments", []))
+                if existing_path != entry_value
+            ]
+            self.quest_agent_state["chat_attachments"] = remaining
+            current_flow_attachment_path = self._normalize_python_path(self.quest_agent_state.get("current_flow_attachment_path", ""))
+            if current_flow_attachment_path and os.path.normcase(self._normalize_python_path(entry_value)) == os.path.normcase(current_flow_attachment_path):
+                self.quest_agent_state["current_flow_attachment_path"] = ""
+            self._refresh_quest_agent_chat_attachment_list()
+            self._trigger_quest_agent_task_match("file removal")
+            return
+
+        if entry_kind == "pinned":
+            messages = list(self.quest_agent_state.get("chat_messages", []))
+            for index, message in enumerate(messages):
+                if str(message.get("role", "")).strip().lower() != "user":
+                    continue
+                content = str(message.get("content", "")).strip()
+                if content != entry_value:
+                    continue
+                updated_message = dict(message)
+                updated_message["pinned"] = False
+                messages[index] = updated_message
+                break
+            self.quest_agent_state["chat_messages"] = messages
+            self._rebuild_quest_agent_pinned_context()
+            self._refresh_quest_agent_chat_history()
+            self._trigger_quest_agent_task_match("context unpin")
+
+    def _build_quest_agent_context_row_widget(self, tag, text, entry_kind, entry_value, removable=True):
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(6, 2, 6, 2)
+        layout.setSpacing(6)
+
+        label = QLabel(f"{tag}: {text}")
+        label.setWordWrap(True)
+        label.setToolTip(text)
+        label.setStyleSheet(
+            "QLabel {"
+            "background: transparent;"
+            "color: #334155;"
+            "font-size: 9pt;"
+            "border: none;"
+            "}"
+        )
+        layout.addWidget(label, 1)
+
+        if removable:
+            remove_button = QPushButton("")
+            remove_button.setFixedSize(20, 20)
+            remove_button.setToolTip("Remove")
+            remove_button.setIcon(self._load_workspace_icon("close_FILL0_wght200_GRAD0_opsz24.png"))
+            remove_button.setIconSize(QSize(12, 12))
+            remove_button.setStyleSheet(
+                "QPushButton { border: 1px solid transparent; background: transparent; color: #475569; border-radius: 10px; padding: 0px; font-weight: 600; }"
+                "QPushButton:hover { border-color: #ef4444; color: #334155; }"
+                "QPushButton:pressed { border-color: #dc2626; color: #1f2937; }"
+            )
+            remove_button.clicked.connect(
+                lambda _checked=False, kind=entry_kind, value=entry_value: self._remove_quest_agent_context_entry(kind, value)
+            )
+            layout.addWidget(remove_button, 0, Qt.AlignVCenter)
+        return container
+
+    def _refresh_quest_agent_chat_attachment_list(self):
+        if not hasattr(self, "quest_agent_chat_files"):
+            return
+        self.quest_agent_chat_files.clear()
+        pinned_messages = []
+        for message in list(self.quest_agent_state.get("chat_messages", [])):
+            if str(message.get("role", "")).strip().lower() != "user":
+                continue
+            if not bool(message.get("pinned", False)):
+                continue
+            content = str(message.get("content", "")).strip()
+            if content:
+                pinned_messages.append(content)
+        attachments = list(self.quest_agent_state.get("chat_attachments", []))
+        if not pinned_messages and not attachments:
+            placeholder = QListWidgetItem("No Pinned or Attached items.")
+            placeholder.setFlags(Qt.NoItemFlags)
+            self.quest_agent_chat_files.addItem(placeholder)
+            return
+        for content in pinned_messages:
+            preview = content if len(content) <= 90 else content[:87] + "..."
+            widget = self._build_quest_agent_context_row_widget("Pinned", preview, "pinned", content)
+            item = QListWidgetItem()
+            item.setFlags(Qt.NoItemFlags)
+            self.quest_agent_chat_files.addItem(item)
+            self.quest_agent_chat_files.setItemWidget(item, widget)
+            widget.adjustSize()
+            item.setSizeHint(widget.sizeHint())
+        for path in attachments:
+            display_name = os.path.basename(path) or path
+            widget = self._build_quest_agent_context_row_widget(
+                "Attached",
+                display_name,
+                "attached",
+                path,
+                removable=True,
+            )
+            item = QListWidgetItem()
+            item.setData(Qt.UserRole, path)
+            self.quest_agent_chat_files.addItem(item)
+            self.quest_agent_chat_files.setItemWidget(item, widget)
+            widget.adjustSize()
+            item.setSizeHint(widget.sizeHint())
+
+    def _refresh_quest_agent_chat_history(self):
+        if not hasattr(self, "quest_agent_chat_history_layout"):
+            return
+        chat_history = self.quest_agent_chat_history if hasattr(self, "quest_agent_chat_history") else None
+        if chat_history is not None:
+            chat_history.setUpdatesEnabled(False)
+        scrollbar = chat_history.verticalScrollBar() if chat_history is not None else None
+        previous_value = scrollbar.value() if scrollbar is not None else 0
+        previous_maximum = scrollbar.maximum() if scrollbar is not None else 0
+        should_stick_to_bottom = True
+        if scrollbar is not None:
+            should_stick_to_bottom = (previous_maximum - previous_value) <= 24
+        if bool(self.quest_agent_state.get("chat_force_scroll_bottom", False)):
+            should_stick_to_bottom = True
+
+        while self.quest_agent_chat_history_layout.count():
+            item = self.quest_agent_chat_history_layout.takeAt(0)
+            widget = item.widget()
+            if widget is not None:
+                widget.deleteLater()
+
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if not messages:
+            placeholder = QLabel("No messages yet. Send a prompt below.")
+            placeholder.setProperty("quest_agent_placeholder", True)
+            placeholder.setStyleSheet(
+                "QLabel {"
+                "color: #64748b;"
+                "background: transparent;"
+                "border: none;"
+                "font-size: 9pt;"
+                "padding: 4px;"
+                "}"
+            )
+            self.quest_agent_chat_history_layout.addWidget(placeholder)
+            self.quest_agent_chat_history_layout.addStretch(1)
+            self._refresh_quest_agent_chat_input_placeholder()
+            if chat_history is not None:
+                chat_history.setUpdatesEnabled(True)
+            return
+
+        newest_widget = None
+        for message_index, message in enumerate(messages):
+            role = str(message.get("role", "assistant")).strip().lower() or "assistant"
+            model = str(message.get("model", "")).strip()
+            content = str(message.get("content", "")).strip() or "(empty message)"
+            is_pinned = bool(message.get("pinned", False))
+            is_status_message = bool(message.get("status_message", False))
+            sent_at = str(message.get("sent_at", "")).strip()
+            attachment_count = len(list(message.get("attachments", [])))
+            action_suggestions = list(message.get("action_suggestions", []) or [])
+            available_width = max(160, self.quest_agent_chat_history.viewport().width() - 18)
+            widget = self._build_quest_agent_chat_message_widget(
+                role,
+                model,
+                content,
+                0,
+                message_index,
+                is_pinned,
+                sent_at,
+                attachment_count,
+                available_width,
+                is_status_message,
+                action_suggestions,
+            )
+            widget.setFixedWidth(available_width)
+            if widget.layout() is not None:
+                widget.layout().activate()
+            widget.adjustSize()
+            self.quest_agent_chat_history_layout.addWidget(widget)
+            newest_widget = widget
+
+        self.quest_agent_chat_history_layout.insertStretch(0, 1)
+        self._refresh_quest_agent_chat_input_placeholder()
+        def restore_scroll_position():
+            if not hasattr(self, "quest_agent_chat_history"):
+                return
+            current_scrollbar = self.quest_agent_chat_history.verticalScrollBar()
+            if should_stick_to_bottom:
+                self._scroll_quest_agent_chat_history_to_bottom(newest_widget)
+            else:
+                current_scrollbar.setValue(min(previous_value, current_scrollbar.maximum()))
+            self.quest_agent_chat_history.setUpdatesEnabled(True)
+            if should_stick_to_bottom:
+                QTimer.singleShot(25, lambda widget=newest_widget: self._scroll_quest_agent_chat_history_to_bottom(widget))
+                QTimer.singleShot(80, lambda widget=newest_widget: self._scroll_quest_agent_chat_history_to_bottom(widget, clear_flag=True))
+            else:
+                self.quest_agent_state["chat_force_scroll_bottom"] = False
+        QTimer.singleShot(0, restore_scroll_position)
+
+    def _scroll_quest_agent_chat_history_to_bottom(self, newest_widget=None, clear_flag=False):
+        if not hasattr(self, "quest_agent_chat_history"):
+            return
+        chat_history = self.quest_agent_chat_history
+        scrollbar = chat_history.verticalScrollBar()
+        if newest_widget is not None:
+            try:
+                chat_history.ensureWidgetVisible(newest_widget, 0, 16)
+            except Exception:
+                pass
+        try:
+            scrollbar.setValue(scrollbar.maximum())
+        except Exception:
+            pass
+        if clear_flag:
+            self.quest_agent_state["chat_force_scroll_bottom"] = False
+
+    def _count_quest_agent_rendered_chat_widgets(self):
+        if not hasattr(self, "quest_agent_chat_history_layout"):
+            return 0
+        count = 0
+        for index in range(self.quest_agent_chat_history_layout.count()):
+            widget = self.quest_agent_chat_history_layout.itemAt(index).widget()
+            if widget is None:
+                continue
+            if bool(widget.property("quest_agent_placeholder")):
+                continue
+            count += 1
+        return count
+
+    def _find_last_quest_agent_chat_widget_index(self):
+        if not hasattr(self, "quest_agent_chat_history_layout"):
+            return -1
+        for index in range(self.quest_agent_chat_history_layout.count() - 1, -1, -1):
+            widget = self.quest_agent_chat_history_layout.itemAt(index).widget()
+            if widget is None:
+                continue
+            if bool(widget.property("quest_agent_placeholder")):
+                continue
+            return index
+        return -1
+
+    def _append_quest_agent_chat_widget_for_message_index(self, message_index, stick_bottom=False):
+        if not hasattr(self, "quest_agent_chat_history_layout"):
+            return
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if message_index < 0 or message_index >= len(messages):
+            return
+        if self._count_quest_agent_rendered_chat_widgets() != message_index:
+            self._refresh_quest_agent_chat_history()
+            return
+        while self.quest_agent_chat_history_layout.count():
+            first_item = self.quest_agent_chat_history_layout.itemAt(0)
+            first_widget = first_item.widget() if first_item is not None else None
+            if first_widget is None:
+                break
+            if not bool(first_widget.property("quest_agent_placeholder")):
+                break
+            self.quest_agent_chat_history_layout.takeAt(0)
+            first_widget.deleteLater()
+        message = dict(messages[message_index] or {})
+        role = str(message.get("role", "assistant")).strip().lower() or "assistant"
+        model = str(message.get("model", "")).strip()
+        content = str(message.get("content", "")).strip() or "(empty message)"
+        is_pinned = bool(message.get("pinned", False))
+        is_status_message = bool(message.get("status_message", False))
+        sent_at = str(message.get("sent_at", "")).strip()
+        attachment_count = len(list(message.get("attachments", [])))
+        action_suggestions = list(message.get("action_suggestions", []) or [])
+        available_width = max(160, self.quest_agent_chat_history.viewport().width() - 18)
+        widget = self._build_quest_agent_chat_message_widget(
+            role,
+            model,
+            content,
+            0,
+            message_index,
+            is_pinned,
+            sent_at,
+            attachment_count,
+            available_width,
+            is_status_message,
+            action_suggestions,
+        )
+        widget.setFixedWidth(available_width)
+        if widget.layout() is not None:
+            widget.layout().activate()
+        widget.adjustSize()
+        self.quest_agent_chat_history_layout.addWidget(widget)
+        self._refresh_quest_agent_chat_input_placeholder()
+        if stick_bottom:
+            self.quest_agent_state["chat_force_scroll_bottom"] = True
+            QTimer.singleShot(0, lambda current=widget: self._scroll_quest_agent_chat_history_to_bottom(current))
+            QTimer.singleShot(25, lambda current=widget: self._scroll_quest_agent_chat_history_to_bottom(current))
+            QTimer.singleShot(80, lambda current=widget: self._scroll_quest_agent_chat_history_to_bottom(current, clear_flag=True))
+
+    def _replace_last_quest_agent_chat_widget(self, message_index, stick_bottom=False):
+        if not hasattr(self, "quest_agent_chat_history_layout"):
+            return
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if message_index < 0 or message_index >= len(messages):
+            return
+        if self._count_quest_agent_rendered_chat_widgets() != len(messages):
+            self._refresh_quest_agent_chat_history()
+            return
+        last_index = self._find_last_quest_agent_chat_widget_index()
+        if last_index < 0:
+            self._refresh_quest_agent_chat_history()
+            return
+        item = self.quest_agent_chat_history_layout.takeAt(last_index)
+        widget = item.widget() if item is not None else None
+        if widget is not None:
+            widget.deleteLater()
+        message = dict(messages[message_index] or {})
+        role = str(message.get("role", "assistant")).strip().lower() or "assistant"
+        model = str(message.get("model", "")).strip()
+        content = str(message.get("content", "")).strip() or "(empty message)"
+        is_pinned = bool(message.get("pinned", False))
+        is_status_message = bool(message.get("status_message", False))
+        sent_at = str(message.get("sent_at", "")).strip()
+        attachment_count = len(list(message.get("attachments", [])))
+        action_suggestions = list(message.get("action_suggestions", []) or [])
+        available_width = max(160, self.quest_agent_chat_history.viewport().width() - 18)
+        replacement = self._build_quest_agent_chat_message_widget(
+            role,
+            model,
+            content,
+            0,
+            message_index,
+            is_pinned,
+            sent_at,
+            attachment_count,
+            available_width,
+            is_status_message,
+            action_suggestions,
+        )
+        replacement.setFixedWidth(available_width)
+        if replacement.layout() is not None:
+            replacement.layout().activate()
+        replacement.adjustSize()
+        self.quest_agent_chat_history_layout.addWidget(replacement)
+        self._refresh_quest_agent_chat_input_placeholder()
+        if stick_bottom:
+            self.quest_agent_state["chat_force_scroll_bottom"] = True
+            QTimer.singleShot(0, lambda current=replacement: self._scroll_quest_agent_chat_history_to_bottom(current))
+            QTimer.singleShot(25, lambda current=replacement: self._scroll_quest_agent_chat_history_to_bottom(current))
+            QTimer.singleShot(80, lambda current=replacement: self._scroll_quest_agent_chat_history_to_bottom(current, clear_flag=True))
+
+    def _update_last_quest_agent_status_widget(self, message_index):
+        if not hasattr(self, "quest_agent_chat_history_layout"):
+            return
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if message_index < 0 or message_index >= len(messages):
+            self._refresh_quest_agent_chat_history()
+            return
+        last_index = self._find_last_quest_agent_chat_widget_index()
+        if last_index < 0:
+            self._refresh_quest_agent_chat_history()
+            return
+        widget = self.quest_agent_chat_history_layout.itemAt(last_index).widget()
+        if widget is None:
+            self._refresh_quest_agent_chat_history()
+            return
+        status_label = widget.findChild(QLabel, "quest_agent_status_label")
+        if status_label is None:
+            self._replace_last_quest_agent_chat_widget(message_index, stick_bottom=True)
+            return
+        status_text = str(dict(messages[message_index] or {}).get("content", "") or "").strip() or "QuESt Agent is working..."
+        status_label.setText(status_text)
+        widget.adjustSize()
+        self.quest_agent_state["chat_force_scroll_bottom"] = True
+        QTimer.singleShot(0, lambda current=widget: self._scroll_quest_agent_chat_history_to_bottom(current))
+        QTimer.singleShot(25, lambda current=widget: self._scroll_quest_agent_chat_history_to_bottom(current))
+        QTimer.singleShot(80, lambda current=widget: self._scroll_quest_agent_chat_history_to_bottom(current, clear_flag=True))
+
+    def _clear_last_quest_agent_action_suggestions(self):
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        target_index = -1
+        for index in range(len(messages) - 1, -1, -1):
+            message = dict(messages[index] or {})
+            if not list(message.get("action_suggestions", []) or []):
+                continue
+            message.pop("action_suggestions", None)
+            messages[index] = message
+            target_index = index
+            break
+        if target_index < 0:
+            return
+        self.quest_agent_state["chat_messages"] = messages
+        if target_index == len(messages) - 1:
+            self._replace_last_quest_agent_chat_widget(target_index, stick_bottom=False)
+        else:
+            self._refresh_quest_agent_chat_history()
+
+    def _refresh_quest_agent_chat_input_placeholder(self):
+        if not hasattr(self, "quest_agent_chat_input"):
+            return
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        if messages:
+            placeholder = "Ask follow up questions or make request to QuESt Agent"
+        else:
+            placeholder = (
+                "Describe what you want to do. Example: I want to create a workflow "
+                "that analyze the customers' savings by BTM energy storage systems"
+            )
+        self.quest_agent_chat_input.setPlaceholderText(placeholder)
+
+    def _build_quest_agent_chat_message_widget(self, role, model, content, assistant_count=0, message_index=-1, is_pinned=False, sent_at="", attachment_count=0, available_width=None, is_status_message=False, action_suggestions=None):
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setContentsMargins(6, 6, 6, 6)
+        container_layout.setSpacing(4)
+        available_width = max(160, int(available_width or (self.panel_width - 16)))
+        action_suggestions = list(action_suggestions or [])
+
+        if role == "user":
+            bubble_row = QHBoxLayout()
+            bubble_row.setContentsMargins(0, 0, 0, 0)
+            bubble_row.setSpacing(0)
+            bubble_row.addStretch(1)
+
+            bubble_container = QWidget()
+            bubble_container.setMaximumWidth(max(220, available_width - 48))
+            bubble_container.setStyleSheet(
+                "QWidget {"
+                "background: #f1f3f5;"
+                "border-radius: 14px;"
+                "}"
+            )
+
+            bubble_layout = QVBoxLayout(bubble_container)
+            bubble_layout.setContentsMargins(14, 10, 14, 10)
+            bubble_layout.setSpacing(0)
+
+            bubble = QLabel(content)
+            bubble.setWordWrap(True)
+            bubble.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            bubble.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+            bubble.adjustSize()
+            bubble.setStyleSheet(
+                "QLabel {"
+                "background: transparent;"
+                "color: #111827;"
+                "border: none;"
+                "font-size: 9pt;"
+                "line-height: 105%;"
+                "padding: 0px;"
+                "margin: 0px;"
+                "}"
+            )
+            bubble_layout.addWidget(bubble)
+            bubble_container.setMinimumHeight(bubble.sizeHint().height() + 20)
+            bubble_row.addWidget(bubble_container, 0, Qt.AlignRight)
+            container_layout.addLayout(bubble_row)
+
+            toolbar_row = QHBoxLayout()
+            toolbar_row.setContentsMargins(0, 0, 2, 0)
+            toolbar_row.setSpacing(6)
+            toolbar_row.addStretch(1)
+
+            time_label = QLabel(sent_at or "Now")
+            time_label.setStyleSheet(
+                "QLabel {"
+                "color: #6b7280;"
+                "font-size: 8.5pt;"
+                "background: transparent;"
+                "border: none;"
+                "padding: 0px 2px 0px 0px;"
+                "}"
+            )
+            toolbar_row.addWidget(time_label, 0, Qt.AlignVCenter)
+
+            if attachment_count > 0:
+                attachment_button = QPushButton("")
+                attachment_button.setFixedSize(20, 20)
+                attachment_button.setEnabled(False)
+                attachment_button.setToolTip(f"{attachment_count} attached file(s)")
+                attachment_button.setIcon(self._load_workspace_icon("attach_file_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png"))
+                attachment_button.setIconSize(QSize(12, 12))
+                attachment_button.setStyleSheet(
+                    "QPushButton { border: none; background: transparent; padding: 0px; }"
+                    "QPushButton:disabled { color: #64748b; }"
+                )
+                toolbar_row.addWidget(attachment_button, 0, Qt.AlignVCenter)
+
+            pin_button = QPushButton("")
+            pin_button.setFixedSize(24, 24)
+            pin_button.setCheckable(True)
+            pin_button.setChecked(bool(is_pinned))
+            pin_button.setToolTip("Pin this prompt as context")
+            pin_button.setIcon(self._load_workspace_icon("keep_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png"))
+            pin_button.setIconSize(QSize(14, 14))
+            pin_button.setStyleSheet(
+                "QPushButton { border: 1px solid #cbd5e1; background: #ffffff; border-radius: 12px; padding: 0px; }"
+                "QPushButton:hover { background: #eff6ff; border-color: #93c5fd; }"
+                "QPushButton:pressed { background: #dbeafe; border-color: #60a5fa; }"
+                "QPushButton:checked { background: #ecfdf5; border: 2px solid #16a34a; }"
+            )
+            pin_button.toggled.connect(lambda checked, idx=message_index: self._toggle_quest_agent_chat_message_pin(idx, checked))
+            toolbar_row.addWidget(pin_button, 0, Qt.AlignVCenter)
+            container_layout.addLayout(toolbar_row)
+        else:
+            if is_status_message:
+                status_row = QHBoxLayout()
+                status_row.setContentsMargins(0, 0, 0, 0)
+                status_row.setSpacing(0)
+                status_label = QLabel(content)
+                status_label.setObjectName("quest_agent_status_label")
+                status_label.setWordWrap(False)
+                status_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                status_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+                status_label.setStyleSheet(
+                    "QLabel {"
+                    "color: #475569;"
+                    "font-size: 9pt;"
+                    "font-style: italic;"
+                    "border: none;"
+                    "background: transparent;"
+                    "padding: 2px 0px 2px 0px;"
+                    "}"
+                )
+                status_row.addWidget(status_label)
+                status_row.addStretch(1)
+                container_layout.addLayout(status_row)
+                return container
+
+            content_width = max(140, available_width - 24)
+            body = QTextBrowser()
+            body.setOpenExternalLinks(False)
+            body.setOpenLinks(False)
+            body.setReadOnly(True)
+            body.setUndoRedoEnabled(False)
+            body.setFrameShape(QFrame.NoFrame)
+            body.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            body.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+            body.setLineWrapMode(QTextEdit.WidgetWidth)
+            body.setFixedWidth(content_width)
+            body.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
+            body.document().setDocumentMargin(0)
+            body.setPlainText(content)
+            body.document().setTextWidth(max(80, content_width - 2))
+            body.setStyleSheet(
+                "QTextBrowser {"
+                "background: transparent;"
+                "color: #111827;"
+                "border: none;"
+                "font-size: 9pt;"
+                "padding: 4px 0px 0px 0px;"
+                "margin: 0px;"
+                "}"
+            )
+            container_layout.addWidget(body)
+            body.document().adjustSize()
+            document_height = int(body.document().documentLayout().documentSize().height())
+            body.setMinimumHeight(document_height + 10)
+            body.setMaximumHeight(document_height + 10)
+            if action_suggestions:
+                actions_widget = QWidget()
+                actions_layout = QHBoxLayout(actions_widget)
+                actions_layout.setContentsMargins(0, 2, 0, 0)
+                actions_layout.setSpacing(8)
+                actions_layout.addStretch(0)
+                for suggestion in action_suggestions:
+                    label = str(dict(suggestion or {}).get("label", "") or "").strip()
+                    prompt = str(dict(suggestion or {}).get("prompt", "") or "").strip()
+                    if not label or not prompt:
+                        continue
+                    is_primary = bool(dict(suggestion or {}).get("primary", False))
+                    button = QPushButton(label)
+                    button.setCursor(Qt.PointingHandCursor)
+                    button.setStyleSheet(
+                        "QPushButton {"
+                        + (
+                            "background: #2563eb; color: white; border: 1px solid #1d4ed8;"
+                            if is_primary else
+                            "background: #ffffff; color: #1f2937; border: 1px solid #cbd5e1;"
+                        )
+                        + " border-radius: 12px; padding: 5px 12px; font-size: 8.5pt; }"
+                        + (
+                            "QPushButton:hover { background: #1d4ed8; border-color: #1e40af; }"
+                            if is_primary else
+                            "QPushButton:hover { background: #f8fafc; border-color: #94a3b8; }"
+                        )
+                    )
+                    button.clicked.connect(
+                        lambda _checked=False, p=prompt, l=label: self._send_quest_agent_quick_action(p, l)
+                    )
+                    actions_layout.addWidget(button, 0, Qt.AlignLeft)
+                actions_layout.addStretch(1)
+                if actions_layout.count() > 1:
+                    container_layout.addWidget(actions_widget)
+            if container.layout() is not None:
+                container.layout().activate()
+            container.adjustSize()
+            container.setMinimumHeight(container.sizeHint().height() + 6)
+        return container
+
+    def _send_quest_agent_quick_action(self, prompt_text, button_label=""):
+        _refresh_quest_agent_runtime()
+        prompt_text = str(prompt_text or "").strip()
+        if not prompt_text:
+            return
+        model_name = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        self._clear_last_quest_agent_action_suggestions()
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        sent_at = QDateTime.currentDateTime().toString("h:mm AP")
+        messages.append({
+            "role": "user",
+            "model": model_name,
+            "content": str(button_label or prompt_text).strip(),
+            "pinned": False,
+            "attachments": [],
+            "sent_at": sent_at,
+        })
+        self.quest_agent_state["chat_messages"] = messages
+        self.quest_agent_state["chat_force_scroll_bottom"] = True
+        self._append_quest_agent_chat_widget_for_message_index(len(messages) - 1, stick_bottom=True)
+        QApplication.processEvents()
+        self._append_quest_agent_status_message(model_name, "QuESt Agent is reviewing your request...")
+        QTimer.singleShot(0, lambda text=prompt_text, model=model_name: self._process_quest_agent_chat_turn(text, model))
+
+    def _send_quest_agent_chat_message(self):
+        _refresh_quest_agent_runtime()
+        prompt_text = ""
+        if hasattr(self, "quest_agent_chat_input"):
+            prompt_text = str(self.quest_agent_chat_input.toPlainText()).strip()
+        attachments = list(self.quest_agent_state.get("chat_attachments", []))
+        model_name = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        if not prompt_text and not attachments:
+            return
+        messages = list(self.quest_agent_state.get("chat_messages", []))
+        sent_at = QDateTime.currentDateTime().toString("h:mm AP")
+        messages.append({
+            "role": "user",
+            "model": model_name,
+            "content": prompt_text,
+            "pinned": False,
+            "attachments": attachments,
+            "sent_at": sent_at,
+        })
+        self.quest_agent_state["chat_messages"] = messages
+        self.quest_agent_state["chat_force_scroll_bottom"] = True
+        if hasattr(self, "quest_agent_chat_input"):
+            self.quest_agent_chat_input.clear()
+        self._refresh_quest_agent_chat_history()
+        self._refresh_quest_agent_chat_attachment_list()
+        QApplication.processEvents()
+        self._append_quest_agent_status_message(model_name, "QuESt Agent is reviewing your request...")
+        QTimer.singleShot(0, lambda text=prompt_text, model=model_name: self._process_quest_agent_chat_turn(text, model))
+
+    def _create_ai_icon(self):
+        pixmap = QPixmap(24, 24)
+        pixmap.fill(Qt.transparent)
+        painter = QPainter(pixmap)
+        painter.setRenderHint(QPainter.Antialiasing, True)
+        font = QFont("Segoe UI", 9, QFont.Bold)
+        painter.setFont(font)
+        painter.setPen(QColor("#1d4ed8"))
+        painter.drawText(QRectF(0, 0, 24, 24), Qt.AlignCenter, "AI")
+        painter.end()
+        return QIcon(pixmap)
 
     def _create_eraser_icon(self):
         pixmap = QPixmap(24, 24)
@@ -2052,27 +5318,79 @@ class quest_workflow(QWidget):
         except Exception:
             return {}
 
+    def _kernel_resource_dir(self, kernel_name, force_refresh=False):
+        kernel_name = str(kernel_name or "").strip()
+        if not kernel_name:
+            return ""
+
+        kernels = self._list_jupyter_kernels(force_refresh=force_refresh)
+        kernel_entry = kernels.get(kernel_name, {}) if isinstance(kernels, dict) else {}
+        resource_dir = str(dict(kernel_entry or {}).get("resource_dir", "") or "").strip()
+        if resource_dir and os.path.isdir(resource_dir):
+            return resource_dir
+
+        fallback_roots = []
+        appdata_dir = str(os.environ.get("APPDATA", "") or "").strip()
+        if appdata_dir:
+            fallback_roots.append(os.path.join(appdata_dir, "jupyter", "kernels"))
+        fallback_roots.append(os.path.join(sys.prefix, "share", "jupyter", "kernels"))
+        programdata_dir = str(os.environ.get("PROGRAMDATA", "") or "").strip()
+        if programdata_dir:
+            fallback_roots.append(os.path.join(programdata_dir, "jupyter", "kernels"))
+
+        for root in fallback_roots:
+            candidate = os.path.join(root, kernel_name)
+            if os.path.isdir(candidate):
+                return candidate
+        return ""
+
+    def _python_module_available(self, python_path, module_name):
+        python_cmd = str(python_path or "").replace("/", os.sep).strip()
+        module_name = str(module_name or "").strip()
+        if not python_cmd or not module_name:
+            return False
+        try:
+            result = subprocess.run(
+                [python_cmd, "-c", f"import {module_name}"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+
     def _ensure_kernel_for_python_path(self, python_path, env_name=None):
         python_path = self._normalize_python_path(python_path or sys.executable)
         kernel_name = self._kernel_name_for_python_path(python_path, env_name)
-        kernels = self._list_jupyter_kernels()
-        if kernel_name in kernels:
+        if self._kernel_resource_dir(kernel_name):
             return kernel_name
 
         python_cmd = python_path.replace("/", os.sep)
-        subprocess.run(
-            [python_cmd, "-m", "pip", "install", "ipykernel"],
-            check=True
-        )
+        if not self._python_module_available(python_cmd, "ipykernel"):
+            pip_result = subprocess.run(
+                [python_cmd, "-m", "pip", "install", "ipykernel"],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            if pip_result.returncode != 0:
+                error_text = (pip_result.stderr or pip_result.stdout or "").strip()
+                raise RuntimeError(error_text or "Failed to install ipykernel.")
         subprocess.run(
             [
                 python_cmd, "-m", "ipykernel", "install", "--user",
                 "--name", kernel_name,
                 "--display-name", self._kernel_display_name_for_python_path(python_path, env_name)
             ],
+            capture_output=True,
+            text=True,
             check=True
         )
         self._kernel_cache_valid = False
+        self._kernel_cache = None
+        if not self._kernel_resource_dir(kernel_name, force_refresh=True):
+            raise RuntimeError(f"Kernel registration did not create a visible kernelspec for {kernel_name}.")
         return kernel_name
 
     def _notebook_has_expected_kernel(self, notebook_path, python_path=None, env_name=None):
@@ -2337,6 +5655,12 @@ class quest_workflow(QWidget):
                     payload[key] = value
 
             self._show_node_outputs_payload(payload, node.name())
+            self._record_quest_agent_skill_action(
+                scope="flow",
+                action="view_node_outputs",
+                target=str(node.name() or "").strip(),
+                details={"output_keys": [str(key) for key in result.keys() if not str(key).startswith("_")]},
+            )
 
         except Exception as e:
             QMessageBox.critical(
@@ -3125,6 +6449,13 @@ class quest_workflow(QWidget):
                 sync_with_workflow=False,
             )
             self._last_inputs_management_case_index = self.inputs_management_case_tabs.indexOf(new_case["widget"])
+            self._record_quest_agent_skill_action(
+                scope="flow",
+                action="add_input_case",
+                target=str(new_case.get("name", "") or "").strip(),
+                details={"flow_type": self.get_flow_type()},
+                workspace_action={"type": "add_input_case", "case_name": str(new_case.get("name", "") or "").strip()},
+            )
             self._sync_parent_proxy_wrapper_from_current_graph()
             return
 
@@ -3150,6 +6481,7 @@ class quest_workflow(QWidget):
         case_info = self._inputs_management_case_info_by_index(index)
         if case_info is None or bool(case_info.get("sync_with_workflow")):
             return
+        removed_case_name = str(case_info.get("name", "") or "").strip()
 
         widget = case_info.get("widget")
         previous_active_index = self._last_inputs_management_case_index
@@ -3179,6 +6511,13 @@ class quest_workflow(QWidget):
         self._renumber_inputs_management_case_tabs()
         self._update_inputs_management_case_tab_buttons()
         self._refresh_inputs_management_browse_button_state()
+        self._record_quest_agent_skill_action(
+            scope="flow",
+            action="remove_input_case",
+            target=removed_case_name,
+            details={"flow_type": self.get_flow_type()},
+            workspace_action={"type": "remove_input_case", "case_name": removed_case_name},
+        )
         self._sync_parent_proxy_wrapper_from_current_graph()
 
     def _close_inputs_management_case_tab_by_widget(self, widget):
@@ -3438,6 +6777,13 @@ class quest_workflow(QWidget):
                 "Inputs Saved",
                 f"Case inputs saved to:\n{path}"
             )
+            self._record_quest_agent_skill_action(
+                scope="flow",
+                action="save_inputs_yaml",
+                target=os.path.basename(path),
+                details={"path": self._normalize_python_path(path)},
+                workspace_action={"type": "save_inputs_yaml", "path": self._normalize_python_path(path)},
+            )
         except Exception as e:
             QMessageBox.critical(
                 self,
@@ -3521,6 +6867,13 @@ class quest_workflow(QWidget):
             self._apply_inputs_management_case_to_graph(base_case["records"])
             self._refresh_inputs_management_views()
             self._sync_parent_proxy_wrapper_from_current_graph()
+            self._record_quest_agent_skill_action(
+                scope="flow",
+                action="load_inputs_yaml",
+                target=os.path.basename(path),
+                details={"path": self._normalize_python_path(path), "case_count": len(case_payloads)},
+                workspace_action={"type": "load_inputs_yaml", "path": self._normalize_python_path(path)},
+            )
             QMessageBox.information(
                 self,
                 "Inputs Loaded",
@@ -3712,7 +7065,15 @@ class quest_workflow(QWidget):
         self._run_flow_for_input_case(self._inputs_management_base_case_name())
 
     def run_selected_input_case(self):
-        self._run_flow_for_input_case(self._active_inputs_management_case_name(), open_new_notebook=True)
+        case_name = self._active_inputs_management_case_name()
+        self._record_quest_agent_skill_action(
+            scope="flow",
+            action="run_input_case",
+            target=str(case_name or "").strip(),
+            details={"flow_type": self.get_flow_type()},
+            workspace_action={"type": "run_input_case", "case_name": str(case_name or "").strip()},
+        )
+        self._run_flow_for_input_case(case_name, open_new_notebook=True)
 
     def set_flow_type(self, flow_type):
         flow_type = (flow_type or "sub-flow").strip().lower()
@@ -3726,11 +7087,22 @@ class quest_workflow(QWidget):
             self.inputs_management_label.setText(self._inputs_management_label_text())
             if hasattr(self, "inputs_management_run_case_button"):
                 self.inputs_management_run_case_button.setText(self._inputs_management_run_button_text())
+            self._refresh_quest_agent_match_button_text()
             self._refresh_save_mode_options()
             return
         self.flow_type_label_value.setText(flow_type)
         self._configure_inputs_management_case_availability()
+        self._refresh_quest_agent_match_button_text()
         self._refresh_save_mode_options()
+
+    def _refresh_quest_agent_match_button_text(self):
+        button = getattr(self, "quest_agent_match_button", None)
+        if button is None:
+            return
+        if self.get_flow_type() == "master-flow":
+            button.setText("Analyze Flow")
+        else:
+            button.setText("Analyze Subflow")
 
     def _can_save_as_independent_flow(self):
         if self.get_flow_type() != "master-flow":
@@ -3848,8 +7220,12 @@ class quest_workflow(QWidget):
         if hasattr(self, 'normalize_layout_icons'):
             layout_dict = self.normalize_layout_icons(layout_dict)
 
-        self.graph.clear_session()
-        self.graph.deserialize_session(layout_dict)
+        self.quest_agent_state["suspend_skill_connection_recording"] = True
+        try:
+            self.graph.clear_session()
+            self.graph.deserialize_session(layout_dict)
+        finally:
+            self.quest_agent_state["suspend_skill_connection_recording"] = False
         self.request_graph_frame()
 
         nodesdf_list = flow_json_data['nodes_df']
@@ -3964,12 +7340,12 @@ class quest_workflow(QWidget):
         self._set_current_flow_json_path(normalized_path)
         if hasattr(self, "flow_load_path"):
             self.flow_load_path.setText(self._display_flow_path(normalized_path))
+        self._set_quest_agent_current_flow_attachment(normalized_path)
 
         mode_label = "master flow" if save_mode == "master" else "independent flow"
-        QMessageBox.information(
-            self,
-            "Flow Saved",
-            f"'{flow_name}' was saved successfully as a {mode_label}."
+        self._show_temporary_canvas_status(
+            f"Saved '{flow_name}' as a {mode_label}.",
+            2600,
         )
         return True
 
@@ -3994,6 +7370,17 @@ class quest_workflow(QWidget):
 
         flow_json_data, save_mode, flow_name = prepared
         self._write_flow_json(current_path, flow_json_data, save_mode, flow_name)
+        self._record_quest_agent_skill_action(
+            scope="flow",
+            action="save_flow",
+            target=str(flow_name or self.get_flow_display_name()).strip(),
+            details={
+                "path": current_path,
+                "save_mode": save_mode,
+                "flow_type": self.get_flow_type(),
+            },
+            workspace_action={"type": "save_flow", "path": current_path, "save_mode": save_mode},
+        )
 
     def save_flow_as(self):
         try:
@@ -4019,6 +7406,17 @@ class quest_workflow(QWidget):
 
         flow_json_data, save_mode, flow_name = prepared
         self._write_flow_json(path, flow_json_data, save_mode, flow_name)
+        self._record_quest_agent_skill_action(
+            scope="flow",
+            action="save_flow_as",
+            target=str(flow_name or self.get_flow_display_name()).strip(),
+            details={
+                "path": self._normalize_python_path(path),
+                "save_mode": save_mode,
+                "flow_type": self.get_flow_type(),
+            },
+            workspace_action={"type": "save_flow_as", "path": self._normalize_python_path(path), "save_mode": save_mode},
+        )
 
     def load_path(self):
         dialog = QFileDialog(self)
@@ -4111,6 +7509,7 @@ class quest_workflow(QWidget):
                 self._deserialize_flow_json_data(flow_json_data)
                 self.flow_load_path.setText(self._display_flow_path(normalized_path))
                 self._set_current_flow_json_path(normalized_path)
+                self._set_quest_agent_current_flow_attachment(normalized_path)
                 self.set_flow_type('master-flow')
                 self._load_inputs_management_json_data(flow_json_data.get("inputs_df", []))
                 parent_workspace.activate_workflow(self)
@@ -4119,6 +7518,13 @@ class quest_workflow(QWidget):
                     self,
                     "Flow Loaded",
                     f"Independent flow '{flow_json_data.get('flow_name', 'Untitled Flow')}' was loaded into the Master flow."
+                )
+                self._record_quest_agent_skill_action(
+                    scope="flow",
+                    action="load_flow",
+                    target=str(flow_json_data.get('flow_name', 'Untitled Flow') or '').strip(),
+                    details={"path": normalized_path, "flow_type": "master-flow"},
+                    workspace_action={"type": "load_flow", "path": normalized_path, "flow_type": "master-flow"},
                 )
                 return
 
@@ -4132,6 +7538,7 @@ class quest_workflow(QWidget):
 
             self._deserialize_flow_json_data(flow_json_data)
             self._set_current_flow_json_path(normalized_path)
+            self._set_quest_agent_current_flow_attachment(normalized_path)
             if parent_workspace is not None and hasattr(parent_workspace, 'sync_workflow_ui'):
                 parent_workspace.sync_workflow_ui(self)
             self._refresh_notebook_ui_after_file_load()
@@ -4139,6 +7546,13 @@ class quest_workflow(QWidget):
                 self,
                 "Flow Loaded",
                 f"Flow '{flow_json_data.get('flow_name', 'Untitled Flow')}' was loaded successfully."
+            )
+            self._record_quest_agent_skill_action(
+                scope="flow",
+                action="load_flow",
+                target=str(flow_json_data.get('flow_name', 'Untitled Flow') or '').strip(),
+                details={"path": normalized_path, "flow_type": self.get_flow_type()},
+                workspace_action={"type": "load_flow", "path": normalized_path, "flow_type": self.get_flow_type()},
             )
         except Exception as e:
             QMessageBox.critical(
@@ -4467,6 +7881,13 @@ class quest_workflow(QWidget):
                 except Exception:
                     pass
         self._refresh_inputs_management_views()
+        self._record_quest_agent_skill_action(
+            scope="node",
+            action="rename_node",
+            target=str(new_name or "").strip(),
+            details={"old_name": str(old_name or "").strip(), "node_type": str(getattr(node, "node_type", "") or "")},
+            workspace_action={"type": "rename_selected_node", "new_name": str(new_name or "").strip()},
+        )
 
     def update_caption_value(self):
         selected_nodes = self.graph.selected_nodes()
@@ -4479,6 +7900,13 @@ class quest_workflow(QWidget):
             selected_nodes[0].node_input_value = document_text
             selected_nodes[0].set_text(text=selected_nodes[0].node_input_value)
             selected_nodes[0].set_pos(old_pos[0], old_pos[1])
+            self._record_quest_agent_skill_action(
+                scope="node",
+                action="update_text_node",
+                target=str(selected_nodes[0].name() or "").strip(),
+                details={"text": document_text},
+                workspace_action={"type": "update_selected_text_node", "text": document_text},
+            )
 
     def update_data_value(self):
         selected_nodes = self.graph.selected_nodes()
@@ -4508,6 +7936,24 @@ class quest_workflow(QWidget):
             print(node.properties())
             node.set_pos(old_pos[0], old_pos[1])
             self._refresh_inputs_management_views()
+            self._record_quest_agent_skill_action(
+                scope="node",
+                action="update_node_value",
+                target=str(node.name() or "").strip(),
+                details={
+                    "variable_name": str(getattr(node, "node_input_variable", "") or "").strip(),
+                    "value": str(node.node_input_value or ""),
+                    "value_display": bool(node.node_value_display),
+                    "is_path": bool(getattr(node, "node_is_path", False)),
+                },
+                workspace_action={
+                    "type": "update_selected_data_node_value",
+                    "variable_name": str(getattr(node, "node_input_variable", "") or "").strip(),
+                    "value": str(node.node_input_value or ""),
+                    "value_display": bool(node.node_value_display),
+                    "is_path": bool(getattr(node, "node_is_path", False)),
+                },
+            )
 
     def update_python_function_button(self):
         selected_nodes = self.graph.selected_nodes()
@@ -4629,6 +8075,22 @@ class quest_workflow(QWidget):
                         parent_workspace._sync_proxy_wrapper_for_subflow(self)
                     except Exception:
                         pass
+                self._record_quest_agent_skill_action(
+                    scope="node",
+                    action="update_py_node_ports",
+                    target=str(node.name() or "").strip(),
+                    details={
+                        "inputs": desired_inputs,
+                        "outputs": desired_outputs,
+                        "notebook_path": self._normalize_python_path(notebook_path),
+                    },
+                    workspace_action={
+                        "type": "update_py_node_ports",
+                        "inputs": desired_inputs,
+                        "outputs": desired_outputs,
+                        "notebook_path": self._normalize_python_path(notebook_path),
+                    },
+                )
             except Exception as e:
                 print(f"Failed to update Python node from notebook: {e}")
         elif isinstance(node, DataNode):
@@ -4648,6 +8110,13 @@ class quest_workflow(QWidget):
                     parent_workspace._sync_proxy_wrapper_for_subflow(self)
                 except Exception:
                     pass
+            self._record_quest_agent_skill_action(
+                scope="node",
+                action="update_data_node_ports",
+                target=str(node.name() or "").strip(),
+                details={"variable_name": variable_name},
+                workspace_action={"type": "update_data_node_ports", "variable_name": variable_name},
+            )
 
         node.set_pos(old_pos[0], old_pos[1])
         self._refresh_inputs_management_table()
@@ -4737,6 +8206,13 @@ class quest_workflow(QWidget):
         node = self.graph.create_node('QuESt.Workspace.DataNode', name=node_name, color=(255, 255, 255), text_color=(0, 0, 0), pos=new_pos, selected=True, push_undo=True)
         node.node_is_from_master = False
         self._refresh_inputs_management_table()
+        self._record_quest_agent_skill_action(
+            scope="node",
+            action="create_data_node",
+            target=node_name,
+            details={"node_id": str(node.id or ""), "node_type": "data"},
+            workspace_action={"type": "create_node", "node_type": "data", "count": 1, "name": node_name},
+        )
 
     def create_text_node(self):
         self.update_flow()
@@ -4746,6 +8222,13 @@ class quest_workflow(QWidget):
         new_pos = (latest_pos[0] + 100, latest_pos[1] + 100)
         node = self.graph.create_node('QuESt.Workspace.BackNode', name=node_name, color=(255, 255, 155), text_color=(0, 0, 0), pos=new_pos, selected=True, push_undo=True)
         node.node_is_from_master = False
+        self._record_quest_agent_skill_action(
+            scope="node",
+            action="create_text_node",
+            target=node_name,
+            details={"node_id": str(node.id or ""), "node_type": "text"},
+            workspace_action={"type": "create_node", "node_type": "text", "count": 1, "name": node_name},
+        )
 
     def create_py_node(self):
         self.update_flow()
@@ -4767,14 +8250,26 @@ class quest_workflow(QWidget):
                 self.flow_environment_name
             )
         node.node_notebook_path = notebook_path
+        self._record_quest_agent_skill_action(
+            scope="node",
+            action="create_py_node",
+            target=node_name,
+            details={"node_id": str(node.id or ""), "node_type": "py", "notebook_path": self._normalize_python_path(notebook_path)},
+            workspace_action={"type": "create_node", "node_type": "py", "count": 1, "name": node_name},
+        )
 
     def _delete_selected_nodes_with_workspace_rules(self):
         selected_nodes = self.graph.selected_nodes()
         parent_workspace = self._find_workspace_parent()
         deleted_any = False
+        deleted_targets = []
         for node in selected_nodes:
             if hasattr(node, "can_be_deleted") and not node.can_be_deleted():
                 continue
+            try:
+                deleted_targets.append(str(node.name() or "").strip())
+            except Exception:
+                pass
             handled = False
             try:
                 if (
@@ -4791,6 +8286,13 @@ class quest_workflow(QWidget):
         if deleted_any:
             self.update_flow()
             self._sync_parent_proxy_wrapper_from_current_graph()
+            self._record_quest_agent_skill_action(
+                scope="node",
+                action="delete_selected_nodes",
+                target=", ".join([name for name in deleted_targets if name]),
+                details={"node_names": [name for name in deleted_targets if name]},
+                workspace_action={"type": "delete_selected_nodes"},
+            )
         return deleted_any
 
     def copy_selected_nodes(self):
@@ -4986,6 +8488,7 @@ class quest_workflow(QWidget):
                 return True
             elif event.type() in (QEvent.Resize, QEvent.Show):
                 QTimer.singleShot(0, self._position_graph_help_overlay)
+                QTimer.singleShot(0, self._position_graph_status_overlay)
                 QTimer.singleShot(0, self._position_flow_control_toolbar)
                 QTimer.singleShot(0, self._position_edit_toolbar)
         except Exception:
@@ -4995,6 +8498,7 @@ class quest_workflow(QWidget):
     def showEvent(self, event):
         super().showEvent(event)
         self._position_graph_help_overlay()
+        self._position_graph_status_overlay()
         self._position_flow_control_toolbar()
         self._position_edit_toolbar()
         self._apply_pending_graph_frame()
@@ -5085,6 +8589,8 @@ class quest_workspace(QWidget):
         self.workflows = []
         self.workflow_counter = 1
         self._clipboard_subflows = {}
+        self._quest_agent_project_description = ""
+        self._quest_agent_skill_action_log = []
         self._plus_tab = QWidget()
 
         self.master_workflow = quest_workflow(self)
@@ -5115,7 +8621,17 @@ class quest_workspace(QWidget):
                 self.sync_active_flow_name_from_tab_name()
                 workflow = self.active_workflow()
                 if workflow is not None:
+                    try:
+                        if hasattr(workflow, "_refresh_quest_agent_match_button_text"):
+                            workflow._refresh_quest_agent_match_button_text()
+                    except Exception:
+                        pass
                     workflow.request_graph_frame()
+                    try:
+                        if hasattr(workflow, "_refresh_quest_agent_task_match_preview"):
+                            workflow._refresh_quest_agent_task_match_preview()
+                    except Exception:
+                        pass
         except Exception:
             pass
 
@@ -5124,6 +8640,61 @@ class quest_workspace(QWidget):
         if current_widget is None or current_widget is self._plus_tab:
             return self.master_workflow
         return getattr(current_widget, "_workflow_instance", self.master_workflow)
+
+    def _get_shared_project_description(self):
+        return str(getattr(self, "_quest_agent_project_description", "") or "").strip()
+
+    def _set_shared_project_description(self, description):
+        normalized = str(description or "").strip()
+        self._quest_agent_project_description = normalized
+        for workflow in list(getattr(self, "workflows", [])):
+            try:
+                result = dict(getattr(workflow, "quest_agent_state", {}).get("task_match_results", {}) or {})
+                if normalized:
+                    result["project_description"] = normalized
+                else:
+                    result.pop("project_description", None)
+                workflow.quest_agent_state["task_match_results"] = result
+                if hasattr(workflow, "_refresh_quest_agent_task_match_preview"):
+                    workflow._refresh_quest_agent_task_match_preview()
+            except Exception:
+                pass
+
+    def _set_quest_agent_skill_recording_enabled(self, enabled, origin_workflow=None):
+        enabled = bool(enabled)
+        for workflow in list(getattr(self, "workflows", [])):
+            try:
+                workflow.quest_agent_state["skill_recording_enabled"] = enabled
+                if workflow is not origin_workflow and hasattr(workflow, "_refresh_quest_agent_skill_record_display"):
+                    workflow._refresh_quest_agent_skill_record_display()
+            except Exception:
+                pass
+        if origin_workflow is not None and hasattr(origin_workflow, "_refresh_quest_agent_skill_record_display"):
+            try:
+                origin_workflow._refresh_quest_agent_skill_record_display()
+            except Exception:
+                pass
+
+    def _get_quest_agent_skill_action_log(self):
+        return list(getattr(self, "_quest_agent_skill_action_log", []) or [])
+
+    def _refresh_all_quest_agent_skill_record_displays(self):
+        for workflow in list(getattr(self, "workflows", [])):
+            try:
+                if hasattr(workflow, "_refresh_quest_agent_skill_record_display"):
+                    workflow._refresh_quest_agent_skill_record_display()
+            except Exception:
+                pass
+
+    def _append_quest_agent_skill_action_record(self, record):
+        records = list(getattr(self, "_quest_agent_skill_action_log", []) or [])
+        records.append(dict(record or {}))
+        self._quest_agent_skill_action_log = records
+        self._refresh_all_quest_agent_skill_record_displays()
+
+    def _clear_quest_agent_skill_action_log(self):
+        self._quest_agent_skill_action_log = []
+        self._refresh_all_quest_agent_skill_record_displays()
 
     def activate_workflow(self, workflow):
         if workflow is None:
@@ -5935,6 +9506,11 @@ class quest_workspace(QWidget):
     def _remove_subflow_workflow(self, workflow):
         if workflow is None or workflow is self.master_workflow:
             return False
+        removed_flow_name = ""
+        try:
+            removed_flow_name = str(workflow.get_flow_display_name() or "").strip()
+        except Exception:
+            removed_flow_name = ""
 
         tab_to_remove = None
         for i in range(self.tab_widget.count()):
@@ -5969,6 +9545,17 @@ class quest_workspace(QWidget):
         except Exception:
             pass
         self._refresh_all_save_mode_options()
+        if hasattr(self.master_workflow, "_record_quest_agent_skill_action"):
+            try:
+                self.master_workflow._record_quest_agent_skill_action(
+                    scope="flow",
+                    action="remove_subflow",
+                    target=removed_flow_name,
+                    details={"flow_type": "sub-flow"},
+                    workspace_action={"type": "remove_subflow", "flow_name": removed_flow_name},
+                )
+            except Exception:
+                pass
         return True
 
     def _remove_subflow_for_proxy_node(self, node):
@@ -6085,6 +9672,7 @@ class quest_workspace(QWidget):
         self.master_workflow._deserialize_flow_json_data(flow_json_data)
         self.master_workflow.flow_load_path.setText(self.master_workflow._display_flow_path(source_path))
         self.master_workflow._set_current_flow_json_path(source_path)
+        self.master_workflow._set_quest_agent_current_flow_attachment(source_path)
         self.master_workflow.set_flow_type("master-flow")
         self.master_workflow._load_inputs_management_json_data(flow_json_data.get("inputs_df", []))
 
@@ -6142,10 +9730,39 @@ class quest_workspace(QWidget):
         except Exception:
             pass
         self.sync_workflow_ui(self.master_workflow)
+        if hasattr(self.master_workflow, "_record_quest_agent_skill_action"):
+            try:
+                self.master_workflow._record_quest_agent_skill_action(
+                    scope="flow",
+                    action="load_flow",
+                    target=str(flow_json_data.get("flow_name", "Untitled Flow") or "").strip(),
+                    details={
+                        "path": self.master_workflow._normalize_python_path(source_path),
+                        "flow_type": "master-flow",
+                        "subflow_count": len(subflows_data),
+                    },
+                    workspace_action={
+                        "type": "load_flow",
+                        "path": self.master_workflow._normalize_python_path(source_path),
+                        "flow_type": "master-flow",
+                    },
+                )
+            except Exception:
+                pass
 
     def create_workflow_tab(self, title=None, create_proxy=True):
         workflow = quest_workflow(self)
         workflow.set_flow_type("sub-flow")
+        shared_project_description = self._get_shared_project_description()
+        if shared_project_description:
+            workflow.quest_agent_state["task_match_results"] = {
+                "project_description": shared_project_description,
+            }
+        try:
+            workflow.quest_agent_state["selected_model"] = str(self.master_workflow.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+            workflow.quest_agent_state["skill_recording_enabled"] = bool(self.master_workflow.quest_agent_state.get("skill_recording_enabled", False))
+        except Exception:
+            pass
         self.workflows.append(workflow)
         self.workflow_counter += 1
 
@@ -6172,6 +9789,26 @@ class quest_workspace(QWidget):
         self.sync_workflow_ui(workflow)
         self._refresh_all_save_mode_options()
         self.tab_widget.setCurrentWidget(self.master_tab)
+        if create_proxy and hasattr(self.master_workflow, "_record_quest_agent_skill_action"):
+            try:
+                self.master_workflow._record_quest_agent_skill_action(
+                    scope="flow",
+                    action="add_subflow",
+                    target=tab_title,
+                    details={"flow_type": "sub-flow"},
+                    workspace_action={"type": "add_subflow", "flow_name": tab_title},
+                )
+            except Exception:
+                pass
+        return workflow
+
+    def create_subflow_for_agent(self, title=None):
+        workflow = self.create_workflow_tab(title=title, create_proxy=True)
+        try:
+            self.activate_workflow(workflow)
+            self.sync_workflow_ui(workflow)
+        except Exception:
+            pass
         return workflow
 
 class WMainWindow(QMainWindow):
@@ -6218,3 +9855,34 @@ if __name__ == '__main__':
     window = WMainWindow()
     window.show()
     sys.exit(app.exec())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

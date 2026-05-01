@@ -1,0 +1,289 @@
+[
+  {
+    "scope": "skill",
+    "action": "start_recording",
+    "target": "Master",
+    "details": {
+      "flow_type": "master-flow"
+    },
+    "workspace_action": {},
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_text_node",
+    "target": "TextNode1",
+    "details": {
+      "node_id": "0x1c812199010",
+      "node_type": "text"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "text",
+      "count": 1,
+      "name": "TextNode1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "rename_node",
+    "target": "Description",
+    "details": {
+      "old_name": "TextNode1",
+      "node_type": "back_node"
+    },
+    "workspace_action": {
+      "type": "rename_selected_node",
+      "new_name": "Description"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_text_node",
+    "target": "Description",
+    "details": {
+      "text": "This is a flow to multiply 2 numbers"
+    },
+    "workspace_action": {
+      "type": "update_selected_text_node",
+      "text": "This is a flow to multiply 2 numbers"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_data_node",
+    "target": "data_node_1",
+    "details": {
+      "node_id": "0x1c81e587750",
+      "node_type": "data"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "data",
+      "count": 1,
+      "name": "data_node_1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_data_node_ports",
+    "target": "data_node_1",
+    "details": {
+      "variable_name": "a"
+    },
+    "workspace_action": {
+      "type": "update_data_node_ports",
+      "variable_name": "a"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_node_value",
+    "target": "data_node_1",
+    "details": {
+      "variable_name": "a",
+      "value": "123",
+      "value_display": true,
+      "is_path": false
+    },
+    "workspace_action": {
+      "type": "update_selected_data_node_value",
+      "variable_name": "a",
+      "value": "123",
+      "value_display": true,
+      "is_path": false
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_node_value",
+    "target": "data_node_1",
+    "details": {
+      "variable_name": "a",
+      "value": "123",
+      "value_display": true,
+      "is_path": false
+    },
+    "workspace_action": {
+      "type": "update_selected_data_node_value",
+      "variable_name": "a",
+      "value": "123",
+      "value_display": true,
+      "is_path": false
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_data_node",
+    "target": "data_node_2",
+    "details": {
+      "node_id": "0x1c81e587610",
+      "node_type": "data"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "data",
+      "count": 1,
+      "name": "data_node_2"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_data_node_ports",
+    "target": "data_node_2",
+    "details": {
+      "variable_name": "b"
+    },
+    "workspace_action": {
+      "type": "update_data_node_ports",
+      "variable_name": "b"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_node_value",
+    "target": "data_node_2",
+    "details": {
+      "variable_name": "b",
+      "value": "456",
+      "value_display": true,
+      "is_path": false
+    },
+    "workspace_action": {
+      "type": "update_selected_data_node_value",
+      "variable_name": "b",
+      "value": "456",
+      "value_display": true,
+      "is_path": false
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_node_value",
+    "target": "data_node_2",
+    "details": {
+      "variable_name": "b",
+      "value": "456",
+      "value_display": true,
+      "is_path": false
+    },
+    "workspace_action": {
+      "type": "update_selected_data_node_value",
+      "variable_name": "b",
+      "value": "456",
+      "value_display": true,
+      "is_path": false
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "create_py_node",
+    "target": "py_node_1",
+    "details": {
+      "node_id": "0x1c81e637820",
+      "node_type": "py",
+      "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c81e637820.ipynb"
+    },
+    "workspace_action": {
+      "type": "create_node",
+      "node_type": "py",
+      "count": 1,
+      "name": "py_node_1"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "node",
+    "action": "update_py_node_ports",
+    "target": "py_node_1",
+    "details": {
+      "inputs": [
+        "x",
+        "y"
+      ],
+      "outputs": [
+        "output"
+      ],
+      "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c81e637820.ipynb"
+    },
+    "workspace_action": {
+      "type": "update_py_node_ports",
+      "inputs": [
+        "x",
+        "y"
+      ],
+      "outputs": [
+        "output"
+      ],
+      "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x1c81e637820.ipynb"
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "connection",
+    "action": "connect_nodes",
+    "target": "data_node_1.a -> py_node_1.x",
+    "details": {
+      "source_node": "data_node_1",
+      "source_port": "a",
+      "target_node": "py_node_1",
+      "target_port": "x"
+    },
+    "workspace_action": {
+      "type": "connect_nodes",
+      "source_node": "data_node_1",
+      "target_node": "py_node_1",
+      "mapping": {
+        "a": "x"
+      }
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  },
+  {
+    "scope": "connection",
+    "action": "connect_nodes",
+    "target": "data_node_2.b -> py_node_1.y",
+    "details": {
+      "source_node": "data_node_2",
+      "source_port": "b",
+      "target_node": "py_node_1",
+      "target_port": "y"
+    },
+    "workspace_action": {
+      "type": "connect_nodes",
+      "source_node": "data_node_2",
+      "target_node": "py_node_1",
+      "mapping": {
+        "b": "y"
+      }
+    },
+    "flow_name": "Master",
+    "flow_type": "master-flow"
+  }
+]

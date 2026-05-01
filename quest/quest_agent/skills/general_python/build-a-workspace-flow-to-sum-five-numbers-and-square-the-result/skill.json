@@ -1,0 +1,460 @@
+{
+  "schema_version": "1.0",
+  "skill_id": "build-a-workspace-flow-to-sum-five-numbers-and-square-the-result",
+  "version": 1,
+  "parent_skill_id": null,
+  "title": "Build a Workspace flow to sum five numbers and square the result",
+  "slug": "build-a-workspace-flow-to-sum-five-numbers-and-square-the-result",
+  "skill_type": "general_python",
+  "skill_level": "Competent",
+  "summary": "Create or verify a simple QuESt Workspace arithmetic workflow that uses five data nodes as numeric inputs and one Python node to compute both the total sum and the squared sum.",
+  "status": "draft",
+  "created_at": "2026-04-30T17:50:48-06:00",
+  "updated_at": "2026-04-30T17:50:48-06:00",
+  "created_by": "quest_agent",
+  "source": {
+    "session_id": "",
+    "derived_from_run_id": ""
+  },
+  "task": {
+    "description": "Build a simple QuESt Workspace workflow that takes five numeric inputs, computes their sum, and squares that sum.",
+    "pinned_context_summary": "The recorded master flow already implements the requested logic in Workspace. It contains a description node, five data nodes named number1 through number5 mapped to variables a through e, and a Python node named sum_and_square with wrapper function sum_and_square_function(a, b, c, d, e). The function returns outputs sum and squared_result. Current example inputs are 1, 2, 3, 4, and 5.",
+    "task_fingerprint": "sha256:81c3d636944a538b1a107089850eab47b72abe27bc067c8092dd9cf761451314",
+    "context_fingerprint": "sha256:9b1c485644340a15d138bf86f8ca2aae295d34fcb2e5230216ec63f9845b7689"
+  },
+  "classification": {
+    "tags": [
+      "workspace",
+      "python node",
+      "data nodes",
+      "arithmetic",
+      "sum",
+      "square",
+      "workflow construction",
+      "node connections"
+    ],
+    "domains": []
+  },
+  "tools": {
+    "recommended": [
+      "workspace"
+    ],
+    "required": [
+      "workspace"
+    ],
+    "optional": []
+  },
+  "files": {
+    "attachments": [],
+    "workflow_json": "workflow/final_workflow.json"
+  },
+  "action_record": {
+    "path": "artifacts/action_record.json",
+    "records": [
+      {
+        "scope": "skill",
+        "action": "start_recording",
+        "target": "Master",
+        "details": {
+          "flow_type": "master-flow"
+        },
+        "workspace_action": {},
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_text_node",
+        "target": "TextNode1",
+        "details": {
+          "node_id": "0x26f2c18ee40",
+          "node_type": "text"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "text",
+          "count": 1,
+          "name": "TextNode1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_1",
+        "details": {
+          "node_id": "0x26f2ddc6e90",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number1",
+        "details": {
+          "variable_name": "a"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "a"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_2",
+        "details": {
+          "node_id": "0x26f2ddc7110",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_2"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number2",
+        "details": {
+          "variable_name": "b"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "b"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_3",
+        "details": {
+          "node_id": "0x26f05b13950",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_3"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number3",
+        "details": {
+          "variable_name": "c"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "c"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_4",
+        "details": {
+          "node_id": "0x26f2c346520",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_4"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number4",
+        "details": {
+          "variable_name": "d"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "d"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_data_node",
+        "target": "data_node_5",
+        "details": {
+          "node_id": "0x26f29d81350",
+          "node_type": "data"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "data",
+          "count": 1,
+          "name": "data_node_5"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_data_node_ports",
+        "target": "number5",
+        "details": {
+          "variable_name": "e"
+        },
+        "workspace_action": {
+          "type": "update_data_node_ports",
+          "variable_name": "e"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "create_py_node",
+        "target": "py_node_1",
+        "details": {
+          "node_id": "0x26f29d810f0",
+          "node_type": "py",
+          "notebook_path": "c:/work/quest210-py313/node_notebooks/py_node_1_0x26f29d810f0.ipynb"
+        },
+        "workspace_action": {
+          "type": "create_node",
+          "node_type": "py",
+          "count": 1,
+          "name": "py_node_1"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "node",
+        "action": "update_py_node_ports",
+        "target": "sum_and_square",
+        "details": {
+          "inputs": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ],
+          "outputs": [
+            "sum",
+            "squared_result"
+          ],
+          "notebook_path": "c:/work/quest210-py313/node_notebooks/sum_and_square_0x26f29d810f0.ipynb"
+        },
+        "workspace_action": {
+          "type": "update_py_node_ports",
+          "inputs": [
+            "a",
+            "b",
+            "c",
+            "d",
+            "e"
+          ],
+          "outputs": [
+            "sum",
+            "squared_result"
+          ],
+          "notebook_path": "c:/work/quest210-py313/node_notebooks/sum_and_square_0x26f29d810f0.ipynb"
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number1.a -> sum_and_square.a",
+        "details": {
+          "source_node": "number1",
+          "source_port": "a",
+          "target_node": "sum_and_square",
+          "target_port": "a"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number1",
+          "target_node": "sum_and_square",
+          "mapping": {
+            "a": "a"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number2.b -> sum_and_square.b",
+        "details": {
+          "source_node": "number2",
+          "source_port": "b",
+          "target_node": "sum_and_square",
+          "target_port": "b"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number2",
+          "target_node": "sum_and_square",
+          "mapping": {
+            "b": "b"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number3.c -> sum_and_square.c",
+        "details": {
+          "source_node": "number3",
+          "source_port": "c",
+          "target_node": "sum_and_square",
+          "target_port": "c"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number3",
+          "target_node": "sum_and_square",
+          "mapping": {
+            "c": "c"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number4.d -> sum_and_square.d",
+        "details": {
+          "source_node": "number4",
+          "source_port": "d",
+          "target_node": "sum_and_square",
+          "target_port": "d"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number4",
+          "target_node": "sum_and_square",
+          "mapping": {
+            "d": "d"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      },
+      {
+        "scope": "connection",
+        "action": "connect_nodes",
+        "target": "number5.e -> sum_and_square.e",
+        "details": {
+          "source_node": "number5",
+          "source_port": "e",
+          "target_node": "sum_and_square",
+          "target_port": "e"
+        },
+        "workspace_action": {
+          "type": "connect_nodes",
+          "source_node": "number5",
+          "target_node": "sum_and_square",
+          "mapping": {
+            "e": "e"
+          }
+        },
+        "flow_name": "Master",
+        "flow_type": "master-flow"
+      }
+    ]
+  },
+  "inputs": {
+    "required_file_types": [
+      ".ipynb"
+    ],
+    "expected_inputs": [
+      {
+        "name": "number1",
+        "type": "number",
+        "description": "First numeric input mapped to variable a."
+      },
+      {
+        "name": "number2",
+        "type": "number",
+        "description": "Second numeric input mapped to variable b."
+      },
+      {
+        "name": "number3",
+        "type": "number",
+        "description": "Third numeric input mapped to variable c."
+      },
+      {
+        "name": "number4",
+        "type": "number",
+        "description": "Fourth numeric input mapped to variable d."
+      },
+      {
+        "name": "number5",
+        "type": "number",
+        "description": "Fifth numeric input mapped to variable e."
+      }
+    ]
+  },
+  "plan": {
+    "workflow_strategy": "Use Workspace only. Create a small master flow with five data nodes whose output variable names match the Python node input arguments, then define a single Python wrapper function that adds the five inputs, squares the total, and returns both outputs in a dictionary. Connect each data node to the corresponding Python input port and validate with a known test case.",
+    "step_summary": [
+      "Create a description or backdrop node documenting that the flow adds five numbers and squares the sum.",
+      "Create five data nodes and configure their output variable names as a, b, c, d, and e.",
+      "Assign numeric values to the five data nodes.",
+      "Create one Python node named sum_and_square.",
+      "Configure the Python node with input ports a, b, c, d, e and output ports sum and squared_result.",
+      "Implement the wrapper function sum_and_square_function(a, b, c, d, e) so it computes total = a + b + c + d + e, squared = total ** 2, and returns {'sum': total, 'squared_result': squared}.",
+      "Connect each data node output to the matching Python node input port.",
+      "Run or inspect the flow outputs using a known example such as 1, 2, 3, 4, and 5 to confirm sum = 15 and squared_result = 225."
+    ]
+  },
+  "validation": {
+    "status": "draft",
+    "criteria": [
+      "The flow contains exactly five input data nodes feeding one Python node.",
+      "Each connection maps the correct source variable to the matching Python input port.",
+      "The Python wrapper uses one top-level function and returns a dictionary with keys sum and squared_result.",
+      "For inputs 1, 2, 3, 4, and 5, the outputs evaluate to sum = 15 and squared_result = 225.",
+      "The flow remains acyclic and free of broken port mappings."
+    ],
+    "last_validated_at": ""
+  },
+  "limitations": [
+    "This skill covers a simple arithmetic pattern only and does not use any domain-specific QuESt analysis tool.",
+    "The workflow assumes exactly five inputs unless the Python node and connected data nodes are modified.",
+    "No explicit type checking, error handling, or input validation is included beyond relying on numeric-compatible inputs.",
+    "Outputs are only available inside Workspace unless additional nodes are added for export or display."
+  ]
+}

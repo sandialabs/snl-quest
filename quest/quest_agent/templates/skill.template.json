@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.0",
+  "skill_id": "",
+  "version": 1,
+  "parent_skill_id": null,
+  "title": "",
+  "slug": "",
+  "skill_type": "general_python",
+  "summary": "",
+  "status": "draft",
+  "created_at": "",
+  "updated_at": "",
+  "created_by": "user",
+  "source": {
+    "session_id": "",
+    "derived_from_run_id": ""
+  },
+  "task": {
+    "description": "",
+    "pinned_context_summary": "",
+    "task_fingerprint": "",
+    "context_fingerprint": ""
+  },
+  "classification": {
+    "tags": [],
+    "domains": []
+  },
+  "tools": {
+    "recommended": [],
+    "required": [],
+    "optional": []
+  },
+  "files": {
+    "attachments": [],
+    "workflow_json": ""
+  },
+  "inputs": {
+    "required_file_types": [],
+    "expected_inputs": []
+  },
+  "plan": {
+    "workflow_strategy": "",
+    "step_summary": []
+  },
+  "validation": {
+    "status": "draft",
+    "criteria": [],
+    "last_validated_at": ""
+  },
+  "limitations": []
+}

@@ -1,0 +1,305 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-04-30T18:25:08-06:00",
+  "source_app_cards_path": "app/home_page/app_cards.json",
+  "tools": [
+    {
+      "tool_id": "tech",
+      "name": "Technology Selection",
+      "active": true,
+      "category": "quest_tool",
+      "description": "An application for identifying the energy storage technologies most suitable for a given project. This tool is based on multiple parameters that characterize each storage technology; the technologies that do not satisfy the minimum application requirements are filtered out and the remaining technologies are ranked to indicate their compatibility to the desired project.",
+      "input_types": [],
+      "output_types": [
+        "ranking"
+      ],
+      "typical_tasks": [
+        "technology selection",
+        "An application for identifying the energy storage technologies most suitable for a given project. This tool is based on"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "technology_screening"
+      ],
+      "aliases": [
+        "tech",
+        "tech_selection",
+        "technology selection",
+        "quest technology selection"
+      ],
+      "search_key": "tech_selection",
+      "launch_type": "module",
+      "launch_value": "tech_selection",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "valuation",
+      "name": "Valuation",
+      "active": true,
+      "category": "quest_tool",
+      "description": "An application for energy storage valuation, an analysis where the maximum revenue of a hypothetical energy storage device is estimated using historical market data. This is done by determining the sequence of state of charge management actions that optimize revenue generation, assuming perfect foresight of the historical data. QuESt Valuation is aimed at optimizing value stacking for ISO/RTO services such as energy arbitrage and frequency regulation.",
+      "input_types": [
+        "market_data",
+        "historical_data"
+      ],
+      "output_types": [
+        "revenue_metrics",
+        "valuation_metrics",
+        "analysis"
+      ],
+      "typical_tasks": [
+        "valuation",
+        "energy storage valuation",
+        "market revenue analysis"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "analysis",
+        "valuation"
+      ],
+      "aliases": [
+        "valuation",
+        "evaluation",
+        "quest valuation"
+      ],
+      "search_key": "evaluation",
+      "launch_type": "module",
+      "launch_value": "valuation",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "performance",
+      "name": "Performance",
+      "active": true,
+      "category": "quest_tool",
+      "description": "An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air conditioning loads. This tool leverages the building simulation tool EnergyPlus to model the energy consumption of a particular battery housing.",
+      "input_types": [
+        "building_data",
+        "energyplus_model"
+      ],
+      "output_types": [
+        "simulation_results"
+      ],
+      "typical_tasks": [
+        "performance",
+        "An application for analyzing battery energy storage system performance due to parasitic heating, ventilation, and air co"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "analysis"
+      ],
+      "aliases": [
+        "performance",
+        "quest performance"
+      ],
+      "search_key": "performance",
+      "launch_type": "module",
+      "launch_value": "performance",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "btm",
+      "name": "BTM",
+      "active": true,
+      "category": "quest_tool",
+      "description": "A collection of tools for behind-the-meter (BTM) energy storage systems: *Estimate cost savings for time-of-use and/or net-metering customers",
+      "input_types": [],
+      "output_types": [],
+      "typical_tasks": [
+        "btm",
+        "behind-the-meter analysis",
+        "tariff savings analysis"
+      ],
+      "limitations": [],
+      "workflow_roles": [],
+      "aliases": [
+        "btm",
+        "behind_the_meter",
+        "quest btm"
+      ],
+      "search_key": "behind_the_meter",
+      "launch_type": "module",
+      "launch_value": "btm",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "microgrid",
+      "name": "Microgrid",
+      "active": true,
+      "category": "quest_tool",
+      "description": "The QuESt Microgrid app is a Discrete Event Simulator for evaluating energy storage systems connected to electrical power distribution systems.",
+      "input_types": [
+        "distribution_data"
+      ],
+      "output_types": [],
+      "typical_tasks": [
+        "microgrid",
+        "The QuESt Microgrid app is a Discrete Event Simulator for evaluating energy storage systems connected to electrical powe"
+      ],
+      "limitations": [],
+      "workflow_roles": [],
+      "aliases": [
+        "microgrid",
+        "quest microgrid"
+      ],
+      "search_key": "microgrid",
+      "launch_type": "exe",
+      "launch_value": "app_envs/env_micro/bin/ssim",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "gpt",
+      "name": "GPT AI-powered tool for data analysis and visualization",
+      "active": true,
+      "category": "quest_tool",
+      "description": "This application helps users analyze and visualize their dataset (in CSV files) using OpenAI API.",
+      "input_types": [
+        "csv"
+      ],
+      "output_types": [
+        "visualization"
+      ],
+      "typical_tasks": [
+        "gpt ai-powered tool for data analysis and visualization",
+        "data analysis",
+        "data visualization"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "visualization",
+        "analysis"
+      ],
+      "aliases": [
+        "gpt",
+        "data_gpt",
+        "gpt ai-powered tool for data analysis and visualization",
+        "quest-gpt ai-powered tool for data analysis and visualization"
+      ],
+      "search_key": "data_gpt",
+      "launch_type": "path",
+      "launch_value": "snl_libraries/gpt/main.py",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "data_manager",
+      "name": "Data Manager",
+      "active": true,
+      "category": "quest_tool",
+      "description": "An application for acquiring data from open sources. Data selected for download is acquired in a format and structure compatible with other QuESt applications. Data that can be acquired includes: Independent system operators (ISOs) and regional transmission organization (RTOs) market and operations data U.S. utility rate structures (tariffs) Commercial or residential building load profiles Photovoltaic (PV) power profiles",
+      "input_types": [
+        "tariff",
+        "load_profile",
+        "pv_profile",
+        "building_data"
+      ],
+      "output_types": [
+        "downloaded_data"
+      ],
+      "typical_tasks": [
+        "data manager",
+        "download quest-compatible datasets",
+        "prepare input datasets"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "data_acquisition"
+      ],
+      "aliases": [
+        "data_manager",
+        "data manager",
+        "quest data manager"
+      ],
+      "search_key": "data_manager",
+      "launch_type": "module",
+      "launch_value": "data_manager",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "planning",
+      "name": "Planning",
+      "active": true,
+      "category": "quest_tool",
+      "description": "QuESt Planning is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.",
+      "input_types": [],
+      "output_types": [
+        "capacity_results"
+      ],
+      "typical_tasks": [
+        "planning",
+        "capacity expansion planning",
+        "investment planning"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "planning"
+      ],
+      "aliases": [
+        "planning",
+        "quest planning"
+      ],
+      "search_key": "planning",
+      "launch_type": "module",
+      "launch_value": "quest_planning",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "progress",
+      "name": "Progress",
+      "active": true,
+      "category": "quest_tool",
+      "description": "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.",
+      "input_types": [],
+      "output_types": [],
+      "typical_tasks": [
+        "progress",
+        "QuESt Progress is a python-based open-source tool for assessing the resource adequacy of the evolving electric power gri"
+      ],
+      "limitations": [],
+      "workflow_roles": [],
+      "aliases": [
+        "progress",
+        "quest progress"
+      ],
+      "search_key": "progress",
+      "launch_type": "module",
+      "launch_value": "progress",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    },
+    {
+      "tool_id": "workspace",
+      "name": "Workspace",
+      "active": true,
+      "category": "quest_core",
+      "description": "QuESt workspace canvas for building, editing, saving, loading, and organizing workflows and nodes.",
+      "input_types": [
+        "text_request",
+        "workflow_json"
+      ],
+      "output_types": [
+        "workflow_json",
+        "canvas_nodes"
+      ],
+      "typical_tasks": [
+        "create workflow nodes",
+        "edit workflow canvas",
+        "load workflow json",
+        "save workflow json"
+      ],
+      "limitations": [],
+      "workflow_roles": [
+        "workflow_authoring",
+        "canvas_editing"
+      ],
+      "aliases": [
+        "workspace",
+        "quest workspace",
+        "canvas",
+        "workflow canvas"
+      ],
+      "search_key": "workspace",
+      "launch_type": "internal",
+      "launch_value": "snl_libraries.workspace.app",
+      "source_app_card_path": "app/home_page/app_cards.json"
+    }
+  ]
+}

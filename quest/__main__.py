@@ -23,6 +23,16 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QFileSystemModel,
     QFileDialog,
+    QComboBox,
+    QFormLayout,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QPushButton,
+    QVBoxLayout,
 )
 from PySide6.QtCore import Qt, Signal, Slot, QFile, QSettings, QPoint, QSize, QProcess, QCoreApplication
 from PySide6.QtQuick import QQuickWindow, QSGRendererInterface
@@ -143,9 +153,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
         # Creating config for API page
         self.config = ConfigParser()
-        self.config_file = 'config.ini'
-        self.save_api.clicked.connect(self.save_config)
-        self.load_api.clicked.connect(self.load_config)
+        self.config_file = os.path.join(dirname, "config.ini")
+        self.legacy_config_file = os.path.abspath("config.ini")
+        self.api_keys = {}
+        self._setup_api_keys_page()
 
         # Connecting the environments viewer
         self.file_model = QFileSystemModel()
@@ -225,6 +236,290 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.updates_log,
         ]:
             widget.setFont(body_font)
+
+    def _clear_layout(self, layout):
+        """Remove and delete all child items from a layout."""
+        while layout.count():
+            item = layout.takeAt(0)
+            widget = item.widget()
+            child_layout = item.layout()
+            if widget is not None:
+                widget.deleteLater()
+            elif child_layout is not None:
+                self._clear_layout(child_layout)
+
+    def _setup_api_keys_page(self):
+        """Replace the legacy single-key page with a multi-key API manager."""
+        self.api_keys_button.setText("        API Keys              ")
+        self.label_2.setText("API Keys")
+
+        if hasattr(self, "verticalLayout_10"):
+            self._clear_layout(self.verticalLayout_10)
+            self.verticalLayout_10.setSpacing(14)
+
+        intro_label = QLabel(
+            "Add, update, or remove provider API keys used across QuESt.",
+            self.frame_6,
+        )
+        intro_label.setWordWrap(True)
+        intro_label.setStyleSheet("color: #475569; font-size: 10pt;")
+        self.verticalLayout_10.addWidget(intro_label)
+
+        form_card = QFrame(self.frame_6)
+        form_card.setFrameShape(QFrame.NoFrame)
+        form_card.setStyleSheet(
+            "QFrame {"
+            "background: #ffffff;"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 12px;"
+            "}"
+        )
+        form_layout = QVBoxLayout(form_card)
+        form_layout.setContentsMargins(16, 16, 16, 16)
+        form_layout.setSpacing(10)
+
+        form = QFormLayout()
+        form.setLabelAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        form.setFormAlignment(Qt.AlignLeft | Qt.AlignTop)
+        form.setSpacing(10)
+        form.setContentsMargins(0, 0, 0, 0)
+
+        self.api_provider_combo = QComboBox(form_card)
+        self.api_provider_combo.setEditable(True)
+        self.api_provider_combo.addItems([
+            "OpenAI",
+            "Anthropic",
+            "Google",
+            "OpenRouter",
+            "Replicate",
+            "Other",
+        ])
+        self.api_provider_combo.setInsertPolicy(QComboBox.NoInsert)
+        self.api_provider_combo.setCurrentText("OpenAI")
+
+        self.api_key_entry = QLineEdit(form_card)
+        self.api_key_entry.setEchoMode(QLineEdit.Password)
+        self.api_key_entry.setPlaceholderText("Enter API Key...")
+
+        form.addRow("Provider", self.api_provider_combo)
+        form.addRow("API Key", self.api_key_entry)
+        form_layout.addLayout(form)
+
+        actions_row = QHBoxLayout()
+        actions_row.setContentsMargins(0, 0, 0, 0)
+        actions_row.setSpacing(8)
+
+        self.add_api_key_button = QPushButton("Add / Update", form_card)
+        self.remove_api_key_button = QPushButton("Remove Selected", form_card)
+        self.remove_api_key_button.setEnabled(False)
+
+        actions_row.addWidget(self.add_api_key_button)
+        actions_row.addWidget(self.remove_api_key_button)
+        actions_row.addStretch(1)
+        form_layout.addLayout(actions_row)
+
+        self.verticalLayout_10.addWidget(form_card)
+
+        list_label = QLabel("Saved Keys", self.frame_6)
+        list_label.setStyleSheet("font-weight: 600;")
+        self.verticalLayout_10.addWidget(list_label)
+
+        self.api_keys_list = QListWidget(self.frame_6)
+        self.api_keys_list.setMinimumHeight(220)
+        self.api_keys_list.setStyleSheet(
+            "QListWidget {"
+            "background: #ffffff;"
+            "border: 1px solid #d9e2ec;"
+            "border-radius: 12px;"
+            "padding: 6px;"
+            "}"
+        )
+        self.verticalLayout_10.addWidget(self.api_keys_list)
+
+        self.api_keys_status = QLabel("", self.frame_6)
+        self.api_keys_status.setWordWrap(True)
+        self.api_keys_status.setStyleSheet("color: #64748b; font-size: 9.5pt;")
+        self.verticalLayout_10.addWidget(self.api_keys_status)
+
+        self.add_api_key_button.clicked.connect(self._add_or_update_api_key)
+        self.remove_api_key_button.clicked.connect(self._remove_selected_api_key)
+        self.api_keys_list.currentItemChanged.connect(self._on_api_key_selected)
+
+        self.api_keys = self._load_api_keys_store()
+        self._refresh_api_keys_list()
+        self._normalize_settings_menu_button_widths()
+
+        body_font = QFont("Segoe UI", 10)
+        for widget in [
+            self.api_provider_combo,
+            self.api_key_entry,
+            self.add_api_key_button,
+            self.remove_api_key_button,
+            self.api_keys_list,
+            self.api_keys_status,
+        ]:
+            widget.setFont(body_font)
+
+    def _normalize_api_provider_name(self, provider_name):
+        cleaned = str(provider_name or "").strip()
+        if not cleaned:
+            return ""
+        aliases = {
+            "openai": "OpenAI",
+            "anthropic": "Anthropic",
+            "google": "Google",
+            "openrouter": "OpenRouter",
+            "replicate": "Replicate",
+        }
+        return aliases.get(cleaned.lower(), cleaned)
+
+    def _mask_api_key(self, api_key):
+        api_key = str(api_key or "")
+        if len(api_key) <= 8:
+            return "*" * len(api_key)
+        return f"{api_key[:4]}{'*' * max(4, len(api_key) - 8)}{api_key[-4:]}"
+
+    def _load_api_keys_store(self):
+        """Load all saved API keys from config, with legacy single-key fallback."""
+        config = ConfigParser()
+        source_path = self.config_file
+        if os.path.isfile(self.config_file):
+            config.read(self.config_file)
+        elif os.path.isfile(self.legacy_config_file):
+            source_path = self.legacy_config_file
+            config.read(self.legacy_config_file)
+
+        loaded_keys = {}
+        if config.has_section("api_keys"):
+            for provider, value in config.items("api_keys"):
+                normalized_provider = self._normalize_api_provider_name(provider)
+                if normalized_provider and value.strip():
+                    loaded_keys[normalized_provider] = value.strip()
+
+        if not loaded_keys and config.has_section("openai"):
+            legacy_key = config.get("openai", "api_key", fallback="").strip()
+            if legacy_key:
+                loaded_keys["OpenAI"] = legacy_key
+
+        self.config = config
+        self.config_file = source_path if os.path.isfile(source_path) else self.config_file
+        self._apply_api_keys_to_environment(loaded_keys)
+        return loaded_keys
+
+    def _save_api_keys_store(self):
+        """Persist the current API key dictionary to config.ini."""
+        config = ConfigParser()
+        config["api_keys"] = {}
+        for provider in sorted(self.api_keys):
+            value = str(self.api_keys.get(provider, "") or "").strip()
+            if value:
+                config["api_keys"][provider.lower()] = value
+
+        openai_key = str(self.api_keys.get("OpenAI", "") or "").strip()
+        if openai_key:
+            config["openai"] = {"api_key": openai_key}
+
+        with open(self.config_file, "w", encoding="utf-8") as configfile:
+            config.write(configfile)
+
+        self.config = config
+        self._apply_api_keys_to_environment(self.api_keys)
+
+    def _apply_api_keys_to_environment(self, api_keys):
+        """Expose known providers through conventional environment variables."""
+        env_map = {
+            "OpenAI": "OPENAI_API_KEY",
+            "Anthropic": "ANTHROPIC_API_KEY",
+            "Google": "GOOGLE_API_KEY",
+            "OpenRouter": "OPENROUTER_API_KEY",
+            "Replicate": "REPLICATE_API_TOKEN",
+        }
+        for provider, env_name in env_map.items():
+            value = str(api_keys.get(provider, "") or "").strip()
+            if value:
+                os.environ[env_name] = value
+            elif env_name in os.environ:
+                os.environ.pop(env_name, None)
+
+    def _refresh_api_keys_list(self):
+        """Render the saved API key collection into the settings list."""
+        if not hasattr(self, "api_keys_list"):
+            return
+
+        self.api_keys_list.clear()
+        providers = sorted(self.api_keys)
+        if not providers:
+            placeholder = QListWidgetItem("No API keys saved yet.")
+            placeholder.setFlags(Qt.NoItemFlags)
+            self.api_keys_list.addItem(placeholder)
+            self.api_keys_status.setText("Saved keys are stored in config.ini and known providers are mirrored into environment variables for this session.")
+            self.remove_api_key_button.setEnabled(False)
+            return
+
+        for provider in providers:
+            masked = self._mask_api_key(self.api_keys.get(provider, ""))
+            item = QListWidgetItem(f"{provider}    {masked}")
+            item.setData(Qt.UserRole, provider)
+            self.api_keys_list.addItem(item)
+
+        self.api_keys_status.setText(
+            "Select a saved key to update or remove it. Known providers are mirrored into session environment variables after each save."
+        )
+        self.api_keys_list.setCurrentRow(0)
+
+    def _on_api_key_selected(self, current, previous):
+        """Populate the editor with the currently selected saved key."""
+        del previous
+        provider = current.data(Qt.UserRole) if current is not None else None
+        if not provider:
+            self.remove_api_key_button.setEnabled(False)
+            return
+        provider = str(provider).strip()
+        self.api_provider_combo.setCurrentText(provider)
+        self.api_key_entry.setText(self.api_keys.get(provider, ""))
+        self.remove_api_key_button.setEnabled(True)
+
+    def _add_or_update_api_key(self):
+        """Save or replace an API key entry."""
+        provider = self._normalize_api_provider_name(self.api_provider_combo.currentText())
+        api_key = str(self.api_key_entry.text() or "").strip()
+        if not provider:
+            QMessageBox.warning(self, "Missing Provider", "Please enter an API provider name.")
+            return
+        if not api_key:
+            QMessageBox.warning(self, "Missing API Key", "Please enter an API key value.")
+            return
+
+        self.api_keys[provider] = api_key
+        self._save_api_keys_store()
+        self._refresh_api_keys_list()
+        self.api_provider_combo.setCurrentText(provider)
+        self.api_key_entry.clear()
+        QMessageBox.information(self, "API Key Saved", f"{provider} API key has been saved.")
+
+    def _remove_selected_api_key(self):
+        """Remove the currently selected provider key."""
+        current_item = self.api_keys_list.currentItem() if hasattr(self, "api_keys_list") else None
+        provider = current_item.data(Qt.UserRole) if current_item is not None else None
+        provider = str(provider or "").strip()
+        if not provider:
+            return
+
+        reply = QMessageBox.question(
+            self,
+            "Remove API Key",
+            f"Remove the saved API key for {provider}?",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No,
+        )
+        if reply != QMessageBox.Yes:
+            return
+
+        self.api_keys.pop(provider, None)
+        self._save_api_keys_store()
+        self._refresh_api_keys_list()
+        self.api_key_entry.clear()
+        self.remove_api_key_button.setEnabled(False)
 
     def _setup_updates_page(self):
         """Initialize default values and interactions for the Updates settings page."""
@@ -511,23 +806,22 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     def save_config(self):
         """
-        Save the entered string to a config file.
+        Backward-compatible wrapper for the newer API key manager.
         """
-        user_input = self.api_entry.text()
-        self.config['openai'] = {"api_key": user_input}
-        with open(self.config_file, 'w') as configfile:
-            self.config.write(configfile)
-        QMessageBox.information(self, "Config Saved", "API key has been saved.")
+        self._add_or_update_api_key()
 
     def load_config(self):
         """
-        Load the saved information from the config file to the QLineEdit widget.
+        Backward-compatible wrapper that reloads the API key store into the page.
         """
         try:
-            self.config.read(self.config_file)
-            user_input = self.config.get('openai', 'api_key')
-            self.api_entry.setText(user_input)
-            QMessageBox.information(self, "Config Loaded", "API key has been successfully loaded.")
+            self.api_keys = self._load_api_keys_store()
+            self._refresh_api_keys_list()
+            if self.api_keys:
+                first_provider = sorted(self.api_keys)[0]
+                self.api_provider_combo.setCurrentText(first_provider)
+                self.api_key_entry.setText(self.api_keys.get(first_provider, ""))
+            QMessageBox.information(self, "Config Loaded", "API keys have been successfully loaded.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error loading config: {e}")
 
