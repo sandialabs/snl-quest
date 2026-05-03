@@ -7,9 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from openai import OpenAI
-
-from .llm_matcher import _resolve_api_key, _resolve_model_name
+from .llm_matcher import _chat_completion_content
 from .skill_library import build_skills_manifest, get_quest_agent_root
 from .tool_registry import write_active_tool_registry
 
@@ -329,12 +327,8 @@ def develop_skill_from_record(
         active_tools=active_tools,
     )
 
-    client = OpenAI(api_key=_resolve_api_key(api_key))
-    response = client.chat.completions.create(
-        model=_resolve_model_name(selected_model),
-        temperature=0,
-        response_format={"type": "json_object"},
-        messages=_build_skill_messages(
+    content, _ = _chat_completion_content(
+        _build_skill_messages(
             project_description=project_description,
             flow_description=flow_description,
             task_match_result=task_match_result,
@@ -345,11 +339,11 @@ def develop_skill_from_record(
             current_flow_json_data=current_flow_json_data,
             inferred_specific_tools=inferred_specific_tools,
         ),
+        selected_model=selected_model,
+        temperature=0,
+        api_key=api_key,
+        response_json=True,
     )
-
-    content = ""
-    if response.choices:
-        content = str(response.choices[0].message.content or "").strip()
     if not content:
         raise RuntimeError("OpenAI returned an empty skill development response.")
 

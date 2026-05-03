@@ -1,6 +1,15 @@
 import re
 
 
+def _fast_local_mode_selected(model_name):
+    lowered = str(model_name or "").strip().casefold()
+    if not lowered:
+        return False
+    if lowered.startswith("ollama:"):
+        return True
+    return lowered.startswith("gemma 4")
+
+
 def _looks_like_canvas_action_request(user_prompt):
     prompt = str(user_prompt or "").casefold()
     action_signals = (
@@ -40,6 +49,90 @@ def _looks_like_canvas_action_request(user_prompt):
     return any(token in prompt for token in action_signals) and any(token in prompt for token in canvas_targets)
 
 
+def _format_plain_text_table(headers, rows):
+    header_cells = [str(value or "").strip() for value in list(headers or [])]
+    if not header_cells:
+        return []
+    normalized_rows = []
+    for row in list(rows or []):
+        values = [str(value or "").strip() for value in list(row or [])]
+        if len(values) < len(header_cells):
+            values.extend([""] * (len(header_cells) - len(values)))
+        normalized_rows.append(values[:len(header_cells)])
+    widths = [len(cell) for cell in header_cells]
+    for row in normalized_rows:
+        for index, cell in enumerate(row):
+            widths[index] = max(widths[index], len(cell))
+
+    def _format_row(values):
+        return " | ".join(
+            str(values[index] or "").ljust(widths[index])
+            for index in range(len(widths))
+        )
+
+    lines = [_format_row(header_cells), "-+-".join("-" * width for width in widths)]
+    lines.extend(_format_row(row) for row in normalized_rows)
+    return lines
+
+
+def _format_port_list(port_names):
+    cleaned = [str(name or "").strip() for name in list(port_names or []) if str(name or "").strip()]
+    return ", ".join(cleaned) if cleaned else "(none)"
+
+
+def _build_structured_flow_analysis_lines(task_match_result):
+    result = dict(task_match_result or {})
+    analysis = dict(result.get("structured_flow_analysis", {}) or {})
+    if not analysis:
+        return []
+    data_rows = [
+        [
+            str(item.get("name", "") or "").strip(),
+            str(item.get("port", "") or "").strip(),
+            str(item.get("value", "") or "").strip(),
+        ]
+        for item in list(analysis.get("data_nodes", []) or [])
+    ]
+    python_rows = [
+        [
+            str(item.get("name", "") or "").strip(),
+            _format_port_list(item.get("input_ports", [])),
+            _format_port_list(item.get("output_ports", [])),
+            str(item.get("brief_description", "") or "").strip(),
+        ]
+        for item in list(analysis.get("python_nodes", []) or [])
+    ]
+    connection_rows = [
+        [
+            str(item.get("from_port", "") or "").strip(),
+            str(item.get("to_port", "") or "").strip(),
+        ]
+        for item in list(analysis.get("connections", []) or [])
+    ]
+    missing_parts = [
+        str(item).strip()
+        for item in list(result.get("missing_parts", analysis.get("missing_parts", [])) or [])
+        if str(item).strip()
+    ]
+    lines = [
+        "1. Data nodes:",
+        *(_format_plain_text_table(["name", "port", "value"], data_rows) if data_rows else ["(none)"]),
+        "",
+        "2. Python nodes:",
+        *(_format_plain_text_table(["name", "input ports", "output ports", "brief description"], python_rows) if python_rows else ["(none)"]),
+        "",
+        "3. Connections:",
+        *(_format_plain_text_table(["from port", "to port"], connection_rows) if connection_rows else ["(none)"]),
+        "",
+        "4. Missing parts:",
+    ]
+    if missing_parts:
+        lines.extend(f"- {item}" for item in missing_parts)
+    else:
+        lines.append("- None")
+    return lines
+
+
 def build_fallback_reply(task_match_result):
     result = dict(task_match_result or {})
     if not result:
@@ -49,12 +142,9 @@ def build_fallback_reply(task_match_result):
 
     lines = []
     project_description = str(result.get("project_description", "") or "").strip()
-    flow_description = str(result.get("flow_description", "") or "").strip()
 
     if project_description:
         lines.append(f"Project description: {project_description}")
-    if flow_description:
-        lines.append(f"Current flow: {flow_description}")
 
     strategy = str(result.get("strategy", "") or "").strip()
     tool_matches = list(result.get("tool_matches", []))
@@ -79,6 +169,22 @@ def build_fallback_reply(task_match_result):
 
     if notes:
         lines.append(notes[0])
+
+    best_workflow_template = dict(result.get("best_workflow_template", {}) or {})
+    template_title = str(best_workflow_template.get("title", "") or "").strip()
+    if template_title:
+        lines.append(
+            f"Best workflow template: {template_title}. This should be the preferred baseline before building from scratch."
+        )
+
+    structured_lines = _build_structured_flow_analysis_lines(result)
+    if structured_lines:
+        lines.append("Flow analysis:")
+        lines.append("\n".join(structured_lines))
+    else:
+        flow_description = str(result.get("flow_description", "") or "").strip()
+        if flow_description:
+            lines.append(f"Current flow: {flow_description}")
 
     next_step_map = {
         "use_quest_skill": "Next, I can use the closest saved QuESt skill as the starting point for the workflow plan.",
@@ -660,12 +766,13 @@ def generate_assistant_reply(user_prompt, model_name, state, context_payload, ru
         return fallback_reply
 
 
-def should_refresh_analysis_before_canvas_plan(user_prompt, state, route_result=None, canvas_context=None):
+def should_refresh_analysis_before_canvas_plan(user_prompt, state, route_result=None, canvas_context=None, model_name=None):
     task_match_result = dict((state or {}).get("task_match_results", {}) or {})
     lowered = str(user_prompt or "").strip().casefold()
     canvas_context = dict(canvas_context or {})
     node_count = len(list(canvas_context.get("nodes", []) or []))
     flow_description = str(task_match_result.get("flow_description", "") or "").strip()
+    fast_local_mode = _fast_local_mode_selected(model_name)
 
     if not task_match_result:
         return True
@@ -692,6 +799,25 @@ def should_refresh_analysis_before_canvas_plan(user_prompt, state, route_result=
         "wire",
         "rename",
     )
+    if fast_local_mode:
+        strong_analysis_tokens = (
+            "revise",
+            "fix",
+            "repair",
+            "complete",
+            "missing",
+            "existing",
+            "current flow",
+            "this flow",
+            "that flow",
+            "initialize",
+            "connect",
+            "wire",
+            "rename",
+            "edit value",
+            "update value",
+        )
+        return any(token in lowered for token in strong_analysis_tokens)
     if any(token in lowered for token in analysis_sensitive_tokens):
         return True
 
@@ -749,8 +875,88 @@ def _has_reusable_skill_workflow_template(context_payload):
     return False
 
 
+def _build_reusable_skill_workflow_plan(context_payload):
+    recipes = list(dict(context_payload or {}).get("skill_execution_recipes", {}).get("recipes", []) or [])
+    candidates = []
+    for recipe in recipes:
+        recipe = dict(recipe or {})
+        try:
+            confidence = float(recipe.get("confidence", 0.0) or 0.0)
+        except Exception:
+            confidence = 0.0
+        workflow_template = dict(recipe.get("workflow_template", {}) or {})
+        workflow_path = str(workflow_template.get("path", "") or "").strip()
+        if not workflow_path or confidence < 0.55:
+            continue
+        candidates.append(
+            {
+                "skill_id": str(recipe.get("skill_id", "") or "").strip(),
+                "title": str(recipe.get("title", "") or "").strip(),
+                "confidence": confidence,
+                "workflow_path": workflow_path,
+            }
+        )
+    if not candidates:
+        return {}
+    candidates.sort(key=lambda item: (-float(item.get("confidence", 0.0) or 0.0), str(item.get("title", "") or "").casefold()))
+    selected = dict(candidates[0] or {})
+    title = str(selected.get("title", "") or "").strip()
+    skill_id = str(selected.get("skill_id", "") or "").strip()
+    workflow_path = str(selected.get("workflow_path", "") or "").strip()
+    return {
+        "reply": "",
+        "actions": [
+            {
+                "type": "load_workflow_json",
+                "workflow_path": workflow_path,
+                "source_skill_id": skill_id,
+            }
+        ],
+        "planning_source": "deterministic_skill_template",
+        "planning_path": "reuse_skill_workflow_json",
+        "path_reason": (
+            f"Loaded the matched skill template '{title}' because the canvas is empty and a strong reusable workflow example already exists."
+            if title else
+            "Loaded a strong matched skill template because the canvas is empty and a reusable workflow example already exists."
+        ),
+    }
+
+
+def _collapse_local_plan_to_single_step(plan, user_prompt, model_name):
+    finalized = dict(plan or {})
+    goal_prompt = str(finalized.get("goal_prompt", "") or user_prompt or "").strip()
+    if goal_prompt:
+        finalized["goal_prompt"] = goal_prompt
+
+    if not _fast_local_mode_selected(model_name):
+        return finalized
+
+    actions = [dict(action or {}) for action in list(finalized.get("actions", []) or [])]
+    if not actions:
+        return finalized
+
+    first_action = dict(actions[0] or {})
+    if str(first_action.get("type", "") or "").strip() == "create_node":
+        try:
+            action_count = int(first_action.get("count", 1) or 1)
+        except Exception:
+            action_count = 1
+        if action_count > 1:
+            first_action["count"] = 1
+
+    finalized["actions"] = [first_action]
+    finalized["planning_mode"] = "local_single_step"
+    note = "Local stepwise mode is active, so this plan includes only the next build step."
+    reply_text = str(finalized.get("reply", "") or "").strip()
+    if note not in reply_text:
+        finalized["reply"] = f"{reply_text}\n\n{note}".strip() if reply_text else note
+    return finalized
+
+
 def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_context, run_workspace_action_plan_func):
+    local_single_step = _fast_local_mode_selected(model_name)
     fallback_plan = _fallback_canvas_plan(user_prompt, canvas_context)
+    reusable_template_plan = _build_reusable_skill_workflow_plan(context_payload)
     existing_value_update_action = _extract_existing_node_value_update_action(user_prompt, canvas_context)
     revision_request = _extract_revision_request(user_prompt)
     is_revision_request = bool(revision_request)
@@ -764,9 +970,9 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
         deterministic_plan["planning_path"] = "manual_canvas_build"
         deterministic_plan["path_reason"] = "Used the deterministic canvas build fallback because no stronger reusable template path was available."
         deterministic_plan["reply"] = str(deterministic_plan.get("reply", "") or "").strip()
-        return deterministic_plan
+        return _collapse_local_plan_to_single_step(deterministic_plan, user_prompt, model_name)
     if run_workspace_action_plan_func is None:
-        return fallback_plan
+        return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
 
     try:
         planned = run_workspace_action_plan_func(
@@ -782,11 +988,20 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
             skill_execution_recipes=dict(context_payload.get("skill_execution_recipes", {}) or {}),
             recent_messages=list(context_payload.get("recent_messages", []) or []),
             selected_model=model_name,
+            single_step_only=local_single_step,
         )
     except Exception:
-        return fallback_plan
+        if len(list(dict(canvas_context or {}).get("nodes", []) or [])) <= 0 and reusable_template_plan:
+            return _collapse_local_plan_to_single_step(reusable_template_plan, user_prompt, model_name)
+        return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
 
     planned = dict(planned or {})
+    node_count = len(list(dict(canvas_context or {}).get("nodes", []) or []))
+    if node_count <= 0 and reusable_template_plan:
+        planned_actions = list(planned.get("actions", []) or [])
+        has_load_action = any(str(dict(action or {}).get("type", "") or "").strip() == "load_workflow_json" for action in planned_actions)
+        if not planned_actions or not has_load_action:
+            return _collapse_local_plan_to_single_step(reusable_template_plan, user_prompt, model_name)
     if _looks_like_add_two_numbers_flow_request(user_prompt) and not is_revision_request and not _plan_matches_add_two_numbers_request(planned, user_prompt):
         fallback_actions = list(dict(fallback_plan or {}).get("actions", []) or [])
         if fallback_actions:
@@ -819,11 +1034,11 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
             planned = upgraded
     if list(planned.get("actions", []) or []):
         planned["planning_source"] = str(planned.get("planning_source", "") or "llm")
-        return planned
+        return _collapse_local_plan_to_single_step(planned, user_prompt, model_name)
 
     if list(planned.get("dropped_actions", []) or []):
         planned["planning_source"] = str(planned.get("planning_source", "") or "llm")
-        return planned
+        return _collapse_local_plan_to_single_step(planned, user_prompt, model_name)
 
     fallback_actions = list(dict(fallback_plan or {}).get("actions", []) or [])
     if fallback_actions:
@@ -837,10 +1052,10 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
             or "Fell back to the manual canvas build heuristic because the planner did not return executable actions."
         )
         fallback_plan["reply"] = str(planned.get("reply", "") or fallback_plan.get("reply", "") or "").strip()
-        return fallback_plan
+        return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
 
     planned["planning_source"] = "llm"
-    return planned
+    return _collapse_local_plan_to_single_step(planned, user_prompt, model_name)
 
 
 def build_canvas_action_reply(action_plan, executed, error=None):

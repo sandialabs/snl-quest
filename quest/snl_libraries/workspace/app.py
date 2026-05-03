@@ -7,6 +7,7 @@ import keyword
 import tempfile
 import pickle
 import importlib
+import traceback
 import inspect, ast, json, socket, subprocess, html, re
 import pandas as pd
 import yaml
@@ -45,6 +46,20 @@ except Exception:
     write_active_tool_registry = None
 
 from quest.snl_libraries.workspace.flow.questflow import *
+
+QUEST_AGENT_RUNTIME_LOG = os.path.join(tempfile.gettempdir(), "quest_agent_runtime.log")
+
+
+def _append_quest_agent_runtime_log(message):
+    try:
+        timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd HH:mm:ss")
+    except Exception:
+        timestamp = ""
+    try:
+        with open(QUEST_AGENT_RUNTIME_LOG, "a", encoding="utf-8") as handle:
+            handle.write(f"[{timestamp}] {str(message or '').strip()}\n")
+    except Exception:
+        return
 
 
 def _refresh_quest_agent_runtime():
@@ -85,6 +100,225 @@ def _refresh_quest_agent_runtime():
 
 
 _ORIGINAL_NODEITEM_AUTO_SWITCH_MODE = NodeItem.auto_switch_mode
+
+
+def _quest_agent_normalize_python_path_value(python_path):
+    try:
+        if not python_path:
+            return ""
+        return os.path.abspath(str(python_path)).replace("\\", "/")
+    except Exception:
+        return str(python_path).replace("\\", "/")
+
+
+def _quest_agent_refresh_context_payload_snapshot(state_snapshot, context_payload):
+    payload = dict(context_payload or {})
+    payload.setdefault("attached_workflow_jsons", [])
+    payload.setdefault("workspace_relationship_context", {})
+    recent_messages = list(state_snapshot.get("chat_messages", []) or [])
+    payload["recent_messages"] = recent_messages
+    if quest_agent_context_service is None:
+        payload.setdefault("pinned_context", [])
+        payload.setdefault("implicit_code_context", [])
+        payload.setdefault("python_node_wrapper_rules", {})
+        payload.setdefault("skill_execution_recipes", {})
+        return payload
+
+    payload["pinned_context"] = quest_agent_context_service.extract_pinned_context(recent_messages)
+    payload["implicit_code_context"] = quest_agent_context_service.get_implicit_code_context(
+        state_snapshot,
+        _quest_agent_normalize_python_path_value,
+        os.path.dirname(os.path.abspath(__file__)),
+        state_snapshot.get("task_match_results", {}),
+    )
+    payload["python_node_wrapper_rules"] = quest_agent_context_service.get_python_node_wrapper_rules(
+        state_snapshot,
+        _quest_agent_normalize_python_path_value,
+        os.path.dirname(os.path.abspath(__file__)),
+        state_snapshot.get("task_match_results", {}),
+    )
+    payload["skill_execution_recipes"] = quest_agent_context_service.get_skill_execution_recipes(
+        state_snapshot,
+        _quest_agent_normalize_python_path_value,
+    )
+    return payload
+
+
+def _quest_agent_run_structured_match_from_snapshot(task_description, selected_model, state_snapshot, context_payload):
+    if run_structured_task_match is None:
+        return {}
+    quest_agent_root = get_quest_agent_root() if get_quest_agent_root is not None else None
+    return run_structured_task_match(
+        task_description=task_description,
+        pinned_context=list(context_payload.get("pinned_context", []) or []),
+        attached_files=list(context_payload.get("attached_files", []) or []),
+        attached_workflow_jsons=list(context_payload.get("attached_workflow_jsons", []) or []),
+        workspace_relationship_context=dict(context_payload.get("workspace_relationship_context", {}) or {}),
+        implicit_code_context=list(context_payload.get("implicit_code_context", []) or []),
+        python_node_wrapper_rules=dict(context_payload.get("python_node_wrapper_rules", {}) or {}),
+        selected_model=selected_model,
+        quest_agent_root=quest_agent_root,
+    )
+
+
+def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
+    def _report_progress(message):
+        _append_quest_agent_runtime_log(f"worker progress: {message}")
+        if progress_callback is None:
+            return
+        try:
+            progress_callback(str(message or "").strip())
+        except Exception:
+            return
+
+    prompt_text = str(payload.get("prompt_text", "") or "").strip()
+    effective_prompt = str(payload.get("effective_prompt", prompt_text) or "").strip()
+    model_name = str(payload.get("model_name", "") or "").strip() or "Gemma 4 E4B"
+    pending_control = str(payload.get("pending_control", "") or "").strip()
+    _append_quest_agent_runtime_log(
+        f"worker start model={model_name} control={pending_control or 'none'} prompt={prompt_text[:160]}"
+    )
+    state_snapshot = dict(payload.get("state_snapshot", {}) or {})
+    context_payload = _quest_agent_refresh_context_payload_snapshot(
+        state_snapshot,
+        payload.get("context_payload", {}),
+    )
+    canvas_context = dict(payload.get("canvas_context", {}) or {})
+    route_result = {}
+    if quest_agent_chat_service is None:
+        route_result = {
+            "action": "analyze_task" if not state_snapshot.get("task_match_results", {}) else "answer_only",
+            "reason": "",
+            "task_focus": effective_prompt,
+        }
+    else:
+        _report_progress("QuESt Agent is reviewing your request...")
+        route_result = quest_agent_chat_service.route_chat_turn(
+            effective_prompt,
+            model_name,
+            state_snapshot,
+            context_payload,
+            run_chat_router,
+        )
+    if pending_control == "revise_plan":
+        route_result["action"] = "execute_canvas_action"
+    route_action = str(route_result.get("action", "") or "").strip()
+    worker_result = {
+        "route_action": route_action,
+        "route_result": dict(route_result or {}),
+        "prompt_text": prompt_text,
+        "effective_prompt": effective_prompt,
+        "model_name": model_name,
+        "pending_control": pending_control,
+    }
+
+    if route_action == "analyze_task":
+        _report_progress("QuESt Agent is analyzing the task and checking tools and skills...")
+        task_match_result = _quest_agent_run_structured_match_from_snapshot(
+            effective_prompt,
+            model_name,
+            state_snapshot,
+            context_payload,
+        )
+        state_snapshot["task_match_results"] = dict(task_match_result or {})
+        context_payload = _quest_agent_refresh_context_payload_snapshot(state_snapshot, context_payload)
+        if quest_agent_chat_service is None:
+            final_reply = {
+                "reply": "I couldn't analyze the current request yet. Try sending the prompt again after confirming the agent runtime is available.",
+            }
+        else:
+            _report_progress("QuESt Agent is preparing a response from the current context...")
+            final_reply = quest_agent_chat_service.generate_assistant_reply(
+                effective_prompt,
+                model_name,
+                state_snapshot,
+                context_payload,
+                run_grounded_chat_reply,
+            )
+        worker_result["task_match_result"] = dict(task_match_result or {})
+        worker_result["final_reply"] = dict(final_reply or {})
+        _append_quest_agent_runtime_log("worker finished analyze_task")
+        return worker_result
+
+    if route_action == "execute_canvas_action":
+        task_match_result = {}
+        if quest_agent_chat_service is not None:
+            try:
+                should_refresh = bool(quest_agent_chat_service.should_refresh_analysis_before_canvas_plan(
+                    effective_prompt,
+                    state_snapshot,
+                    route_result,
+                    canvas_context,
+                    model_name,
+                ))
+            except Exception:
+                should_refresh = False
+        else:
+            should_refresh = False
+        if should_refresh:
+            _report_progress("QuESt Agent is analyzing the current flow before planning the next canvas steps...")
+            task_match_result = _quest_agent_run_structured_match_from_snapshot(
+                effective_prompt,
+                model_name,
+                state_snapshot,
+                context_payload,
+            )
+            state_snapshot["task_match_results"] = dict(task_match_result or {})
+            context_payload = _quest_agent_refresh_context_payload_snapshot(state_snapshot, context_payload)
+        _report_progress("QuESt Agent is planning canvas actions for the current workflow...")
+        if quest_agent_chat_service is None:
+            action_plan = {"reply": "", "actions": []}
+        else:
+            action_plan = quest_agent_chat_service.plan_canvas_actions(
+                effective_prompt,
+                model_name,
+                state_snapshot,
+                context_payload,
+                canvas_context,
+                run_workspace_action_plan,
+            )
+        worker_result["task_match_result"] = dict(task_match_result or {})
+        worker_result["action_plan"] = dict(action_plan or {})
+        worker_result["stored_prompt"] = effective_prompt if pending_control == "revise_plan" else prompt_text
+        _append_quest_agent_runtime_log("worker finished execute_canvas_action planning")
+        return worker_result
+
+    if quest_agent_chat_service is None:
+        final_reply = {
+            "reply": "I couldn't analyze the current request yet. Try sending the prompt again after confirming the agent runtime is available.",
+        }
+    else:
+        _report_progress("QuESt Agent is preparing a response from the current context...")
+        final_reply = quest_agent_chat_service.generate_assistant_reply(
+            effective_prompt,
+            model_name,
+            state_snapshot,
+            context_payload,
+            run_grounded_chat_reply,
+        )
+    worker_result["final_reply"] = dict(final_reply or {})
+    _append_quest_agent_runtime_log(f"worker finished route_action={route_action or 'answer_only'}")
+    return worker_result
+
+
+class QuestAgentChatTurnWorker(QObject):
+    finished = Signal(object)
+    failed = Signal(str)
+    progress = Signal(str)
+
+    def __init__(self, payload, parent=None):
+        super().__init__(parent)
+        self._payload = dict(payload or {})
+
+    @Slot()
+    def run(self):
+        try:
+            result = _run_quest_agent_chat_turn_worker(self._payload, self.progress.emit)
+        except Exception as exc:
+            _append_quest_agent_runtime_log("worker failed:\n" + traceback.format_exc())
+            self.failed.emit(str(exc))
+            return
+        self.finished.emit(result)
 
 
 def _safe_nodeitem_auto_switch_mode(self):
@@ -587,7 +821,7 @@ class quest_workflow(QWidget):
             "loaded_tools": [],
             "tool_errors": [],
             "task_match_results": {},
-            "selected_model": "GPT-5.4",
+            "selected_model": "Gemma 4 E4B",
             "skill_recording_enabled": False,
             "skill_action_log": [],
             "suspend_skill_connection_recording": False,
@@ -1659,7 +1893,7 @@ class quest_workflow(QWidget):
             "color: #475569;"
             "border: 1px solid #cbd5e1;"
             "border-radius: 14px;"
-            "font-size: 9.5pt;"
+            "font-size: 9pt;"
             "font-weight: 600;"
             "padding: 4px 12px;"
             "}"
@@ -1736,7 +1970,7 @@ class quest_workflow(QWidget):
         self.quest_agent_add_file_button.clicked.connect(self._browse_quest_agent_chat_attachments)
 
         self.quest_agent_model_combo = QComboBox()
-        self.quest_agent_model_combo.setFixedWidth(108)
+        self.quest_agent_model_combo.setFixedWidth(170)
         self.quest_agent_model_combo.setFixedHeight(30)
         self.quest_agent_model_combo.setFrame(False)
         self.quest_agent_model_combo.setStyleSheet(
@@ -1781,8 +2015,18 @@ class quest_workflow(QWidget):
             "outline: 0;"
             "}"
         )
-        self.quest_agent_model_combo.addItems(["GPT-5.4", "GPT-5.4 Mini", "GPT-5.2 Codex", "GPT-4.1", "o4-mini"])
-        self.quest_agent_model_combo.setCurrentText(self.quest_agent_state.get("selected_model", "GPT-5.4"))
+        self.quest_agent_model_combo.addItems([
+            "GPT-5.4",
+            "GPT-5.4 Mini",
+            "GPT-5.2 Codex",
+            "GPT-4.1",
+            "o4-mini",
+            "Gemma 4 E2B",
+            "Gemma 4 E4B",
+            "Gemma 4 26B",
+            "Gemma 4 31B",
+        ])
+        self.quest_agent_model_combo.setCurrentText(self.quest_agent_state.get("selected_model", "Gemma 4 E4B"))
         self.quest_agent_model_combo.currentTextChanged.connect(self._update_quest_agent_selected_model)
 
         self.quest_agent_send_button = QPushButton("")
@@ -2270,7 +2514,7 @@ class quest_workflow(QWidget):
                 pinned_context=pinned_context,
                 attached_files=list(self.quest_agent_state.get("chat_attachments", [])),
                 current_flow_json_data=current_flow_json_data,
-                selected_model=str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4",
+                selected_model=str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B",
                 quest_agent_root=quest_agent_root,
             )
             self._load_quest_agent_skill_library()
@@ -2490,7 +2734,7 @@ class quest_workflow(QWidget):
             return {}
 
         task_description, pinned_context, attached_files = self._get_quest_agent_match_inputs()
-        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        selected_model = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
 
         try:
             result = self._compute_quest_agent_task_match_result(
@@ -2516,6 +2760,7 @@ class quest_workflow(QWidget):
                 self.quest_agent_state,
                 route_result,
                 canvas_context,
+                model_name,
             ))
         except Exception:
             should_refresh = False
@@ -2551,7 +2796,7 @@ class quest_workflow(QWidget):
         )
 
     def _store_quest_agent_task_match_result(self, result):
-        result = dict(result or {})
+        result = self._quest_agent_enrich_task_match_result(result)
         parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
         shared_project_description = ""
         if parent_workspace is not None and hasattr(parent_workspace, "_get_shared_project_description"):
@@ -2590,6 +2835,9 @@ class quest_workflow(QWidget):
             if stored_result.get("project_description", "") != shared_project_description:
                 stored_result["project_description"] = shared_project_description
                 self.quest_agent_state["task_match_results"] = stored_result
+        if result:
+            result = self._quest_agent_enrich_task_match_result(result)
+            self.quest_agent_state["task_match_results"] = dict(result or {})
         if not result:
             self.quest_agent_match_results.setPlainText("")
             return
@@ -2598,11 +2846,6 @@ class quest_workflow(QWidget):
         project_description = str(result.get("project_description", "") or "").strip()
         if project_description:
             lines.append(f"Project Description: {project_description}")
-            lines.append("")
-
-        flow_description = str(result.get("flow_description", "") or "").strip()
-        if flow_description:
-            lines.append(f"Flow Description: {flow_description}")
             lines.append("")
 
         strategy = str(result.get("strategy", "") or "").strip()
@@ -2638,6 +2881,11 @@ class quest_workflow(QWidget):
             lines.append("Notes:")
             for note in notes:
                 lines.append(f"- {note}")
+        structured_analysis = dict(result.get("structured_flow_analysis", {}) or {})
+        if structured_analysis:
+            lines.append("")
+            lines.append("Flow Analysis:")
+            lines.extend(self._quest_agent_format_structured_flow_analysis_lines(structured_analysis))
         self.quest_agent_match_results.setPlainText("\n".join(lines))
 
     def _build_quest_agent_assistant_reply_from_match(self):
@@ -2663,7 +2911,7 @@ class quest_workflow(QWidget):
     def _run_quest_agent_flow_review(self, prompt_text="", model_name=""):
         if run_structured_task_match is None:
             return {"reply": "", "result": {}}
-        selected_model = str(model_name or self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        selected_model = str(model_name or self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
         task_description, pinned_context, attached_files = self._get_quest_agent_match_inputs()
         normalized_prompt = self._normalize_quest_agent_prompt_text(prompt_text)
         if normalized_prompt:
@@ -2675,7 +2923,7 @@ class quest_workflow(QWidget):
                 attached_files,
                 selected_model,
             )
-            self._store_quest_agent_task_match_result(result)
+            result = self._store_quest_agent_task_match_result(result)
             self._refresh_quest_agent_task_match_preview()
         except Exception as exc:
             return {"reply": f"Analyze Flow could not complete.\n\nDetails: {exc}", "result": {}}
@@ -2690,8 +2938,26 @@ class quest_workflow(QWidget):
             return {"reply": "Final review after Analyze Flow:\n\n" + review_text, "result": result}
         return {"reply": "Final review after Analyze Flow: no additional gaps were detected.", "result": result}
 
-    def _quest_agent_analysis_result_has_actionable_gaps(self, result):
+    def _quest_agent_analysis_result_has_actionable_gaps(self, result, workflow=None):
         analysis = dict(result or {})
+        missing_parts = [
+            str(item).strip()
+            for item in list(analysis.get("missing_parts", []) or [])
+            if str(item).strip()
+        ]
+        if missing_parts:
+            return True
+        current_workflow = workflow or self._get_quest_agent_target_workflow()
+        deterministic_steps = self._quest_agent_analysis_deterministic_fixup_steps(analysis, current_workflow)
+        deterministic_steps = [
+            step for step in list(deterministic_steps or [])
+            if not self._quest_agent_action_is_satisfied(
+                current_workflow,
+                dict((dict(step or {}).get("actions", []) or [{}])[0] or {}),
+            )
+        ]
+        if deterministic_steps:
+            return True
         flow_description = str(analysis.get("flow_description", "") or "").strip().casefold()
         notes = [str(note).strip().casefold() for note in list(analysis.get("notes", []) or []) if str(note).strip()]
         haystacks = [flow_description] + notes
@@ -2709,6 +2975,26 @@ class quest_workflow(QWidget):
         )
         return any(signal in haystack for haystack in haystacks for signal in gap_signals)
 
+    def _quest_agent_should_open_followup_fixup_plan(self, analysis_result, workflow=None):
+        analysis = dict(analysis_result or {})
+        current_workflow = workflow or self._get_quest_agent_target_workflow()
+        missing_parts = [
+            str(item).strip()
+            for item in list(analysis.get("missing_parts", []) or [])
+            if str(item).strip()
+        ]
+        if missing_parts:
+            return True
+        deterministic_steps = self._quest_agent_analysis_deterministic_fixup_steps(analysis, current_workflow)
+        deterministic_steps = [
+            step for step in list(deterministic_steps or [])
+            if not self._quest_agent_action_is_satisfied(
+                current_workflow,
+                dict((dict(step or {}).get("actions", []) or [{}])[0] or {}),
+            )
+        ]
+        return bool(deterministic_steps)
+
     def _compose_quest_agent_analysis_fixup_prompt(self, overall_goal, analysis_result):
         analysis = dict(analysis_result or {})
         lines = []
@@ -2723,6 +3009,15 @@ class quest_workflow(QWidget):
             lines.append("Additional analysis notes:")
             for note in notes[:5]:
                 lines.append(f"- {note}")
+        missing_parts = [
+            str(item).strip()
+            for item in list(analysis.get("missing_parts", []) or [])
+            if str(item).strip()
+        ]
+        if missing_parts:
+            lines.append("High-priority missing parts:")
+            for item in missing_parts[:10]:
+                lines.append(f"- {item}")
         standardized_summary = self._quest_agent_standardized_flow_summary(self._get_quest_agent_target_workflow())
         if standardized_summary:
             lines.append("Standardized current flow facts:")
@@ -2733,49 +3028,29 @@ class quest_workflow(QWidget):
         lines.append("Return the full remaining fix-up plan, not just one step.")
         return "\n".join(line for line in lines if str(line).strip())
 
-    def _quest_agent_standardized_flow_summary(self, workflow):
-        if workflow is None:
-            return ""
-        snapshot = self._quest_agent_snapshot_workflow(workflow)
-        nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
-        edges = set(snapshot.get("edges", set()) or set())
-        if not nodes_by_name:
-            return ""
-        data_entries = []
-        py_entries = []
-        for record in nodes_by_name.values():
-            node_name = str(record.get("node_name", "") or "").strip()
-            node_type = str(record.get("node_type", "") or "").strip()
-            if not node_name:
-                continue
-            if node_type == "DataNode":
-                variable_name = str(record.get("node_input_variable", "") or "").strip()
-                node_value = str(record.get("node_input_value", "") or "").strip()
-                data_entries.append(f"{node_name}[variable={variable_name or 'output'}, value={node_value}]")
-            elif node_type == "PyNode":
-                wrapper_text = str(record.get("node_function_wrapper", "") or "").strip()
-                expected_inputs, expected_outputs = self._quest_agent_expected_ports_from_wrapper(wrapper_text)
-                connected_inputs = sorted({
-                    target_port
-                    for _, _, target_name, target_port in edges
-                    if target_name == node_name.casefold()
-                })
-                missing_inputs = [port for port in expected_inputs if str(port or "").strip().casefold() not in set(connected_inputs)]
-                py_entries.append(
-                    f"{node_name}[inputs_expected={expected_inputs}, outputs_expected={expected_outputs}, "
-                    f"inputs_connected={connected_inputs}, inputs_missing={missing_inputs}]"
-                )
-        connections = sorted(
-            f"{source}.{source_port}->{target}.{target_port}"
-            for source, source_port, target, target_port in edges
-        )
+    def _compose_quest_agent_missing_parts_only_fixup_prompt(self, overall_goal, analysis_result):
+        analysis = dict(analysis_result or {})
+        missing_parts = [
+            str(item).strip()
+            for item in list(analysis.get("missing_parts", []) or [])
+            if str(item).strip()
+        ]
         lines = []
-        if data_entries:
-            lines.append("data_nodes: " + "; ".join(data_entries))
-        if py_entries:
-            lines.append("python_nodes: " + "; ".join(py_entries))
-        lines.append("connections: " + (", ".join(connections) if connections else "(none)"))
-        return "\n".join(lines)
+        goal_text = str(overall_goal or "").strip()
+        if goal_text:
+            lines.append(f"Overall goal: {goal_text}")
+        lines.append("The current flow is incomplete. Fix only these missing parts:")
+        for item in missing_parts[:10]:
+            lines.append(f"- {item}")
+        lines.append("Create a step-by-step canvas fix-up plan that only addresses the missing parts above.")
+        lines.append("Reuse current nodes whenever possible. Do not rebuild the flow from scratch.")
+        lines.append("Return the full remaining fix-up plan, not just one step.")
+        return "\n".join(line for line in lines if str(line).strip())
+
+    def _quest_agent_standardized_flow_summary(self, workflow):
+        return self._quest_agent_standardized_flow_summary_from_analysis(
+            self._quest_agent_collect_structured_flow_analysis(workflow)
+        )
 
     def _quest_agent_missing_connection_fixup_steps(self, workflow):
         if workflow is None:
@@ -2787,7 +3062,7 @@ class quest_workflow(QWidget):
             return []
         data_sources_by_variable = {}
         for record in nodes_by_name.values():
-            if str(record.get("node_type", "") or "").strip() != "DataNode":
+            if self._quest_agent_node_kind(record.get("node_type", "")) != "data":
                 continue
             node_name = str(record.get("node_name", "") or "").strip()
             variable_name = str(record.get("node_input_variable", "") or "").strip()
@@ -2798,7 +3073,7 @@ class quest_workflow(QWidget):
         steps = []
         seen = set()
         for record in nodes_by_name.values():
-            if str(record.get("node_type", "") or "").strip() != "PyNode":
+            if self._quest_agent_node_kind(record.get("node_type", "")) != "py":
                 continue
             py_name = str(record.get("node_name", "") or "").strip()
             wrapper_text = str(record.get("node_function_wrapper", "") or "").strip()
@@ -2833,18 +3108,68 @@ class quest_workflow(QWidget):
                 })
         return steps
 
+    def _quest_agent_missing_value_fixup_steps(self, objective_text, workflow):
+        if workflow is None:
+            return []
+        requested_values = self._quest_agent_extract_requested_numeric_values(objective_text)
+        if not requested_values:
+            return []
+        snapshot = self._quest_agent_snapshot_workflow(workflow)
+        data_records = [
+            dict(record or {})
+            for record in list(dict(snapshot or {}).get("nodes_by_name", {}).values())
+            if self._quest_agent_node_kind(dict(record or {}).get("node_type", "")) == "data"
+        ]
+        data_records.sort(key=lambda item: str(item.get("node_name", "") or "").casefold())
+        missing_value_nodes = [
+            record for record in data_records
+            if not str(record.get("node_input_value", "") or "").strip()
+        ]
+        steps = []
+        for index, record in enumerate(missing_value_nodes):
+            if index >= len(requested_values):
+                break
+            node_name = str(record.get("node_name", "") or "").strip()
+            variable_name = str(record.get("node_input_variable", "") or "").strip()
+            if not node_name:
+                continue
+            step_action = {
+                "type": "update_node",
+                "node_name": node_name,
+                "value": str(requested_values[index]),
+                "value_display": True,
+            }
+            if variable_name:
+                step_action["variable_name"] = variable_name
+            steps.append({"reply": "", "actions": [step_action]})
+        return steps
+
     def _quest_agent_analysis_deterministic_fixup_steps(self, analysis_result, workflow=None):
         analysis = dict(analysis_result or {})
         flow_description = str(analysis.get("flow_description", "") or "").strip()
         notes = [str(note).strip() for note in list(analysis.get("notes", []) or []) if str(note).strip()]
+        objective_text = "\n".join(
+            part
+            for part in [
+                str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip(),
+                str(dict(self.quest_agent_state.get("task_match_results", {}) or {}).get("task", "") or "").strip(),
+                str(dict(self.quest_agent_state.get("task_match_results", {}) or {}).get("project_description", "") or "").strip(),
+            ]
+            if str(part).strip()
+        )
         text = "\n".join(part for part in [flow_description] + notes if part)
         if not text:
             current_workflow = workflow or self._get_quest_agent_target_workflow()
-            return self._quest_agent_missing_connection_fixup_steps(current_workflow)
+            steps = []
+            steps.extend(self._quest_agent_missing_value_fixup_steps(objective_text, current_workflow))
+            steps.extend(self._quest_agent_missing_connection_fixup_steps(current_workflow))
+            return steps
         current_workflow = workflow or self._get_quest_agent_target_workflow()
         snapshot = self._quest_agent_snapshot_workflow(current_workflow) if current_workflow is not None else {}
         nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
-        steps = list(self._quest_agent_missing_connection_fixup_steps(current_workflow))
+        steps = []
+        steps.extend(self._quest_agent_missing_value_fixup_steps(objective_text, current_workflow))
+        steps.extend(self._quest_agent_missing_connection_fixup_steps(current_workflow))
 
         py_node_name = ""
         py_node_match = re.search(r"Python node named\s+([A-Za-z_][\w\-]*)", text, flags=re.IGNORECASE)
@@ -2854,7 +3179,7 @@ class quest_workflow(QWidget):
             py_candidates = [
                 str(record.get("node_name", "") or "").strip()
                 for record in nodes_by_name.values()
-                if str(record.get("node_type", "") or "").strip() == "PyNode"
+                if self._quest_agent_node_kind(record.get("node_type", "")) == "py"
             ]
             if len(py_candidates) == 1:
                 py_node_name = py_candidates[0]
@@ -3119,6 +3444,18 @@ class quest_workflow(QWidget):
         }
         return labels.get(path_id, path_id.replace("_", " ").title()), str(dict(action_plan or {}).get("path_reason", "") or "").strip()
 
+    def _quest_agent_model_used_note(self, payload):
+        return str(dict(payload or {}).get("model_used_note", "") or "").strip()
+
+    def _append_quest_agent_model_used_note(self, reply_text, payload):
+        note = self._quest_agent_model_used_note(payload)
+        text = str(reply_text or "").strip()
+        if not note:
+            return text
+        if note in text:
+            return text
+        return f"{text}\n\n{note}" if text else note
+
     def _build_quest_agent_canvas_plan_preview(self, action_plan):
         steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
         if not steps:
@@ -3135,6 +3472,12 @@ class quest_workflow(QWidget):
             lines.append(f"Build path: {planning_path_label}")
             if planning_path_reason:
                 lines.append(f"Reason: {planning_path_reason}")
+            model_used_note = self._quest_agent_model_used_note(action_plan)
+            if model_used_note:
+                lines.append(model_used_note)
+            lines.append("")
+        elif self._quest_agent_model_used_note(action_plan):
+            lines.append(self._quest_agent_model_used_note(action_plan))
             lines.append("")
         lines.append("Proposed canvas plan:")
         for index, step_plan in enumerate(steps, start=1):
@@ -3237,6 +3580,7 @@ class quest_workflow(QWidget):
             pass
         nodes_by_name = {}
         edges = set()
+        display_edges = []
         try:
             nodes_df, connections_df, _ = workflow._snapshot_flow_graph_data()
             node_records = list(nodes_df.to_dict(orient="records") or []) if hasattr(nodes_df, "to_dict") else []
@@ -3244,6 +3588,11 @@ class quest_workflow(QWidget):
         except Exception:
             node_records = []
             connection_records = []
+        graph_nodes = []
+        try:
+            graph_nodes = list(workflow.graph.all_nodes())
+        except Exception:
+            graph_nodes = []
         nodes_by_id = {}
         for record in node_records:
             node_id = str(record.get("node_id", "") or "").strip()
@@ -3252,6 +3601,47 @@ class quest_workflow(QWidget):
                 nodes_by_id[node_id] = record
             if node_name:
                 nodes_by_name[node_name.casefold()] = record
+        for node in graph_nodes:
+            try:
+                node_name = str(node.name() or "").strip()
+            except Exception:
+                node_name = ""
+            if not node_name:
+                continue
+            input_ports = []
+            output_ports = []
+            try:
+                input_ports = [
+                    str(port_name).strip()
+                    for port_name in list(node.inputs().keys())
+                    if str(port_name).strip()
+                ]
+            except Exception:
+                input_ports = []
+            try:
+                output_ports = [
+                    str(port_name).strip()
+                    for port_name in list(node.outputs().keys())
+                    if str(port_name).strip()
+                ]
+            except Exception:
+                output_ports = []
+            record = dict(nodes_by_name.get(node_name.casefold(), {}) or {})
+            if not record:
+                record = {
+                    "node_name": node_name,
+                    "node_type": str(getattr(node, "__class__", type(node)).__name__ or "").strip(),
+                }
+            record["input_ports"] = input_ports
+            record["output_ports"] = output_ports
+            try:
+                node_id = str(getattr(node, "id", "") or "").strip()
+            except Exception:
+                node_id = ""
+            if node_id:
+                record.setdefault("node_id", node_id)
+                nodes_by_id[node_id] = record
+            nodes_by_name[node_name.casefold()] = record
         for record in connection_records:
             from_id = str(record.get("from_node", "") or "").strip()
             to_id = str(record.get("to_node", "") or "").strip()
@@ -3260,13 +3650,29 @@ class quest_workflow(QWidget):
             mapping = record.get("mapping", {})
             if isinstance(mapping, dict):
                 for source_port, target_port in mapping.items():
+                    source_port_text = str(source_port or "").strip()
+                    target_port_text = str(target_port or "").strip()
                     edges.add((
                         source_name.casefold(),
-                        str(source_port or "").strip().casefold(),
+                        source_port_text.casefold(),
                         target_name.casefold(),
-                        str(target_port or "").strip().casefold(),
+                        target_port_text.casefold(),
                     ))
-        return {"nodes_by_name": nodes_by_name, "edges": edges}
+                    display_edges.append((
+                        source_name,
+                        source_port_text,
+                        target_name,
+                        target_port_text,
+                    ))
+        display_edges.sort(
+            key=lambda item: (
+                str(item[0] or "").casefold(),
+                str(item[1] or "").casefold(),
+                str(item[2] or "").casefold(),
+                str(item[3] or "").casefold(),
+            )
+        )
+        return {"nodes_by_name": nodes_by_name, "edges": edges, "display_edges": display_edges}
 
     def _quest_agent_expected_ports_from_wrapper(self, wrapper_text):
         source = str(wrapper_text or "").strip()
@@ -3299,6 +3705,451 @@ class quest_workflow(QWidget):
                         outputs.append(text)
                 break
         return inputs, outputs
+
+    def _quest_agent_format_text_table(self, headers, rows):
+        header_cells = [str(value or "").strip() for value in list(headers or [])]
+        if not header_cells:
+            return []
+        normalized_rows = []
+        for row in list(rows or []):
+            values = [str(value or "").strip() for value in list(row or [])]
+            if len(values) < len(header_cells):
+                values.extend([""] * (len(header_cells) - len(values)))
+            normalized_rows.append(values[:len(header_cells)])
+        widths = [len(cell) for cell in header_cells]
+        for row in normalized_rows:
+            for index, cell in enumerate(row):
+                widths[index] = max(widths[index], len(cell))
+
+        def _format_row(values):
+            return " | ".join(
+                str(values[index] or "").ljust(widths[index])
+                for index in range(len(widths))
+            )
+
+        lines = [_format_row(header_cells), "-+-".join("-" * width for width in widths)]
+        lines.extend(_format_row(row) for row in normalized_rows)
+        return lines
+
+    def _quest_agent_format_port_list(self, port_names):
+        cleaned = [str(name or "").strip() for name in list(port_names or []) if str(name or "").strip()]
+        return ", ".join(cleaned) if cleaned else "(none)"
+
+    def _quest_agent_python_node_brief_description(self, node_name, wrapper_text, input_ports, output_ports):
+        source = str(wrapper_text or "").strip()
+        if not source:
+            return "Wrapper code is missing."
+        try:
+            parsed = ast.parse(source)
+        except Exception:
+            parsed = None
+        if parsed is not None:
+            func_defs = [node for node in ast.walk(parsed) if isinstance(node, ast.FunctionDef)]
+            func_def = func_defs[0] if func_defs else None
+            if func_def is not None:
+                docstring = str(ast.get_docstring(func_def) or "").strip()
+                if docstring:
+                    first_sentence = re.split(r"(?<=[.!?])\s+", docstring, maxsplit=1)[0]
+                    if first_sentence:
+                        return first_sentence
+        inputs_text = self._quest_agent_format_port_list(input_ports)
+        outputs_text = self._quest_agent_format_port_list(output_ports)
+        if inputs_text != "(none)" and outputs_text != "(none)":
+            return f"Consumes {inputs_text} and returns {outputs_text}."
+        if inputs_text != "(none)":
+            return f"Consumes {inputs_text}."
+        if outputs_text != "(none)":
+            return f"Returns {outputs_text}."
+        return f"Python node `{node_name}` has wrapper text but ports are not inferred yet."
+
+    def _quest_agent_node_kind(self, node_type_text):
+        lowered = str(node_type_text or "").strip().casefold()
+        if lowered in {"datanode", "data_node"}:
+            return "data"
+        if lowered in {"pynode", "python_node"}:
+            return "py"
+        if lowered in {"textnode", "text_node", "backnode", "back_node"}:
+            return "text"
+        return lowered
+
+    def _quest_agent_extract_requested_data_count(self, objective_text):
+        text = str(objective_text or "").casefold()
+        word_map = {
+            "one": 1,
+            "two": 2,
+            "three": 3,
+            "four": 4,
+            "five": 5,
+            "six": 6,
+            "seven": 7,
+            "eight": 8,
+            "nine": 9,
+            "ten": 10,
+        }
+        digit_match = re.search(r"\badd\s+(\d+)\s+numbers?\b", text)
+        if digit_match:
+            try:
+                return max(1, int(digit_match.group(1)))
+            except Exception:
+                return 0
+        word_match = re.search(
+            r"\badd\s+(one|two|three|four|five|six|seven|eight|nine|ten)\s+numbers?\b",
+            text,
+        )
+        if word_match:
+            return int(word_map.get(str(word_match.group(1) or "").casefold(), 0) or 0)
+        return 0
+
+    def _quest_agent_expected_python_node_count(self, objective_text):
+        text = str(objective_text or "").casefold()
+        if not text:
+            return 0
+        count = 0
+        if "add" in text or "sum" in text:
+            count += 1
+        if "square" in text:
+            count += 1
+        if count <= 0:
+            return 0
+        if any(token in text for token in ("separate", "each function", "one python node per function", "1 python node per function")):
+            return count
+        return max(1, count)
+
+    def _quest_agent_extract_requested_numeric_values(self, objective_text):
+        text = str(objective_text or "")
+        lowered = text.casefold()
+        explicit_value_patterns = [
+            r"(?:initialize|set)\s+(?:the\s+)?data\s+nodes?\s+with\s+values?\s+([^.;\n]+)",
+            r"values?\s+([^.;\n]+)",
+        ]
+        raw_values = ""
+        for pattern in explicit_value_patterns:
+            match = re.search(pattern, text, flags=re.IGNORECASE)
+            if match:
+                raw_values = str(match.group(1) or "").strip()
+                if raw_values:
+                    break
+
+        values = []
+        if raw_values:
+            values = re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])", raw_values)
+        else:
+            values = re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])", text)
+            requested_count = self._quest_agent_extract_requested_data_count(lowered)
+            if requested_count > 0 and len(values) == requested_count + 1:
+                try:
+                    if int(float(values[0])) == int(requested_count):
+                        values = values[1:]
+                except Exception:
+                    pass
+        return [str(value).strip() for value in list(values or []) if str(value).strip()]
+
+    def _quest_agent_collect_goal_alignment_missing_parts(self, objective_text, data_nodes, python_nodes):
+        text = str(objective_text or "").strip()
+        lowered = text.casefold()
+        if not lowered:
+            return []
+        missing_parts = []
+        requested_data_count = self._quest_agent_extract_requested_data_count(lowered)
+        actual_data_count = len(list(data_nodes or []))
+        if requested_data_count > 0:
+            if actual_data_count < requested_data_count:
+                missing_parts.append(
+                    f"The current flow has {actual_data_count} data nodes, but the goal calls for {requested_data_count} input numbers."
+                )
+            elif actual_data_count > requested_data_count:
+                missing_parts.append(
+                    f"The current flow has {actual_data_count} data nodes, but the goal only calls for {requested_data_count} input numbers."
+                )
+
+        expected_python_count = self._quest_agent_expected_python_node_count(lowered)
+        actual_python_count = len(list(python_nodes or []))
+        if expected_python_count > 0:
+            if actual_python_count < expected_python_count:
+                missing_parts.append(
+                    f"The current flow has {actual_python_count} Python nodes, but the goal needs {expected_python_count} Python steps."
+                )
+            elif any(
+                token in lowered
+                for token in ("separate", "each function", "one python node per function", "1 python node per function")
+            ) and actual_python_count != expected_python_count:
+                missing_parts.append(
+                    f"The goal asks for separate Python nodes per function, so the flow should use {expected_python_count} Python nodes instead of {actual_python_count}."
+                )
+
+        if "square" in lowered:
+            square_like = False
+            for item in list(python_nodes or []):
+                combined_text = " ".join(
+                    [
+                        str(item.get("name", "") or ""),
+                        str(item.get("brief_description", "") or ""),
+                        str(item.get("wrapper_text", "") or ""),
+                    ]
+                ).casefold()
+                if "square" in combined_text or "squared" in combined_text or "** 2" in combined_text:
+                    square_like = True
+                    break
+            if not square_like:
+                missing_parts.append("The goal includes squaring the result, but no Python node currently looks like a square step.")
+        return missing_parts
+
+    def _quest_agent_collect_structured_flow_analysis(self, workflow=None):
+        workflow = workflow or self._get_quest_agent_target_workflow()
+        if workflow is None:
+            return {
+                "data_nodes": [],
+                "python_nodes": [],
+                "connections": [],
+                "missing_parts": ["Canvas is empty."],
+            }
+        snapshot = self._quest_agent_snapshot_workflow(workflow)
+        nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
+        display_edges = list(snapshot.get("display_edges", []) or [])
+        data_nodes = []
+        python_nodes = []
+        connections = []
+        source_ports_by_node = {}
+        target_ports_by_node = {}
+        for source_name, source_port, target_name, target_port in display_edges:
+            cleaned_source = str(source_name or "").strip()
+            cleaned_source_port = str(source_port or "").strip()
+            cleaned_target = str(target_name or "").strip()
+            cleaned_target_port = str(target_port or "").strip()
+            if cleaned_source and cleaned_source_port:
+                source_ports_by_node.setdefault(cleaned_source.casefold(), set()).add(cleaned_source_port.casefold())
+            if cleaned_target and cleaned_target_port:
+                target_ports_by_node.setdefault(cleaned_target.casefold(), set()).add(cleaned_target_port.casefold())
+            if cleaned_source and cleaned_source_port and cleaned_target and cleaned_target_port:
+                connections.append({
+                    "from_port": f"{cleaned_source}.{cleaned_source_port}",
+                    "to_port": f"{cleaned_target}.{cleaned_target_port}",
+                })
+
+        for record in sorted(
+            nodes_by_name.values(),
+            key=lambda item: str(dict(item or {}).get("node_name", "") or "").casefold(),
+        ):
+            record = dict(record or {})
+            node_name = str(record.get("node_name", "") or "").strip()
+            node_type = self._quest_agent_node_kind(record.get("node_type", ""))
+            if not node_name:
+                continue
+            input_ports = [
+                str(name or "").strip()
+                for name in list(record.get("input_ports", []) or [])
+                if str(name or "").strip()
+            ]
+            output_ports = [
+                str(name or "").strip()
+                for name in list(record.get("output_ports", []) or [])
+                if str(name or "").strip()
+            ]
+            if node_type == "data":
+                variable_name = str(record.get("node_input_variable", "") or "").strip()
+                port_name = variable_name or (output_ports[0] if output_ports else "output")
+                data_nodes.append({
+                    "name": node_name,
+                    "port": port_name,
+                    "value": str(record.get("node_input_value", "") or "").strip(),
+                    "variable_name": variable_name,
+                })
+            elif node_type == "py":
+                wrapper_text = str(record.get("node_function_wrapper", "") or "").strip()
+                expected_inputs, expected_outputs = self._quest_agent_expected_ports_from_wrapper(wrapper_text)
+                if not input_ports:
+                    input_ports = list(expected_inputs or [])
+                if not output_ports:
+                    output_ports = list(expected_outputs or [])
+                python_nodes.append({
+                    "name": node_name,
+                    "input_ports": input_ports,
+                    "output_ports": output_ports,
+                    "brief_description": self._quest_agent_python_node_brief_description(
+                        node_name,
+                        wrapper_text,
+                        input_ports,
+                        output_ports,
+                    ),
+                    "wrapper_text": wrapper_text,
+                })
+
+        missing_parts = []
+        if not data_nodes and not python_nodes and not connections:
+            missing_parts.append("Canvas is empty.")
+        elif not connections and (len(data_nodes) + len(python_nodes)) > 1:
+            missing_parts.append("The current flow has nodes but no connections yet.")
+
+        data_sources_by_port = {}
+        for entry in data_nodes:
+            variable_name = str(entry.get("variable_name", "") or "").strip()
+            port_name = str(entry.get("port", "") or "").strip()
+            node_name = str(entry.get("name", "") or "").strip()
+            node_value = str(entry.get("value", "") or "").strip()
+            if not variable_name:
+                missing_parts.append(f"Data node `{node_name}` is missing its output variable name.")
+            if not node_value:
+                missing_parts.append(f"Data node `{node_name}` has no initialized value.")
+            if port_name:
+                data_sources_by_port.setdefault(port_name.casefold(), []).append((node_name, port_name))
+
+        for entry in python_nodes:
+            node_name = str(entry.get("name", "") or "").strip()
+            wrapper_text = str(entry.get("wrapper_text", "") or "").strip()
+            input_ports = [str(name or "").strip() for name in list(entry.get("input_ports", []) or []) if str(name or "").strip()]
+            output_ports = [str(name or "").strip() for name in list(entry.get("output_ports", []) or []) if str(name or "").strip()]
+            connected_input_ports = set(target_ports_by_node.get(node_name.casefold(), set()) or set())
+            if not wrapper_text:
+                missing_parts.append(f"Python node `{node_name}` is missing wrapper code.")
+            if not input_ports:
+                missing_parts.append(f"Python node `{node_name}` has no inferred input ports yet.")
+            if not output_ports:
+                missing_parts.append(f"Python node `{node_name}` has no inferred output ports yet.")
+            for input_name in input_ports:
+                input_key = str(input_name or "").strip().casefold()
+                if not input_key or input_key in connected_input_ports:
+                    continue
+                matching_sources = list(data_sources_by_port.get(input_key, []) or [])
+                if len(matching_sources) == 1:
+                    source_name, source_port = matching_sources[0]
+                    missing_parts.append(f"Connect `{source_name}.{source_port}` to `{node_name}.{input_name}`.")
+                elif len(matching_sources) > 1:
+                    choice_text = ", ".join(
+                        f"`{source_name}.{source_port}`"
+                        for source_name, source_port in matching_sources[:3]
+                    )
+                    missing_parts.append(f"Connect one matching source ({choice_text}) to `{node_name}.{input_name}`.")
+                else:
+                    missing_parts.append(f"Provide a source connection to `{node_name}.{input_name}`.")
+
+        objective_text = "\n".join(
+            part
+            for part in [
+                str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip(),
+                str(dict(self.quest_agent_state.get("task_match_results", {}) or {}).get("task", "") or "").strip(),
+                str(dict(self.quest_agent_state.get("task_match_results", {}) or {}).get("project_description", "") or "").strip(),
+            ]
+            if str(part).strip()
+        )
+        missing_parts.extend(
+            self._quest_agent_collect_goal_alignment_missing_parts(
+                objective_text,
+                data_nodes,
+                python_nodes,
+            )
+        )
+
+        deduped_missing_parts = []
+        seen_missing_parts = set()
+        for item in missing_parts:
+            cleaned = str(item or "").strip()
+            if not cleaned:
+                continue
+            key = cleaned.casefold()
+            if key in seen_missing_parts:
+                continue
+            seen_missing_parts.add(key)
+            deduped_missing_parts.append(cleaned)
+
+        return {
+            "data_nodes": data_nodes,
+            "python_nodes": python_nodes,
+            "connections": connections,
+            "missing_parts": deduped_missing_parts,
+        }
+
+    def _quest_agent_standardized_flow_summary_from_analysis(self, analysis):
+        summary = dict(analysis or {})
+        data_nodes = list(summary.get("data_nodes", []) or [])
+        python_nodes = list(summary.get("python_nodes", []) or [])
+        connections = list(summary.get("connections", []) or [])
+        missing_parts = [str(item).strip() for item in list(summary.get("missing_parts", []) or []) if str(item).strip()]
+        lines = []
+        if data_nodes:
+            entries = [
+                f"{item.get('name', '')}[{item.get('port', '')}={item.get('value', '')}]"
+                for item in data_nodes
+            ]
+            lines.append("data_nodes: " + "; ".join(entries))
+        if python_nodes:
+            entries = [
+                f"{item.get('name', '')}[inputs={','.join(item.get('input_ports', []) or []) or '(none)'}, outputs={','.join(item.get('output_ports', []) or []) or '(none)'}]"
+                for item in python_nodes
+            ]
+            lines.append("python_nodes: " + "; ".join(entries))
+        lines.append(
+            "connections: " + (
+                ", ".join(
+                    f"{item.get('from_port', '')}->{item.get('to_port', '')}"
+                    for item in connections
+                ) if connections else "(none)"
+            )
+        )
+        if missing_parts:
+            lines.append("missing_parts: " + "; ".join(missing_parts))
+        return "\n".join(line for line in lines if str(line).strip())
+
+    def _quest_agent_standardized_flow_summary(self, workflow):
+        return self._quest_agent_standardized_flow_summary_from_analysis(
+            self._quest_agent_collect_structured_flow_analysis(workflow)
+        )
+
+    def _quest_agent_enrich_task_match_result(self, result):
+        enriched = dict(result or {})
+        analysis = self._quest_agent_collect_structured_flow_analysis(self._get_quest_agent_target_workflow())
+        enriched["structured_flow_analysis"] = analysis
+        enriched["missing_parts"] = list(analysis.get("missing_parts", []) or [])
+        enriched["structured_flow_summary"] = self._quest_agent_standardized_flow_summary_from_analysis(analysis)
+        return enriched
+
+    def _quest_agent_format_structured_flow_analysis_lines(self, analysis):
+        summary = dict(analysis or {})
+        data_rows = [
+            [
+                str(item.get("name", "") or "").strip(),
+                str(item.get("port", "") or "").strip(),
+                str(item.get("value", "") or "").strip(),
+            ]
+            for item in list(summary.get("data_nodes", []) or [])
+        ]
+        python_rows = [
+            [
+                str(item.get("name", "") or "").strip(),
+                self._quest_agent_format_port_list(item.get("input_ports", [])),
+                self._quest_agent_format_port_list(item.get("output_ports", [])),
+                str(item.get("brief_description", "") or "").strip(),
+            ]
+            for item in list(summary.get("python_nodes", []) or [])
+        ]
+        connection_rows = [
+            [
+                str(item.get("from_port", "") or "").strip(),
+                str(item.get("to_port", "") or "").strip(),
+            ]
+            for item in list(summary.get("connections", []) or [])
+        ]
+        missing_parts = [str(item).strip() for item in list(summary.get("missing_parts", []) or []) if str(item).strip()]
+        lines = []
+        lines.append("1. Data nodes:")
+        lines.extend(self._quest_agent_format_text_table(["name", "port", "value"], data_rows) if data_rows else ["(none)"])
+        lines.append("")
+        lines.append("2. Python nodes:")
+        lines.extend(
+            self._quest_agent_format_text_table(
+                ["name", "input ports", "output ports", "brief description"],
+                python_rows,
+            ) if python_rows else ["(none)"]
+        )
+        lines.append("")
+        lines.append("3. Connections:")
+        lines.extend(self._quest_agent_format_text_table(["from port", "to port"], connection_rows) if connection_rows else ["(none)"])
+        lines.append("")
+        lines.append("4. Missing parts:")
+        if missing_parts:
+            lines.extend(f"- {item}" for item in missing_parts)
+        else:
+            lines.append("- None")
+        return lines
 
     def _quest_agent_action_is_satisfied(self, workflow, action):
         item = dict(action or {})
@@ -3376,6 +4227,8 @@ class quest_workflow(QWidget):
                 target_port.casefold(),
             )
             return edge in set(snapshot.get("edges", set()) or set())
+        if action_type == "load_workflow_json":
+            return False
         return True
 
     def _quest_agent_missing_canvas_steps_from_plan(self):
@@ -3403,7 +4256,7 @@ class quest_workflow(QWidget):
 
     def _finalize_quest_agent_canvas_validation_step(self, reply_text=""):
         pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
-        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        selected_model = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
         review_reply = self._run_quest_agent_flow_review(pending_prompt, selected_model)
         review_text = str(dict(review_reply or {}).get("reply", "") or "").strip()
         review_result = dict(review_reply.get("result", {}) or {}) if isinstance(review_reply, dict) else {}
@@ -3413,22 +4266,63 @@ class quest_workflow(QWidget):
             final_parts.append(str(reply_text).strip())
         if review_text:
             final_parts.append(review_text)
+        missing_parts = [
+            str(item).strip()
+            for item in list(review_result.get("missing_parts", []) or [])
+            if str(item).strip()
+        ]
         missing_steps = []
-        if self._quest_agent_analysis_result_has_actionable_gaps(review_result):
-            missing_steps = self._quest_agent_analysis_deterministic_fixup_steps(review_result, current_workflow)
+        should_open_followup = self._quest_agent_should_open_followup_fixup_plan(review_result, current_workflow)
+        if should_open_followup:
             try:
-                if not missing_steps:
-                    fixup_prompt = self._compose_quest_agent_analysis_fixup_prompt(pending_prompt, review_result)
-                    fixup_plan = self._plan_quest_agent_canvas_actions(fixup_prompt, selected_model)
-                    fixup_steps = self._expand_quest_agent_canvas_plan_steps(fixup_plan)
-                    if fixup_steps:
-                        fixup_steps = [
+                fixup_prompt = self._compose_quest_agent_analysis_fixup_prompt(pending_prompt, review_result)
+                fixup_plan = self._plan_quest_agent_current_flow_json_fixup(
+                    fixup_prompt,
+                    selected_model,
+                    review_result,
+                )
+                fixup_steps = self._expand_quest_agent_canvas_plan_steps(fixup_plan)
+                if fixup_steps:
+                    fixup_steps = [
+                        dict(step or {})
+                        for step in fixup_steps
+                        if str(dict((dict(step or {}).get("actions", []) or [{}])[0] or {}).get("type", "") or "").strip() != "validate_flow"
+                    ]
+                    fixup_steps = [
+                        step for step in list(fixup_steps or [])
+                        if not self._quest_agent_action_is_satisfied(
+                            current_workflow,
+                            dict((dict(step or {}).get("actions", []) or [{}])[0] or {}),
+                        )
+                    ]
+                if fixup_steps:
+                    missing_steps = fixup_steps
+                if not missing_steps and missing_parts:
+                    simple_fixup_prompt = self._compose_quest_agent_missing_parts_only_fixup_prompt(
+                        pending_prompt,
+                        review_result,
+                    )
+                    simple_fixup_plan = self._plan_quest_agent_current_flow_json_fixup(
+                        simple_fixup_prompt,
+                        selected_model,
+                        review_result,
+                    )
+                    simple_fixup_steps = self._expand_quest_agent_canvas_plan_steps(simple_fixup_plan)
+                    if simple_fixup_steps:
+                        simple_fixup_steps = [
                             dict(step or {})
-                            for step in fixup_steps
+                            for step in simple_fixup_steps
                             if str(dict((dict(step or {}).get("actions", []) or [{}])[0] or {}).get("type", "") or "").strip() != "validate_flow"
                         ]
-                    if fixup_steps:
-                        missing_steps = fixup_steps
+                        simple_fixup_steps = [
+                            step for step in list(simple_fixup_steps or [])
+                            if not self._quest_agent_action_is_satisfied(
+                                current_workflow,
+                                dict((dict(step or {}).get("actions", []) or [{}])[0] or {}),
+                            )
+                        ]
+                    if simple_fixup_steps:
+                        missing_steps = simple_fixup_steps
             except Exception:
                 missing_steps = list(missing_steps or [])
         if missing_steps:
@@ -3447,6 +4341,15 @@ class quest_workflow(QWidget):
                 "reply": "\n\n".join(part for part in final_parts if str(part).strip()),
                 "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
             }
+        if missing_parts:
+            self._clear_quest_agent_pending_canvas_plan()
+            final_parts.append(
+                "Plan is not complete yet. Analyze Flow still found missing parts, but I couldn't generate a reliable next fix-up plan automatically."
+            )
+            final_parts.append(
+                "Please revise the request or ask QuESt Agent to fix one missing part at a time."
+            )
+            return {"reply": "\n\n".join(part for part in final_parts if str(part).strip())}
         self._clear_quest_agent_pending_canvas_plan()
         final_parts.append("Plan complete.")
         return {"reply": "\n\n".join(part for part in final_parts if str(part).strip())}
@@ -3506,6 +4409,53 @@ class quest_workflow(QWidget):
             run_workspace_action_plan,
         )
 
+    def _plan_quest_agent_current_flow_json_fixup(self, user_prompt, model_name, analysis_result=None):
+        if run_workspace_action_plan is None:
+            return {"reply": "", "actions": []}
+        context_payload = self._get_quest_agent_chat_context_payload()
+        attached_workflow_jsons = list(context_payload.get("attached_workflow_jsons", []) or [])
+        current_flow_context = self._get_quest_agent_current_flow_json_context()
+        if current_flow_context:
+            current_label = str(current_flow_context.get("file", "") or "").strip().casefold()
+            filtered = []
+            for entry in attached_workflow_jsons:
+                item = dict(entry or {})
+                label = str(item.get("file", "") or "").strip().casefold()
+                if current_label and label == current_label:
+                    continue
+                filtered.append(item)
+            attached_workflow_jsons = [current_flow_context] + filtered
+        task_match_result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        analysis = dict(analysis_result or {})
+        for key in (
+            "project_description",
+            "task",
+            "flow_description",
+            "notes",
+            "missing_parts",
+            "structured_flow_summary",
+            "structured_flow_analysis",
+        ):
+            value = analysis.get(key)
+            if value:
+                task_match_result[key] = value
+        return run_workspace_action_plan(
+            user_prompt=user_prompt,
+            canvas_context=self._get_quest_agent_canvas_context(),
+            task_match_result=task_match_result,
+            pinned_context=list(context_payload.get("pinned_context", []) or []),
+            attached_files=list(context_payload.get("attached_files", []) or []),
+            attached_workflow_jsons=attached_workflow_jsons,
+            workspace_relationship_context=dict(context_payload.get("workspace_relationship_context", {}) or {}),
+            implicit_code_context=list(context_payload.get("implicit_code_context", []) or []),
+            python_node_wrapper_rules=dict(context_payload.get("python_node_wrapper_rules", {}) or {}),
+            skill_execution_recipes=dict(context_payload.get("skill_execution_recipes", {}) or {}),
+            recent_messages=list(context_payload.get("recent_messages", []) or []),
+            selected_model=model_name,
+            single_step_only=False,
+            force_planning_path="current_flow_json_patch_then_load",
+        )
+
     def _execute_quest_agent_canvas_actions(self, action_plan):
         if quest_agent_workspace_actions is None:
             return []
@@ -3547,7 +4497,10 @@ class quest_workflow(QWidget):
     def _finalize_last_quest_agent_status_message(self, final_content):
         messages = list(self.quest_agent_state.get("chat_messages", []))
         if isinstance(final_content, dict):
-            final_reply_text = str(final_content.get("reply", "") or "").strip() or "Done."
+            final_reply_text = self._append_quest_agent_model_used_note(
+                final_content.get("reply", ""),
+                final_content,
+            ) or "Done."
             action_suggestions = list(final_content.get("action_suggestions", []) or [])
         else:
             final_reply_text = str(final_content or "").strip() or "Done."
@@ -3567,7 +4520,7 @@ class quest_workflow(QWidget):
         else:
             message = {
                 "role": "assistant",
-                "model": str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4",
+                "model": str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B",
                 "content": final_reply_text,
                 "pinned": False,
                 "attachments": [],
@@ -3579,7 +4532,102 @@ class quest_workflow(QWidget):
         self.quest_agent_state["chat_force_scroll_bottom"] = True
         self._replace_last_quest_agent_chat_widget(max(0, len(messages) - 1), stick_bottom=True)
 
+    def _quest_agent_chat_turn_worker_active(self):
+        thread = getattr(self, "_quest_agent_chat_turn_thread", None)
+        return bool(thread is not None and thread.isRunning())
+
+    def _set_quest_agent_chat_controls_busy(self, is_busy):
+        busy = bool(is_busy)
+        if hasattr(self, "quest_agent_send_button"):
+            self.quest_agent_send_button.setEnabled(not busy)
+        if hasattr(self, "quest_agent_add_file_button"):
+            self.quest_agent_add_file_button.setEnabled(not busy)
+        if hasattr(self, "quest_agent_model_combo"):
+            self.quest_agent_model_combo.setEnabled(not busy)
+
+    def _start_quest_agent_chat_turn_worker(self, worker_payload):
+        if self._quest_agent_chat_turn_worker_active():
+            return False
+        thread = QThread(self)
+        worker = QuestAgentChatTurnWorker(worker_payload)
+        worker.moveToThread(thread)
+        thread.started.connect(worker.run)
+        worker.finished.connect(self._handle_quest_agent_chat_turn_worker_finished)
+        worker.failed.connect(self._handle_quest_agent_chat_turn_worker_failed)
+        worker.progress.connect(self._update_last_quest_agent_status_message)
+        worker.finished.connect(thread.quit)
+        worker.failed.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        worker.failed.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        self._quest_agent_chat_turn_thread = thread
+        self._quest_agent_chat_turn_worker = worker
+        self._set_quest_agent_chat_controls_busy(True)
+        thread.start()
+        return True
+
+    def _clear_quest_agent_chat_turn_worker(self):
+        self._quest_agent_chat_turn_worker = None
+        self._quest_agent_chat_turn_thread = None
+        self._set_quest_agent_chat_controls_busy(False)
+
+    def _handle_quest_agent_chat_turn_worker_finished(self, worker_result):
+        _append_quest_agent_runtime_log("ui received worker finished signal")
+        self._clear_quest_agent_chat_turn_worker()
+        result = dict(worker_result or {})
+        task_match_result = dict(result.get("task_match_result", {}) or {})
+        if task_match_result:
+            self._store_quest_agent_task_match_result(task_match_result)
+            self._refresh_quest_agent_task_match_preview()
+
+        route_action = str(result.get("route_action", "") or "").strip()
+        effective_prompt = str(result.get("effective_prompt", "") or "").strip()
+        if route_action == "execute_canvas_action":
+            action_plan = dict(result.get("action_plan", {}) or {})
+            stored_prompt = str(result.get("stored_prompt", "") or "").strip() or effective_prompt
+            self._store_quest_agent_pending_canvas_plan(stored_prompt, action_plan)
+            final_reply = self._build_quest_agent_canvas_plan_preview(action_plan)
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+
+        final_reply = dict(result.get("final_reply", {}) or {})
+        if route_action == "analyze_task":
+            if task_match_result and not str(final_reply.get("model_used_note", "") or "").strip():
+                model_used_note = str(task_match_result.get("model_used_note", "") or "").strip()
+                if model_used_note:
+                    final_reply["model_used_note"] = model_used_note
+            if self._has_quest_agent_pending_canvas_plan():
+                reminder = self._build_quest_agent_pending_canvas_reminder()
+                if reminder:
+                    reminder_text = str(final_reply.get("reply", "") or "").strip()
+                    final_reply = {
+                        "reply": reminder_text + "\n\n" + reminder if reminder_text else reminder,
+                        "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+                        "model_used_note": str(final_reply.get("model_used_note", "") or "").strip(),
+                    }
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+
+        if self._has_quest_agent_pending_canvas_plan():
+            reminder = self._build_quest_agent_pending_canvas_reminder()
+            if reminder:
+                reply_text = str(final_reply.get("reply", "") or "").strip()
+                final_reply = {
+                    "reply": reply_text + "\n\n" + reminder if reply_text else reminder,
+                    "model_used_note": str(final_reply.get("model_used_note", "") or "").strip(),
+                }
+        self._finalize_last_quest_agent_status_message(final_reply)
+
+    def _handle_quest_agent_chat_turn_worker_failed(self, error_text):
+        _append_quest_agent_runtime_log(f"ui received worker failed signal: {error_text}")
+        self._clear_quest_agent_chat_turn_worker()
+        details = str(error_text or "").strip() or "Unknown background error."
+        self._finalize_last_quest_agent_status_message(
+            {"reply": f"I couldn't complete the QuESt Agent request.\n\nDetails: {details}"}
+        )
+
     def _process_quest_agent_chat_turn(self, prompt_text, model_name):
+        _append_quest_agent_runtime_log(f"process chat turn model={model_name} prompt={str(prompt_text or '')[:160]}")
         _refresh_quest_agent_runtime()
         pending_control = self._interpret_quest_agent_pending_canvas_control(prompt_text)
         effective_prompt = prompt_text
@@ -3598,51 +4646,18 @@ class quest_workflow(QWidget):
             return
         if pending_control == "revise_plan":
             effective_prompt = self._compose_quest_agent_canvas_revision_prompt(prompt_text)
-        route_result = self._route_quest_agent_chat_turn(effective_prompt, model_name)
-        if pending_control == "revise_plan":
-            route_result["action"] = "execute_canvas_action"
-        route_action = str(route_result.get("action", "")).strip()
-        if route_action == "analyze_task":
-            self._update_last_quest_agent_status_message("QuESt Agent is analyzing the task and checking tools and skills...")
-            self._trigger_quest_agent_task_match("chat request")
-            final_reply = self._generate_quest_agent_assistant_reply(effective_prompt, model_name)
-            if self._has_quest_agent_pending_canvas_plan():
-                reminder = self._build_quest_agent_pending_canvas_reminder()
-                if reminder:
-                    reminder_text = str(dict(final_reply or {}).get("reply", "") or "").strip()
-                    final_reply = {
-                        "reply": reminder_text + "\n\n" + reminder if reminder_text else reminder,
-                        "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
-                    }
-            self._finalize_last_quest_agent_status_message(final_reply)
-            return
-        if route_action == "execute_canvas_action":
-            try:
-                self._maybe_refresh_quest_agent_analysis_before_planning(
-                    effective_prompt,
-                    model_name,
-                    route_result,
-                )
-                self._update_last_quest_agent_status_message("QuESt Agent is planning canvas actions for the current workflow...")
-                action_plan = self._plan_quest_agent_canvas_actions(effective_prompt, model_name)
-                stored_prompt = effective_prompt if pending_control == "revise_plan" else prompt_text
-                self._store_quest_agent_pending_canvas_plan(stored_prompt, action_plan)
-                final_reply = self._build_quest_agent_canvas_plan_preview(action_plan)
-            except Exception as exc:
-                if quest_agent_chat_service is not None:
-                    final_reply = quest_agent_chat_service.build_canvas_action_reply({}, [], error=exc)
-                else:
-                    final_reply = {"reply": f"I couldn't apply the requested canvas changes.\n\nDetails: {exc}"}
-            self._finalize_last_quest_agent_status_message(final_reply)
-            return
-        else:
-            self._update_last_quest_agent_status_message("QuESt Agent is preparing a response from the current context...")
-        final_reply = self._generate_quest_agent_assistant_reply(effective_prompt, model_name)
-        if self._has_quest_agent_pending_canvas_plan():
-            reminder = self._build_quest_agent_pending_canvas_reminder()
-            if reminder:
-                final_reply = {"reply": str(dict(final_reply or {}).get("reply", "") or "").strip() + "\n\n" + reminder}
-        self._finalize_last_quest_agent_status_message(final_reply)
+        worker_payload = {
+            "prompt_text": prompt_text,
+            "effective_prompt": effective_prompt,
+            "model_name": model_name,
+            "pending_control": pending_control,
+            "state_snapshot": dict(self.quest_agent_state or {}),
+            "context_payload": self._get_quest_agent_chat_context_payload(),
+            "canvas_context": self._get_quest_agent_canvas_context(),
+        }
+        started = self._start_quest_agent_chat_turn_worker(worker_payload)
+        if not started:
+            self._update_last_quest_agent_status_message("QuESt Agent is still working on the previous request...")
 
     def _refresh_quest_agent_skill_browser(self):
         if not hasattr(self, "quest_agent_skill_list"):
@@ -3898,9 +4913,14 @@ class quest_workflow(QWidget):
         self.quest_agent_state["chat_messages"] = []
         self.quest_agent_state["task_text"] = ""
         self.quest_agent_state["pinned_task_text"] = ""
+        self.quest_agent_state["chat_attachments"] = []
+        self.quest_agent_state["current_flow_attachment_path"] = ""
+        self.quest_agent_state["task_match_results"] = {}
         self.quest_agent_state["chat_force_scroll_bottom"] = False
         self._clear_quest_agent_pending_canvas_plan()
         self._rebuild_quest_agent_pinned_context()
+        self._refresh_quest_agent_chat_attachment_list()
+        self._refresh_quest_agent_task_match_preview()
         self._refresh_quest_agent_chat_history()
         self._refresh_quest_agent_chat_input_placeholder()
         if hasattr(self, "quest_agent_chat_input"):
@@ -4573,7 +5593,7 @@ class quest_workflow(QWidget):
         prompt_text = str(prompt_text or "").strip()
         if not prompt_text:
             return
-        model_name = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        model_name = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
         self._clear_last_quest_agent_action_suggestions()
         messages = list(self.quest_agent_state.get("chat_messages", []))
         sent_at = QDateTime.currentDateTime().toString("h:mm AP")
@@ -4598,7 +5618,7 @@ class quest_workflow(QWidget):
         if hasattr(self, "quest_agent_chat_input"):
             prompt_text = str(self.quest_agent_chat_input.toPlainText()).strip()
         attachments = list(self.quest_agent_state.get("chat_attachments", []))
-        model_name = str(self.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+        model_name = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
         if not prompt_text and not attachments:
             return
         messages = list(self.quest_agent_state.get("chat_messages", []))
@@ -9759,7 +10779,7 @@ class quest_workspace(QWidget):
                 "project_description": shared_project_description,
             }
         try:
-            workflow.quest_agent_state["selected_model"] = str(self.master_workflow.quest_agent_state.get("selected_model", "GPT-5.4")).strip() or "GPT-5.4"
+            workflow.quest_agent_state["selected_model"] = str(self.master_workflow.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
             workflow.quest_agent_state["skill_recording_enabled"] = bool(self.master_workflow.quest_agent_state.get("skill_recording_enabled", False))
         except Exception:
             pass

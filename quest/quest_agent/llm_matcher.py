@@ -1,9 +1,18 @@
+import ctypes
+import copy
 import json
 import os
+import re
+import uuid
 from pathlib import Path
 from typing import Any
+import urllib.error
+import urllib.request
 
-from openai import OpenAI
+try:
+    from openai import OpenAI
+except ImportError:
+    OpenAI = None
 
 from .skill_library import SkillRecord, get_quest_agent_root, load_skill_library
 from .tool_registry import write_active_tool_registry
@@ -15,6 +24,50 @@ MODEL_NAME_MAP = {
     "GPT-5.2 Codex": "gpt-5.2-codex",
     "GPT-4.1": "gpt-4.1",
     "o4-mini": "o4-mini",
+    "Gemma 4 E2B": "ollama:gemma4:e2b",
+    "Gemma 4 E4B": "ollama:gemma4:e4b",
+    "Gemma 4 26B": "ollama:gemma4:26b",
+    "Gemma 4 31B": "ollama:gemma4:31b",
+}
+MODEL_NAME_LABEL_MAP = {value: key for key, value in MODEL_NAME_MAP.items()}
+
+OLLAMA_MODEL_PREFIX = "ollama:"
+DEFAULT_OLLAMA_HOST = "http://127.0.0.1:11434"
+DEFAULT_OLLAMA_TIMEOUT_SECONDS = 600
+DEFAULT_OLLAMA_CONTEXT_TOKENS = 2048
+OLLAMA_MODEL_CONTEXT_TOKENS = {
+    "gemma4:e2b": 2048,
+    "gemma4:e4b": 2048,
+    "gemma4:26b": 1024,
+    "gemma4:31b": 1024,
+}
+OLLAMA_LARGE_MODEL_PROMPT_CHAR_LIMIT = 18000
+OLLAMA_HEAVY_MODEL_FALLBACK_CHAR_LIMIT = 6000
+FAST_LOCAL_PROMPT_CHAR_LIMIT = 14000
+FAST_LOCAL_MAX_PINNED_CONTEXT = 1
+FAST_LOCAL_MAX_ATTACHED_FILES = 3
+FAST_LOCAL_MAX_WORKFLOW_CONTEXTS = 1
+FAST_LOCAL_MAX_RECENT_MESSAGES = 2
+FAST_LOCAL_MAX_RECIPE_COUNT = 2
+FAST_LOCAL_MAX_SKILL_MATCHES = 2
+FAST_LOCAL_MAX_TOOL_MATCHES = 3
+FAST_LOCAL_TASK_MATCH_SKILL_LIMIT = 8
+MATCH_STOPWORDS = {
+    "the", "and", "for", "with", "from", "that", "this", "these", "those", "into", "onto",
+    "flow", "flows", "workflow", "workflows", "node", "nodes", "using", "uses", "used",
+    "current", "existing", "already", "contains", "contain", "present", "master", "subflow",
+    "canvas", "task", "build", "create", "make", "edit", "update", "fix", "repair", "complete",
+    "analysis", "analyze", "is", "are", "was", "were", "be", "been", "being", "it", "its",
+    "a", "an", "of", "to", "in", "on", "by", "or", "as", "at", "data", "tool", "tools",
+    "json", "file", "files", "input", "inputs", "output", "outputs",
+}
+OLLAMA_MODEL_MIN_AVAILABLE_MEMORY_GB = {
+    "gemma4:26b": 10.0,
+    "gemma4:31b": 12.0,
+}
+OLLAMA_MODEL_FALLBACKS = {
+    "gemma4:26b": "ollama:gemma4:e4b",
+    "gemma4:31b": "ollama:gemma4:e4b",
 }
 
 CANVAS_ACTION_TYPES = {
@@ -45,6 +98,574 @@ def _resolve_api_key(explicit_api_key: str | None = None) -> str:
     if env_key:
         return env_key
     raise RuntimeError("OpenAI API key is not configured. Set OPENAI_API_KEY before using QuESt Agent task analysis.")
+
+
+def _is_ollama_model(model_name: str | None) -> bool:
+    return str(model_name or "").strip().startswith(OLLAMA_MODEL_PREFIX)
+
+
+def _resolve_ollama_model_tag(model_name: str) -> str:
+    cleaned = str(model_name or "").strip()
+    if cleaned.startswith(OLLAMA_MODEL_PREFIX):
+        return cleaned[len(OLLAMA_MODEL_PREFIX):]
+    return cleaned
+
+
+def _resolve_ollama_host() -> str:
+    host = str(os.environ.get("OLLAMA_HOST", "") or "").strip()
+    return (host or DEFAULT_OLLAMA_HOST).rstrip("/")
+
+
+def _resolve_ollama_timeout_seconds() -> float:
+    raw_value = str(os.environ.get("OLLAMA_REQUEST_TIMEOUT_SECONDS", "") or "").strip()
+    try:
+        timeout_seconds = float(raw_value) if raw_value else float(DEFAULT_OLLAMA_TIMEOUT_SECONDS)
+    except Exception:
+        timeout_seconds = float(DEFAULT_OLLAMA_TIMEOUT_SECONDS)
+    return max(30.0, timeout_seconds)
+
+
+def _fast_local_mode_enabled(selected_model: str | None) -> bool:
+    raw_value = str(os.environ.get("QUEST_AGENT_FAST_LOCAL_MODE", "1") or "").strip().casefold()
+    if raw_value in {"0", "false", "no", "off"}:
+        return False
+    return _is_ollama_model(_resolve_model_name(selected_model))
+
+
+def _resolve_fast_local_reasoning_model(selected_model: str | None) -> str | None:
+    if not _fast_local_mode_enabled(selected_model):
+        return selected_model
+    return "Gemma 4 E4B"
+
+
+def _estimate_message_chars(messages: list[dict[str, Any]]) -> int:
+    total = 0
+    for message in list(messages or []):
+        total += len(str(message.get("role", "") or ""))
+        total += len(str(message.get("content", "") or ""))
+    return total
+
+
+def _get_available_physical_memory_gb() -> float | None:
+    try:
+        class MEMORYSTATUSEX(ctypes.Structure):
+            _fields_ = [
+                ("dwLength", ctypes.c_ulong),
+                ("dwMemoryLoad", ctypes.c_ulong),
+                ("ullTotalPhys", ctypes.c_ulonglong),
+                ("ullAvailPhys", ctypes.c_ulonglong),
+                ("ullTotalPageFile", ctypes.c_ulonglong),
+                ("ullAvailPageFile", ctypes.c_ulonglong),
+                ("ullTotalVirtual", ctypes.c_ulonglong),
+                ("ullAvailVirtual", ctypes.c_ulonglong),
+                ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
+            ]
+
+        memory_status = MEMORYSTATUSEX()
+        memory_status.dwLength = ctypes.sizeof(MEMORYSTATUSEX)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(memory_status)):
+            return None
+        return float(memory_status.ullAvailPhys) / float(1024 ** 3)
+    except Exception:
+        return None
+
+
+def _resolve_ollama_context_tokens(model_tag: str) -> int:
+    override = str(os.environ.get("OLLAMA_CONTEXT_TOKENS", "") or "").strip()
+    if override:
+        try:
+            return max(512, int(override))
+        except Exception:
+            pass
+    return int(OLLAMA_MODEL_CONTEXT_TOKENS.get(model_tag, DEFAULT_OLLAMA_CONTEXT_TOKENS))
+
+
+def _raise_if_ollama_request_is_unstable(model_tag: str, messages: list[dict[str, Any]]) -> None:
+    prompt_chars = _estimate_message_chars(messages)
+    if model_tag in {"gemma4:26b", "gemma4:31b"} and prompt_chars > OLLAMA_LARGE_MODEL_PROMPT_CHAR_LIMIT:
+        raise RuntimeError(
+            "The selected local Gemma model is likely to be unstable for this large QuESt prompt/context. "
+            "Use Gemma 4 E4B/E2B, reduce attached context, or set OLLAMA_CONTEXT_TOKENS explicitly if you want to force it."
+        )
+    min_available_gb = OLLAMA_MODEL_MIN_AVAILABLE_MEMORY_GB.get(model_tag)
+    available_gb = _get_available_physical_memory_gb()
+    if min_available_gb is not None and available_gb is not None and available_gb < min_available_gb:
+        raise RuntimeError(
+            f"The selected local Gemma model needs more free system memory to run reliably right now "
+            f"(available: {available_gb:.1f} GB, recommended free memory: at least {min_available_gb:.1f} GB). "
+            "Close other memory-heavy apps or switch to Gemma 4 E4B/E2B."
+        )
+
+
+def _resolve_ollama_runtime_model_name(model_name: str, messages: list[dict[str, Any]]) -> str:
+    model_tag = _resolve_ollama_model_tag(model_name)
+    prompt_chars = _estimate_message_chars(messages)
+    if model_tag in OLLAMA_MODEL_FALLBACKS:
+        available_gb = _get_available_physical_memory_gb()
+        min_available_gb = float(OLLAMA_MODEL_MIN_AVAILABLE_MEMORY_GB.get(model_tag, 0.0) or 0.0)
+        if prompt_chars > OLLAMA_HEAVY_MODEL_FALLBACK_CHAR_LIMIT:
+            return str(OLLAMA_MODEL_FALLBACKS[model_tag])
+        if available_gb is not None and available_gb < (min_available_gb + 4.0):
+            return str(OLLAMA_MODEL_FALLBACKS[model_tag])
+    return model_name
+
+
+def _describe_model_label(model_name: str | None) -> str:
+    resolved_name = _resolve_model_name(model_name)
+    if resolved_name in MODEL_NAME_LABEL_MAP:
+        return str(MODEL_NAME_LABEL_MAP[resolved_name])
+    if str(model_name or "").strip() in MODEL_NAME_MAP:
+        return str(model_name).strip()
+    if _is_ollama_model(resolved_name):
+        model_tag = _resolve_ollama_model_tag(resolved_name)
+        if model_tag in MODEL_NAME_LABEL_MAP:
+            return str(MODEL_NAME_LABEL_MAP[model_tag])
+        return model_tag
+    return resolved_name
+
+
+def _build_model_used_note(
+    selected_model: str | None,
+    selected_reasoning_model: str | None,
+    resolved_model_name: str | None,
+) -> str:
+    requested_name = _resolve_model_name(selected_model)
+    reasoning_name = _resolve_model_name(selected_reasoning_model)
+    resolved_name = _resolve_model_name(resolved_model_name or selected_reasoning_model or selected_model)
+    resolved_label = _describe_model_label(resolved_name)
+    requested_label = _describe_model_label(requested_name)
+    reasoning_label = _describe_model_label(reasoning_name)
+
+    note_parts = []
+    if requested_name != reasoning_name:
+        note_parts.append(f"fast local mode; selected {requested_label}")
+    if resolved_name != reasoning_name:
+        note_parts.append(f"fallback from {reasoning_label} due to prompt/memory")
+    if note_parts:
+        return f"Model used: {resolved_label} ({'; '.join(note_parts)})."
+    return f"Model used: {resolved_label}."
+
+
+def _truncate_text(value: Any, limit: int) -> str:
+    text = str(value or "")
+    if len(text) <= limit:
+        return text
+    return text[: max(0, limit - 3)].rstrip() + "..."
+
+
+def _trim_recent_conversation_for_fast_local(recent_messages: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    trimmed = []
+    for message in list(recent_messages or [])[-FAST_LOCAL_MAX_RECENT_MESSAGES:]:
+        role = str(message.get("role", "") or "").strip().lower()
+        content = str(message.get("content", "") or "").strip()
+        if role in {"user", "assistant"} and content:
+            trimmed.append({"role": role, "content": _truncate_text(content, 280)})
+    return trimmed
+
+
+def _trim_workflow_contexts_for_fast_local(attached_workflow_jsons: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    trimmed = []
+    for entry in list(attached_workflow_jsons or [])[:FAST_LOCAL_MAX_WORKFLOW_CONTEXTS]:
+        item = dict(entry or {})
+        flow_names = [
+            _truncate_text(flow_name, 80)
+            for flow_name in list(item.get("flow_names", []) or [])[:4]
+            if str(flow_name or "").strip()
+        ]
+        summary = {
+            "source_name": _truncate_text(item.get("source_name", "") or item.get("path", ""), 120),
+            "flow_names": flow_names,
+            "summary": _truncate_text(
+                item.get("summary", "")
+                or item.get("description", "")
+                or item.get("flow_description", ""),
+                320,
+            ),
+        }
+        if "node_count" in item:
+            summary["node_count"] = item.get("node_count")
+        if "connection_count" in item:
+            summary["connection_count"] = item.get("connection_count")
+        trimmed.append(summary)
+    return trimmed
+
+
+def _trim_implicit_code_context_for_fast_local(implicit_code_context: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
+    trimmed = []
+    for entry in list(implicit_code_context or [])[:1]:
+        item = dict(entry or {})
+        classes = []
+        for class_entry in list(item.get("classes", []) or [])[:3]:
+            cls = dict(class_entry or {})
+            classes.append(
+                {
+                    "name": _truncate_text(cls.get("name", ""), 80),
+                    "bases": list(cls.get("bases", []) or [])[:3],
+                    "methods": list(cls.get("methods", []) or [])[:5],
+                }
+            )
+        trimmed.append(
+            {
+                "file": _truncate_text(item.get("file", ""), 80),
+                "module": _truncate_text(item.get("module", ""), 80),
+                "classes": classes,
+            }
+        )
+    return trimmed
+
+
+def _trim_python_wrapper_rules_for_fast_local(python_node_wrapper_rules: dict[str, Any] | None) -> dict[str, Any]:
+    rules = dict(python_node_wrapper_rules or {})
+    if not rules:
+        return {}
+    return {
+        "available": bool(rules.get("available", False)),
+        "source_files": list(rules.get("source_files", []) or [])[:3],
+        "summary": _truncate_text(rules.get("summary", ""), 220),
+        "rules": [_truncate_text(rule, 140) for rule in list(rules.get("rules", []) or [])[:4]],
+        "preferred_template": _truncate_text(rules.get("preferred_template", ""), 220),
+        "notes": [_truncate_text(note, 140) for note in list(rules.get("notes", []) or [])[:2]],
+    }
+
+
+def _trim_task_analysis_guidance_for_fast_local(task_match_result: dict[str, Any] | None) -> dict[str, Any]:
+    guidance = _task_analysis_guidance(task_match_result)
+    return {
+        "strategy": _truncate_text(guidance.get("strategy", ""), 80),
+        "task": _truncate_text(guidance.get("task", ""), 140),
+        "project_description": _truncate_text(guidance.get("project_description", ""), 180),
+        "flow_description": _truncate_text(guidance.get("flow_description", ""), 700),
+        "structured_flow_summary": _truncate_text(guidance.get("structured_flow_summary", ""), 700),
+        "top_tool_matches": list(guidance.get("top_tool_matches", []) or [])[:FAST_LOCAL_MAX_TOOL_MATCHES],
+        "top_skill_matches": list(guidance.get("top_skill_matches", []) or [])[:FAST_LOCAL_MAX_SKILL_MATCHES],
+        "best_workflow_template": dict(guidance.get("best_workflow_template", {}) or {}),
+        "missing_parts": [
+            _truncate_text(item, 180)
+            for item in list(guidance.get("missing_parts", []) or [])[:5]
+        ],
+        "notes": [_truncate_text(note, 180) for note in list(guidance.get("notes", []) or [])[:3]],
+        "planning_directives": [
+            _truncate_text(item, 180)
+            for item in list(guidance.get("planning_directives", []) or [])[:3]
+        ],
+    }
+
+
+def _trim_task_analysis_for_fast_local(task_match_result: dict[str, Any] | None) -> dict[str, Any]:
+    result = dict(task_match_result or {})
+    return {
+        "project_description": _truncate_text(result.get("project_description", ""), 180),
+        "task": _truncate_text(result.get("task", ""), 140),
+        "flow_description": _truncate_text(result.get("flow_description", ""), 700),
+        "structured_flow_summary": _truncate_text(result.get("structured_flow_summary", ""), 700),
+        "strategy": _truncate_text(result.get("strategy", ""), 80),
+        "tool_matches": list(result.get("tool_matches", []) or [])[:FAST_LOCAL_MAX_TOOL_MATCHES],
+        "skill_matches": list(result.get("skill_matches", []) or [])[:FAST_LOCAL_MAX_SKILL_MATCHES],
+        "best_workflow_template": dict(result.get("best_workflow_template", {}) or {}),
+        "missing_parts": [
+            _truncate_text(item, 180)
+            for item in list(result.get("missing_parts", []) or [])[:5]
+        ],
+        "notes": [_truncate_text(note, 180) for note in list(result.get("notes", []) or [])[:3]],
+    }
+
+
+def _trim_skill_execution_recipes_for_fast_local(skill_execution_recipes: dict[str, Any] | None) -> dict[str, Any]:
+    recipes_payload = dict(skill_execution_recipes or {})
+    recipes = []
+    for entry in list(recipes_payload.get("recipes", []) or [])[:FAST_LOCAL_MAX_RECIPE_COUNT]:
+        item = dict(entry or {})
+        workflow_template = dict(item.get("workflow_template", {}) or {})
+        recipes.append(
+            {
+                "skill_id": _truncate_text(item.get("skill_id", ""), 80),
+                "title": _truncate_text(item.get("title", ""), 120),
+                "confidence": item.get("confidence", 0.0),
+                "reason": _truncate_text(item.get("reason", ""), 180),
+                "workflow_strategy": _truncate_text(item.get("workflow_strategy", ""), 140),
+                "step_summary": [_truncate_text(step, 140) for step in list(item.get("step_summary", []) or [])[:4]],
+                "validation_criteria": [
+                    _truncate_text(step, 140) for step in list(item.get("validation_criteria", []) or [])[:3]
+                ],
+                "workflow_template": {
+                    "path": _truncate_text(workflow_template.get("path", ""), 120),
+                    "source_name": _truncate_text(workflow_template.get("source_name", ""), 80),
+                    "flow_names": list(workflow_template.get("flow_names", []) or [])[:4],
+                    "node_count": workflow_template.get("node_count"),
+                    "connection_count": workflow_template.get("connection_count"),
+                    "summary": _truncate_text(
+                        workflow_template.get("summary", "") or workflow_template.get("description", ""),
+                        220,
+                    ),
+                },
+            }
+        )
+    return {"available": bool(recipes), "recipes": recipes}
+
+
+def _fast_local_skill_score(skill: SkillRecord, task_description: str) -> tuple[int, int]:
+    text = str(task_description or "").casefold()
+    if not text:
+        return (0, 0)
+    haystacks = [
+        str(skill.title or "").casefold(),
+        str(skill.summary or "").casefold(),
+        " ".join(str(tag or "").casefold() for tag in list(skill.tags or [])),
+    ]
+    score = 0
+    overlap = 0
+    for token in {part for part in re.split(r"[^a-z0-9_]+", text) if len(part) >= 3}:
+        matched = any(token in haystack for haystack in haystacks)
+        if matched:
+            overlap += 1
+            score += len(token)
+    if any(str(skill.title or "").casefold() in text for _ in [0]) and str(skill.title or "").strip():
+        score += 12
+    return (score, overlap)
+
+
+def _select_skills_for_fast_local(skills: list[SkillRecord], task_description: str) -> list[SkillRecord]:
+    ranked = []
+    for skill in list(skills or []):
+        score, overlap = _fast_local_skill_score(skill, task_description)
+        ranked.append((-score, -overlap, str(skill.title or "").casefold(), skill))
+    ranked.sort()
+    selected = [skill for _, _, _, skill in ranked[:FAST_LOCAL_TASK_MATCH_SKILL_LIMIT]]
+    return selected
+
+
+def _enforce_fast_local_payload_budget(payload: dict[str, Any], max_chars: int = FAST_LOCAL_PROMPT_CHAR_LIMIT) -> dict[str, Any]:
+    compact = dict(payload or {})
+    try:
+        serialized = json.dumps(compact, ensure_ascii=True)
+    except Exception:
+        return compact
+    if len(serialized) <= max_chars:
+        return compact
+    if "recent_conversation" in compact:
+        compact["recent_conversation"] = []
+    if "pinned_context" in compact:
+        compact["pinned_context"] = []
+    if "implicit_code_context" in compact:
+        compact["implicit_code_context"] = []
+    if "attached_files" in compact:
+        compact["attached_files"] = list(compact.get("attached_files", []) or [])[:1]
+    if "skill_execution_recipes" in compact:
+        compact["skill_execution_recipes"] = {"available": False, "recipes": []}
+    try:
+        serialized = json.dumps(compact, ensure_ascii=True)
+    except Exception:
+        return compact
+    if len(serialized) <= max_chars:
+        return compact
+    if "attached_workflow_jsons" in compact:
+        compact["attached_workflow_jsons"] = []
+    if "task_analysis" in compact:
+        compact["task_analysis"] = _trim_task_analysis_for_fast_local({})
+    if "task_analysis_guidance" in compact:
+        compact["task_analysis_guidance"] = _trim_task_analysis_guidance_for_fast_local({})
+    return compact
+
+
+def _build_fast_local_router_payload(
+    user_prompt: str,
+    task_match_result: dict[str, Any] | None,
+    pinned_context: list[str] | None,
+    attached_files: list[str] | None,
+    attached_workflow_jsons: list[dict[str, Any]] | None,
+    workspace_relationship_context: dict[str, Any] | None,
+    implicit_code_context: list[dict[str, Any]] | None,
+    python_node_wrapper_rules: dict[str, Any] | None,
+    skill_execution_recipes: dict[str, Any] | None,
+    recent_messages: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    payload = {
+        "latest_user_prompt": _truncate_text(user_prompt, 700),
+        "current_task_analysis": _trim_task_analysis_for_fast_local(task_match_result),
+        "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
+        "pinned_context": [_truncate_text(item, 220) for item in list(pinned_context or [])[:FAST_LOCAL_MAX_PINNED_CONTEXT]],
+        "attached_files": [Path(str(path)).name for path in list(attached_files or [])[:FAST_LOCAL_MAX_ATTACHED_FILES]],
+        "attached_workflow_jsons": _trim_workflow_contexts_for_fast_local(attached_workflow_jsons),
+        "workspace_relationship_context": {
+            "active_flow_name": _truncate_text(dict(workspace_relationship_context or {}).get("active_flow_name", ""), 80),
+            "active_flow_type": _truncate_text(dict(workspace_relationship_context or {}).get("active_flow_type", ""), 40),
+            "selected_node_count": dict(workspace_relationship_context or {}).get("selected_node_count", 0),
+        },
+        "implicit_code_context": _trim_implicit_code_context_for_fast_local(implicit_code_context),
+        "python_node_wrapper_rules": _trim_python_wrapper_rules_for_fast_local(python_node_wrapper_rules),
+        "skill_execution_recipes": _trim_skill_execution_recipes_for_fast_local(skill_execution_recipes),
+        "recent_conversation": _trim_recent_conversation_for_fast_local(recent_messages),
+    }
+    return _enforce_fast_local_payload_budget(payload)
+
+
+def _build_fast_local_grounding_payload(
+    user_prompt: str,
+    task_match_result: dict[str, Any] | None,
+    pinned_context: list[str] | None,
+    attached_files: list[str] | None,
+    attached_workflow_jsons: list[dict[str, Any]] | None,
+    workspace_relationship_context: dict[str, Any] | None,
+    implicit_code_context: list[dict[str, Any]] | None,
+    python_node_wrapper_rules: dict[str, Any] | None,
+    skill_execution_recipes: dict[str, Any] | None,
+    recent_messages: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    payload = {
+        "latest_user_prompt": _truncate_text(user_prompt, 800),
+        "task_analysis": _trim_task_analysis_for_fast_local(task_match_result),
+        "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
+        "pinned_context": [_truncate_text(item, 220) for item in list(pinned_context or [])[:FAST_LOCAL_MAX_PINNED_CONTEXT]],
+        "attached_files": [Path(str(path)).name for path in list(attached_files or [])[:FAST_LOCAL_MAX_ATTACHED_FILES]],
+        "attached_workflow_jsons": _trim_workflow_contexts_for_fast_local(attached_workflow_jsons),
+        "workspace_relationship_context": {
+            "active_flow_name": _truncate_text(dict(workspace_relationship_context or {}).get("active_flow_name", ""), 80),
+            "active_flow_type": _truncate_text(dict(workspace_relationship_context or {}).get("active_flow_type", ""), 40),
+        },
+        "implicit_code_context": _trim_implicit_code_context_for_fast_local(implicit_code_context),
+        "python_node_wrapper_rules": _trim_python_wrapper_rules_for_fast_local(python_node_wrapper_rules),
+        "skill_execution_recipes": _trim_skill_execution_recipes_for_fast_local(skill_execution_recipes),
+        "recent_conversation": _trim_recent_conversation_for_fast_local(recent_messages),
+    }
+    return _enforce_fast_local_payload_budget(payload)
+
+
+def _build_fast_local_action_plan_payload(
+    user_prompt: str,
+    canvas_context: dict[str, Any] | None,
+    task_match_result: dict[str, Any] | None,
+    pinned_context: list[str] | None,
+    attached_files: list[str] | None,
+    attached_workflow_jsons: list[dict[str, Any]] | None,
+    workspace_relationship_context: dict[str, Any] | None,
+    implicit_code_context: list[dict[str, Any]] | None,
+    python_node_wrapper_rules: dict[str, Any] | None,
+    skill_execution_recipes: dict[str, Any] | None,
+    recent_messages: list[dict[str, Any]] | None,
+    build_path_guidance: dict[str, Any] | None,
+) -> dict[str, Any]:
+    minimized_canvas = dict(canvas_context or {})
+    payload = {
+        "latest_user_prompt": _truncate_text(user_prompt, 800),
+        "canvas_context": {
+            "selected_node_count": minimized_canvas.get("selected_node_count", 0),
+            "selected_nodes": list(minimized_canvas.get("selected_nodes", []) or [])[:3],
+            "nodes": list(minimized_canvas.get("nodes", []) or [])[:10],
+            "connections": list(minimized_canvas.get("connections", []) or [])[:12],
+            "active_flow_name": _truncate_text(minimized_canvas.get("active_flow_name", ""), 80),
+            "active_flow_type": _truncate_text(minimized_canvas.get("active_flow_type", ""), 40),
+        },
+        "task_analysis": _trim_task_analysis_for_fast_local(task_match_result),
+        "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
+        "pinned_context": [_truncate_text(item, 220) for item in list(pinned_context or [])[:FAST_LOCAL_MAX_PINNED_CONTEXT]],
+        "attached_files": [Path(str(path)).name for path in list(attached_files or [])[:FAST_LOCAL_MAX_ATTACHED_FILES]],
+        "attached_workflow_jsons": _trim_workflow_contexts_for_fast_local(attached_workflow_jsons),
+        "workspace_relationship_context": {
+            "active_flow_name": _truncate_text(dict(workspace_relationship_context or {}).get("active_flow_name", ""), 80),
+            "active_flow_type": _truncate_text(dict(workspace_relationship_context or {}).get("active_flow_type", ""), 40),
+            "selected_node_count": dict(workspace_relationship_context or {}).get("selected_node_count", 0),
+        },
+        "implicit_code_context": _trim_implicit_code_context_for_fast_local(implicit_code_context),
+        "python_node_wrapper_rules": _trim_python_wrapper_rules_for_fast_local(python_node_wrapper_rules),
+        "skill_execution_recipes": _trim_skill_execution_recipes_for_fast_local(skill_execution_recipes),
+        "build_path_guidance": dict(build_path_guidance or {}),
+        "recent_conversation": _trim_recent_conversation_for_fast_local(recent_messages),
+        "fast_local_mode": True,
+    }
+    return _enforce_fast_local_payload_budget(payload)
+
+
+def _ollama_chat_completion_content(
+    messages: list[dict[str, Any]],
+    model_name: str,
+    *,
+    temperature: float = 0,
+    response_json: bool = True,
+) -> str:
+    runtime_model_name = _resolve_ollama_runtime_model_name(model_name, messages)
+    model_tag = _resolve_ollama_model_tag(runtime_model_name)
+    _raise_if_ollama_request_is_unstable(model_tag, messages)
+    payload: dict[str, Any] = {
+        "model": model_tag,
+        "messages": [
+            {
+                "role": str(message.get("role", "") or "").strip() or "user",
+                "content": str(message.get("content", "") or ""),
+            }
+            for message in list(messages or [])
+        ],
+        "stream": False,
+        "options": {
+            "temperature": temperature,
+            "num_ctx": _resolve_ollama_context_tokens(model_tag),
+        },
+    }
+    if response_json:
+        payload["format"] = "json"
+
+    request = urllib.request.Request(
+        url=_resolve_ollama_host() + "/api/chat",
+        data=json.dumps(payload, ensure_ascii=True).encode("utf-8"),
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=_resolve_ollama_timeout_seconds()) as response:
+            raw_content = response.read().decode("utf-8")
+    except urllib.error.URLError as exc:
+        raise RuntimeError(
+            "The local Ollama server is not available. Install and start Ollama, then pull the selected Gemma 4 model."
+        ) from exc
+    except OSError as exc:
+        raise RuntimeError(
+            "The local Gemma request failed at the system level, which usually means the model ran out of usable local resources. "
+            "Try Gemma 4 E4B/E2B, close other memory-heavy apps, or reduce the planning context."
+        ) from exc
+    try:
+        parsed = json.loads(raw_content)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("Ollama returned invalid JSON.") from exc
+
+    message = parsed.get("message", {}) if isinstance(parsed, dict) else {}
+    content = str(message.get("content", "") or parsed.get("response", "") or "").strip()
+    if not content:
+        raise RuntimeError("Ollama returned an empty response.")
+    return content
+
+
+def _chat_completion_content(
+    messages: list[dict[str, Any]],
+    *,
+    selected_model: str | None = None,
+    temperature: float = 0,
+    api_key: str | None = None,
+    response_json: bool = True,
+) -> tuple[str, str]:
+    resolved_model_name = _resolve_model_name(selected_model)
+    if _is_ollama_model(resolved_model_name):
+        content = _ollama_chat_completion_content(
+            messages,
+            resolved_model_name,
+            temperature=temperature,
+            response_json=response_json,
+        )
+        return content, _resolve_ollama_runtime_model_name(resolved_model_name, messages)
+
+    if OpenAI is None:
+        raise RuntimeError(
+            "The openai Python package is not installed. Install it to use OpenAI models, or select a local Gemma 4 model."
+        )
+    client = OpenAI(api_key=_resolve_api_key(api_key))
+    request_kwargs: dict[str, Any] = {
+        "model": resolved_model_name,
+        "temperature": temperature,
+        "messages": messages,
+    }
+    if response_json:
+        request_kwargs["response_format"] = {"type": "json_object"}
+    response = client.chat.completions.create(**request_kwargs)
+    content = str(response.choices[0].message.content or "").strip() if response.choices else ""
+    return content, resolved_model_name
 
 
 def _skill_prompt_entry(skill: SkillRecord, active_tool_ids: set[str]) -> dict[str, Any]:
@@ -79,6 +700,697 @@ def _tool_prompt_entry(tool: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _tokenize_match_text(value: Any) -> list[str]:
+    return [
+        token
+        for token in re.split(r"[^a-z0-9_]+", str(value or "").casefold())
+        if len(token) >= 2 and token not in MATCH_STOPWORDS
+    ]
+
+
+def _workflow_context_search_text(attached_workflow_jsons: list[dict[str, Any]] | None) -> str:
+    parts = []
+    for entry in list(attached_workflow_jsons or [])[:3]:
+        item = dict(entry or {})
+        for key in ("file", "flow_name", "flow_type", "summary", "description"):
+            value = str(item.get(key, "") or "").strip()
+            if value:
+                parts.append(value)
+        content = item.get("content", {})
+        if isinstance(content, dict):
+            for node in list(content.get("nodes_df", []) or [])[:30]:
+                node_item = dict(node or {})
+                for key in ("name", "node_name", "node_type", "text", "variable_name", "tool", "tool_name", "app"):
+                    value = str(node_item.get(key, "") or "").strip()
+                    if value:
+                        parts.append(value)
+            for row in list(content.get("connections_df", []) or [])[:20]:
+                row_item = dict(row or {})
+                for key in ("source_node", "target_node", "source_port", "target_port"):
+                    value = str(row_item.get(key, "") or "").strip()
+                    if value:
+                        parts.append(value)
+    return " ".join(parts)
+
+
+def _build_matcher_search_text(
+    task_description: str,
+    pinned_context: list[str],
+    attached_files: list[str],
+    attached_workflow_jsons: list[dict[str, Any]],
+    workspace_relationship_context: dict[str, Any],
+    implicit_code_context: list[dict[str, Any]],
+) -> str:
+    parts = [str(task_description or "").strip()]
+    parts.extend(str(item or "").strip() for item in list(pinned_context or [])[:4] if str(item or "").strip())
+    parts.extend(Path(str(path)).name for path in list(attached_files or [])[:5] if str(path or "").strip())
+    parts.append(_workflow_context_search_text(attached_workflow_jsons))
+    for key in ("current_flow_name", "current_flow_type", "master_flow_name", "linked_proxy_name"):
+        value = str(dict(workspace_relationship_context or {}).get(key, "") or "").strip()
+        if value:
+            parts.append(value)
+    for subflow in list(dict(workspace_relationship_context or {}).get("sibling_subflows", []) or [])[:8]:
+        item = dict(subflow or {})
+        for key in ("flow_name", "proxy_name"):
+            value = str(item.get(key, "") or "").strip()
+            if value:
+                parts.append(value)
+    for entry in list(implicit_code_context or [])[:2]:
+        item = dict(entry or {})
+        for key in ("file", "module"):
+            value = str(item.get(key, "") or "").strip()
+            if value:
+                parts.append(value)
+        for cls in list(item.get("classes", []) or [])[:4]:
+            class_item = dict(cls or {})
+            class_name = str(class_item.get("name", "") or "").strip()
+            if class_name:
+                parts.append(class_name)
+    return " ".join(part for part in parts if part)
+
+
+def _score_overlap(query_text: str, haystack_text: str) -> tuple[float, list[str]]:
+    query = str(query_text or "").casefold()
+    haystack = str(haystack_text or "").casefold()
+    if not query or not haystack:
+        return 0.0, []
+    query_tokens = _tokenize_match_text(query)
+    haystack_tokens = set(_tokenize_match_text(haystack))
+    if not query_tokens or not haystack_tokens:
+        return 0.0, []
+    matched_tokens = []
+    score = 0.0
+    seen = set()
+    for token in query_tokens:
+        if token in haystack_tokens and token not in seen:
+            seen.add(token)
+            matched_tokens.append(token)
+            score += min(0.18, 0.04 + (len(token) * 0.01))
+    if haystack and any(alias and alias in query for alias in sorted(haystack_tokens, key=len, reverse=True)[:12]):
+        score += 0.06
+    return min(score, 0.95), matched_tokens[:6]
+
+
+def _task_match_field_is_empty(value: Any) -> bool:
+    cleaned = str(value or "").strip().casefold()
+    return cleaned in {"", "n/a", "na", "none", "unknown", "not provided"}
+
+
+def _coalesce_task_match_text(*values: Any) -> str:
+    for value in values:
+        cleaned = str(value or "").strip()
+        if cleaned:
+            return cleaned
+    return ""
+
+
+def _should_replace_task_match_field(
+    field_name: str,
+    current_value: Any,
+    fallback_value: str,
+    *,
+    task_description: str,
+    has_workflow_context: bool,
+) -> bool:
+    if not fallback_value:
+        return False
+    if _task_match_field_is_empty(current_value):
+        return True
+    if not has_workflow_context:
+        return False
+    current_text = str(current_value or "").strip().casefold()
+    if not str(task_description or "").strip():
+        if field_name in {"project_description", "task", "flow_description"}:
+            return True
+    contradiction_markers = {
+        "flow_description": ("no existing flow", "no current flow", "not provided"),
+        "task": ("create a new workflow", "build a new workflow"),
+        "project_description": ("workflow creation",),
+    }
+    return any(marker in current_text for marker in contradiction_markers.get(field_name, ()))
+
+
+def _build_task_match_fallback_fields(
+    task_description: str,
+    attached_workflow_jsons: list[dict[str, Any]],
+    workspace_relationship_context: dict[str, Any],
+) -> dict[str, str]:
+    workflow_summaries = []
+    flow_names = []
+    for entry in list(attached_workflow_jsons or [])[:3]:
+        item = dict(entry or {})
+        summary = _coalesce_task_match_text(
+            item.get("summary", ""),
+            item.get("description", ""),
+            item.get("flow_description", ""),
+        )
+        if summary:
+            workflow_summaries.append(summary)
+        for flow_name in list(item.get("flow_names", []) or [])[:4]:
+            cleaned = str(flow_name or "").strip()
+            if cleaned and cleaned not in flow_names:
+                flow_names.append(cleaned)
+
+    workspace_context = dict(workspace_relationship_context or {})
+    current_flow_summary = _coalesce_task_match_text(
+        workspace_context.get("current_flow_summary", ""),
+        workspace_context.get("workspace_summary", ""),
+    )
+    current_flow_name = _coalesce_task_match_text(
+        workspace_context.get("current_flow_name", ""),
+        flow_names[0] if flow_names else "",
+    )
+
+    flow_description = _coalesce_task_match_text(
+        workflow_summaries[0] if workflow_summaries else "",
+        current_flow_summary,
+        f"Current Workspace flow '{current_flow_name}' is attached for analysis." if current_flow_name else "",
+    )
+    project_description = _coalesce_task_match_text(
+        current_flow_summary,
+        workflow_summaries[0] if workflow_summaries else "",
+        task_description,
+        "Current Workspace flow analysis.",
+    )
+    task = _coalesce_task_match_text(
+        task_description,
+        "Analyze the current Workspace flow and identify the most relevant QuESt tools and saved skills.",
+    )
+    return {
+        "project_description": project_description,
+        "task": task,
+        "flow_description": flow_description,
+    }
+
+
+def _tool_query_alignment_bonus(tool: dict[str, Any], query_text: str) -> float:
+    query_tokens = set(_tokenize_match_text(query_text))
+    if not query_tokens:
+        return 0.0
+    exact_tokens = set(
+        _tokenize_match_text(
+            " ".join(
+                [
+                    str(tool.get("tool_id", "") or "").strip(),
+                    str(tool.get("name", "") or "").strip(),
+                    str(tool.get("search_key", "") or "").strip(),
+                ]
+            )
+        )
+    )
+    if query_tokens & exact_tokens:
+        return 0.12
+    return 0.0
+
+
+def _skill_query_alignment_bonus(skill: SkillRecord, query_text: str) -> float:
+    query_tokens = set(_tokenize_match_text(query_text))
+    if not query_tokens:
+        return 0.0
+    skill_tool_tokens = set()
+    for tool_id in list(getattr(skill, "recommended_tools", []) or []) + list(getattr(skill, "required_tools", []) or []):
+        skill_tool_tokens.update(_tokenize_match_text(tool_id))
+
+    bonus = 0.0
+    if query_tokens & skill_tool_tokens:
+        bonus += 0.16
+        if str(getattr(skill, "skill_type", "") or "").strip() == "quest_tool_specific":
+            bonus += 0.08
+    if str(getattr(skill, "workflow_json_path", "") or "").strip():
+        bonus += 0.03
+    if str(getattr(skill, "skill_level", "") or "").strip() in {"Proficient", "Expert"}:
+        bonus += 0.02
+    return bonus
+
+
+def _prefer_tool_specific_strategy(result: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(result or {})
+    top_non_workspace_tool = next(
+        (
+            item for item in list(normalized.get("tool_matches", []) or [])
+            if str(item.get("tool_id", "") or "").strip() not in {"", "workspace"}
+            and float(item.get("confidence", 0.0) or 0.0) >= 0.25
+        ),
+        None,
+    )
+    top_tool_specific_skill = next(
+        (
+            item for item in list(normalized.get("skill_matches", []) or [])
+            if str(item.get("skill_type", "") or "").strip() == "quest_tool_specific"
+            and float(item.get("confidence", 0.0) or 0.0) >= 0.35
+        ),
+        None,
+    )
+    if top_non_workspace_tool and top_tool_specific_skill:
+        normalized["strategy"] = "use_quest_skill"
+        specific_skills = [
+            item for item in list(normalized.get("skill_matches", []) or [])
+            if str(item.get("skill_type", "") or "").strip() == "quest_tool_specific"
+        ]
+        if len(specific_skills) >= 2:
+            normalized["skill_matches"] = specific_skills[:4]
+    return normalized
+
+
+def _normalized_tool_id(value: Any) -> str:
+    return str(value or "").strip().casefold()
+
+
+def _skill_tool_ids(skill: SkillRecord) -> set[str]:
+    tool_ids = set()
+    for tool_id in list(getattr(skill, "recommended_tools", []) or []) + list(getattr(skill, "required_tools", []) or []):
+        normalized = _normalized_tool_id(tool_id)
+        if normalized:
+            tool_ids.add(normalized)
+    return tool_ids
+
+
+def _filter_skills_by_matched_tools(
+    skills: list[SkillRecord],
+    tool_matches: list[dict[str, Any]] | None,
+    *,
+    include_general_fallback: bool = True,
+) -> list[SkillRecord]:
+    ranked_tool_ids = [
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(tool_matches or [])
+    ]
+    ranked_tool_ids = [tool_id for tool_id in ranked_tool_ids if tool_id]
+    non_workspace_tool_ids = [tool_id for tool_id in ranked_tool_ids if tool_id != "workspace"]
+    matched_tool_ids = set(non_workspace_tool_ids or ranked_tool_ids)
+    if not matched_tool_ids:
+        return list(skills or [])
+
+    prioritized = []
+    general_fallback = []
+    workspace_fallback = []
+    seen_ids = set()
+
+    for skill in list(skills or []):
+        skill_id = str(getattr(skill, "skill_id", "") or "").strip()
+        if not skill_id or skill_id in seen_ids:
+            continue
+        seen_ids.add(skill_id)
+        skill_type = str(getattr(skill, "skill_type", "") or "").strip()
+        skill_tool_ids = _skill_tool_ids(skill)
+        intersects = bool(skill_tool_ids & matched_tool_ids)
+        if intersects and skill_type == "quest_tool_specific":
+            prioritized.append(skill)
+            continue
+        if include_general_fallback and skill_type == "general_python":
+            general_fallback.append(skill)
+            continue
+        if include_general_fallback and "workspace" in skill_tool_ids:
+            workspace_fallback.append(skill)
+
+    if prioritized:
+        return prioritized + general_fallback + workspace_fallback
+    if include_general_fallback and (general_fallback or workspace_fallback):
+        return general_fallback + workspace_fallback
+    return list(skills or [])
+
+
+def _build_best_workflow_template(
+    skill_matches: list[dict[str, Any]] | None,
+    skills: list[SkillRecord] | None,
+    tool_matches: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    skills_by_id = {
+        str(getattr(skill, "skill_id", "") or "").strip(): skill
+        for skill in list(skills or [])
+        if str(getattr(skill, "skill_id", "") or "").strip()
+    }
+    preferred_tool_ids = {
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(tool_matches or [])
+        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+    }
+    candidates = []
+    for match in list(skill_matches or []):
+        item = dict(match or {})
+        skill_id = str(item.get("skill_id", "") or "").strip()
+        skill = skills_by_id.get(skill_id)
+        if skill is None:
+            continue
+        workflow_json_path = str(getattr(skill, "workflow_json_path", "") or "").strip()
+        if not workflow_json_path:
+            continue
+        tool_overlap = _skill_tool_ids(skill) & preferred_tool_ids
+        confidence = _coerce_confidence(item.get("confidence", 0.0))
+        template_score = confidence
+        if tool_overlap:
+            template_score += 0.08
+        if str(getattr(skill, "skill_type", "") or "").strip() == "quest_tool_specific":
+            template_score += 0.05
+        candidates.append(
+            {
+                "skill_id": skill_id,
+                "title": str(getattr(skill, "title", "") or skill_id).strip(),
+                "skill_type": str(getattr(skill, "skill_type", "") or "").strip(),
+                "confidence": confidence,
+                "reason": str(item.get("reason", "") or "").strip(),
+                "workflow_json_path": workflow_json_path,
+                "recommended_tools": [str(value).strip() for value in list(getattr(skill, "recommended_tools", []) or []) if str(value).strip()],
+                "required_tools": [str(value).strip() for value in list(getattr(skill, "required_tools", []) or []) if str(value).strip()],
+                "summary": str(getattr(skill, "summary", "") or "").strip(),
+                "template_score": round(template_score, 4),
+                "tool_overlap": sorted(tool_overlap),
+            }
+        )
+    if not candidates:
+        return {}
+    candidates.sort(
+        key=lambda item: (
+            -float(item.get("template_score", 0.0) or 0.0),
+            str(item.get("title", "") or "").casefold(),
+        )
+    )
+    best = dict(candidates[0] or {})
+    return {
+        "skill_id": str(best.get("skill_id", "") or "").strip(),
+        "title": str(best.get("title", "") or "").strip(),
+        "skill_type": str(best.get("skill_type", "") or "").strip(),
+        "workflow_json_path": str(best.get("workflow_json_path", "") or "").strip(),
+        "confidence": _coerce_confidence(best.get("confidence", 0.0)),
+        "reason": str(best.get("reason", "") or "").strip(),
+        "recommended_tools": list(best.get("recommended_tools", []) or []),
+        "required_tools": list(best.get("required_tools", []) or []),
+        "summary": str(best.get("summary", "") or "").strip(),
+        "selection_reason": (
+            f"Selected '{best.get('title', '')}' as the best reusable workflow template because it matches the task, aligns with the matched tools, and already includes a workflow JSON baseline."
+            if list(best.get("tool_overlap", []) or [])
+            else
+            f"Selected '{best.get('title', '')}' as the best reusable workflow template because it best matches the task and already includes a workflow JSON baseline."
+        ).strip(),
+    }
+
+
+def _read_workflow_json_file(path: str) -> dict[str, Any]:
+    normalized_path = os.path.normpath(str(path or "").strip())
+    if not normalized_path:
+        raise RuntimeError("Workflow template path is missing.")
+    with open(normalized_path, "r", encoding="utf-8") as handle:
+        data = json.load(handle)
+    if not isinstance(data, dict):
+        raise RuntimeError("Workflow template must be a JSON object.")
+    return data
+
+
+def _infer_python_ports_from_wrapper(wrapper_text: str) -> tuple[list[str], list[str]]:
+    source = str(wrapper_text or "").strip()
+    if not source:
+        return [], []
+    try:
+        tree = __import__("ast").parse(source)
+    except Exception:
+        return [], []
+    for node in list(getattr(tree, "body", []) or []):
+        if not isinstance(node, (__import__("ast").FunctionDef, __import__("ast").AsyncFunctionDef)):
+            continue
+        input_ports = []
+        for arg in list(getattr(node.args, "args", []) or []):
+            arg_name = str(getattr(arg, "arg", "") or "").strip()
+            if arg_name and arg_name != "self":
+                input_ports.append(arg_name)
+        output_ports = []
+        for child in __import__("ast").walk(node):
+            if not isinstance(child, __import__("ast").Return):
+                continue
+            returned_value = getattr(child, "value", None)
+            if not isinstance(returned_value, __import__("ast").Dict):
+                continue
+            for key_node in list(getattr(returned_value, "keys", []) or []):
+                if isinstance(key_node, __import__("ast").Constant) and isinstance(key_node.value, str):
+                    output_ports.append(str(key_node.value).strip())
+                elif isinstance(key_node, __import__("ast").Str):
+                    output_ports.append(str(key_node.s).strip())
+        return [item for item in input_ports if item], [item for item in output_ports if item]
+    return [], []
+
+
+def _build_template_workflow_inventory(workflow_json_data: dict[str, Any]) -> dict[str, Any]:
+    data = dict(workflow_json_data or {})
+    node_records = [dict(item or {}) for item in list(data.get("nodes_df", []) or [])]
+    node_lookup = {str(item.get("node_id", "") or "").strip(): item for item in node_records if str(item.get("node_id", "") or "").strip()}
+    data_nodes = []
+    python_nodes = []
+    text_nodes = []
+    for row in node_records:
+        node_name = str(row.get("node_name", "") or "").strip()
+        node_type = str(row.get("node_type", "") or "").strip()
+        if not node_name:
+            continue
+        if node_type == "data_node":
+            data_nodes.append(
+                {
+                    "name": node_name,
+                    "variable_name": str(row.get("node_input_variable", "") or "").strip(),
+                    "value": str(row.get("node_input_value", "") or ""),
+                    "value_display": bool(row.get("node_value_display", False)),
+                    "is_path": bool(row.get("node_is_path", False)),
+                }
+            )
+        elif node_type == "python_node":
+            wrapper = str(row.get("node_function_wrapper", "") or "").strip()
+            input_ports, output_ports = _infer_python_ports_from_wrapper(wrapper)
+            python_nodes.append(
+                {
+                    "name": node_name,
+                    "input_ports": input_ports,
+                    "output_ports": output_ports,
+                    "wrapper": wrapper,
+                }
+            )
+        elif node_type == "back_node":
+            text_nodes.append(
+                {
+                    "name": node_name,
+                    "text": str(row.get("node_input_value", "") or ""),
+                }
+            )
+    connections = []
+    for row in list(data.get("connections_df", []) or []):
+        item = dict(row or {})
+        source_id = str(item.get("from_node", "") or "").strip()
+        target_id = str(item.get("to_node", "") or "").strip()
+        source_name = str(node_lookup.get(source_id, {}).get("node_name", "") or "").strip()
+        target_name = str(node_lookup.get(target_id, {}).get("node_name", "") or "").strip()
+        mapping = dict(item.get("mapping", {}) or {}) if isinstance(item.get("mapping"), dict) else {}
+        if mapping:
+            for source_port, target_port in mapping.items():
+                connections.append(
+                    {
+                        "from_node": source_name,
+                        "from_port": str(source_port or "").strip(),
+                        "to_node": target_name,
+                        "to_port": str(target_port or "").strip(),
+                    }
+                )
+        else:
+            connections.append(
+                {
+                    "from_node": source_name,
+                    "from_port": "",
+                    "to_node": target_name,
+                    "to_port": "",
+                }
+            )
+    return {
+        "flow_name": str(data.get("flow_name", "") or "").strip(),
+        "flow_type": str(data.get("flow_type", "") or "").strip(),
+        "data_nodes": data_nodes,
+        "python_nodes": python_nodes,
+        "text_nodes": text_nodes,
+        "connections": connections,
+    }
+
+
+def _tool_search_haystack(tool: dict[str, Any]) -> str:
+    item = dict(tool or {})
+    parts = [
+        str(item.get("tool_id", "") or "").strip(),
+        str(item.get("name", "") or "").strip(),
+        str(item.get("description", "") or "").strip(),
+        str(item.get("search_key", "") or "").strip(),
+        " ".join(str(value).strip() for value in list(item.get("aliases", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(item.get("typical_tasks", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(item.get("workflow_roles", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(item.get("input_types", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(item.get("output_types", []) or []) if str(value).strip()),
+    ]
+    return " ".join(part for part in parts if part)
+
+
+def _skill_search_haystack(skill: SkillRecord) -> str:
+    raw_data = getattr(skill, "raw_data", {}) or {}
+    if not isinstance(raw_data, dict):
+        raw_data = {}
+    classification = raw_data.get("classification", {}) if isinstance(raw_data.get("classification", {}), dict) else {}
+    task = raw_data.get("task", {}) if isinstance(raw_data.get("task", {}), dict) else {}
+    plan = raw_data.get("plan", {}) if isinstance(raw_data.get("plan", {}), dict) else {}
+    parts = [
+        str(getattr(skill, "skill_id", "") or "").strip(),
+        str(getattr(skill, "title", "") or "").strip(),
+        str(getattr(skill, "summary", "") or "").strip(),
+        str(task.get("description", "") or "").strip(),
+        str(task.get("pinned_context_summary", "") or "").strip(),
+        str(plan.get("workflow_strategy", "") or "").strip(),
+        " ".join(str(value).strip() for value in list(plan.get("step_summary", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(getattr(skill, "tags", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(classification.get("tags", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(getattr(skill, "recommended_tools", []) or []) if str(value).strip()),
+        " ".join(str(value).strip() for value in list(getattr(skill, "required_tools", []) or []) if str(value).strip()),
+    ]
+    return " ".join(part for part in parts if part)
+
+
+def _heuristic_tool_matches(
+    query_text: str,
+    tools: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    matches = []
+    for tool in list(tools or []):
+        item = dict(tool or {})
+        score, matched_tokens = _score_overlap(query_text, _tool_search_haystack(item))
+        score += _tool_query_alignment_bonus(item, query_text)
+        if score <= 0.0:
+            continue
+        if score < 0.14 and len(matched_tokens) < 2:
+            continue
+        reason = "Matched flow/task terms"
+        if matched_tokens:
+            reason += ": " + ", ".join(matched_tokens[:4])
+        matches.append(
+            {
+                "tool_id": str(item.get("tool_id", "") or "").strip(),
+                "name": str(item.get("name", "") or "").strip(),
+                "confidence": _coerce_confidence(score),
+                "reason": reason,
+            }
+        )
+    matches.sort(key=lambda entry: (-float(entry.get("confidence", 0.0) or 0.0), str(entry.get("name", "") or "").casefold()))
+    return matches[:8]
+
+
+def _heuristic_skill_matches(
+    query_text: str,
+    skills: list[SkillRecord],
+) -> list[dict[str, Any]]:
+    matches = []
+    for skill in list(skills or []):
+        score, matched_tokens = _score_overlap(query_text, _skill_search_haystack(skill))
+        score += _skill_query_alignment_bonus(skill, query_text)
+        if score <= 0.0:
+            continue
+        if score < 0.18 and len(matched_tokens) < 2:
+            continue
+        reason = "Matched flow/task terms"
+        if matched_tokens:
+            reason += ": " + ", ".join(matched_tokens[:4])
+        matches.append(
+            {
+                "skill_id": str(getattr(skill, "skill_id", "") or "").strip(),
+                "title": str(getattr(skill, "title", "") or "").strip(),
+                "skill_type": str(getattr(skill, "skill_type", "") or "").strip(),
+                "confidence": _coerce_confidence(score),
+                "reason": reason,
+            }
+        )
+    matches.sort(key=lambda entry: (-float(entry.get("confidence", 0.0) or 0.0), str(entry.get("title", "") or "").casefold()))
+    return matches[:8]
+
+
+def _merge_ranked_matches(
+    primary_matches: list[dict[str, Any]],
+    heuristic_matches: list[dict[str, Any]],
+    *,
+    id_key: str,
+    label_key: str,
+) -> list[dict[str, Any]]:
+    merged = {}
+    order = []
+    for source_index, collection in enumerate((primary_matches, heuristic_matches)):
+        for item in list(collection or []):
+            current = dict(item or {})
+            item_id = str(current.get(id_key, "") or "").strip()
+            if not item_id:
+                continue
+            if item_id not in merged:
+                merged[item_id] = current
+                order.append(item_id)
+                continue
+            existing = merged[item_id]
+            existing_conf = float(existing.get("confidence", 0.0) or 0.0)
+            current_conf = float(current.get("confidence", 0.0) or 0.0)
+            if current_conf > existing_conf:
+                merged[item_id] = {**existing, **current}
+            elif current.get("reason") and not existing.get("reason"):
+                existing["reason"] = current.get("reason")
+    ranked = [merged[item_id] for item_id in order]
+    ranked.sort(key=lambda entry: (-float(entry.get("confidence", 0.0) or 0.0), str(entry.get(label_key, "") or "").casefold()))
+    return ranked[:8]
+
+
+def _apply_heuristic_match_floor(
+    normalized_result: dict[str, Any],
+    *,
+    query_text: str,
+    tools: list[dict[str, Any]],
+    skills: list[SkillRecord],
+    task_description: str,
+    attached_workflow_jsons: list[dict[str, Any]],
+    workspace_relationship_context: dict[str, Any],
+) -> dict[str, Any]:
+    result = dict(normalized_result or {})
+    heuristic_tools = _heuristic_tool_matches(query_text, tools)
+    heuristic_skills = _heuristic_skill_matches(query_text, skills)
+    result["tool_matches"] = _merge_ranked_matches(
+        list(result.get("tool_matches", []) or []),
+        heuristic_tools,
+        id_key="tool_id",
+        label_key="name",
+    )
+    result["skill_matches"] = _merge_ranked_matches(
+        list(result.get("skill_matches", []) or []),
+        heuristic_skills,
+        id_key="skill_id",
+        label_key="title",
+    )
+    notes = [str(note).strip() for note in list(result.get("notes", []) or []) if str(note).strip()]
+    if heuristic_tools and not any("heuristic" in note.casefold() for note in notes):
+        top_tool_names = ", ".join(str(item.get("name", "") or "").strip() for item in heuristic_tools[:3] if str(item.get("name", "") or "").strip())
+        if top_tool_names:
+            notes.append(f"Heuristic tool matching surfaced related QuESt tools: {top_tool_names}.")
+    if heuristic_skills and not any("heuristic skill" in note.casefold() for note in notes):
+        top_skill_names = ", ".join(str(item.get("title", "") or "").strip() for item in heuristic_skills[:2] if str(item.get("title", "") or "").strip())
+        if top_skill_names:
+            notes.append(f"Heuristic skill matching surfaced related saved skills: {top_skill_names}.")
+    result["notes"] = notes[:8]
+    if str(result.get("strategy", "") or "").strip() == "no_viable_quest_solution":
+        if result["tool_matches"] and result["skill_matches"]:
+            result["strategy"] = "use_general_python_skill_plus_tools"
+        elif result["tool_matches"]:
+            result["strategy"] = "use_tools_only"
+        elif result["skill_matches"]:
+            result["strategy"] = "use_quest_skill"
+    fallback_fields = _build_task_match_fallback_fields(
+        task_description,
+        list(attached_workflow_jsons or []),
+        dict(workspace_relationship_context or {}),
+    )
+    has_workflow_context = bool(list(attached_workflow_jsons or [])) or bool(dict(workspace_relationship_context or {}))
+    for key, fallback_value in fallback_fields.items():
+        if _should_replace_task_match_field(
+            key,
+            result.get(key, ""),
+            fallback_value,
+            task_description=task_description,
+            has_workflow_context=has_workflow_context,
+        ):
+            result[key] = fallback_value
+    return _prefer_tool_specific_strategy(result)
+
+
 def _build_messages(
     task_description: str,
     pinned_context: list[str],
@@ -99,7 +1411,10 @@ def _build_messages(
         "You are QuESt Agent's task matcher. "
         "Your job is to interpret a messy analytics or workflow-building request and recommend only from the provided active QuESt tools and saved skills. "
         "Do not invent tools, skills, or IDs. "
+        "If task_description is sparse or empty, infer the current task and related tools/skills from the attached/current flow context. "
         "If Python node wrapper behavior is relevant, treat python_node_wrapper_rules as authoritative workspace constraints. "
+        "Analyze the request in this order: task -> tools -> tool-specific skills -> best workflow template. "
+        "Match the smallest viable active tool set first, then prefer tool-specific skills that align with those tools, then identify the strongest reusable workflow JSON template when one exists. "
         "Prefer the smallest viable active tool set. "
         "Use quest_tool_specific skills only when their required tools are active. "
         "If nothing in QuESt can do the task, say so clearly. "
@@ -251,7 +1566,14 @@ def _task_analysis_guidance(task_match_result: dict[str, Any] | None) -> dict[st
         )
 
     flow_description = str(result.get("flow_description", "") or "").strip()
+    structured_flow_summary = str(result.get("structured_flow_summary", "") or "").strip()
+    missing_parts = [
+        str(item).strip()
+        for item in list(result.get("missing_parts", []) or [])[:8]
+        if str(item).strip()
+    ]
     notes = [str(note).strip() for note in list(result.get("notes", []) or [])[:6] if str(note).strip()]
+    best_workflow_template = dict(result.get("best_workflow_template", {}) or {})
     lowered_notes = [note.casefold() for note in notes]
     lowered_flow = flow_description.casefold()
     planning_directives = []
@@ -278,14 +1600,39 @@ def _task_analysis_guidance(task_match_result: dict[str, Any] | None) -> dict[st
         planning_directives.append(
             "Reuse existing node names, ports, and subflows when possible unless the user explicitly asks to rebuild or replace them."
         )
+    if missing_parts:
+        planning_directives.append(
+            "Treat missing_parts as the highest-priority build targets for the next plan."
+        )
+        planning_directives.append(
+            "Prefer actions that resolve the listed missing_parts before optional cleanup or improvements."
+        )
+    if best_workflow_template:
+        planning_directives.append(
+            "A best reusable workflow template is available; prefer JSON diff/edit -> load -> validate over rebuilding the flow from scratch."
+        )
 
     return {
         "strategy": str(result.get("strategy", "") or "").strip(),
         "task": str(result.get("task", "") or "").strip(),
         "project_description": str(result.get("project_description", "") or "").strip(),
         "flow_description": flow_description,
+        "structured_flow_summary": structured_flow_summary,
         "top_tool_matches": top_tool_matches,
         "top_skill_matches": top_skill_matches,
+        "best_workflow_template": best_workflow_template,
+        "analysis_pipeline": [
+            "task",
+            "tools",
+            "tool_specific_skills",
+            "best_workflow_template",
+        ],
+        "action_pipeline": [
+            "json_diff_edit",
+            "load",
+            "validate",
+        ],
+        "missing_parts": missing_parts,
         "notes": notes,
         "planning_directives": planning_directives,
     }
@@ -294,6 +1641,31 @@ def _task_analysis_guidance(task_match_result: dict[str, Any] | None) -> dict[st
 def _parse_json_response(content: str, empty_message: str, invalid_message: str) -> dict[str, Any]:
     if not content:
         raise RuntimeError(empty_message)
+    cleaned = str(content or "").strip()
+    candidates = [cleaned]
+    if cleaned.startswith("```"):
+        fence_match = re.search(r"```(?:json)?\s*(.*?)```", cleaned, flags=re.IGNORECASE | re.DOTALL)
+        if fence_match:
+            fenced = str(fence_match.group(1) or "").strip()
+            if fenced:
+                candidates.append(fenced)
+    decoder = json.JSONDecoder()
+    for candidate in candidates:
+        try:
+            parsed = json.loads(candidate)
+        except json.JSONDecodeError:
+            pass
+        else:
+            if isinstance(parsed, dict):
+                return parsed
+    for candidate in candidates:
+        for match in re.finditer(r"\{", candidate):
+            try:
+                parsed, end_index = decoder.raw_decode(candidate[match.start():])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(parsed, dict):
+                return parsed
     try:
         parsed = json.loads(content)
     except json.JSONDecodeError as exc:
@@ -301,6 +1673,36 @@ def _parse_json_response(content: str, empty_message: str, invalid_message: str)
     if not isinstance(parsed, dict):
         raise RuntimeError(invalid_message)
     return parsed
+
+
+def _retry_local_json_response(
+    messages: list[dict[str, Any]],
+    *,
+    selected_model: str | None = None,
+    temperature: float = 0,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    repair_messages = list(messages or []) + [
+        {
+            "role": "user",
+            "content": (
+                "Return only one valid JSON object. "
+                "Do not use markdown fences. Do not add commentary before or after the JSON."
+            ),
+        }
+    ]
+    retry_content, _ = _chat_completion_content(
+        repair_messages,
+        selected_model=selected_model,
+        temperature=temperature,
+        api_key=api_key,
+        response_json=True,
+    )
+    return _parse_json_response(
+        retry_content,
+        "The local model returned an empty retry response.",
+        "The local model retry response was not valid JSON.",
+    )
 
 
 def run_grounded_chat_reply(
@@ -330,40 +1732,72 @@ def run_grounded_chat_reply(
         "Return valid JSON only with this shape: {\"reply\": string}."
     )
 
-    grounding_payload = {
-        "latest_user_prompt": str(user_prompt or ""),
-        "task_analysis": dict(task_match_result or {}),
-        "task_analysis_guidance": _task_analysis_guidance(task_match_result),
-        "pinned_context": list(pinned_context or []),
-        "attached_files": [Path(str(path)).name for path in list(attached_files or [])],
-        "attached_workflow_jsons": list(attached_workflow_jsons or []),
-        "workspace_relationship_context": dict(workspace_relationship_context or {}),
-        "implicit_code_context": list(implicit_code_context or []),
-        "python_node_wrapper_rules": dict(python_node_wrapper_rules or {}),
-        "skill_execution_recipes": dict(skill_execution_recipes or {}),
-        "recent_conversation": _recent_conversation(recent_messages),
-    }
+    if _fast_local_mode_enabled(selected_model):
+        grounding_payload = _build_fast_local_grounding_payload(
+            user_prompt,
+            task_match_result,
+            pinned_context,
+            attached_files,
+            attached_workflow_jsons,
+            workspace_relationship_context,
+            implicit_code_context,
+            python_node_wrapper_rules,
+            skill_execution_recipes,
+            recent_messages,
+        )
+    else:
+        grounding_payload = {
+            "latest_user_prompt": str(user_prompt or ""),
+            "task_analysis": dict(task_match_result or {}),
+            "task_analysis_guidance": _task_analysis_guidance(task_match_result),
+            "pinned_context": list(pinned_context or []),
+            "attached_files": [Path(str(path)).name for path in list(attached_files or [])],
+            "attached_workflow_jsons": list(attached_workflow_jsons or []),
+            "workspace_relationship_context": dict(workspace_relationship_context or {}),
+            "implicit_code_context": list(implicit_code_context or []),
+            "python_node_wrapper_rules": dict(python_node_wrapper_rules or {}),
+            "skill_execution_recipes": dict(skill_execution_recipes or {}),
+            "recent_conversation": _recent_conversation(recent_messages),
+        }
 
-    client = OpenAI(api_key=_resolve_api_key(api_key))
-    response = client.chat.completions.create(
-        model=_resolve_model_name(selected_model),
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(grounding_payload, ensure_ascii=True, indent=2)},
+    ]
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
         temperature=0.4,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": json.dumps(grounding_payload, ensure_ascii=True, indent=2)},
-        ],
+        api_key=api_key,
+        response_json=True,
     )
-    content = str(response.choices[0].message.content or "").strip() if response.choices else ""
-    parsed = _parse_json_response(
-        content,
-        "OpenAI returned an empty grounded chat reply.",
-        "OpenAI grounded chat reply was not valid JSON.",
-    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "OpenAI returned an empty grounded chat reply.",
+            "OpenAI grounded chat reply was not valid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0.4,
+            api_key=api_key,
+        )
     reply = str(parsed.get("reply", "") or "").strip()
     if not reply:
         raise RuntimeError("OpenAI grounded chat reply was missing the reply field.")
-    return {"reply": reply}
+    return {
+        "reply": reply,
+        "model_used_note": _build_model_used_note(
+            selected_model,
+            selected_reasoning_model,
+            resolved_model_name,
+        ),
+    }
 
 
 def run_chat_router(
@@ -385,42 +1819,69 @@ def run_chat_router(
         "Decide whether the latest user message should trigger a fresh task analysis, should execute a direct canvas action, or should be answered directly using the current analyzed task context. "
         "If Python node wrapper rules are discussed, treat python_node_wrapper_rules as authoritative context for what the workspace supports. "
         "Choose 'analyze_task' when the user is describing a new task, changing the task, asking for tool/skill/workflow recommendations, or asking you to reassess based on new context. "
+        "When you choose 'analyze_task', the intended analysis pipeline is: task -> tools -> tool-specific skills -> best workflow template. "
         "Choose 'execute_canvas_action' when the user is clearly asking QuESt Agent to create, rename, edit, or delete workflow items on the canvas. "
+        "When you choose 'execute_canvas_action', prefer an action-planning mindset of: JSON diff/edit -> load -> validate when a reusable workflow template is available. "
         "Choose 'answer_only' when the user is asking a follow-up question, asking for explanation, asking about the current recommendations, or making a conversational request that can be answered from the current context. "
         "Return valid JSON only with this shape: "
         "{\"action\": \"analyze_task\" | \"execute_canvas_action\" | \"answer_only\", \"reason\": string, \"task_focus\": string}."
     )
 
-    payload = {
-        "latest_user_prompt": str(user_prompt or ""),
-        "current_task_analysis": dict(task_match_result or {}),
-        "task_analysis_guidance": _task_analysis_guidance(task_match_result),
-        "pinned_context": list(pinned_context or []),
-        "attached_files": [Path(str(path)).name for path in list(attached_files or [])],
-        "attached_workflow_jsons": list(attached_workflow_jsons or []),
-        "workspace_relationship_context": dict(workspace_relationship_context or {}),
-        "implicit_code_context": list(implicit_code_context or []),
-        "python_node_wrapper_rules": dict(python_node_wrapper_rules or {}),
-        "skill_execution_recipes": dict(skill_execution_recipes or {}),
-        "recent_conversation": _recent_conversation(recent_messages),
-    }
+    if _fast_local_mode_enabled(selected_model):
+        payload = _build_fast_local_router_payload(
+            user_prompt,
+            task_match_result,
+            pinned_context,
+            attached_files,
+            attached_workflow_jsons,
+            workspace_relationship_context,
+            implicit_code_context,
+            python_node_wrapper_rules,
+            skill_execution_recipes,
+            recent_messages,
+        )
+    else:
+        payload = {
+            "latest_user_prompt": str(user_prompt or ""),
+            "current_task_analysis": dict(task_match_result or {}),
+            "task_analysis_guidance": _task_analysis_guidance(task_match_result),
+            "pinned_context": list(pinned_context or []),
+            "attached_files": [Path(str(path)).name for path in list(attached_files or [])],
+            "attached_workflow_jsons": list(attached_workflow_jsons or []),
+            "workspace_relationship_context": dict(workspace_relationship_context or {}),
+            "implicit_code_context": list(implicit_code_context or []),
+            "python_node_wrapper_rules": dict(python_node_wrapper_rules or {}),
+            "skill_execution_recipes": dict(skill_execution_recipes or {}),
+            "recent_conversation": _recent_conversation(recent_messages),
+        }
 
-    client = OpenAI(api_key=_resolve_api_key(api_key))
-    response = client.chat.completions.create(
-        model=_resolve_model_name(selected_model),
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
+    ]
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
         temperature=0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
-        ],
+        api_key=api_key,
+        response_json=True,
     )
-    content = str(response.choices[0].message.content or "").strip() if response.choices else ""
-    parsed = _parse_json_response(
-        content,
-        "OpenAI returned an empty chat router response.",
-        "OpenAI chat router response was not valid JSON.",
-    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "OpenAI returned an empty chat router response.",
+            "OpenAI chat router response was not valid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
     action = str(parsed.get("action", "") or "").strip()
     if action not in {"analyze_task", "execute_canvas_action", "answer_only"}:
         action = "analyze_task" if not task_match_result else "answer_only"
@@ -428,6 +1889,11 @@ def run_chat_router(
         "action": action,
         "reason": str(parsed.get("reason", "") or "").strip(),
         "task_focus": str(parsed.get("task_focus", "") or "").strip(),
+        "model_used_note": _build_model_used_note(
+            selected_model,
+            selected_reasoning_model,
+            resolved_model_name,
+        ),
     }
 
 
@@ -468,6 +1934,65 @@ def _request_looks_actionable(user_prompt: str) -> bool:
         "note node",
     )
     return any(token in prompt for token in action_signals) and any(token in prompt for token in canvas_targets)
+
+
+def _request_prefers_template_json_edit(
+    user_prompt: str,
+    canvas_context: dict[str, Any] | None = None,
+) -> bool:
+    lowered = str(user_prompt or "").strip().casefold()
+    canvas_context = dict(canvas_context or {})
+    node_count = len(list(canvas_context.get("nodes", []) or []))
+    explicit_template_tokens = (
+        "matched skill",
+        "reuse skill",
+        "reuse template",
+        "load template",
+        "start from template",
+        "start from the template",
+        "use the template",
+        "example json",
+        "workflow json",
+        "load the example",
+        "load the matched skill",
+    )
+    touchup_tokens = (
+        "add",
+        "connect",
+        "wire",
+        "rename",
+        "update",
+        "change",
+        "set",
+        "edit",
+        "remove",
+        "delete",
+        "fix",
+        "repair",
+        "complete",
+        "finish",
+        "adjust",
+    )
+    if any(token in lowered for token in explicit_template_tokens):
+        return True
+    if node_count > 0 and any(token in lowered for token in touchup_tokens):
+        return False
+    return node_count <= 0
+
+
+def _current_workflow_json_entry(
+    attached_workflow_jsons: list[dict[str, Any]] | None,
+) -> dict[str, Any]:
+    for item in list(attached_workflow_jsons or []):
+        entry = dict(item or {})
+        file_label = str(entry.get("file", "") or "").strip().casefold()
+        if "(current canvas)" in file_label:
+            return entry
+    for item in list(attached_workflow_jsons or []):
+        entry = dict(item or {})
+        if isinstance(entry.get("content"), dict):
+            return entry
+    return {}
 
 
 def _normalize_workspace_action_type(value: Any) -> str:
@@ -556,6 +2081,7 @@ def _build_path_guidance(
     lowered = str(user_prompt or "").strip().casefold()
     node_count = len(list(canvas_context.get("nodes", []) or []))
     flow_description = str(task_match_result.get("flow_description", "") or "").strip()
+    current_flow_present = node_count > 0
     recipe_entries = [
         dict(item or {})
         for item in list(skill_execution_recipes.get("recipes", []) or [])
@@ -579,6 +2105,18 @@ def _build_path_guidance(
 
     available_paths = [
         {
+            "path_id": "current_flow_json_patch_then_load",
+            "label": "Patch the current flow JSON, then reload it",
+            "difficulty": "low",
+            "best_when": "The current canvas already contains the right baseline structure and the next step is to fix or complete missing parts deterministically through JSON edits.",
+        },
+        {
+            "path_id": "template_json_edit_then_load",
+            "label": "Edit the best matched workflow template JSON, then load it",
+            "difficulty": "low",
+            "best_when": "A strong matched skill already includes a reusable workflow JSON template that should be adapted to the requested task before loading.",
+        },
+        {
             "path_id": "manual_canvas_build",
             "label": "Build on canvas step by step",
             "difficulty": "high",
@@ -591,7 +2129,7 @@ def _build_path_guidance(
             "best_when": "The user explicitly wants direct JSON authoring, or a structured flow can be created faster in JSON than on canvas.",
         },
     ]
-    if node_count > 0 or flow_description:
+    if current_flow_present:
         available_paths.insert(
             0,
             {
@@ -606,9 +2144,9 @@ def _build_path_guidance(
             0,
             {
                 "path_id": "reuse_skill_workflow_json",
-                "label": "Load and adapt a matched skill/example flow",
+                "label": "Load a matched skill/example flow directly",
                 "difficulty": "low",
-                "best_when": "A strong matched skill already includes a reusable workflow JSON template close to the requested task.",
+                "best_when": "A strong matched skill already includes a reusable workflow JSON template that can be used with little or no editing.",
                 "candidate_skills": reusable_templates[:3],
             },
         )
@@ -633,23 +2171,49 @@ def _build_path_guidance(
             "build on canvas",
         )
     )
+    touchup_request = current_flow_present and any(
+        token in lowered
+        for token in (
+            "add",
+            "connect",
+            "wire",
+            "rename",
+            "update",
+            "change",
+            "set",
+            "edit",
+            "remove",
+            "delete",
+            "fix",
+            "repair",
+            "complete",
+            "finish",
+            "adjust",
+        )
+    )
     edit_current = (
-        (node_count > 0 or flow_description)
+        current_flow_present
         and any(
             token in lowered
-            for token in ("edit", "revise", "change", "modify", "fix", "repair", "complete", "finish", "adapt")
+            for token in ("edit", "revise", "change", "modify", "fix", "repair", "complete", "finish", "adapt", "add", "connect", "wire", "rename", "update", "set", "remove", "delete")
         )
     )
 
     if explicit_json:
         recommended_path = "draft_workflow_json_then_load"
         reason = "The request explicitly points to direct workflow JSON authoring."
+    elif current_flow_present and list(task_match_result.get("missing_parts", []) or []):
+        recommended_path = "current_flow_json_patch_then_load"
+        reason = "The current canvas already exists and analysis found explicit missing parts, so patching the current flow JSON and reloading it is the most direct repair path."
     elif edit_current:
         recommended_path = "edit_current_flow"
         reason = "The current canvas already has relevant structure, so editing the existing flow is easier than rebuilding."
-    elif reusable_templates and not manual_only:
-        recommended_path = "reuse_skill_workflow_json"
-        reason = "A strong matched skill already has a reusable workflow template, which is likely the easiest path."
+    elif reusable_templates and _request_prefers_template_json_edit(user_prompt, canvas_context):
+        recommended_path = "template_json_edit_then_load"
+        reason = "A strong matched skill already has a reusable workflow template, so the easiest path is usually to edit that JSON baseline, load it, and then validate the result."
+    elif touchup_request:
+        recommended_path = "edit_current_flow"
+        reason = "The request looks like a touch-up on the current flow, so direct canvas edits are the simpler path."
     elif manual_only:
         recommended_path = "manual_canvas_build"
         reason = "The request explicitly prefers manual canvas construction."
@@ -894,8 +2458,949 @@ def _normalize_workspace_action_plan(
     }
 
 
+def _default_flow_layout_type(node_type: str) -> str:
+    mapping = {
+        "data_node": "QuESt.Workspace.DataNode",
+        "python_node": "QuESt.Workspace.PyNode",
+        "back_node": "QuESt.Workspace.BackNode",
+    }
+    return mapping.get(str(node_type or "").strip(), "QuESt.Workspace.DataNode")
+
+
+def _default_layout_entry(node_type: str, node_name: str, pos: list[float] | None = None) -> dict[str, Any]:
+    position = list(pos or [100.0, 100.0])
+    base = {
+        "type_": _default_flow_layout_type(node_type),
+        "icon": None,
+        "name": str(node_name or "").strip(),
+        "color": [255, 255, 255],
+        "border_color": [74, 84, 85, 255],
+        "text_color": [0, 0, 0],
+        "disabled": False,
+        "selected": False,
+        "visible": True,
+        "width": 180,
+        "height": 80,
+        "pos": position,
+        "layout_direction": 0,
+        "port_deletion_allowed": True,
+        "subgraph_session": {},
+    }
+    if node_type == "back_node":
+        base["type_"] = "QuESt.Workspace.BackNode"
+        base["color"] = [255, 255, 155]
+        base["width"] = 260.0
+        base["height"] = 106.0
+        base["port_deletion_allowed"] = False
+        base["custom"] = {"backdrop_text": ""}
+    else:
+        base["input_ports"] = []
+        base["output_ports"] = []
+        if node_type == "data_node":
+            base["custom"] = {"Text Caption": ""}
+    return base
+
+
+def _new_flow_node_id(existing_ids: set[str]) -> str:
+    while True:
+        candidate = "0x" + uuid.uuid4().hex[:12]
+        if candidate not in existing_ids:
+            existing_ids.add(candidate)
+            return candidate
+
+
+def _coerce_bool_or_none(value: Any) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    text = str(value or "").strip().casefold()
+    if text in {"1", "true", "yes", "y", "on"}:
+        return True
+    if text in {"0", "false", "no", "n", "off"}:
+        return False
+    return None
+
+
+def _template_port_entry(name: str, *, multi_connection: bool) -> dict[str, Any]:
+    return {
+        "name": str(name or "").strip(),
+        "multi_connection": bool(multi_connection),
+        "display_name": True,
+    }
+
+
+def _update_data_node_ports(node_row: dict[str, Any], layout_entry: dict[str, Any]) -> None:
+    variable_name = str(node_row.get("node_input_variable", "") or "").strip()
+    value_display = bool(node_row.get("node_value_display", False))
+    node_value = str(node_row.get("node_input_value", "") or "")
+    if variable_name:
+        layout_entry["output_ports"] = [_template_port_entry(variable_name, multi_connection=True)]
+    else:
+        layout_entry["output_ports"] = []
+    layout_entry["input_ports"] = []
+    custom = dict(layout_entry.get("custom", {}) or {})
+    custom["Text Caption"] = node_value if value_display else ""
+    layout_entry["custom"] = custom
+
+
+def _update_python_node_ports(node_row: dict[str, Any], layout_entry: dict[str, Any]) -> None:
+    wrapper_text = str(node_row.get("node_function_wrapper", "") or "").strip()
+    input_ports, output_ports = _infer_python_ports_from_wrapper(wrapper_text)
+    layout_entry["input_ports"] = [_template_port_entry(name, multi_connection=False) for name in input_ports]
+    layout_entry["output_ports"] = [_template_port_entry(name, multi_connection=True) for name in output_ports]
+
+
+def _update_text_node_layout(node_row: dict[str, Any], layout_entry: dict[str, Any]) -> None:
+    custom = dict(layout_entry.get("custom", {}) or {})
+    custom["backdrop_text"] = str(node_row.get("node_input_value", "") or "")
+    layout_entry["custom"] = custom
+
+
+def _node_position(layout_entry: dict[str, Any]) -> list[float]:
+    pos = list(dict(layout_entry or {}).get("pos", []) or [])
+    if len(pos) >= 2:
+        try:
+            return [float(pos[0]), float(pos[1])]
+        except Exception:
+            return [100.0, 100.0]
+    return [100.0, 100.0]
+
+
+def _next_added_node_position(flow_layout_nodes: dict[str, Any], node_type: str) -> list[float]:
+    positions = []
+    for entry in list(dict(flow_layout_nodes or {}).values()):
+        item = dict(entry or {})
+        if str(item.get("type_", "") or "").strip() == _default_flow_layout_type(node_type):
+            positions.append(_node_position(item))
+    if positions:
+        positions.sort(key=lambda item: (item[0], item[1]))
+        last = positions[-1]
+        return [last[0] + 220.0, last[1] + 120.0]
+    return [100.0, 100.0]
+
+
+def _resolve_template_node_reference(
+    node_name: str,
+    nodes_by_name: dict[str, dict[str, Any]],
+) -> dict[str, Any] | None:
+    requested = str(node_name or "").strip()
+    if not requested:
+        return None
+    exact = nodes_by_name.get(requested.casefold())
+    if exact is not None:
+        return exact
+    matches = [item for key, item in nodes_by_name.items() if requested.casefold() in key]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
+def _rebuild_inputs_df_from_nodes(flow_json_data: dict[str, Any]) -> None:
+    nodes = [dict(item or {}) for item in list(flow_json_data.get("nodes_df", []) or [])]
+    inputs = []
+    for row in nodes:
+        if str(row.get("node_type", "") or "").strip() != "data_node":
+            continue
+        inputs.append(
+            {
+                "node_id": str(row.get("node_id", "") or "").strip(),
+                "node_name": str(row.get("node_name", "") or "").strip(),
+                "variable_name": str(row.get("node_input_variable", "") or "").strip(),
+                "value": str(row.get("node_input_value", "") or ""),
+                "is_path": bool(row.get("node_is_path", False)),
+                "is_from_master": bool(row.get("node_is_from_master", False)),
+            }
+        )
+    flow_json_data["inputs_df"] = [{"name": "Base Case", "inputs": inputs}]
+
+
+def _remap_data_node_connection_ports(
+    connection_rows: list[dict[str, Any]],
+    *,
+    node_id: str,
+    old_port: str,
+    new_port: str,
+) -> None:
+    old_port_text = str(old_port or "").strip()
+    new_port_text = str(new_port or "").strip()
+    node_id_text = str(node_id or "").strip()
+    if not node_id_text or old_port_text == new_port_text or not new_port_text:
+        return
+    for row in list(connection_rows or []):
+        if str(dict(row or {}).get("from_node", "") or "").strip() != node_id_text:
+            continue
+        mapping = dict(dict(row or {}).get("mapping", {}) or {}) if isinstance(dict(row or {}).get("mapping"), dict) else {}
+        if old_port_text in mapping:
+            target_port = mapping.pop(old_port_text)
+            mapping[new_port_text] = target_port
+            row["mapping"] = mapping
+
+
+def _remap_python_node_connection_ports(
+    connection_rows: list[dict[str, Any]],
+    *,
+    node_id: str,
+    old_inputs: list[str],
+    new_inputs: list[str],
+    old_outputs: list[str],
+    new_outputs: list[str],
+) -> None:
+    node_id_text = str(node_id or "").strip()
+    if not node_id_text:
+        return
+    input_port_map = {}
+    output_port_map = {}
+    if list(old_inputs or []) and list(new_inputs or []) and len(list(old_inputs or [])) == len(list(new_inputs or [])):
+        input_port_map = {
+            str(old_inputs[index] or "").strip(): str(new_inputs[index] or "").strip()
+            for index in range(len(list(old_inputs or [])))
+            if str(old_inputs[index] or "").strip() and str(new_inputs[index] or "").strip()
+        }
+    if list(old_outputs or []) and list(new_outputs or []) and len(list(old_outputs or [])) == len(list(new_outputs or [])):
+        output_port_map = {
+            str(old_outputs[index] or "").strip(): str(new_outputs[index] or "").strip()
+            for index in range(len(list(old_outputs or [])))
+            if str(old_outputs[index] or "").strip() and str(new_outputs[index] or "").strip()
+        }
+    for row in list(connection_rows or []):
+        mapping = dict(dict(row or {}).get("mapping", {}) or {}) if isinstance(dict(row or {}).get("mapping"), dict) else {}
+        if str(dict(row or {}).get("to_node", "") or "").strip() == node_id_text and input_port_map:
+            rewritten = {}
+            for source_port, target_port in mapping.items():
+                target_text = str(target_port or "").strip()
+                rewritten[str(source_port or "").strip()] = input_port_map.get(target_text, target_text)
+            row["mapping"] = rewritten
+        if str(dict(row or {}).get("from_node", "") or "").strip() == node_id_text and output_port_map:
+            rewritten = {}
+            for source_port, target_port in mapping.items():
+                source_text = str(source_port or "").strip()
+                rewritten[output_port_map.get(source_text, source_text)] = str(target_port or "").strip()
+            row["mapping"] = rewritten
+
+
+def _template_edits_has_changes(template_edits: dict[str, Any] | None) -> bool:
+    edits = dict(template_edits or {})
+    if str(edits.get("set_flow_name", "") or "").strip():
+        return True
+    for key in (
+        "text_node_updates",
+        "data_node_updates",
+        "python_node_updates",
+        "node_additions",
+        "connections_to_add",
+        "connections_to_remove",
+    ):
+        if list(edits.get(key, []) or []):
+            return True
+    return False
+
+
+def _compile_template_edit_plan(
+    template_flow_json: dict[str, Any],
+    template_edits: dict[str, Any] | None,
+) -> dict[str, Any]:
+    flow_json = copy.deepcopy(dict(template_flow_json or {}))
+    edits = dict(template_edits or {})
+    flow_json.setdefault("nodes_df", [])
+    flow_json.setdefault("connections_df", [])
+    flow_json.setdefault("flow_layout", {})
+    flow_json["flow_layout"].setdefault("nodes", {})
+    flow_json["flow_layout"].setdefault("connections", [])
+
+    if str(edits.get("set_flow_name", "") or "").strip():
+        flow_json["flow_name"] = str(edits.get("set_flow_name", "") or "").strip()
+
+    node_rows = [dict(item or {}) for item in list(flow_json.get("nodes_df", []) or [])]
+    flow_layout_nodes = dict(flow_json.get("flow_layout", {}).get("nodes", {}) or {})
+    existing_ids = {str(item.get("node_id", "") or "").strip() for item in node_rows if str(item.get("node_id", "") or "").strip()}
+
+    nodes_by_name = {
+        str(row.get("node_name", "") or "").strip().casefold(): row
+        for row in node_rows
+        if str(row.get("node_name", "") or "").strip()
+    }
+
+    def _sync_node_after_edit(node_row: dict[str, Any]) -> None:
+        node_id = str(node_row.get("node_id", "") or "").strip()
+        node_name = str(node_row.get("node_name", "") or "").strip()
+        if not node_id:
+            return
+        layout_entry = dict(flow_layout_nodes.get(node_id, {}) or {})
+        if not layout_entry:
+            node_type = str(node_row.get("node_type", "") or "").strip()
+            layout_entry = _default_layout_entry(node_type, node_name, _next_added_node_position(flow_layout_nodes, node_type))
+        layout_entry["name"] = node_name
+        node_type = str(node_row.get("node_type", "") or "").strip()
+        if node_type == "data_node":
+            _update_data_node_ports(node_row, layout_entry)
+        elif node_type == "python_node":
+            _update_python_node_ports(node_row, layout_entry)
+        elif node_type == "back_node":
+            _update_text_node_layout(node_row, layout_entry)
+        flow_layout_nodes[node_id] = layout_entry
+
+    def _rename_node_references(old_name: str, new_name: str) -> None:
+        if not old_name or not new_name or old_name == new_name:
+            return
+        for connection in list(flow_json.get("connections_df", []) or []):
+            mapping = dict(connection.get("mapping", {}) or {}) if isinstance(connection.get("mapping"), dict) else {}
+            connection["mapping"] = mapping
+        for edit_group in ("connections_to_add", "connections_to_remove"):
+            for item in list(edits.get(edit_group, []) or []):
+                if str(item.get("source_node", "") or "").strip() == old_name:
+                    item["source_node"] = new_name
+                if str(item.get("target_node", "") or "").strip() == old_name:
+                    item["target_node"] = new_name
+
+    for group_name, node_type in (
+        ("text_node_updates", "back_node"),
+        ("data_node_updates", "data_node"),
+        ("python_node_updates", "python_node"),
+    ):
+        for raw_update in list(edits.get(group_name, []) or []):
+            update = dict(raw_update or {})
+            target = _resolve_template_node_reference(update.get("node_name", ""), nodes_by_name)
+            if target is None:
+                continue
+            old_name = str(target.get("node_name", "") or "").strip()
+            new_name = str(update.get("new_name", "") or "").strip()
+            if new_name:
+                target["node_name"] = new_name
+                _rename_node_references(old_name, new_name)
+                nodes_by_name.pop(old_name.casefold(), None)
+                nodes_by_name[new_name.casefold()] = target
+            if node_type == "back_node":
+                if "text" in update:
+                    target["node_input_value"] = str(update.get("text", "") or "")
+            elif node_type == "data_node":
+                old_variable_name = str(target.get("node_input_variable", "") or "").strip()
+                if "variable_name" in update:
+                    target["node_input_variable"] = str(update.get("variable_name", "") or "").strip()
+                if "value" in update:
+                    target["node_input_value"] = str(update.get("value", "") or "")
+                bool_value = _coerce_bool_or_none(update.get("value_display"))
+                if bool_value is not None:
+                    target["node_value_display"] = bool_value
+                bool_value = _coerce_bool_or_none(update.get("is_path"))
+                if bool_value is not None:
+                    target["node_is_path"] = bool_value
+                new_variable_name = str(target.get("node_input_variable", "") or "").strip()
+                _remap_data_node_connection_ports(
+                    list(flow_json.get("connections_df", []) or []),
+                    node_id=str(target.get("node_id", "") or "").strip(),
+                    old_port=old_variable_name,
+                    new_port=new_variable_name,
+                )
+            elif node_type == "python_node":
+                old_wrapper = str(target.get("node_function_wrapper", "") or "").strip()
+                if "imports" in update:
+                    target["node_imports"] = str(update.get("imports", "") or "")
+                if "wrapper" in update:
+                    target["node_function_wrapper"] = str(update.get("wrapper", "") or "")
+                new_wrapper = str(target.get("node_function_wrapper", "") or "").strip()
+                old_inputs, old_outputs = _infer_python_ports_from_wrapper(old_wrapper)
+                new_inputs, new_outputs = _infer_python_ports_from_wrapper(new_wrapper)
+                _remap_python_node_connection_ports(
+                    list(flow_json.get("connections_df", []) or []),
+                    node_id=str(target.get("node_id", "") or "").strip(),
+                    old_inputs=old_inputs,
+                    new_inputs=new_inputs,
+                    old_outputs=old_outputs,
+                    new_outputs=new_outputs,
+                )
+            _sync_node_after_edit(target)
+
+    prototype_by_type = {}
+    for row in node_rows:
+        node_type = str(row.get("node_type", "") or "").strip()
+        node_id = str(row.get("node_id", "") or "").strip()
+        if node_type and node_type not in prototype_by_type:
+            prototype_by_type[node_type] = (
+                copy.deepcopy(row),
+                copy.deepcopy(flow_layout_nodes.get(node_id, {}) or {}),
+            )
+
+    for raw_add in list(edits.get("node_additions", []) or []):
+        addition = dict(raw_add or {})
+        requested_type = str(addition.get("node_type", "") or "").strip().lower()
+        node_type = {"data": "data_node", "py": "python_node", "text": "back_node"}.get(requested_type, "")
+        node_name = str(addition.get("name", "") or "").strip()
+        if not node_type or not node_name:
+            continue
+        template_row, template_layout = prototype_by_type.get(node_type, ({}, {}))
+        node_row = copy.deepcopy(template_row) if template_row else {
+            "node_id": "",
+            "node_name": node_name,
+            "node_type": node_type,
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_value_display": False,
+            "node_is_path": False,
+            "node_is_from_master": False,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": "",
+        }
+        node_id = _new_flow_node_id(existing_ids)
+        node_row["node_id"] = node_id
+        node_row["node_name"] = node_name
+        node_row["node_type"] = node_type
+        if node_type == "data_node":
+            node_row["node_input_variable"] = str(addition.get("variable_name", "") or "").strip()
+            node_row["node_input_value"] = str(addition.get("value", "") or "")
+            node_row["node_value_display"] = bool(_coerce_bool_or_none(addition.get("value_display")) or False)
+            node_row["node_is_path"] = bool(_coerce_bool_or_none(addition.get("is_path")) or False)
+        elif node_type == "python_node":
+            if "imports" in addition:
+                node_row["node_imports"] = str(addition.get("imports", "") or "")
+            if "wrapper" in addition:
+                node_row["node_function_wrapper"] = str(addition.get("wrapper", "") or "")
+        elif node_type == "back_node":
+            node_row["node_input_value"] = str(addition.get("text", "") or "")
+            node_row["node_value_display"] = True
+        node_rows.append(node_row)
+        nodes_by_name[node_name.casefold()] = node_row
+
+        layout_entry = copy.deepcopy(template_layout) if template_layout else _default_layout_entry(
+            node_type,
+            node_name,
+            _next_added_node_position(flow_layout_nodes, node_type),
+        )
+        if not layout_entry:
+            layout_entry = _default_layout_entry(node_type, node_name, _next_added_node_position(flow_layout_nodes, node_type))
+        layout_entry["name"] = node_name
+        layout_entry["pos"] = _next_added_node_position(flow_layout_nodes, node_type)
+        flow_layout_nodes[node_id] = layout_entry
+        _sync_node_after_edit(node_row)
+
+    removed_pairs = set()
+    for raw_remove in list(edits.get("connections_to_remove", []) or []):
+        item = dict(raw_remove or {})
+        removed_pairs.add((
+            str(item.get("source_node", "") or "").strip().casefold(),
+            str(item.get("source_port", "") or "").strip(),
+            str(item.get("target_node", "") or "").strip().casefold(),
+            str(item.get("target_port", "") or "").strip(),
+        ))
+
+    node_ids_by_name = {
+        str(row.get("node_name", "") or "").strip().casefold(): str(row.get("node_id", "") or "").strip()
+        for row in node_rows
+        if str(row.get("node_name", "") or "").strip() and str(row.get("node_id", "") or "").strip()
+    }
+
+    connection_rows = []
+    flow_layout_connections = []
+    next_connection_id = 1
+    for row in list(flow_json.get("connections_df", []) or []):
+        item = dict(row or {})
+        source_id = str(item.get("from_node", "") or "").strip()
+        target_id = str(item.get("to_node", "") or "").strip()
+        source_name = str(next((r.get("node_name", "") for r in node_rows if str(r.get("node_id", "") or "").strip() == source_id), "") or "").strip()
+        target_name = str(next((r.get("node_name", "") for r in node_rows if str(r.get("node_id", "") or "").strip() == target_id), "") or "").strip()
+        mapping = dict(item.get("mapping", {}) or {}) if isinstance(item.get("mapping"), dict) else {}
+        should_keep = True
+        if mapping:
+            for source_port, target_port in mapping.items():
+                key = (source_name.casefold(), str(source_port or "").strip(), target_name.casefold(), str(target_port or "").strip())
+                if key in removed_pairs:
+                    should_keep = False
+                    break
+        if should_keep:
+            item["connection_id"] = next_connection_id
+            next_connection_id += 1
+            connection_rows.append(item)
+            if mapping:
+                for source_port, target_port in mapping.items():
+                    flow_layout_connections.append(
+                        {"out": [source_id, str(source_port or "").strip()], "in": [target_id, str(target_port or "").strip()]}
+                    )
+
+    existing_connection_keys = {
+        (
+            str(next((r.get("node_name", "") for r in node_rows if str(r.get("node_id", "") or "").strip() == str(conn.get("from_node", "") or "").strip()), "") or "").strip().casefold(),
+            str(source_port or "").strip(),
+            str(next((r.get("node_name", "") for r in node_rows if str(r.get("node_id", "") or "").strip() == str(conn.get("to_node", "") or "").strip()), "") or "").strip().casefold(),
+            str(target_port or "").strip(),
+        )
+        for conn in connection_rows
+        for source_port, target_port in list(dict(conn.get("mapping", {}) or {}).items())
+    }
+
+    for raw_add in list(edits.get("connections_to_add", []) or []):
+        item = dict(raw_add or {})
+        source_node = str(item.get("source_node", "") or "").strip()
+        source_port = str(item.get("source_port", "") or "").strip()
+        target_node = str(item.get("target_node", "") or "").strip()
+        target_port = str(item.get("target_port", "") or "").strip()
+        key = (source_node.casefold(), source_port, target_node.casefold(), target_port)
+        if not source_node or not target_node or not source_port or not target_port or key in existing_connection_keys:
+            continue
+        source_id = node_ids_by_name.get(source_node.casefold(), "")
+        target_id = node_ids_by_name.get(target_node.casefold(), "")
+        if not source_id or not target_id:
+            continue
+        connection_rows.append(
+            {
+                "connection_id": next_connection_id,
+                "from_node": source_id,
+                "to_node": target_id,
+                "mapping": {source_port: target_port},
+            }
+        )
+        next_connection_id += 1
+        flow_layout_connections.append({"out": [source_id, source_port], "in": [target_id, target_port]})
+        existing_connection_keys.add(key)
+
+    flow_json["nodes_df"] = node_rows
+    flow_json["connections_df"] = connection_rows
+    flow_json["flow_layout"]["nodes"] = flow_layout_nodes
+    flow_json["flow_layout"]["connections"] = flow_layout_connections
+    _rebuild_inputs_df_from_nodes(flow_json)
+    return flow_json
+
+
+def _normalize_template_edit_plan(parsed: dict[str, Any]) -> dict[str, Any]:
+    edits = dict(parsed.get("template_edits", {}) or {}) if isinstance(parsed.get("template_edits"), dict) else {}
+
+    def _normalize_node_items(key: str, *, allowed_fields: tuple[str, ...]) -> list[dict[str, Any]]:
+        normalized_items = []
+        for raw_item in list(edits.get(key, []) or []):
+            item = dict(raw_item or {})
+            node_name = str(item.get("node_name", "") or item.get("name", "") or "").strip()
+            if key.endswith("updates") and not node_name:
+                continue
+            normalized = {}
+            if node_name:
+                normalized["node_name"] = node_name
+            for field in allowed_fields:
+                if field in item:
+                    normalized[field] = item.get(field)
+            if normalized:
+                normalized_items.append(normalized)
+        return normalized_items
+
+    return {
+        "reply": str(parsed.get("reply", "") or "").strip(),
+        "planning_path": str(parsed.get("planning_path", "") or "template_json_edit_then_load").strip(),
+        "path_reason": str(parsed.get("path_reason", "") or "").strip(),
+        "template_edits": {
+            "set_flow_name": str(edits.get("set_flow_name", "") or "").strip(),
+            "text_node_updates": _normalize_node_items("text_node_updates", allowed_fields=("new_name", "text")),
+            "data_node_updates": _normalize_node_items("data_node_updates", allowed_fields=("new_name", "variable_name", "value", "value_display", "is_path")),
+            "python_node_updates": _normalize_node_items("python_node_updates", allowed_fields=("new_name", "imports", "wrapper")),
+            "node_additions": [
+                {
+                    "node_type": str(dict(item or {}).get("node_type", "") or "").strip(),
+                    "name": str(dict(item or {}).get("name", "") or "").strip(),
+                    "variable_name": str(dict(item or {}).get("variable_name", "") or "").strip(),
+                    "value": str(dict(item or {}).get("value", "") or ""),
+                    "value_display": dict(item or {}).get("value_display"),
+                    "is_path": dict(item or {}).get("is_path"),
+                    "text": str(dict(item or {}).get("text", "") or ""),
+                    "imports": str(dict(item or {}).get("imports", "") or ""),
+                    "wrapper": str(dict(item or {}).get("wrapper", "") or ""),
+                }
+                for item in list(edits.get("node_additions", []) or [])
+                if str(dict(item or {}).get("node_type", "") or "").strip() and str(dict(item or {}).get("name", "") or "").strip()
+            ][:8],
+            "connections_to_add": [
+                {
+                    "source_node": str(dict(item or {}).get("source_node", "") or "").strip(),
+                    "source_port": str(dict(item or {}).get("source_port", "") or "").strip(),
+                    "target_node": str(dict(item or {}).get("target_node", "") or "").strip(),
+                    "target_port": str(dict(item or {}).get("target_port", "") or "").strip(),
+                }
+                for item in list(edits.get("connections_to_add", []) or [])
+                if str(dict(item or {}).get("source_node", "") or "").strip() and str(dict(item or {}).get("target_node", "") or "").strip()
+            ][:12],
+            "connections_to_remove": [
+                {
+                    "source_node": str(dict(item or {}).get("source_node", "") or "").strip(),
+                    "source_port": str(dict(item or {}).get("source_port", "") or "").strip(),
+                    "target_node": str(dict(item or {}).get("target_node", "") or "").strip(),
+                    "target_port": str(dict(item or {}).get("target_port", "") or "").strip(),
+                }
+                for item in list(edits.get("connections_to_remove", []) or [])
+                if str(dict(item or {}).get("source_node", "") or "").strip() and str(dict(item or {}).get("target_node", "") or "").strip()
+            ][:12],
+        },
+    }
+
+
+def _run_template_json_edit_repair(
+    user_prompt: str,
+    task_match_result: dict[str, Any],
+    best_workflow_template: dict[str, Any],
+    compiled_workflow: dict[str, Any],
+    previous_template_edits: dict[str, Any],
+    build_path_guidance: dict[str, Any],
+    selected_model: str | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    compiled_inventory = _build_template_workflow_inventory(compiled_workflow)
+    system_prompt = (
+        "You are QuESt Agent's workflow template JSON repair reviewer. "
+        "A first-pass template edit has already been compiled into a workflow JSON. "
+        "Review the compiled workflow inventory against the user's requested task and the analyzed missing parts. "
+        "If the compiled workflow still misses required nodes, wrappers, values, or connections, return only the additional structured template edits needed to finish the job. "
+        "Do not return canvas actions. Do not return the full workflow JSON. "
+        "If the compiled workflow already satisfies the request, return empty template edits. "
+        "Return valid JSON only with this shape: "
+        "{"
+        "\"reply\": string, "
+        "\"planning_path\": \"template_json_edit_then_load\", "
+        "\"path_reason\": string, "
+        "\"template_edits\": {"
+        "\"set_flow_name\": string, "
+        "\"text_node_updates\": [{\"node_name\": string, \"new_name\": string, \"text\": string}], "
+        "\"data_node_updates\": [{\"node_name\": string, \"new_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean}], "
+        "\"python_node_updates\": [{\"node_name\": string, \"new_name\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"node_additions\": [{\"node_type\": \"data\"|\"py\"|\"text\", \"name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"text\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"connections_to_add\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}], "
+        "\"connections_to_remove\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}]"
+        "}"
+        "}."
+    )
+    payload = {
+        "latest_user_prompt": str(user_prompt or ""),
+        "task_analysis": dict(task_match_result or {}),
+        "task_analysis_guidance": _task_analysis_guidance(task_match_result),
+        "best_workflow_template": dict(best_workflow_template or {}),
+        "compiled_workflow_inventory": compiled_inventory,
+        "previous_template_edits": dict(previous_template_edits or {}),
+        "build_path_guidance": dict(build_path_guidance or {}),
+    }
+    if _fast_local_mode_enabled(selected_model):
+        payload = _enforce_fast_local_payload_budget(
+            {
+                "latest_user_prompt": _truncate_text(user_prompt, 800),
+                "task_analysis": _trim_task_analysis_for_fast_local(task_match_result),
+                "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
+                "best_workflow_template": dict(best_workflow_template or {}),
+                "compiled_workflow_inventory": compiled_inventory,
+                "previous_template_edits": dict(previous_template_edits or {}),
+                "build_path_guidance": dict(build_path_guidance or {}),
+            },
+            max_chars=FAST_LOCAL_PROMPT_CHAR_LIMIT,
+        )
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
+    ]
+    content, _resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
+        temperature=0,
+        api_key=api_key,
+        response_json=True,
+    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "Template JSON repair returned no content.",
+            "Template JSON repair returned invalid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
+    return _normalize_template_edit_plan(parsed)
+
+
+def _run_template_json_edit_plan(
+    user_prompt: str,
+    task_match_result: dict[str, Any],
+    skill_execution_recipes: dict[str, Any],
+    build_path_guidance: dict[str, Any],
+    selected_model: str | None = None,
+    single_step_only: bool = False,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    best_template = dict(task_match_result.get("best_workflow_template", {}) or {})
+    workflow_path = str(best_template.get("workflow_json_path", "") or "").strip()
+    if not workflow_path:
+        raise RuntimeError("No best workflow template was available for JSON editing.")
+    template_json = _read_workflow_json_file(workflow_path)
+    template_inventory = _build_template_workflow_inventory(template_json)
+
+    system_prompt = (
+        "You are QuESt Agent's workflow template JSON editor. "
+        "A best matched workflow template has already been chosen. "
+        "Your job is to return only the structured edits needed to adapt that template to the user's requested task. "
+        "Do not return canvas actions. Do not return the full workflow JSON. "
+        "Prefer minimal edits to the template instead of rebuilding its structure. "
+        "Use the task analysis, missing parts, and template inventory as the source of truth. "
+        "Make the JSON edit complete enough that the loaded workflow should satisfy the task without depending on later touch-up canvas actions for obvious missing pieces. "
+        "The output pipeline is: JSON diff/edit -> compile -> load -> validate. "
+        "Return valid JSON only with this shape: "
+        "{"
+        "\"reply\": string, "
+        "\"planning_path\": \"template_json_edit_then_load\", "
+        "\"path_reason\": string, "
+        "\"template_edits\": {"
+        "\"set_flow_name\": string, "
+        "\"text_node_updates\": [{\"node_name\": string, \"new_name\": string, \"text\": string}], "
+        "\"data_node_updates\": [{\"node_name\": string, \"new_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean}], "
+        "\"python_node_updates\": [{\"node_name\": string, \"new_name\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"node_additions\": [{\"node_type\": \"data\"|\"py\"|\"text\", \"name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"text\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"connections_to_add\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}], "
+        "\"connections_to_remove\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}]"
+        "}"
+        "}."
+    )
+    if single_step_only:
+        system_prompt += " Local single-step mode is active, but because this is a template JSON edit path, still return the full minimal template edit set needed for the next load."
+
+    payload = {
+        "latest_user_prompt": str(user_prompt or ""),
+        "task_analysis": dict(task_match_result or {}),
+        "task_analysis_guidance": _task_analysis_guidance(task_match_result),
+        "best_workflow_template": best_template,
+        "template_inventory": template_inventory,
+        "build_path_guidance": dict(build_path_guidance or {}),
+        "skill_execution_recipes": dict(skill_execution_recipes or {}),
+    }
+    if _fast_local_mode_enabled(selected_model):
+        payload = _enforce_fast_local_payload_budget(
+            {
+                "latest_user_prompt": _truncate_text(user_prompt, 800),
+                "task_analysis": _trim_task_analysis_for_fast_local(task_match_result),
+                "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
+                "best_workflow_template": dict(best_template or {}),
+                "template_inventory": template_inventory,
+                "build_path_guidance": dict(build_path_guidance or {}),
+            },
+            max_chars=FAST_LOCAL_PROMPT_CHAR_LIMIT,
+        )
+
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
+    ]
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
+        temperature=0,
+        api_key=api_key,
+        response_json=True,
+    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "Template JSON edit planner returned no content.",
+            "Template JSON edit planner returned invalid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
+    normalized = _normalize_template_edit_plan(parsed)
+    compiled_workflow = _compile_template_edit_plan(template_json, normalized.get("template_edits", {}))
+    try:
+        repair_result = _run_template_json_edit_repair(
+            user_prompt=user_prompt,
+            task_match_result=task_match_result,
+            best_workflow_template=best_template,
+            compiled_workflow=compiled_workflow,
+            previous_template_edits=dict(normalized.get("template_edits", {}) or {}),
+            build_path_guidance=build_path_guidance,
+            selected_model=selected_model,
+            api_key=api_key,
+        )
+    except Exception:
+        repair_result = {}
+    if _template_edits_has_changes(dict(repair_result or {}).get("template_edits", {})):
+        compiled_workflow = _compile_template_edit_plan(
+            compiled_workflow,
+            dict(repair_result.get("template_edits", {}) or {}),
+        )
+        if not str(normalized.get("reply", "") or "").strip():
+            normalized["reply"] = str(repair_result.get("reply", "") or "").strip()
+        if not str(normalized.get("path_reason", "") or "").strip():
+            normalized["path_reason"] = str(repair_result.get("path_reason", "") or "").strip()
+    return {
+        "reply": str(normalized.get("reply", "") or "").strip(),
+        "planning_path": "template_json_edit_then_load",
+        "path_reason": str(normalized.get("path_reason", "") or best_template.get("selection_reason", "") or "").strip(),
+        "actions": [
+            {
+                "type": "load_workflow_json",
+                "workflow_content": compiled_workflow,
+                "source_skill_id": str(best_template.get("skill_id", "") or "").strip(),
+            }
+        ],
+        "template_edits": dict(normalized.get("template_edits", {}) or {}),
+        "planning_source": "template_json_edit",
+        "model_used_note": _build_model_used_note(
+            selected_model,
+            selected_reasoning_model,
+            resolved_model_name,
+        ),
+    }
+
+
+def _run_current_flow_json_patch_plan(
+    user_prompt: str,
+    task_match_result: dict[str, Any],
+    attached_workflow_jsons: list[dict[str, Any]] | None,
+    skill_execution_recipes: dict[str, Any],
+    build_path_guidance: dict[str, Any],
+    selected_model: str | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    current_entry = _current_workflow_json_entry(attached_workflow_jsons)
+    current_flow_json = dict(current_entry.get("content", {}) or {})
+    if not current_flow_json:
+        raise RuntimeError("No current canvas workflow JSON was available for patching.")
+    current_inventory = _build_template_workflow_inventory(current_flow_json)
+
+    system_prompt = (
+        "You are QuESt Agent's current-flow JSON patch planner. "
+        "The current canvas workflow JSON has already been serialized. "
+        "Your job is to patch that current workflow JSON so it satisfies the task and fixes the listed missing parts. "
+        "Do not return canvas actions. Do not return the full workflow JSON. "
+        "Return only the structured JSON edits needed to transform the current flow into the next better flow state. "
+        "Use task analysis and missing parts as the source of truth for what is still wrong. "
+        "Use the current flow inventory as the source of truth for what already exists. "
+        "Prefer editing and reusing existing nodes and connections over duplicating them. "
+        "The output pipeline is: current json patch -> compile -> load -> validate. "
+        "Make the patch complete enough that it should not depend on ad hoc touch-up canvas actions for obvious missing pieces. "
+        "Return valid JSON only with this shape: "
+        "{"
+        "\"reply\": string, "
+        "\"planning_path\": \"current_flow_json_patch_then_load\", "
+        "\"path_reason\": string, "
+        "\"template_edits\": {"
+        "\"set_flow_name\": string, "
+        "\"text_node_updates\": [{\"node_name\": string, \"new_name\": string, \"text\": string}], "
+        "\"data_node_updates\": [{\"node_name\": string, \"new_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean}], "
+        "\"python_node_updates\": [{\"node_name\": string, \"new_name\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"node_additions\": [{\"node_type\": \"data\"|\"py\"|\"text\", \"name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"text\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"connections_to_add\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}], "
+        "\"connections_to_remove\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}]"
+        "}"
+        "}."
+    )
+    payload = {
+        "latest_user_prompt": str(user_prompt or ""),
+        "task_analysis": dict(task_match_result or {}),
+        "task_analysis_guidance": _task_analysis_guidance(task_match_result),
+        "current_flow_json_summary": {
+            "file": str(current_entry.get("file", "") or "").strip(),
+            "flow_name": str(current_entry.get("flow_name", "") or "").strip(),
+            "flow_type": str(current_entry.get("flow_type", "") or "").strip(),
+            "node_count": int(current_entry.get("node_count", 0) or 0),
+            "connection_count": int(current_entry.get("connection_count", 0) or 0),
+        },
+        "current_flow_inventory": current_inventory,
+        "build_path_guidance": dict(build_path_guidance or {}),
+        "skill_execution_recipes": dict(skill_execution_recipes or {}),
+    }
+    if _fast_local_mode_enabled(selected_model):
+        payload = _enforce_fast_local_payload_budget(
+            {
+                "latest_user_prompt": _truncate_text(user_prompt, 800),
+                "task_analysis": _trim_task_analysis_for_fast_local(task_match_result),
+                "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
+                "current_flow_json_summary": dict(payload.get("current_flow_json_summary", {}) or {}),
+                "current_flow_inventory": current_inventory,
+                "build_path_guidance": dict(build_path_guidance or {}),
+            },
+            max_chars=FAST_LOCAL_PROMPT_CHAR_LIMIT,
+        )
+
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
+    ]
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
+        temperature=0,
+        api_key=api_key,
+        response_json=True,
+    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "Current flow JSON patch planner returned no content.",
+            "Current flow JSON patch planner returned invalid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
+    normalized = _normalize_template_edit_plan(parsed)
+    compiled_workflow = _compile_template_edit_plan(current_flow_json, normalized.get("template_edits", {}))
+    try:
+        repair_result = _run_template_json_edit_repair(
+            user_prompt=user_prompt,
+            task_match_result=task_match_result,
+            best_workflow_template={
+                "skill_id": "",
+                "title": str(current_entry.get("file", "") or "Current Canvas"),
+                "selection_reason": "Applied a JSON patch to the current canvas workflow.",
+            },
+            compiled_workflow=compiled_workflow,
+            previous_template_edits=dict(normalized.get("template_edits", {}) or {}),
+            build_path_guidance=build_path_guidance,
+            selected_model=selected_model,
+            api_key=api_key,
+        )
+    except Exception:
+        repair_result = {}
+    if _template_edits_has_changes(dict(repair_result or {}).get("template_edits", {})):
+        compiled_workflow = _compile_template_edit_plan(
+            compiled_workflow,
+            dict(repair_result.get("template_edits", {}) or {}),
+        )
+        if not str(normalized.get("reply", "") or "").strip():
+            normalized["reply"] = str(repair_result.get("reply", "") or "").strip()
+        if not str(normalized.get("path_reason", "") or "").strip():
+            normalized["path_reason"] = str(repair_result.get("path_reason", "") or "").strip()
+    return {
+        "reply": str(normalized.get("reply", "") or "").strip(),
+        "planning_path": "current_flow_json_patch_then_load",
+        "path_reason": str(normalized.get("path_reason", "") or "Patched the current canvas workflow JSON to resolve the analyzed missing parts.").strip(),
+        "actions": [
+            {
+                "type": "load_workflow_json",
+                "workflow_content": compiled_workflow,
+                "source_skill_id": "",
+            }
+        ],
+        "template_edits": dict(normalized.get("template_edits", {}) or {}),
+        "planning_source": "current_flow_json_patch",
+        "model_used_note": _build_model_used_note(
+            selected_model,
+            selected_reasoning_model,
+            resolved_model_name,
+        ),
+    }
+
+
 def _repair_workspace_action_plan(
-    client: OpenAI,
     model_name: str,
     user_prompt: str,
     canvas_context: dict[str, Any],
@@ -904,13 +3409,16 @@ def _repair_workspace_action_plan(
     conversation: list[dict[str, Any]],
     initial_content: str,
     dropped_actions: list[str],
+    single_step_only: bool = False,
+    api_key: str | None = None,
 ) -> dict[str, Any]:
     repair_prompt = (
         "You are repairing a QuESt Workspace canvas action plan. "
         "The first draft was semantically close but did not normalize into executable canonical actions. "
         "Convert the user's request into the exact supported schema. "
-        "Use task_analysis.flow_description and task_analysis.notes as authoritative evidence about the current flow state. "
+        "Use task_analysis.flow_description, task_analysis.structured_flow_summary, task_analysis.missing_parts, and task_analysis.notes as authoritative evidence about the current flow state. "
         "If analysis indicates a partially built or incomplete flow, prefer repairing and completing the existing flow instead of rebuilding it from scratch unless the user explicitly asked for a rebuild. "
+        "Treat task_analysis.missing_parts as the highest-priority issues to resolve in the repaired plan. "
         "If skill_execution_recipes contains strong matched skills, repair the plan toward those recipes instead of falling back to generic blank nodes. "
         "Use build_path_guidance to choose the easiest viable build path before repairing the plan. "
         "Use only these action types: create_node, update_node, add_subflow, connect_nodes, rename_selected_node, update_selected_text_node, delete_selected_nodes, load_workflow_json. "
@@ -918,6 +3426,8 @@ def _repair_workspace_action_plan(
         "If the request is clearly a canvas edit, return at least one action. "
         "Return valid JSON only with shape {\"reply\": string, \"planning_path\": string, \"path_reason\": string, \"actions\": [ ... ]}."
     )
+    if single_step_only:
+        repair_prompt += " Local single-step mode is active. Return exactly one next executable action, not a full multi-step plan."
     repair_payload = {
         "latest_user_prompt": str(user_prompt or ""),
         "canvas_context": dict(canvas_context or {}),
@@ -933,23 +3443,66 @@ def _repair_workspace_action_plan(
         "initial_plan_raw": str(initial_content or ""),
         "normalization_failures": list(dropped_actions or []),
     }
-    response = client.chat.completions.create(
-        model=model_name,
-        temperature=0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": repair_prompt},
-            {"role": "user", "content": json.dumps(repair_payload, ensure_ascii=True, indent=2)},
-        ],
-    )
-    content = str(response.choices[0].message.content or "").strip() if response.choices else ""
+    if _fast_local_mode_enabled(model_name):
+        repair_payload = _build_fast_local_action_plan_payload(
+            user_prompt,
+            canvas_context,
+            task_match_result,
+            [],
+            [],
+            [],
+            {},
+            [],
+            {},
+            skill_execution_recipes,
+            conversation,
+            repair_payload.get("build_path_guidance", {}),
+        ) | {
+            "initial_plan_raw": _truncate_text(initial_content, 800),
+            "normalization_failures": [_truncate_text(item, 180) for item in list(dropped_actions or [])[:5]],
+        }
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(model_name)
+    messages = [
+        {"role": "system", "content": repair_prompt},
+        {"role": "user", "content": json.dumps(repair_payload, ensure_ascii=True, indent=2)},
+    ]
+    try:
+        content, resolved_model_name = _chat_completion_content(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+            response_json=True,
+        )
+    except RuntimeError as exc:
+        return {"reply": "", "actions": [], "dropped_actions": [str(exc)]}
     if not content:
         return {"reply": "", "actions": [], "dropped_actions": ["Repair pass returned no content."]}
     try:
-        parsed = json.loads(content)
-    except json.JSONDecodeError:
-        return {"reply": "", "actions": [], "dropped_actions": ["Repair pass returned invalid JSON."]}
-    return _normalize_workspace_action_plan(parsed, canvas_context=canvas_context)
+        parsed = _parse_json_response(
+            content,
+            "Repair pass returned no content.",
+            "Repair pass returned invalid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(model_name):
+            return {"reply": "", "actions": [], "dropped_actions": ["Repair pass returned invalid JSON."]}
+        try:
+            parsed = _retry_local_json_response(
+                messages,
+                selected_model=selected_reasoning_model,
+                temperature=0,
+                api_key=api_key,
+            )
+        except RuntimeError:
+            return {"reply": "", "actions": [], "dropped_actions": ["Repair pass returned invalid JSON."]}
+    normalized_plan = _normalize_workspace_action_plan(parsed, canvas_context=canvas_context)
+    normalized_plan["model_used_note"] = _build_model_used_note(
+        model_name,
+        selected_reasoning_model,
+        resolved_model_name,
+    )
+    return normalized_plan
 
 
 def run_workspace_action_plan(
@@ -965,6 +3518,8 @@ def run_workspace_action_plan(
     skill_execution_recipes: dict[str, Any] | None = None,
     recent_messages: list[dict[str, Any]] | None = None,
     selected_model: str | None = None,
+    single_step_only: bool = False,
+    force_planning_path: str | None = None,
     api_key: str | None = None,
 ) -> dict[str, Any]:
     canvas_context = dict(canvas_context or {})
@@ -977,6 +3532,36 @@ def run_workspace_action_plan(
         task_match_result=task_match_result,
         skill_execution_recipes=skill_execution_recipes,
     )
+    if str(force_planning_path or "").strip():
+        build_path_guidance["recommended_path"] = str(force_planning_path or "").strip()
+        if not str(build_path_guidance.get("reason", "") or "").strip():
+            build_path_guidance["reason"] = "Forced planning path."
+    best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
+    recommended_path = str(build_path_guidance.get("recommended_path", "") or "").strip()
+    if recommended_path == "current_flow_json_patch_then_load":
+        return _run_current_flow_json_patch_plan(
+            user_prompt=user_prompt,
+            task_match_result=task_match_result,
+            attached_workflow_jsons=attached_workflow_jsons,
+            skill_execution_recipes=skill_execution_recipes,
+            build_path_guidance=build_path_guidance,
+            selected_model=selected_model,
+            api_key=api_key,
+        )
+    if (
+        best_workflow_template
+        and recommended_path == "template_json_edit_then_load"
+        and _request_prefers_template_json_edit(user_prompt, canvas_context)
+    ):
+        return _run_template_json_edit_plan(
+            user_prompt=user_prompt,
+            task_match_result=task_match_result,
+            skill_execution_recipes=skill_execution_recipes,
+            build_path_guidance=build_path_guidance,
+            selected_model=selected_model,
+            single_step_only=single_step_only,
+            api_key=api_key,
+        )
 
     system_prompt = (
         "You are QuESt Agent's canvas action planner. "
@@ -984,15 +3569,17 @@ def run_workspace_action_plan(
         "Do not invent unsupported actions. "
         "If the request involves Python node wrappers, ports, or notebook code, treat python_node_wrapper_rules as authoritative over guesses. "
         "Treat task_analysis_guidance as the main execution guidance from prior analysis. "
-        "Use task_analysis_guidance.flow_description and task_analysis_guidance.notes as authoritative current-state evidence about what already exists on canvas. "
+        "Use task_analysis_guidance.flow_description, task_analysis_guidance.structured_flow_summary, task_analysis_guidance.missing_parts, and task_analysis_guidance.notes as authoritative current-state evidence about what already exists on canvas. "
         "If analysis shows an incomplete or partially built flow, prefer actions that complete, connect, initialize, or repair existing nodes instead of rebuilding the flow from scratch, unless the user explicitly asks to rebuild or replace it. "
+        "Treat task_analysis_guidance.missing_parts as the highest-priority gaps to resolve in the next plan. "
         "Follow task_analysis_guidance.planning_directives strictly when they are present. "
         "Use top_skill_matches and top_tool_matches to shape how the plan should be implemented, but not to ignore the analyzed current flow. "
+        "If task_analysis_guidance.best_workflow_template is available, treat it as the preferred baseline for a JSON diff/edit -> load -> validate workflow. "
         "Use build_path_guidance to choose the easiest viable build path before producing actions. "
-        "Prefer these paths in order when they fit: edit_current_flow, reuse_skill_workflow_json, manual_canvas_build, draft_workflow_json_then_load. "
+        "Prefer these paths in order when they fit: edit_current_flow, template_json_edit_then_load, reuse_skill_workflow_json, manual_canvas_build, draft_workflow_json_then_load. "
         "If skill_execution_recipes contains strong matched skills, treat those recipes as concrete prior examples to adapt. "
         "Prefer reusing a matched skill's workflow strategy, step pattern, validation criteria, and saved workflow template structure over inventing a fresh plan from scratch when the task is similar. "
-        "If a matched skill includes workflow_template metadata, you may use that saved flow as the structural blueprint for the plan, or load it directly with load_workflow_json before applying follow-up edits. "
+        "If a matched skill includes workflow_template metadata, prefer producing a load_workflow_json action with edited workflow_content that reflects the requested changes; only fall back to direct load_workflow_json with workflow_path when no JSON edits are needed. "
         "If relevant saved skills were matched, let their intent and reasons shape the concrete canvas actions you choose. "
         "Supported action types are: create_node, update_node, add_subflow, connect_nodes, rename_selected_node, update_selected_text_node, delete_selected_nodes, load_workflow_json. "
         "For create_node, node_type must be one of data, py, text and count must be an integer from 1 to 5. "
@@ -1013,42 +3600,83 @@ def run_workspace_action_plan(
         "]"
         "}."
     )
+    if single_step_only:
+        system_prompt += (
+            " Local single-step mode is active. "
+            "Return exactly one next executable action only. "
+            "Do not include later follow-up build steps yet."
+        )
 
-    payload = {
-        "latest_user_prompt": str(user_prompt or ""),
-        "canvas_context": canvas_context,
-        "task_analysis": task_match_result,
-        "task_analysis_guidance": _task_analysis_guidance(task_match_result),
-        "pinned_context": list(pinned_context or []),
-        "attached_files": [Path(str(path)).name for path in list(attached_files or [])],
-        "attached_workflow_jsons": list(attached_workflow_jsons or []),
-        "workspace_relationship_context": dict(workspace_relationship_context or {}),
-        "implicit_code_context": list(implicit_code_context or []),
-        "python_node_wrapper_rules": dict(python_node_wrapper_rules or {}),
-        "skill_execution_recipes": skill_execution_recipes,
-        "build_path_guidance": build_path_guidance,
-        "recent_conversation": conversation,
-    }
+    if _fast_local_mode_enabled(selected_model):
+        payload = _build_fast_local_action_plan_payload(
+            user_prompt,
+            canvas_context,
+            task_match_result,
+            pinned_context,
+            attached_files,
+            attached_workflow_jsons,
+            workspace_relationship_context,
+            implicit_code_context,
+            python_node_wrapper_rules,
+            skill_execution_recipes,
+            recent_messages,
+            build_path_guidance,
+        )
+        system_prompt += (
+            " Fast local mode is active. "
+            "Use the provided compact context only. "
+            "Prefer the shortest viable plan that reuses current flow state and strong matched skill recipes."
+        )
+    else:
+        payload = {
+            "latest_user_prompt": str(user_prompt or ""),
+            "canvas_context": canvas_context,
+            "task_analysis": task_match_result,
+            "task_analysis_guidance": _task_analysis_guidance(task_match_result),
+            "pinned_context": list(pinned_context or []),
+            "attached_files": [Path(str(path)).name for path in list(attached_files or [])],
+            "attached_workflow_jsons": list(attached_workflow_jsons or []),
+            "workspace_relationship_context": dict(workspace_relationship_context or {}),
+            "implicit_code_context": list(implicit_code_context or []),
+            "python_node_wrapper_rules": dict(python_node_wrapper_rules or {}),
+            "skill_execution_recipes": skill_execution_recipes,
+            "build_path_guidance": build_path_guidance,
+            "recent_conversation": conversation,
+        }
 
-    resolved_model_name = _resolve_model_name(selected_model)
-    client = OpenAI(api_key=_resolve_api_key(api_key))
-    response = client.chat.completions.create(
-        model=resolved_model_name,
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
+    ]
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
         temperature=0,
-        response_format={"type": "json_object"},
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
-        ],
+        api_key=api_key,
+        response_json=True,
     )
-
-    content = str(response.choices[0].message.content or "").strip() if response.choices else ""
-    parsed = _parse_json_response(
-        content,
-        "OpenAI returned an empty canvas action plan.",
-        "OpenAI canvas action plan was not valid JSON.",
-    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "OpenAI returned an empty canvas action plan.",
+            "OpenAI canvas action plan was not valid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
     normalized_plan = _normalize_workspace_action_plan(parsed, canvas_context=canvas_context)
+    normalized_plan["model_used_note"] = _build_model_used_note(
+        selected_model,
+        selected_reasoning_model,
+        resolved_model_name,
+    )
     if normalized_plan.get("actions"):
         normalized_plan["intent"] = str(parsed.get("intent", "") or "").strip()
         return normalized_plan
@@ -1058,7 +3686,6 @@ def run_workspace_action_plan(
         return normalized_plan
 
     repaired_plan = _repair_workspace_action_plan(
-        client=client,
         model_name=resolved_model_name,
         user_prompt=user_prompt,
         canvas_context=canvas_context,
@@ -1067,6 +3694,8 @@ def run_workspace_action_plan(
         conversation=conversation,
         initial_content=content,
         dropped_actions=list(normalized_plan.get("dropped_actions", []) or []),
+        single_step_only=single_step_only,
+        api_key=api_key,
     )
     if repaired_plan.get("actions"):
         if not repaired_plan.get("reply"):
@@ -1095,13 +3724,31 @@ def run_structured_task_match(
     skill_payload = load_skill_library(quest_agent_root)
     tools = list(registry.get("tools", []))
     skills = list(skill_payload.get("skills", []))
+    query_text = _build_matcher_search_text(
+        task_description,
+        list(pinned_context or []),
+        list(attached_files or []),
+        list(attached_workflow_jsons or []),
+        dict(workspace_relationship_context or {}),
+        list(implicit_code_context or []),
+    )
+    preliminary_tool_matches = _heuristic_tool_matches(query_text, tools)
+    selected_skills = _filter_skills_by_matched_tools(
+        skills,
+        preliminary_tool_matches,
+        include_general_fallback=True,
+    )
+    if _fast_local_mode_enabled(selected_model):
+        selected_skills = _select_skills_for_fast_local(selected_skills, query_text or task_description)
+        pinned_context = [_truncate_text(item, 220) for item in list(pinned_context or [])[:FAST_LOCAL_MAX_PINNED_CONTEXT]]
+        attached_files = list(attached_files or [])[:FAST_LOCAL_MAX_ATTACHED_FILES]
+        attached_workflow_jsons = _trim_workflow_contexts_for_fast_local(attached_workflow_jsons)
+        workspace_relationship_context = dict(workspace_relationship_context or {})
+        implicit_code_context = _trim_implicit_code_context_for_fast_local(implicit_code_context)
+        python_node_wrapper_rules = _trim_python_wrapper_rules_for_fast_local(python_node_wrapper_rules)
 
-    client = OpenAI(api_key=_resolve_api_key(api_key))
-    response = client.chat.completions.create(
-        model=_resolve_model_name(selected_model),
-        temperature=0,
-        response_format={"type": "json_object"},
-        messages=_build_messages(
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = _build_messages(
             task_description=task_description,
             pinned_context=list(pinned_context or []),
             attached_files=list(attached_files or []),
@@ -1110,16 +3757,59 @@ def run_structured_task_match(
             implicit_code_context=list(implicit_code_context or []),
             python_node_wrapper_rules=dict(python_node_wrapper_rules or {}),
             tools=tools,
-            skills=skills,
-        ),
+            skills=selected_skills,
+        )
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
+        temperature=0,
+        api_key=api_key,
+        response_json=True,
     )
-    content = str(response.choices[0].message.content or "").strip() if response.choices else ""
-    parsed = _parse_json_response(
-        content,
-        "OpenAI returned an empty task match response.",
-        "OpenAI task match response was not valid JSON.",
-    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "OpenAI returned an empty task match response.",
+            "OpenAI task match response was not valid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
     result = _normalize_match_result(parsed, tools, skills)
+    result = _apply_heuristic_match_floor(
+        result,
+        query_text=query_text,
+        tools=tools,
+        skills=skills,
+        task_description=task_description,
+        attached_workflow_jsons=list(attached_workflow_jsons or []),
+        workspace_relationship_context=dict(workspace_relationship_context or {}),
+    )
+    best_workflow_template = _build_best_workflow_template(
+        list(result.get("skill_matches", []) or []),
+        skills,
+        list(result.get("tool_matches", []) or []),
+    )
+    if best_workflow_template:
+        result["best_workflow_template"] = best_workflow_template
+        notes = [str(note).strip() for note in list(result.get("notes", []) or []) if str(note).strip()]
+        title = str(best_workflow_template.get("title", "") or "").strip()
+        if title and not any(title.casefold() in note.casefold() for note in notes):
+            notes.append(
+                f"Best reusable workflow template: {title}. Prefer adapting that saved flow before building from scratch."
+            )
+        result["notes"] = notes[:10]
     result["tool_errors"] = list(skill_payload.get("errors", []))
-    result["model"] = _resolve_model_name(selected_model)
+    result["model"] = resolved_model_name
+    result["model_used_note"] = _build_model_used_note(
+        selected_model,
+        selected_reasoning_model,
+        resolved_model_name,
+    )
     return result

@@ -26,8 +26,15 @@ def get_api_key_from_config():
     if os.path.exists(config_file):
         config = configparser.ConfigParser()
         config.read(config_file)
-        return config['openai'].get('api_key', '')
-    return ''
+        if config.has_section('api_keys'):
+            api_key = config.get('api_keys', 'openai', fallback='').strip()
+            if api_key:
+                return api_key
+        if config.has_section('openai'):
+            api_key = config.get('openai', 'api_key', fallback='').strip()
+            if api_key:
+                return api_key
+    return os.environ.get('OPENAI_API_KEY', '').strip()
 def load_css(css_file):
     with open(css_file, "r") as f:
         st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
