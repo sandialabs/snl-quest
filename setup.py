@@ -37,7 +37,7 @@ setup(
         "PySide6==6.8.1",
         "pandas>=2.2.3,<2.3",
         "streamlit==1.55.0",
-        "openai==1.86.0",
+        "openai==2.32.0",
         "psutil==5.9.0",
         "GitPython==3.1.43",
         'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
