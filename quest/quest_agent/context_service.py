@@ -267,6 +267,9 @@ def get_skill_execution_recipes(state, normalize_path):
             raw_data = {}
         plan = raw_data.get("plan", {}) if isinstance(raw_data.get("plan", {}), dict) else {}
         inputs = raw_data.get("inputs", {}) if isinstance(raw_data.get("inputs", {}), dict) else {}
+        outputs = raw_data.get("outputs", {}) if isinstance(raw_data.get("outputs", {}), dict) else {}
+        edit_recipe = raw_data.get("edit_recipe", {}) if isinstance(raw_data.get("edit_recipe", {}), dict) else {}
+        classification = raw_data.get("classification", {}) if isinstance(raw_data.get("classification", {}), dict) else {}
         validation = raw_data.get("validation", {}) if isinstance(raw_data.get("validation", {}), dict) else {}
         workflow_template = _build_skill_workflow_template_context(
             getattr(skill, "workflow_json_path", ""),
@@ -279,8 +282,13 @@ def get_skill_execution_recipes(state, normalize_path):
                 "title": str(getattr(skill, "title", "") or skill_id).strip(),
                 "summary": str(getattr(skill, "summary", "") or "").strip(),
                 "skill_type": str(getattr(skill, "skill_type", "") or "").strip(),
+                "skill_mode": str(getattr(skill, "skill_mode", "") or str(plan.get("skill_mode", "") or "")).strip(),
                 "confidence": _normalize_skill_confidence(item.get("confidence", 0.0)),
                 "reason": str(item.get("reason", "") or "").strip(),
+                "tags": [str(value).strip() for value in list(getattr(skill, "tags", []) or []) if str(value).strip()],
+                "tool_tags": [str(value).strip() for value in list(getattr(skill, "tool_tags", []) or list(classification.get("tool_tags", []) or [])) if str(value).strip()],
+                "structural_tags": [str(value).strip() for value in list(getattr(skill, "structural_tags", []) or list(classification.get("structural_tags", []) or [])) if str(value).strip()],
+                "task_pattern_tags": [str(value).strip() for value in list(getattr(skill, "task_pattern_tags", []) or list(classification.get("task_pattern_tags", []) or [])) if str(value).strip()],
                 "recommended_tools": [str(value).strip() for value in list(getattr(skill, "recommended_tools", []) or []) if str(value).strip()],
                 "required_tools": [str(value).strip() for value in list(getattr(skill, "required_tools", []) or []) if str(value).strip()],
                 "workflow_strategy": str(plan.get("workflow_strategy", "") or "").strip(),
@@ -298,9 +306,33 @@ def get_skill_execution_recipes(state, normalize_path):
                     for entry in list(inputs.get("expected_inputs", []) or [])[:6]
                     if str(dict(entry or {}).get("name", "") or "").strip()
                 ],
+                "expected_outputs": [
+                    {
+                        "name": str(dict(entry or {}).get("name", "") or "").strip(),
+                        "type": str(dict(entry or {}).get("type", "") or "").strip(),
+                        "description": str(dict(entry or {}).get("description", "") or "").strip(),
+                    }
+                    for entry in list(outputs.get("expected_outputs", []) or [])[:6]
+                    if str(dict(entry or {}).get("name", "") or "").strip()
+                ],
+                "transformation_intents": [
+                    str(value).strip()
+                    for value in list(plan.get("transformation_intents", []) or list(edit_recipe.get("transformation_intents", []) or []))[:8]
+                    if str(value).strip()
+                ],
+                "common_variations": [
+                    str(value).strip()
+                    for value in list(edit_recipe.get("common_variations", []) or [])[:8]
+                    if str(value).strip()
+                ],
+                "common_fixes": [
+                    str(value).strip()
+                    for value in list(edit_recipe.get("common_fixes", []) or [])[:8]
+                    if str(value).strip()
+                ],
                 "validation_criteria": [
                     str(value).strip()
-                    for value in list(validation.get("criteria", []) or [])[:8]
+                    for value in list(edit_recipe.get("validation_criteria", []) or list(validation.get("criteria", []) or []))[:8]
                     if str(value).strip()
                 ],
                 "limitations": [
@@ -308,6 +340,51 @@ def get_skill_execution_recipes(state, normalize_path):
                     for value in list(raw_data.get("limitations", []) or [])[:4]
                     if str(value).strip()
                 ],
+                "edit_recipe": {
+                    "required_tools": [
+                        str(value).strip()
+                        for value in list(edit_recipe.get("required_tools", []) or [])[:8]
+                        if str(value).strip()
+                    ],
+                    "expected_inputs": [
+                        {
+                            "name": str(dict(entry or {}).get("name", "") or "").strip(),
+                            "type": str(dict(entry or {}).get("type", "") or "").strip(),
+                            "description": str(dict(entry or {}).get("description", "") or "").strip(),
+                        }
+                        for entry in list(edit_recipe.get("expected_inputs", []) or [])[:6]
+                        if str(dict(entry or {}).get("name", "") or "").strip()
+                    ],
+                    "expected_outputs": [
+                        {
+                            "name": str(dict(entry or {}).get("name", "") or "").strip(),
+                            "type": str(dict(entry or {}).get("type", "") or "").strip(),
+                            "description": str(dict(entry or {}).get("description", "") or "").strip(),
+                        }
+                        for entry in list(edit_recipe.get("expected_outputs", []) or [])[:6]
+                        if str(dict(entry or {}).get("name", "") or "").strip()
+                    ],
+                    "common_variations": [
+                        str(value).strip()
+                        for value in list(edit_recipe.get("common_variations", []) or [])[:8]
+                        if str(value).strip()
+                    ],
+                    "validation_criteria": [
+                        str(value).strip()
+                        for value in list(edit_recipe.get("validation_criteria", []) or [])[:8]
+                        if str(value).strip()
+                    ],
+                    "common_fixes": [
+                        str(value).strip()
+                        for value in list(edit_recipe.get("common_fixes", []) or [])[:8]
+                        if str(value).strip()
+                    ],
+                    "transformation_intents": [
+                        str(value).strip()
+                        for value in list(edit_recipe.get("transformation_intents", []) or [])[:8]
+                        if str(value).strip()
+                    ],
+                },
                 "workflow_template": workflow_template,
             }
         )

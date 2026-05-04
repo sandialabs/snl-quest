@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Any
 
 
-SKILL_SCHEMA_VERSION = "1.0"
+SKILL_SCHEMA_VERSION = "1.1"
+SUPPORTED_SKILL_SCHEMA_VERSIONS = {"1.0", "1.1"}
 SKILL_TYPES = {"general_python", "quest_tool_specific"}
 SKILL_STATUSES = {"draft", "validated", "deprecated"}
 VALIDATION_STATUSES = {"draft", "passed", "failed"}
@@ -25,10 +26,14 @@ class SkillRecord:
     slug: str
     skill_type: str
     skill_level: str
+    skill_mode: str
     title: str
     summary: str
     status: str
     tags: list[str]
+    tool_tags: list[str]
+    structural_tags: list[str]
+    task_pattern_tags: list[str]
     recommended_tools: list[str]
     required_tools: list[str]
     folder_path: str
@@ -60,10 +65,14 @@ class SkillRecord:
             "slug": self.slug,
             "skill_type": self.skill_type,
             "skill_level": self.skill_level,
+            "skill_mode": self.skill_mode,
             "title": self.title,
             "summary": self.summary,
             "status": self.status,
             "tags": list(self.tags),
+            "tool_tags": list(self.tool_tags),
+            "structural_tags": list(self.structural_tags),
+            "task_pattern_tags": list(self.task_pattern_tags),
             "recommended_tools": list(self.recommended_tools),
             "required_tools": list(self.required_tools),
             "folder_path": _rel(self.folder_path),
@@ -103,11 +112,49 @@ def _require_string(data: dict[str, Any], key: str) -> str:
     return value.strip()
 
 
+def _string_or_default(data: dict[str, Any], key: str, default: str = "") -> str:
+    value = data.get(key, default)
+    if value is None:
+        return str(default)
+    if not isinstance(value, str):
+        raise ValueError(f"Field '{key}' must be a string.")
+    return value.strip() or str(default)
+
+
 def _require_list(data: dict[str, Any], key: str) -> list[Any]:
     value = data.get(key, [])
     if not isinstance(value, list):
         raise ValueError(f"Field '{key}' must be a list.")
     return value
+
+
+def _optional_list(data: dict[str, Any], key: str) -> list[Any]:
+    value = data.get(key, [])
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ValueError(f"Field '{key}' must be a list.")
+    return value
+
+
+def _normalize_named_item_list(value: Any, field_name: str) -> list[dict[str, str]]:
+    if value is None:
+        return []
+    if not isinstance(value, list):
+        raise ValueError(f"Field '{field_name}' must be a list.")
+    normalized = []
+    for index, item in enumerate(value):
+        if not isinstance(item, dict):
+            raise ValueError(f"Field '{field_name}[{index}]' must be an object.")
+        name = str(item.get("name", "") or "").strip()
+        if not name:
+            raise ValueError(f"Field '{field_name}[{index}].name' must be a non-empty string.")
+        normalized.append({
+            "name": name,
+            "type": str(item.get("type", "") or "").strip(),
+            "description": str(item.get("description", "") or "").strip(),
+        })
+    return normalized
 
 
 def _validate_relative_path(skill_folder: Path, raw_relative_path: str, field_name: str) -> str:
@@ -146,7 +193,7 @@ def validate_skill_json(data: dict[str, Any], skill_folder: str | Path, expected
         raise ValueError("Skill JSON must be an object.")
 
     schema_version = _require_string(data, "schema_version")
-    if schema_version != SKILL_SCHEMA_VERSION:
+    if schema_version not in SUPPORTED_SKILL_SCHEMA_VERSIONS:
         raise ValueError(f"Unsupported schema_version '{schema_version}'.")
 
     skill_id = _require_string(data, "skill_id")
@@ -179,7 +226,7 @@ def validate_skill_json(data: dict[str, Any], skill_folder: str | Path, expected
     if not isinstance(task, dict):
         raise ValueError("Field 'task' must be an object.")
     _require_string(task, "description")
-    _require_string(task, "pinned_context_summary")
+    pinned_context_summary = _string_or_default(task, "pinned_context_summary", "None provided.")
     _require_string(task, "task_fingerprint")
     _require_string(task, "context_fingerprint")
 
@@ -187,6 +234,9 @@ def validate_skill_json(data: dict[str, Any], skill_folder: str | Path, expected
     if not isinstance(classification, dict):
         raise ValueError("Field 'classification' must be an object.")
     tags = _require_list(classification, "tags")
+    tool_tags = _optional_list(classification, "tool_tags")
+    structural_tags = _optional_list(classification, "structural_tags")
+    task_pattern_tags = _optional_list(classification, "task_pattern_tags")
 
     tools = data.get("tools", {})
     if not isinstance(tools, dict):
@@ -243,8 +293,40 @@ def validate_skill_json(data: dict[str, Any], skill_folder: str | Path, expected
     plan = data.get("plan", {})
     if not isinstance(plan, dict):
         raise ValueError("Field 'plan' must be an object.")
+    skill_mode = str(plan.get("skill_mode", "build") or "").strip()
+    if skill_mode not in {"build", "edit", "hybrid"}:
+        raise ValueError("Field 'plan.skill_mode' must be 'build', 'edit', or 'hybrid'.")
     _require_string(plan, "workflow_strategy")
     _require_list(plan, "step_summary")
+    transformation_intents = _optional_list(plan, "transformation_intents")
+
+    inputs = data.get("inputs", {})
+    if inputs is None:
+        inputs = {}
+    if not isinstance(inputs, dict):
+        raise ValueError("Field 'inputs' must be an object.")
+    required_file_types = _optional_list(inputs, "required_file_types")
+    expected_inputs = _normalize_named_item_list(inputs.get("expected_inputs", []), "inputs.expected_inputs")
+
+    outputs = data.get("outputs", {})
+    if outputs is None:
+        outputs = {}
+    if not isinstance(outputs, dict):
+        raise ValueError("Field 'outputs' must be an object.")
+    expected_outputs = _normalize_named_item_list(outputs.get("expected_outputs", []), "outputs.expected_outputs")
+
+    edit_recipe = data.get("edit_recipe", {})
+    if edit_recipe is None:
+        edit_recipe = {}
+    if not isinstance(edit_recipe, dict):
+        raise ValueError("Field 'edit_recipe' must be an object.")
+    edit_recipe_required_tools = _optional_list(edit_recipe, "required_tools")
+    edit_recipe_expected_inputs = _normalize_named_item_list(edit_recipe.get("expected_inputs", []), "edit_recipe.expected_inputs")
+    edit_recipe_expected_outputs = _normalize_named_item_list(edit_recipe.get("expected_outputs", []), "edit_recipe.expected_outputs")
+    edit_recipe_common_variations = _optional_list(edit_recipe, "common_variations")
+    edit_recipe_validation_criteria = _optional_list(edit_recipe, "validation_criteria")
+    edit_recipe_common_fixes = _optional_list(edit_recipe, "common_fixes")
+    edit_recipe_transformation_intents = _optional_list(edit_recipe, "transformation_intents")
 
     validation = data.get("validation", {})
     if not isinstance(validation, dict):
@@ -266,14 +348,33 @@ def validate_skill_json(data: dict[str, Any], skill_folder: str | Path, expected
     normalized["classification"] = dict(classification)
     normalized["tools"] = dict(tools)
     normalized["files"] = dict(files)
+    normalized["inputs"] = dict(inputs)
+    normalized["outputs"] = dict(outputs)
     normalized["plan"] = dict(plan)
+    normalized["edit_recipe"] = dict(edit_recipe)
     normalized["validation"] = dict(validation)
+    normalized["task"]["pinned_context_summary"] = pinned_context_summary
     normalized["classification"]["tags"] = tags
+    normalized["classification"]["tool_tags"] = tool_tags
+    normalized["classification"]["structural_tags"] = structural_tags
+    normalized["classification"]["task_pattern_tags"] = task_pattern_tags
     normalized["tools"]["recommended"] = recommended_tools
     normalized["tools"]["required"] = required_tools
     normalized["tools"]["optional"] = optional_tools
     normalized["files"]["attachments"] = normalized_attachments
     normalized["files"]["workflow_json"] = normalized_workflow_json
+    normalized["inputs"]["required_file_types"] = required_file_types
+    normalized["inputs"]["expected_inputs"] = expected_inputs
+    normalized["outputs"]["expected_outputs"] = expected_outputs
+    normalized["plan"]["skill_mode"] = skill_mode
+    normalized["plan"]["transformation_intents"] = transformation_intents
+    normalized["edit_recipe"]["required_tools"] = edit_recipe_required_tools
+    normalized["edit_recipe"]["expected_inputs"] = edit_recipe_expected_inputs
+    normalized["edit_recipe"]["expected_outputs"] = edit_recipe_expected_outputs
+    normalized["edit_recipe"]["common_variations"] = edit_recipe_common_variations
+    normalized["edit_recipe"]["validation_criteria"] = edit_recipe_validation_criteria
+    normalized["edit_recipe"]["common_fixes"] = edit_recipe_common_fixes
+    normalized["edit_recipe"]["transformation_intents"] = edit_recipe_transformation_intents
     if action_record is not None:
         normalized["action_record"] = {
             "path": normalized_action_record_path,
@@ -312,10 +413,14 @@ def load_skill_folder(skill_folder: str | Path, expected_type: str) -> SkillReco
             list(normalized["tools"].get("required", [])),
         ),
         skill_level=str(normalized.get("skill_level", "Competent") or "Competent"),
+        skill_mode=str(normalized.get("plan", {}).get("skill_mode", "build") or "build"),
         title=str(normalized["title"]),
         summary=str(normalized["summary"]),
         status=str(normalized["status"]),
         tags=list(normalized["classification"].get("tags", [])),
+        tool_tags=list(normalized["classification"].get("tool_tags", [])),
+        structural_tags=list(normalized["classification"].get("structural_tags", [])),
+        task_pattern_tags=list(normalized["classification"].get("task_pattern_tags", [])),
         recommended_tools=list(normalized["tools"].get("recommended", [])),
         required_tools=list(normalized["tools"].get("required", [])),
         folder_path=skill_folder.as_posix(),

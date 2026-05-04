@@ -428,9 +428,17 @@ def _select_skills_for_fast_local(skills: list[SkillRecord], task_description: s
     ranked = []
     for skill in list(skills or []):
         score, overlap = _fast_local_skill_score(skill, task_description)
-        ranked.append((-score, -overlap, str(skill.title or "").casefold(), skill))
+        ranked.append(
+            (
+                -score,
+                -overlap,
+                str(skill.title or "").casefold(),
+                str(getattr(skill, "skill_id", "") or "").casefold(),
+                skill,
+            )
+        )
     ranked.sort()
-    selected = [skill for _, _, _, skill in ranked[:FAST_LOCAL_TASK_MATCH_SKILL_LIMIT]]
+    selected = [skill for _, _, _, _, skill in ranked[:FAST_LOCAL_TASK_MATCH_SKILL_LIMIT]]
     return selected
 
 
@@ -2069,6 +2077,102 @@ def _coerce_bool(value: Any) -> bool:
     return text in {"1", "true", "yes", "y", "on"}
 
 
+EXACT_TEMPLATE_LOCK_CONFIDENCE = 0.95
+
+
+def _numberish_tokens(text: str) -> list[str]:
+    if not str(text or "").strip():
+        return []
+    pattern = (
+        r"\b(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|"
+        r"first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth)\b"
+    )
+    return [match.group(0).casefold() for match in re.finditer(pattern, str(text or "").casefold())]
+
+
+def _matching_skill_recipe(skill_execution_recipes: dict[str, Any] | None, skill_id: str) -> dict[str, Any]:
+    target = str(skill_id or "").strip()
+    if not target:
+        return {}
+    for recipe in list(dict(skill_execution_recipes or {}).get("recipes", []) or []):
+        recipe = dict(recipe or {})
+        if str(recipe.get("skill_id", "") or "").strip() == target:
+            return recipe
+    return {}
+
+
+def _template_reference_text(best_workflow_template: dict[str, Any], skill_execution_recipes: dict[str, Any] | None) -> str:
+    template = dict(best_workflow_template or {})
+    recipe = _matching_skill_recipe(skill_execution_recipes, str(template.get("skill_id", "") or "").strip())
+    parts = [
+        str(template.get("title", "") or "").strip(),
+        str(template.get("summary", "") or "").strip(),
+        str(template.get("reason", "") or "").strip(),
+        str(template.get("selection_reason", "") or "").strip(),
+        str(recipe.get("title", "") or "").strip(),
+        str(recipe.get("summary", "") or "").strip(),
+        str(recipe.get("workflow_strategy", "") or "").strip(),
+    ]
+    for step in list(recipe.get("step_summary", []) or []):
+        parts.append(str(step or "").strip())
+    for item in list(recipe.get("expected_inputs", []) or []):
+        if isinstance(item, dict):
+            parts.extend(
+                [
+                    str(item.get("name", "") or "").strip(),
+                    str(item.get("description", "") or "").strip(),
+                ]
+            )
+    for item in list(recipe.get("expected_outputs", []) or []):
+        if isinstance(item, dict):
+            parts.extend(
+                [
+                    str(item.get("name", "") or "").strip(),
+                    str(item.get("description", "") or "").strip(),
+                ]
+            )
+    return "\n".join(part for part in parts if part).casefold()
+
+
+def _detect_template_diff_request(
+    user_prompt: str,
+    best_workflow_template: dict[str, Any] | None,
+    skill_execution_recipes: dict[str, Any] | None,
+) -> dict[str, Any]:
+    lowered = str(user_prompt or "").strip().casefold()
+    if not lowered:
+        return {"has_diff": False, "reasons": []}
+
+    reasons = []
+    modifier_patterns = (
+        r"\b(change|modify|revise|adapt|adjust|update|rename|replace|remove|delete|split|convert)\b",
+        r"\b(instead|rather than|except|but use|but make|but with)\b",
+        r"\b(additional|another|extra)\b",
+        r"\b(initialize|set)\b.{0,24}\bto\b",
+        r"\beach function in (?:its|one) python node\b",
+        r"\buse separate\b",
+        r"\bfrom\b.{0,24}\bto\b",
+    )
+    for pattern in modifier_patterns:
+        if re.search(pattern, lowered):
+            reasons.append(f"Prompt contains explicit modification signal: {pattern}")
+
+    prompt_number_tokens = _numberish_tokens(lowered)
+    template_text = _template_reference_text(dict(best_workflow_template or {}), skill_execution_recipes)
+    if prompt_number_tokens and template_text:
+        missing_numbers = [token for token in prompt_number_tokens if token not in template_text]
+        if missing_numbers:
+            reasons.append(
+                "Prompt mentions numeric requirements not present in the matched skill template: "
+                + ", ".join(sorted(set(missing_numbers)))
+            )
+
+    return {
+        "has_diff": bool(reasons),
+        "reasons": reasons[:6],
+    }
+
+
 def _build_path_guidance(
     user_prompt: str,
     canvas_context: dict[str, Any] | None = None,
@@ -2082,6 +2186,7 @@ def _build_path_guidance(
     node_count = len(list(canvas_context.get("nodes", []) or []))
     flow_description = str(task_match_result.get("flow_description", "") or "").strip()
     current_flow_present = node_count > 0
+    best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
     recipe_entries = [
         dict(item or {})
         for item in list(skill_execution_recipes.get("recipes", []) or [])
@@ -2198,8 +2303,23 @@ def _build_path_guidance(
             for token in ("edit", "revise", "change", "modify", "fix", "repair", "complete", "finish", "adapt", "add", "connect", "wire", "rename", "update", "set", "remove", "delete")
         )
     )
+    exact_match_confidence = _coerce_confidence(best_workflow_template.get("confidence", 0.0))
+    diff_detection = _detect_template_diff_request(user_prompt, best_workflow_template, skill_execution_recipes)
+    exact_match_lock = (
+        bool(best_workflow_template)
+        and not current_flow_present
+        and exact_match_confidence >= EXACT_TEMPLATE_LOCK_CONFIDENCE
+        and not diff_detection.get("has_diff", False)
+        and not list(task_match_result.get("missing_parts", []) or [])
+    )
 
-    if explicit_json:
+    if exact_match_lock:
+        recommended_path = "reuse_skill_workflow_json"
+        reason = (
+            f"Matched skill template '{str(best_workflow_template.get('title', '') or '').strip()}' is an exact-enough fit, "
+            "the canvas is empty, and no explicit differences were requested, so direct workflow reuse is the easiest path."
+        ).strip()
+    elif explicit_json:
         recommended_path = "draft_workflow_json_then_load"
         reason = "The request explicitly points to direct workflow JSON authoring."
     elif current_flow_present and list(task_match_result.get("missing_parts", []) or []):
@@ -2228,6 +2348,9 @@ def _build_path_guidance(
         "recommended_path": recommended_path,
         "reason": reason,
         "available_paths": available_paths,
+        "exact_match_lock": exact_match_lock,
+        "explicit_diff_detected": bool(diff_detection.get("has_diff", False)),
+        "diff_reasons": list(diff_detection.get("reasons", []) or []),
     }
 
 
@@ -3538,6 +3661,26 @@ def run_workspace_action_plan(
             build_path_guidance["reason"] = "Forced planning path."
     best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
     recommended_path = str(build_path_guidance.get("recommended_path", "") or "").strip()
+    if (
+        recommended_path == "reuse_skill_workflow_json"
+        and bool(build_path_guidance.get("exact_match_lock", False))
+        and best_workflow_template
+        and str(best_workflow_template.get("workflow_json_path", "") or "").strip()
+    ):
+        return {
+            "reply": "",
+            "intent": "reuse matched workflow template directly",
+            "planning_path": "reuse_skill_workflow_json",
+            "path_reason": str(build_path_guidance.get("reason", "") or "Reused the exact matched workflow template directly.").strip(),
+            "actions": [
+                {
+                    "type": "load_workflow_json",
+                    "workflow_path": str(best_workflow_template.get("workflow_json_path", "") or "").strip(),
+                    "source_skill_id": str(best_workflow_template.get("skill_id", "") or "").strip(),
+                }
+            ],
+            "planning_source": "deterministic_exact_skill_reuse",
+        }
     if recommended_path == "current_flow_json_patch_then_load":
         return _run_current_flow_json_patch_plan(
             user_prompt=user_prompt,

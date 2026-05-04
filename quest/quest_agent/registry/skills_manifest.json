@@ -1,6 +1,6 @@
 {
-  "schema_version": "1.0",
-  "updated_at": "2026-04-30T17:50:48-06:00",
+  "schema_version": "1.1",
+  "updated_at": "2026-05-03T18:51:47-06:00",
   "root_path": "skills",
   "skills": [
     {
@@ -8,6 +8,7 @@
       "slug": "build-a-simple-multiplication-flow-in-workspace",
       "skill_type": "general_python",
       "skill_level": "Competent",
+      "skill_mode": "build",
       "title": "Build a simple multiplication flow in Workspace",
       "summary": "Create a QuESt Workspace flow that documents a basic multiplication task, defines two numeric input data nodes, and prepares a Python node with two inputs and one output connected for multiplication logic.",
       "status": "draft",
@@ -20,6 +21,9 @@
         "connections",
         "example-flow"
       ],
+      "tool_tags": [],
+      "structural_tags": [],
+      "task_pattern_tags": [],
       "recommended_tools": [
         "workspace"
       ],
@@ -40,6 +44,7 @@
       "slug": "build-a-simple-workspace-flow-to-add-two-numbers",
       "skill_type": "general_python",
       "skill_level": "Competent",
+      "skill_mode": "build",
       "title": "Build a simple Workspace flow to add two numbers",
       "summary": "Create and save a QuESt Workspace flow that documents a simple addition task, defines two numeric data inputs, connects them to a Python node configured to output their sum, and saves the flow as a reusable JSON workflow file.",
       "status": "draft",
@@ -52,6 +57,9 @@
         "example-flow",
         "addition"
       ],
+      "tool_tags": [],
+      "structural_tags": [],
+      "task_pattern_tags": [],
       "recommended_tools": [
         "workspace"
       ],
@@ -72,6 +80,7 @@
       "slug": "build-a-workspace-flow-to-sum-five-numbers-and-square-the-result",
       "skill_type": "general_python",
       "skill_level": "Competent",
+      "skill_mode": "build",
       "title": "Build a Workspace flow to sum five numbers and square the result",
       "summary": "Create or verify a simple QuESt Workspace arithmetic workflow that uses five data nodes as numeric inputs and one Python node to compute both the total sum and the squared sum.",
       "status": "draft",
@@ -85,6 +94,9 @@
         "workflow construction",
         "node connections"
       ],
+      "tool_tags": [],
+      "structural_tags": [],
+      "task_pattern_tags": [],
       "recommended_tools": [
         "workspace"
       ],
@@ -105,6 +117,7 @@
       "slug": "run-a-btm-optimization-subflow-from-master-provided-pv-tariff-and-load-paths",
       "skill_type": "quest_tool_specific",
       "skill_level": "Competent",
+      "skill_mode": "build",
       "title": "Run a BTM optimization subflow from master-provided PV, tariff, and load paths",
       "summary": "Execute a behind-the-meter (BTM) energy storage optimization workflow that accepts master-flow file path inputs for PV, tariff/rate, and load data, builds BTM request objects and ESS parameters, runs the BTM optimizer with a selected solver, and saves result CSVs plus checkpoint paths.",
       "status": "draft",
@@ -120,6 +133,9 @@
         "results-export",
         "solver"
       ],
+      "tool_tags": [],
+      "structural_tags": [],
+      "task_pattern_tags": [],
       "recommended_tools": [
         "btm",
         "data_manager"
@@ -142,6 +158,7 @@
       "slug": "run-multi-case-btm-optimization-from-a-workspace-master-flow-using-shared-pv-rate-and-load-inputs",
       "skill_type": "quest_tool_specific",
       "skill_level": "Competent",
+      "skill_mode": "build",
       "title": "Run multi-case BTM optimization from a Workspace master flow using shared PV, rate, and load inputs",
       "summary": "Execute a QuESt BTM workflow from a Workspace master flow that passes common PV profile, tariff, and load file paths into a BTM subflow, runs multiple subcases with different ESS parameters, and saves per-case optimization result files.",
       "status": "draft",
@@ -157,6 +174,9 @@
         "glpk",
         "results-export"
       ],
+      "tool_tags": [],
+      "structural_tags": [],
+      "task_pattern_tags": [],
       "recommended_tools": [
         "btm",
         "data_manager"

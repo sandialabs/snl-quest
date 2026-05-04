@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "skill_id": "",
   "version": 1,
   "parent_skill_id": null,
@@ -23,7 +23,10 @@
   },
   "classification": {
     "tags": [],
-    "domains": []
+    "domains": [],
+    "tool_tags": [],
+    "structural_tags": [],
+    "task_pattern_tags": []
   },
   "tools": {
     "recommended": [],
@@ -38,9 +41,23 @@
     "required_file_types": [],
     "expected_inputs": []
   },
+  "outputs": {
+    "expected_outputs": []
+  },
   "plan": {
+    "skill_mode": "build",
     "workflow_strategy": "",
-    "step_summary": []
+    "step_summary": [],
+    "transformation_intents": []
+  },
+  "edit_recipe": {
+    "required_tools": [],
+    "expected_inputs": [],
+    "expected_outputs": [],
+    "common_variations": [],
+    "validation_criteria": [],
+    "common_fixes": [],
+    "transformation_intents": []
   },
   "validation": {
     "status": "draft",

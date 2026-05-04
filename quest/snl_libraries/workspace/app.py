@@ -173,7 +173,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
 
     prompt_text = str(payload.get("prompt_text", "") or "").strip()
     effective_prompt = str(payload.get("effective_prompt", prompt_text) or "").strip()
-    model_name = str(payload.get("model_name", "") or "").strip() or "Gemma 4 E4B"
+    model_name = str(payload.get("model_name", "") or "").strip() or "GPT-5.4 Mini"
     pending_control = str(payload.get("pending_control", "") or "").strip()
     _append_quest_agent_runtime_log(
         f"worker start model={model_name} control={pending_control or 'none'} prompt={prompt_text[:160]}"
@@ -693,7 +693,114 @@ class TextNodeWidgetWrapper(NodeBaseWidget):
         widget.text_caption.setText(value)
 
 
-class DataNode(BaseNode):
+class QuestNodePropertyMixin:
+    def _create_quest_property(self, name, value):
+        try:
+            if name in self.model.custom_properties:
+                self.model.set_property(name, value)
+            else:
+                self.create_property(name, value)
+        except Exception:
+            setattr(self, f"_{name}", value)
+
+    def _get_quest_property(self, name, default=""):
+        try:
+            value = self.model.get_property(name)
+            if value is not None:
+                return value
+        except Exception:
+            pass
+        return getattr(self, f"_{name}", default)
+
+    def _set_quest_property(self, name, value):
+        try:
+            if name in self.model.custom_properties:
+                self.model.set_property(name, value)
+            else:
+                self.create_property(name, value)
+        except Exception:
+            setattr(self, f"_{name}", value)
+
+    @property
+    def node_input_variable(self):
+        return self._get_quest_property("node_input_variable", "")
+
+    @node_input_variable.setter
+    def node_input_variable(self, value):
+        self._set_quest_property("node_input_variable", str(value or ""))
+
+    @property
+    def node_input_value(self):
+        return self._get_quest_property("node_input_value", "")
+
+    @node_input_value.setter
+    def node_input_value(self, value):
+        self._set_quest_property("node_input_value", str(value or ""))
+
+    @property
+    def node_value_display(self):
+        return bool(self._get_quest_property("node_value_display", False))
+
+    @node_value_display.setter
+    def node_value_display(self, value):
+        self._set_quest_property("node_value_display", bool(value))
+
+    @property
+    def node_is_path(self):
+        return bool(self._get_quest_property("node_is_path", False))
+
+    @node_is_path.setter
+    def node_is_path(self, value):
+        self._set_quest_property("node_is_path", bool(value))
+
+    @property
+    def node_is_from_master(self):
+        return bool(self._get_quest_property("node_is_from_master", False))
+
+    @node_is_from_master.setter
+    def node_is_from_master(self, value):
+        self._set_quest_property("node_is_from_master", bool(value))
+
+    @property
+    def node_function_wrapper(self):
+        return self._get_quest_property("node_function_wrapper", "")
+
+    @node_function_wrapper.setter
+    def node_function_wrapper(self, value):
+        self._set_quest_property("node_function_wrapper", str(value or ""))
+
+    @property
+    def node_imports(self):
+        return self._get_quest_property("node_imports", "")
+
+    @node_imports.setter
+    def node_imports(self, value):
+        self._set_quest_property("node_imports", str(value or ""))
+
+    @property
+    def node_notebook_path(self):
+        return self._get_quest_property("node_notebook_path", "")
+
+    @node_notebook_path.setter
+    def node_notebook_path(self, value):
+        self._set_quest_property("node_notebook_path", str(value or ""))
+
+    @property
+    def node_expose_outputs(self):
+        value = self._get_quest_property("node_expose_outputs", [])
+        return value if isinstance(value, list) else []
+
+    @node_expose_outputs.setter
+    def node_expose_outputs(self, value):
+        outputs = list(value or []) if isinstance(value, (list, tuple, set)) else []
+        self._set_quest_property("node_expose_outputs", outputs)
+
+    def _initialize_quest_properties(self, values):
+        for name, value in values.items():
+            self._create_quest_property(name, value)
+
+
+class DataNode(QuestNodePropertyMixin, BaseNode):
     __identifier__ = 'QuESt.Workspace'
     NODE_NAME = 'Data Node'
 
@@ -709,14 +816,17 @@ class DataNode(BaseNode):
         text_node_widget = TextNodeWidgetWrapper(self.view)
         self.add_custom_widget(text_node_widget, tab='Custom')
         self.node_type = 'data_node'
-        self.node_value_display = False
-        self.node_is_path = False
-        self.node_is_from_master = False
-        self.node_input_variable = ''
-        self.node_input_value = ''
-        self.node_function_wrapper = ''
-        self.node_imports = ''
-        self.node_expose_outputs = []
+        self._initialize_quest_properties({
+            "node_value_display": False,
+            "node_is_path": False,
+            "node_is_from_master": False,
+            "node_input_variable": '',
+            "node_input_value": '',
+            "node_function_wrapper": '',
+            "node_imports": '',
+            "node_notebook_path": '',
+            "node_expose_outputs": [],
+        })
 
     def add_dynamic_input(self, name, color=(100, 100, 100)):
         self.add_input(name, color=color)
@@ -725,7 +835,7 @@ class DataNode(BaseNode):
         self.add_output(name, color=color)
 
 
-class BackNode(BackdropNode):
+class BackNode(QuestNodePropertyMixin, BackdropNode):
     __identifier__ = 'QuESt.Workspace'
     NODE_NAME = 'Back Node'
 
@@ -733,17 +843,23 @@ class BackNode(BackdropNode):
         super(BackNode, self).__init__()
         self.set_backdrop_font_size(12)
         self.node_type = 'back_node'
-        self.node_input_variable = ''
-        self.node_input_value = ''
-        self.node_value_display = True
-        self.node_function_wrapper = ''
-        self.node_imports = ''
+        self._initialize_quest_properties({
+            "node_input_variable": '',
+            "node_input_value": '',
+            "node_value_display": True,
+            "node_is_path": False,
+            "node_is_from_master": False,
+            "node_function_wrapper": '',
+            "node_imports": '',
+            "node_notebook_path": '',
+            "node_expose_outputs": [],
+        })
 
     def can_be_deleted(self):
         return True
 
 
-class PyNode(BaseNode):
+class PyNode(QuestNodePropertyMixin, BaseNode):
     __identifier__ = 'QuESt.Workspace'
     NODE_NAME = 'Py Node'
 
@@ -761,10 +877,12 @@ class PyNode(BaseNode):
         self.node_value_display = False
         self.node_is_path = False
         self.node_is_from_master = False
-        self.node_function_wrapper = ''
-        self.node_imports = ''
-        self.node_notebook_path = ''
-        self.node_expose_outputs = []
+        self._initialize_quest_properties({
+            "node_function_wrapper": '',
+            "node_imports": '',
+            "node_notebook_path": '',
+            "node_expose_outputs": [],
+        })
 
     def add_dynamic_input(self, name, color=(100, 100, 100)):
         self.add_input(name, color=color)
@@ -821,7 +939,7 @@ class quest_workflow(QWidget):
             "loaded_tools": [],
             "tool_errors": [],
             "task_match_results": {},
-            "selected_model": "Gemma 4 E4B",
+            "selected_model": "GPT-5.4 Mini",
             "skill_recording_enabled": False,
             "skill_action_log": [],
             "suspend_skill_connection_recording": False,
@@ -2026,7 +2144,7 @@ class quest_workflow(QWidget):
             "Gemma 4 26B",
             "Gemma 4 31B",
         ])
-        self.quest_agent_model_combo.setCurrentText(self.quest_agent_state.get("selected_model", "Gemma 4 E4B"))
+        self.quest_agent_model_combo.setCurrentText(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini"))
         self.quest_agent_model_combo.currentTextChanged.connect(self._update_quest_agent_selected_model)
 
         self.quest_agent_send_button = QPushButton("")
@@ -2502,9 +2620,22 @@ class quest_workflow(QWidget):
                 quest_agent_context_service.extract_pinned_context(self.quest_agent_state.get("chat_messages", []))
                 if quest_agent_context_service is not None else []
             )
-            current_flow_json_data = self._serialize_independent_flow_json_data() if hasattr(self, "_serialize_independent_flow_json_data") else {}
-            if isinstance(current_flow_json_data, dict):
-                current_flow_json_data["flow_type"] = self.get_flow_type()
+            current_flow_json_data = {}
+            flow_type = ""
+            try:
+                flow_type = str(self.get_flow_type() or "").strip()
+            except Exception:
+                flow_type = ""
+            parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+            if flow_type == "master-flow" and parent_workspace is not None and hasattr(parent_workspace, "_serialize_master_flow_json_data"):
+                try:
+                    current_flow_json_data = parent_workspace._serialize_master_flow_json_data()
+                except Exception:
+                    current_flow_json_data = {}
+            if not isinstance(current_flow_json_data, dict) or not current_flow_json_data:
+                current_flow_json_data = self._serialize_independent_flow_json_data() if hasattr(self, "_serialize_independent_flow_json_data") else {}
+                if isinstance(current_flow_json_data, dict) and flow_type:
+                    current_flow_json_data["flow_type"] = flow_type
             quest_agent_root = get_quest_agent_root()
             developed = develop_skill_from_record(
                 project_description=project_description,
@@ -2514,7 +2645,7 @@ class quest_workflow(QWidget):
                 pinned_context=pinned_context,
                 attached_files=list(self.quest_agent_state.get("chat_attachments", [])),
                 current_flow_json_data=current_flow_json_data,
-                selected_model=str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B",
+                selected_model=str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini",
                 quest_agent_root=quest_agent_root,
             )
             self._load_quest_agent_skill_library()
@@ -2734,7 +2865,7 @@ class quest_workflow(QWidget):
             return {}
 
         task_description, pinned_context, attached_files = self._get_quest_agent_match_inputs()
-        selected_model = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
+        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
 
         try:
             result = self._compute_quest_agent_task_match_result(
@@ -2911,7 +3042,7 @@ class quest_workflow(QWidget):
     def _run_quest_agent_flow_review(self, prompt_text="", model_name=""):
         if run_structured_task_match is None:
             return {"reply": "", "result": {}}
-        selected_model = str(model_name or self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
+        selected_model = str(model_name or self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
         task_description, pinned_context, attached_files = self._get_quest_agent_match_inputs()
         normalized_prompt = self._normalize_quest_agent_prompt_text(prompt_text)
         if normalized_prompt:
@@ -4256,7 +4387,7 @@ class quest_workflow(QWidget):
 
     def _finalize_quest_agent_canvas_validation_step(self, reply_text=""):
         pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
-        selected_model = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
+        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
         review_reply = self._run_quest_agent_flow_review(pending_prompt, selected_model)
         review_text = str(dict(review_reply or {}).get("reply", "") or "").strip()
         review_result = dict(review_reply.get("result", {}) or {}) if isinstance(review_reply, dict) else {}
@@ -4520,7 +4651,7 @@ class quest_workflow(QWidget):
         else:
             message = {
                 "role": "assistant",
-                "model": str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B",
+                "model": str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini",
                 "content": final_reply_text,
                 "pinned": False,
                 "attachments": [],
@@ -4917,6 +5048,12 @@ class quest_workflow(QWidget):
         self.quest_agent_state["current_flow_attachment_path"] = ""
         self.quest_agent_state["task_match_results"] = {}
         self.quest_agent_state["chat_force_scroll_bottom"] = False
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if parent_workspace is not None and hasattr(parent_workspace, "_set_shared_project_description"):
+            try:
+                parent_workspace._set_shared_project_description("")
+            except Exception:
+                pass
         self._clear_quest_agent_pending_canvas_plan()
         self._rebuild_quest_agent_pinned_context()
         self._refresh_quest_agent_chat_attachment_list()
@@ -5593,7 +5730,7 @@ class quest_workflow(QWidget):
         prompt_text = str(prompt_text or "").strip()
         if not prompt_text:
             return
-        model_name = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
+        model_name = str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
         self._clear_last_quest_agent_action_suggestions()
         messages = list(self.quest_agent_state.get("chat_messages", []))
         sent_at = QDateTime.currentDateTime().toString("h:mm AP")
@@ -5618,7 +5755,7 @@ class quest_workflow(QWidget):
         if hasattr(self, "quest_agent_chat_input"):
             prompt_text = str(self.quest_agent_chat_input.toPlainText()).strip()
         attachments = list(self.quest_agent_state.get("chat_attachments", []))
-        model_name = str(self.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
+        model_name = str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
         if not prompt_text and not attachments:
             return
         messages = list(self.quest_agent_state.get("chat_messages", []))
@@ -6312,6 +6449,173 @@ class quest_workflow(QWidget):
 
         node.node_notebook_path = new_path
         return new_path
+
+    def _sync_pynode_metadata_from_code(self, node, python_code):
+        if not isinstance(node, PyNode):
+            return
+        parsed_ast = ast.parse(str(python_code or ""))
+        ordered_imports = []
+        seen_imports = set()
+        for item in parsed_ast.body:
+            if not isinstance(item, (ast.Import, ast.ImportFrom)):
+                continue
+            import_line = ast.unparse(item).strip()
+            if import_line and import_line not in seen_imports:
+                seen_imports.add(import_line)
+                ordered_imports.append(import_line)
+        imports_text = "\n".join(ordered_imports)
+        if imports_text:
+            imports_text += "\n"
+        node.node_imports = imports_text
+
+        func_defs = [item for item in ast.walk(parsed_ast) if isinstance(item, ast.FunctionDef)]
+        if not func_defs:
+            return
+        expected_name = f"{node.name()}_function"
+        func_def = next((item for item in func_defs if item.name == expected_name), func_defs[0])
+        node.node_function_wrapper = ast.unparse(func_def)
+
+        desired_inputs = []
+        for arg in func_def.args.args:
+            if arg.arg not in desired_inputs:
+                desired_inputs.append(arg.arg)
+
+        desired_outputs = []
+        for item in ast.walk(func_def):
+            if not isinstance(item, ast.Return) or not isinstance(item.value, ast.Dict):
+                continue
+            for key in item.value.keys:
+                if isinstance(key, ast.Constant) and isinstance(key.value, str) and key.value not in desired_outputs:
+                    desired_outputs.append(key.value)
+            break
+
+        existing_inputs = list(node.inputs().keys())
+        existing_outputs = list(node.outputs().keys())
+
+        for port_name in existing_inputs:
+            if port_name in desired_inputs:
+                continue
+            for connected_port in list(node.inputs()[port_name].connected_ports()):
+                node.inputs()[port_name].disconnect_from(connected_port)
+            node.delete_input(port_name)
+
+        for port_name in desired_inputs:
+            if port_name not in existing_inputs:
+                node.add_dynamic_input(port_name)
+
+        for port_name in existing_outputs:
+            if port_name in desired_outputs:
+                continue
+            for connected_port in list(node.outputs()[port_name].connected_ports()):
+                node.outputs()[port_name].disconnect_from(connected_port)
+            node.delete_output(port_name)
+
+        for port_name in desired_outputs:
+            if port_name not in existing_outputs:
+                node.add_dynamic_output(port_name)
+
+        node.node_expose_outputs = [
+            name for name in getattr(node, "node_expose_outputs", [])
+            if name in desired_outputs
+        ]
+
+    def _clipboard_payload_for_pynode(self, node):
+        if not isinstance(node, PyNode):
+            return {}
+        notebook_code = ""
+        notebook_path = getattr(node, "node_notebook_path", "") or ""
+        if notebook_path and os.path.exists(notebook_path):
+            try:
+                notebook_code = self._notebook_to_code(notebook_path)
+            except Exception:
+                notebook_code = ""
+        return {
+            "node_type": "python_node",
+            "node_imports": getattr(node, "node_imports", "") or "",
+            "node_function_wrapper": getattr(node, "node_function_wrapper", "") or "",
+            "node_expose_outputs": list(getattr(node, "node_expose_outputs", []) or []),
+            "notebook_code": notebook_code,
+        }
+
+    def _clipboard_payloads_for_nodes(self, nodes):
+        payloads = {}
+        for node in list(nodes or []):
+            if not isinstance(node, PyNode):
+                continue
+            node_name = str(node.name() or "").strip()
+            if not node_name:
+                continue
+            payload = self._clipboard_payload_for_pynode(node)
+            payloads.setdefault(node_name, []).append(payload)
+        return payloads
+
+    def _restore_pasted_pynode_payload(self, node, payload, old_name, new_name):
+        if not isinstance(node, PyNode) or not isinstance(payload, dict):
+            return
+        old_func = f"{old_name}_function"
+        new_func = f"{new_name}_function"
+        imports_text = str(payload.get("node_imports", "") or "")
+        wrapper_text = str(payload.get("node_function_wrapper", "") or "")
+        notebook_code = str(payload.get("notebook_code", "") or "")
+
+        if wrapper_text:
+            wrapper_text = wrapper_text.replace(old_func, new_func)
+        if notebook_code:
+            notebook_code = notebook_code.replace(old_func, new_func)
+
+        node.node_imports = imports_text
+        node.node_function_wrapper = wrapper_text
+        node.node_expose_outputs = [
+            str(name).strip()
+            for name in list(payload.get("node_expose_outputs", []) or [])
+            if str(name).strip()
+        ]
+
+        notebook_path = os.path.join(
+            self.notebooks_dir,
+            self._notebook_filename(new_name, node.id)
+        )
+        if notebook_code:
+            nb = nbf.v4.new_notebook()
+            nb.cells = [
+                nbf.v4.new_markdown_cell(f"# {new_name}\n\nCopied from {old_name}."),
+                nbf.v4.new_code_cell(notebook_code),
+            ]
+            os.makedirs(os.path.dirname(notebook_path), exist_ok=True)
+            with open(notebook_path, "w", encoding="utf-8") as handle:
+                nbf.write(nb, handle)
+            self._apply_notebook_kernel(notebook_path)
+            node.node_notebook_path = notebook_path
+            try:
+                self._sync_pynode_metadata_from_code(node, notebook_code)
+            except Exception:
+                pass
+        elif wrapper_text or imports_text:
+            self._write_notebook_from_legacy_python(node)
+            try:
+                self._sync_pynode_metadata_from_code(node, "\n\n".join([imports_text.strip(), wrapper_text.strip()]).strip())
+            except Exception:
+                pass
+        else:
+            self._ensure_node_notebook(node)
+
+    def _refresh_pasted_node_visuals_from_metadata(self, node):
+        if isinstance(node, DataNode):
+            try:
+                widget = node.get_widget('Text Caption')
+                if bool(getattr(node, "node_is_from_master", False)):
+                    widget.set_value("")
+                else:
+                    value = getattr(node, "node_input_value", "") if bool(getattr(node, "node_value_display", False)) else ""
+                    widget.set_value(value)
+            except Exception:
+                pass
+        elif isinstance(node, BackNode):
+            try:
+                node.set_text(text='')
+                node.set_text(text=getattr(node, "node_input_value", "") or "")
+            except Exception:
+                pass
 
     def _kernel_name_for_python_path(self, python_path, env_name=None):
         label = (env_name or os.path.basename(os.path.dirname(str(python_path))) or "python").strip()
@@ -9327,10 +9631,13 @@ class quest_workflow(QWidget):
             return
         if parent_workspace is not None:
             parent_workspace._clipboard_subflows = {}
+            parent_workspace._clipboard_node_payloads = {}
         try:
             self.graph.copy_nodes(nodes)
         except Exception:
             return
+        if parent_workspace is not None:
+            parent_workspace._clipboard_node_payloads = self._clipboard_payloads_for_nodes(nodes)
         if self is getattr(parent_workspace, "master_workflow", None):
             subflows = {}
             for node in nodes:
@@ -9354,12 +9661,18 @@ class quest_workflow(QWidget):
             return
         if self._selection_contains_subflow_proxy(selected_nodes):
             return
+        parent_workspace = self._find_workspace_parent()
+        if parent_workspace is not None:
+            parent_workspace._clipboard_subflows = {}
+            parent_workspace._clipboard_node_payloads = {}
         try:
             copied = self.graph.copy_nodes(selected_nodes)
         except Exception:
             copied = False
         if copied is False:
             return
+        if parent_workspace is not None:
+            parent_workspace._clipboard_node_payloads = self._clipboard_payloads_for_nodes(selected_nodes)
         self._delete_selected_nodes_with_workspace_rules()
 
     def paste_nodes_from_clipboard(self):
@@ -9372,6 +9685,7 @@ class quest_workflow(QWidget):
         proxy_subflow_links = []
         parent_workspace = self._find_workspace_parent()
         clipboard_subflows = getattr(parent_workspace, "_clipboard_subflows", {}) if parent_workspace is not None else {}
+        clipboard_node_payloads = getattr(parent_workspace, "_clipboard_node_payloads", {}) if parent_workspace is not None else {}
         for node in pasted_nodes:
             original_name = str(node.name() or "").strip()
             old_pos = node.pos()
@@ -9383,8 +9697,24 @@ class quest_workflow(QWidget):
                         node.set_pos(old_pos[0], old_pos[1])
                     except Exception:
                         pass
+                self._refresh_pasted_node_visuals_from_metadata(node)
+            elif isinstance(node, BackNode):
+                self._refresh_pasted_node_visuals_from_metadata(node)
             elif isinstance(node, PyNode):
                 old_name = original_name
+                payload = None
+                if isinstance(clipboard_node_payloads, dict):
+                    payloads = clipboard_node_payloads.get(original_name)
+                    if isinstance(payloads, list) and payloads:
+                        payload = payloads.pop(0)
+                if not isinstance(payload, dict):
+                    copied_payload = self._clipboard_payload_for_pynode(node)
+                    if (
+                        str(copied_payload.get("node_function_wrapper", "") or "").strip()
+                        or str(copied_payload.get("node_imports", "") or "").strip()
+                        or str(copied_payload.get("notebook_code", "") or "").strip()
+                    ):
+                        payload = copied_payload
                 new_name = self._sanitize_python_node_name(old_name, fallback="py_node", exclude_node=node)
                 if new_name != old_name:
                     node.set_name(new_name)
@@ -9392,6 +9722,12 @@ class quest_workflow(QWidget):
                         node.set_pos(old_pos[0], old_pos[1])
                     except Exception:
                         pass
+                if isinstance(payload, dict):
+                    try:
+                        self._restore_pasted_pynode_payload(node, payload, old_name, new_name)
+                    except Exception:
+                        pass
+                elif new_name != old_name:
                     try:
                         self._rename_pynode_notebook_and_wrapper(node, old_name, new_name)
                     except Exception:
@@ -9609,6 +9945,7 @@ class quest_workspace(QWidget):
         self.workflows = []
         self.workflow_counter = 1
         self._clipboard_subflows = {}
+        self._clipboard_node_payloads = {}
         self._quest_agent_project_description = ""
         self._quest_agent_skill_action_log = []
         self._plus_tab = QWidget()
@@ -10779,7 +11116,7 @@ class quest_workspace(QWidget):
                 "project_description": shared_project_description,
             }
         try:
-            workflow.quest_agent_state["selected_model"] = str(self.master_workflow.quest_agent_state.get("selected_model", "Gemma 4 E4B")).strip() or "Gemma 4 E4B"
+            workflow.quest_agent_state["selected_model"] = str(self.master_workflow.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
             workflow.quest_agent_state["skill_recording_enabled"] = bool(self.master_workflow.quest_agent_state.get("skill_recording_enabled", False))
         except Exception:
             pass
