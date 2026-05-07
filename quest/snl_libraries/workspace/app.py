@@ -948,6 +948,7 @@ class quest_workflow(QWidget):
             "pending_canvas_step_index": 0,
             "pending_canvas_prompt": "",
             "pending_canvas_waiting": False,
+            "pending_skill_development_offer": {},
         }
 
         self.layout = QHBoxLayout(self)
@@ -2664,6 +2665,62 @@ class quest_workflow(QWidget):
         finally:
             self._refresh_quest_agent_skill_record_display()
 
+    def _get_quest_agent_current_flow_json_data_for_skill(self):
+        current_flow_json_data = {}
+        flow_type = ""
+        try:
+            flow_type = str(self.get_flow_type() or "").strip()
+        except Exception:
+            flow_type = ""
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        if flow_type == "master-flow" and parent_workspace is not None and hasattr(parent_workspace, "_serialize_master_flow_json_data"):
+            try:
+                current_flow_json_data = parent_workspace._serialize_master_flow_json_data()
+            except Exception:
+                current_flow_json_data = {}
+        if not isinstance(current_flow_json_data, dict) or not current_flow_json_data:
+            current_flow_json_data = self._serialize_independent_flow_json_data() if hasattr(self, "_serialize_independent_flow_json_data") else {}
+            if isinstance(current_flow_json_data, dict) and flow_type:
+                current_flow_json_data["flow_type"] = flow_type
+        return current_flow_json_data if isinstance(current_flow_json_data, dict) else {}
+
+    def _develop_quest_agent_skill_from_records(self, records, task_match_result=None, flow_description="", current_flow_json_data=None):
+        if develop_skill_from_record is None or get_quest_agent_root is None:
+            raise RuntimeError("QuESt Agent skill development is not available in this environment.")
+        result = dict(task_match_result or self.quest_agent_state.get("task_match_results", {}) or {})
+        parent_workspace = self._find_workspace_parent() if hasattr(self, "_find_workspace_parent") else None
+        project_description = ""
+        if parent_workspace is not None and hasattr(parent_workspace, "_get_shared_project_description"):
+            try:
+                project_description = str(parent_workspace._get_shared_project_description() or "").strip()
+            except Exception:
+                project_description = ""
+        if not project_description:
+            project_description = str(result.get("project_description", "") or "").strip()
+        if not project_description:
+            project_description = str(result.get("task", "") or "").strip()
+        effective_flow_description = str(flow_description or result.get("flow_description", "") or "").strip()
+        pinned_context = (
+            quest_agent_context_service.extract_pinned_context(self.quest_agent_state.get("chat_messages", []))
+            if quest_agent_context_service is not None else []
+        )
+        workflow_json = dict(current_flow_json_data or {})
+        if not workflow_json:
+            workflow_json = self._get_quest_agent_current_flow_json_data_for_skill()
+        developed = develop_skill_from_record(
+            project_description=project_description,
+            flow_description=effective_flow_description,
+            task_match_result=result,
+            action_records=list(records or []),
+            pinned_context=pinned_context,
+            attached_files=list(self.quest_agent_state.get("chat_attachments", [])),
+            current_flow_json_data=workflow_json,
+            selected_model=str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini",
+            quest_agent_root=get_quest_agent_root(),
+        )
+        self._load_quest_agent_skill_library()
+        return developed
+
     def _refresh_quest_agent_context_box(self):
         self._refresh_quest_agent_chat_attachment_list()
 
@@ -3417,6 +3474,15 @@ class quest_workflow(QWidget):
         self.quest_agent_state["pending_canvas_step_index"] = 0
         self.quest_agent_state["pending_canvas_prompt"] = ""
         self.quest_agent_state["pending_canvas_waiting"] = False
+        self.quest_agent_state["pending_canvas_failure_count"] = 0
+        self.quest_agent_state["pending_canvas_last_failure_signature"] = ""
+
+    def _clear_quest_agent_pending_skill_offer(self):
+        self.quest_agent_state["pending_skill_development_offer"] = {}
+
+    def _has_quest_agent_pending_skill_offer(self):
+        offer = self.quest_agent_state.get("pending_skill_development_offer", {})
+        return bool(isinstance(offer, dict) and offer.get("available"))
 
     def _get_quest_agent_pending_canvas_steps(self):
         return list(self.quest_agent_state.get("pending_canvas_steps", []) or [])
@@ -3445,6 +3511,18 @@ class quest_workflow(QWidget):
             return "cancel_plan"
         if any(token in lowered for token in ("change", "modify", "adjust", "revise", "instead")):
             return "revise_plan"
+        return ""
+
+    def _interpret_quest_agent_pending_skill_offer_control(self, prompt_text):
+        if not self._has_quest_agent_pending_skill_offer():
+            return ""
+        lowered = self._normalize_quest_agent_prompt_text(prompt_text).casefold()
+        if not lowered:
+            return ""
+        if lowered in {"yes", "y", "create skill", "develop skill", "save skill", "make skill", "add skill", "create", "save"}:
+            return "create_skill_from_completed_plan"
+        if lowered in {"no", "n", "skip", "skip skill", "cancel", "not now", "no thanks"}:
+            return "skip_skill_from_completed_plan"
         return ""
 
     def _expand_quest_agent_canvas_plan_steps(self, action_plan):
@@ -3625,11 +3703,14 @@ class quest_workflow(QWidget):
 
     def _store_quest_agent_pending_canvas_plan(self, prompt_text, action_plan):
         steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
+        self._clear_quest_agent_pending_skill_offer()
         self.quest_agent_state["pending_canvas_plan"] = dict(action_plan or {})
         self.quest_agent_state["pending_canvas_steps"] = steps
         self.quest_agent_state["pending_canvas_step_index"] = 0
         self.quest_agent_state["pending_canvas_prompt"] = self._normalize_quest_agent_prompt_text(prompt_text)
         self.quest_agent_state["pending_canvas_waiting"] = bool(steps)
+        self.quest_agent_state["pending_canvas_failure_count"] = 0
+        self.quest_agent_state["pending_canvas_last_failure_signature"] = ""
         return steps
 
     def _build_quest_agent_pending_canvas_reminder(self):
@@ -3650,6 +3731,12 @@ class quest_workflow(QWidget):
         suggestions.append({"label": "Show Plan", "prompt": "show plan"})
         suggestions.append({"label": "Cancel", "prompt": "cancel"})
         return suggestions
+
+    def _quest_agent_skill_offer_action_suggestions(self):
+        return [
+            {"label": "Create Skill", "prompt": "create skill", "primary": True},
+            {"label": "Skip", "prompt": "skip skill"},
+        ]
 
     def _compose_quest_agent_canvas_revision_prompt(self, revision_text):
         base_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
@@ -4301,6 +4388,10 @@ class quest_workflow(QWidget):
                 expected_var = str(item.get("variable_name", "") or "").strip()
                 if expected_var and str(record.get("node_input_variable", "") or "").strip() != expected_var:
                     return False
+                if "value" in item:
+                    expected_value = str(item.get("value", "") or "")
+                    if str(record.get("node_input_value", "") or "") != expected_value:
+                        return False
             elif node_type == "py":
                 expected_wrapper = str(item.get("wrapper", "") or item.get("code", "") or "").strip()
                 actual_wrapper = str(record.get("node_function_wrapper", "") or "").strip()
@@ -4358,6 +4449,43 @@ class quest_workflow(QWidget):
                 target_port.casefold(),
             )
             return edge in set(snapshot.get("edges", set()) or set())
+        if action_type == "update_node":
+            node_name = str(item.get("node_name", "") or item.get("name", "") or "").strip()
+            new_name = str(item.get("new_name", "") or "").strip()
+            lookup_name = new_name or node_name
+            if not lookup_name:
+                return False
+            record = dict(nodes_by_name.get(lookup_name.casefold(), {}) or {})
+            if not record:
+                return False
+            if "variable_name" in item:
+                expected_var = str(item.get("variable_name", "") or "").strip()
+                if str(record.get("node_input_variable", "") or "").strip() != expected_var:
+                    return False
+            if "value" in item:
+                expected_value = str(item.get("value", "") or "")
+                if str(record.get("node_input_value", "") or "") != expected_value:
+                    return False
+            if "value_display" in item and bool(record.get("node_value_display", False)) != bool(item.get("value_display", False)):
+                return False
+            if "is_path" in item and bool(record.get("node_is_path", False)) != bool(item.get("is_path", False)):
+                return False
+            if "text" in item:
+                expected_text = str(item.get("text", "") or "")
+                if str(record.get("node_input_value", "") or "") != expected_text:
+                    return False
+            expected_wrapper = str(item.get("wrapper", "") or item.get("code", "") or "").strip()
+            if expected_wrapper:
+                actual_wrapper = str(record.get("node_function_wrapper", "") or "").strip()
+                if not actual_wrapper:
+                    return False
+                expected_inputs, expected_outputs = self._quest_agent_expected_ports_from_wrapper(expected_wrapper)
+                actual_inputs, actual_outputs = self._quest_agent_expected_ports_from_wrapper(actual_wrapper)
+                if any(name not in actual_inputs for name in expected_inputs):
+                    return False
+                if any(name not in actual_outputs for name in expected_outputs):
+                    return False
+            return True
         if action_type == "load_workflow_json":
             return False
         return True
@@ -4384,6 +4512,243 @@ class quest_workflow(QWidget):
             if not self._quest_agent_action_is_satisfied(current_workflow, action):
                 missing_steps.append(step_plan)
         return missing_steps
+
+    def _quest_agent_top_skill_confidence(self, task_match_result=None):
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        if isinstance(task_match_result, dict):
+            result.update({key: value for key, value in task_match_result.items() if value})
+        confidence_values = []
+        for item in list(result.get("skill_matches", []) or []):
+            try:
+                confidence_values.append(float(dict(item or {}).get("confidence", 0.0) or 0.0))
+            except Exception:
+                continue
+        best_template = dict(result.get("best_workflow_template", {}) or {})
+        if best_template:
+            try:
+                confidence_values.append(float(best_template.get("confidence", 0.0) or 0.0))
+            except Exception:
+                pass
+        return max(confidence_values) if confidence_values else 0.0
+
+    def _quest_agent_should_offer_skill_after_completion(self, task_match_result=None):
+        result = dict(task_match_result or self.quest_agent_state.get("task_match_results", {}) or {})
+        if self._quest_agent_top_skill_confidence(result) >= 0.55:
+            return False
+        workflow_json = self._get_quest_agent_current_flow_json_data_for_skill()
+        nodes = list(workflow_json.get("nodes_df", []) or []) if isinstance(workflow_json, dict) else []
+        return bool(nodes)
+
+    def _quest_agent_action_records_from_plan(self, action_plan, prompt_text):
+        records = []
+        actions = list(dict(action_plan or {}).get("actions", []) or [])
+        for index, action in enumerate(actions, start=1):
+            item = dict(action or {})
+            action_type = str(item.get("type", "") or "").strip()
+            if not action_type or action_type == "validate_flow":
+                continue
+            records.append({
+                "scope": "agent_canvas_plan",
+                "action": action_type,
+                "target": self._describe_quest_agent_canvas_action(item),
+                "details": {
+                    "step_index": index,
+                    "overall_goal": str(prompt_text or "").strip(),
+                    "planning_path": str(dict(action_plan or {}).get("planning_path", "") or "").strip(),
+                    "path_reason": str(dict(action_plan or {}).get("path_reason", "") or "").strip(),
+                },
+                "workspace_action": item,
+                "flow_name": self.get_flow_display_name(),
+                "flow_type": self.get_flow_type(),
+            })
+        if not records:
+            records.append({
+                "scope": "agent_canvas_plan",
+                "action": "final_flow_state",
+                "target": self.get_flow_display_name(),
+                "details": {"overall_goal": str(prompt_text or "").strip()},
+                "workspace_action": {"type": "final_flow_state"},
+                "flow_name": self.get_flow_display_name(),
+                "flow_type": self.get_flow_type(),
+            })
+        return records
+
+    def _prepare_quest_agent_skill_development_offer(self, review_result, final_flow_json, action_plan, prompt_text):
+        action_records = self._quest_agent_action_records_from_plan(action_plan, prompt_text)
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        result.update({key: value for key, value in dict(review_result or {}).items() if value})
+        offer = {
+            "available": True,
+            "prompt": str(prompt_text or "").strip(),
+            "task_match_result": result,
+            "flow_description": str(dict(review_result or {}).get("flow_description", "") or result.get("flow_description", "") or "").strip(),
+            "action_plan": dict(action_plan or {}),
+            "action_records": action_records,
+            "final_flow_json": dict(final_flow_json or {}),
+            "top_skill_confidence": self._quest_agent_top_skill_confidence(result),
+        }
+        self.quest_agent_state["pending_skill_development_offer"] = offer
+        return offer
+
+    def _build_quest_agent_skill_development_offer_reply(self, base_text, offer):
+        confidence = float(dict(offer or {}).get("top_skill_confidence", 0.0) or 0.0)
+        lines = []
+        if str(base_text or "").strip():
+            lines.append(str(base_text).strip())
+            lines.append("")
+        if confidence <= 0.0:
+            lines.append("I did not find a reusable saved skill that matched this workflow strongly.")
+        else:
+            lines.append(f"The best saved-skill match was low confidence ({confidence:.2f}), so this completed workflow may be useful as a new skill.")
+        lines.append("Would you like to create a new skill from this completed flow?")
+        lines.append("If yes, I will use the task analysis, flow description, completed action plan, and final workflow JSON as the skill baseline.")
+        return {
+            "reply": "\n".join(lines),
+            "action_suggestions": self._quest_agent_skill_offer_action_suggestions(),
+        }
+
+    def _handle_quest_agent_skill_offer_response(self, create_skill):
+        if not self._has_quest_agent_pending_skill_offer():
+            return {"reply": "There is no completed-flow skill offer pending."}
+        offer = dict(self.quest_agent_state.get("pending_skill_development_offer", {}) or {})
+        if not create_skill:
+            self._clear_quest_agent_pending_skill_offer()
+            return {"reply": "Skipped skill creation for this completed flow."}
+        try:
+            developed = self._develop_quest_agent_skill_from_records(
+                list(offer.get("action_records", []) or []),
+                task_match_result=dict(offer.get("task_match_result", {}) or {}),
+                flow_description=str(offer.get("flow_description", "") or ""),
+                current_flow_json_data=dict(offer.get("final_flow_json", {}) or {}),
+            )
+            self._clear_quest_agent_pending_skill_offer()
+            return {
+                "reply": (
+                    f"Created new skill `{developed.get('title', 'Untitled Skill')}`.\n\n"
+                    f"Location: {developed.get('folder_path', '')}"
+                )
+            }
+        except Exception as exc:
+            return {
+                "reply": f"I couldn't create the skill from the completed flow.\n\nDetails: {exc}",
+                "action_suggestions": self._quest_agent_skill_offer_action_suggestions(),
+            }
+
+    def _quest_agent_canvas_action_signature(self, action):
+        try:
+            return json.dumps(dict(action or {}), sort_keys=True, default=str)
+        except Exception:
+            return str(dict(action or {}))
+
+    def _quest_agent_execution_notes_for_step(self, step_plan):
+        return [
+            str(item).strip()
+            for item in list(dict(step_plan or {}).get("execution_notes", []) or [])
+            if str(item).strip()
+        ]
+
+    def _compose_quest_agent_failed_step_replan_prompt(self, failed_action, step_plan, failure_reason):
+        pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
+        steps = self._get_quest_agent_pending_canvas_steps()
+        step_index = int(self.quest_agent_state.get("pending_canvas_step_index", 0) or 0)
+        remaining_steps = steps[step_index:] if step_index < len(steps) else []
+        execution_notes = self._quest_agent_execution_notes_for_step(step_plan)
+        lines = []
+        if pending_prompt:
+            lines.append(f"Overall goal: {pending_prompt}")
+        lines.append("A manual canvas build step failed or did not produce the required canvas state.")
+        lines.append(f"Failed step: {self._describe_quest_agent_canvas_action(failed_action)}")
+        if failure_reason:
+            lines.append(f"Failure reason: {failure_reason}")
+        if execution_notes:
+            lines.append("Executor notes:")
+            lines.extend(f"- {note}" for note in execution_notes[:8])
+        if remaining_steps:
+            lines.append("Remaining plan before recovery:")
+            for index, remaining_step in enumerate(remaining_steps, start=1):
+                action = dict((dict(remaining_step or {}).get("actions", []) or [{}])[0] or {})
+                lines.append(f"{index}. {self._describe_quest_agent_canvas_action(action)}")
+        lines.append("Recovery rule: do not simply repeat the failed action unless you first fix the missing prerequisite that caused it to fail.")
+        lines.append("Prefer a current workflow JSON patch/load repair path when possible, because it can atomically repair nodes, values, ports, and connections.")
+        lines.append("Return a replacement plan from the current canvas state to complete the original goal.")
+        return "\n".join(line for line in lines if str(line).strip())
+
+    def _try_replan_after_failed_canvas_step(self, failed_action, step_plan, failure_reason=""):
+        signature = self._quest_agent_canvas_action_signature(failed_action)
+        last_signature = str(self.quest_agent_state.get("pending_canvas_last_failure_signature", "") or "")
+        failure_count = int(self.quest_agent_state.get("pending_canvas_failure_count", 0) or 0)
+        failure_count = failure_count + 1 if signature == last_signature else 1
+        self.quest_agent_state["pending_canvas_last_failure_signature"] = signature
+        self.quest_agent_state["pending_canvas_failure_count"] = failure_count
+        if failure_count > 2:
+            return {}
+        selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
+        pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
+        replan_prompt = self._compose_quest_agent_failed_step_replan_prompt(failed_action, step_plan, failure_reason)
+        try:
+            recovery_plan = self._plan_quest_agent_current_flow_json_fixup(
+                replan_prompt,
+                selected_model,
+                {
+                    "task": pending_prompt,
+                    "missing_parts": [failure_reason] if failure_reason else [],
+                    "notes": self._quest_agent_execution_notes_for_step(step_plan),
+                },
+            )
+        except Exception:
+            return {}
+        recovery_steps = self._expand_quest_agent_canvas_plan_steps(recovery_plan)
+        filtered_steps = []
+        current_workflow = self._get_quest_agent_target_workflow()
+        for recovery_step in list(recovery_steps or []):
+            action = dict((dict(recovery_step or {}).get("actions", []) or [{}])[0] or {})
+            action_type = str(action.get("type", "") or "").strip()
+            if action_type == "validate_flow":
+                continue
+            if self._quest_agent_canvas_action_signature(action) == signature:
+                continue
+            if self._quest_agent_action_is_satisfied(current_workflow, action):
+                continue
+            filtered_steps.append(dict(recovery_step or {}))
+        if not filtered_steps:
+            return {}
+        pending_actions = [dict((step.get("actions", []) or [{}])[0] or {}) for step in filtered_steps]
+        replacement_plan = {
+            "reply": "Recovery plan after a failed canvas step",
+            "actions": pending_actions,
+            "planning_path": "current_flow_json_patch_then_load",
+            "path_reason": "The previous manual canvas step failed, so QuESt Agent replanned from the current workflow JSON.",
+        }
+        self.quest_agent_state["pending_canvas_plan"] = replacement_plan
+        self.quest_agent_state["pending_canvas_steps"] = self._expand_quest_agent_canvas_plan_steps(replacement_plan)
+        self.quest_agent_state["pending_canvas_step_index"] = 0
+        self.quest_agent_state["pending_canvas_prompt"] = pending_prompt
+        self.quest_agent_state["pending_canvas_waiting"] = True
+        return replacement_plan
+
+    def _build_quest_agent_recovery_plan_reply(self, base_reply_text, failed_action, recovery_plan):
+        lines = []
+        if str(base_reply_text or "").strip():
+            lines.append(str(base_reply_text).strip())
+            lines.append("")
+        lines.append("That step did not successfully change the canvas, so I stopped the manual path and replanned from the current flow state.")
+        reason = str(dict(recovery_plan or {}).get("path_reason", "") or "").strip()
+        if reason:
+            lines.append(f"Reason: {reason}")
+        lines.append("")
+        lines.append("Replacement plan:")
+        for index, step_plan in enumerate(self.quest_agent_state.get("pending_canvas_steps", []) or [], start=1):
+            action = dict((dict(step_plan or {}).get("actions", []) or [{}])[0] or {})
+            lines.append(f"{index}. {self._describe_quest_agent_canvas_action(action)}")
+        if self._has_quest_agent_pending_canvas_plan():
+            next_action = dict((self.quest_agent_state.get("pending_canvas_steps", []) or [{}])[0].get("actions", [{}])[0] or {})
+            lines.append("")
+            lines.append(f"Next step (1/{len(self.quest_agent_state.get('pending_canvas_steps', []) or [])}): {self._describe_quest_agent_canvas_action(next_action)}")
+            lines.append("Use the actions below to apply the recovery step, review the plan, or cancel it.")
+        return {
+            "reply": "\n".join(lines),
+            "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+        }
 
     def _finalize_quest_agent_canvas_validation_step(self, reply_text=""):
         pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
@@ -4481,9 +4846,22 @@ class quest_workflow(QWidget):
                 "Please revise the request or ask QuESt Agent to fix one missing part at a time."
             )
             return {"reply": "\n\n".join(part for part in final_parts if str(part).strip())}
+        completed_plan = dict(self.quest_agent_state.get("pending_canvas_plan", {}) or {})
+        completed_prompt = pending_prompt
+        final_flow_json = self._get_quest_agent_current_flow_json_data_for_skill()
         self._clear_quest_agent_pending_canvas_plan()
         final_parts.append("Plan complete.")
-        return {"reply": "\n\n".join(part for part in final_parts if str(part).strip())}
+        final_text = "\n\n".join(part for part in final_parts if str(part).strip())
+        if self._quest_agent_should_offer_skill_after_completion(review_result):
+            offer = self._prepare_quest_agent_skill_development_offer(
+                review_result,
+                final_flow_json,
+                completed_plan,
+                completed_prompt,
+            )
+            return self._build_quest_agent_skill_development_offer_reply(final_text, offer)
+        self._clear_quest_agent_pending_skill_offer()
+        return {"reply": final_text}
 
     def _execute_next_quest_agent_canvas_plan_step(self):
         if not self._has_quest_agent_pending_canvas_plan():
@@ -4505,6 +4883,28 @@ class quest_workflow(QWidget):
             step_reply = {"reply": "Applied the next canvas step." if executed else "I did not apply any canvas changes."}
         reply_text = str(dict(step_reply or {}).get("reply", "") or "").strip()
         if executed:
+            if current_action_type != "load_workflow_json" and not self._quest_agent_action_is_satisfied(
+                self._get_quest_agent_target_workflow(),
+                current_action,
+            ):
+                recovery_plan = self._try_replan_after_failed_canvas_step(
+                    current_action,
+                    step_plan,
+                    "The executor reported activity, but the resulting canvas state did not satisfy the planned action.",
+                )
+                if recovery_plan:
+                    return self._build_quest_agent_recovery_plan_reply(reply_text, current_action, recovery_plan)
+                pause_text = (
+                    f"Plan paused at step {step_index + 1}/{len(steps)}: {self._describe_quest_agent_canvas_action(current_action)}\n"
+                    "The executor reported activity, but validation could not confirm that this step reached the intended canvas state. "
+                    "Use the actions below to retry, review the plan, or cancel it. You can also send a revised request."
+                )
+                return {
+                    "reply": reply_text + "\n\n" + pause_text if reply_text else pause_text,
+                    "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+                }
+            self.quest_agent_state["pending_canvas_failure_count"] = 0
+            self.quest_agent_state["pending_canvas_last_failure_signature"] = ""
             step_index += 1
             self.quest_agent_state["pending_canvas_step_index"] = step_index
             self.quest_agent_state["pending_canvas_waiting"] = step_index < len(steps)
@@ -4519,8 +4919,16 @@ class quest_workflow(QWidget):
                 "reply": reply_text + "\n\n" + next_text if reply_text else next_text,
                 "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
             }
+        recovery_plan = self._try_replan_after_failed_canvas_step(
+            current_action,
+            step_plan,
+            "The executor did not apply this canvas step.",
+        )
+        if recovery_plan:
+            return self._build_quest_agent_recovery_plan_reply(reply_text, current_action, recovery_plan)
         pause_text = (
             f"Plan paused at step {step_index + 1}/{len(steps)}: {self._describe_quest_agent_canvas_action(current_action)}\n"
+            "The executor could not apply this step and automatic recovery did not produce a reliable replacement plan. "
             "Use the actions below to retry the step, review the plan, or cancel it. You can still send a revised request."
         )
         return {
@@ -4760,6 +5168,16 @@ class quest_workflow(QWidget):
     def _process_quest_agent_chat_turn(self, prompt_text, model_name):
         _append_quest_agent_runtime_log(f"process chat turn model={model_name} prompt={str(prompt_text or '')[:160]}")
         _refresh_quest_agent_runtime()
+        skill_offer_control = self._interpret_quest_agent_pending_skill_offer_control(prompt_text)
+        if skill_offer_control == "create_skill_from_completed_plan":
+            self._update_last_quest_agent_status_message("QuESt Agent is creating a reusable skill from the completed flow...")
+            final_reply = self._handle_quest_agent_skill_offer_response(True)
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+        if skill_offer_control == "skip_skill_from_completed_plan":
+            final_reply = self._handle_quest_agent_skill_offer_response(False)
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
         pending_control = self._interpret_quest_agent_pending_canvas_control(prompt_text)
         effective_prompt = prompt_text
         if pending_control == "cancel_plan":
@@ -5055,6 +5473,7 @@ class quest_workflow(QWidget):
             except Exception:
                 pass
         self._clear_quest_agent_pending_canvas_plan()
+        self._clear_quest_agent_pending_skill_offer()
         self._rebuild_quest_agent_pinned_context()
         self._refresh_quest_agent_chat_attachment_list()
         self._refresh_quest_agent_task_match_preview()
