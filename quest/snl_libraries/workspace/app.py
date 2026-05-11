@@ -23,13 +23,15 @@ from NodeGraphQt.qgraphics.node_base import NodeItem
 from quest.paths import get_path
 import quest
 base_dir = get_path()
+QUEST_AGENT_IMPORT_ERROR = ""
 try:
     from quest.quest_agent import get_quest_agent_root, load_skill_library, build_skills_manifest, run_chat_router, run_grounded_chat_reply, run_structured_task_match, run_workspace_action_plan, write_active_tool_registry, develop_skill_from_record, format_action_records_table
     from quest.quest_agent import chat_service as quest_agent_chat_service
     from quest.quest_agent import context_service as quest_agent_context_service
     from quest.quest_agent import workspace_actions as quest_agent_workspace_actions
     from quest.quest_agent import deep_agent as quest_agent_deep_agent
-except Exception:
+except Exception as exc:
+    QUEST_AGENT_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
     get_quest_agent_root = None
     load_skill_library = None
     build_skills_manifest = None
@@ -70,6 +72,8 @@ def _refresh_quest_agent_runtime():
     global quest_agent_chat_service, quest_agent_context_service
     global quest_agent_workspace_actions, quest_agent_deep_agent
 
+    global QUEST_AGENT_IMPORT_ERROR
+
     try:
         skill_library_module = importlib.reload(importlib.import_module("quest.quest_agent.skill_library"))
         tool_registry_module = importlib.reload(importlib.import_module("quest.quest_agent.tool_registry"))
@@ -94,8 +98,10 @@ def _refresh_quest_agent_runtime():
         quest_agent_context_service = context_service_module
         quest_agent_workspace_actions = workspace_actions_module
         quest_agent_deep_agent = deep_agent_module
+        QUEST_AGENT_IMPORT_ERROR = ""
         return True
-    except Exception:
+    except Exception as exc:
+        QUEST_AGENT_IMPORT_ERROR = f"{type(exc).__name__}: {exc}"
         return False
 
 
@@ -2737,7 +2743,11 @@ class quest_workflow(QWidget):
             except Exception as exc:
                 skill_errors = [f"Failed to load skill library: {exc}"]
         else:
-            skill_errors = ["quest.quest_agent is not available in this environment."]
+            detail = str(QUEST_AGENT_IMPORT_ERROR or "").strip()
+            message = "quest.quest_agent is not available in this environment."
+            if detail:
+                message = f"{message} {detail}"
+            skill_errors = [message]
 
         self.quest_agent_state["loaded_skills"] = loaded_skills
         self.quest_agent_state["skill_errors"] = skill_errors
@@ -2755,7 +2765,11 @@ class quest_workflow(QWidget):
             except Exception as exc:
                 tool_errors = [f"Failed to load tool registry: {exc}"]
         else:
-            tool_errors = ["quest.quest_agent tool registry is not available in this environment."]
+            detail = str(QUEST_AGENT_IMPORT_ERROR or "").strip()
+            message = "quest.quest_agent tool registry is not available in this environment."
+            if detail:
+                message = f"{message} {detail}"
+            tool_errors = [message]
 
         self.quest_agent_state["loaded_tools"] = loaded_tools
         self.quest_agent_state["tool_errors"] = tool_errors
