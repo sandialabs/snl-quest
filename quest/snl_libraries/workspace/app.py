@@ -641,6 +641,31 @@ class EmbeddedNotebook(QWidget):
 
         QTimer.singleShot(4000, _first_lab_load)
 
+    def extract_visible_outputs(self, callback):
+        if not callable(callback):
+            return
+        script = r"""
+(() => {
+    const blocks = [];
+    const cells = Array.from(document.querySelectorAll('.cell.code_cell, .jp-Cell.jp-CodeCell'));
+    cells.forEach((cell, index) => {
+        const text = Array.from(cell.querySelectorAll('.output_area, .jp-OutputArea'))
+            .map((node) => (node.innerText || '').trim())
+            .filter(Boolean)
+            .join('\n')
+            .trim();
+        if (text) {
+            blocks.push(`Cell ${index + 1} output:\n${text}`);
+        }
+    });
+    return blocks.join('\n\n');
+})()
+"""
+        try:
+            self.webview.page().runJavaScript(script, lambda result: callback(str(result or "").strip()))
+        except Exception:
+            callback("")
+
     def closeEvent(self, event):
         self.stop_server()
         self.editorClosed.emit()
@@ -648,8 +673,9 @@ class EmbeddedNotebook(QWidget):
 
 
 class NodeOutputsHtmlWindow(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ask_callback=None):
         super().__init__(parent)
+        self.ask_callback = ask_callback
         self.setWindowTitle("Node Outputs")
         self.resize(1100, 750)
 
@@ -667,8 +693,37 @@ class NodeOutputsHtmlWindow(QWidget):
         self.webview = QWebEngineView(self)
         layout.addWidget(self.webview, 1)
 
+        bottom_row = QHBoxLayout()
+        bottom_row.addStretch()
+        self.ask_agent_button = QPushButton("Ask QuESt Agent")
+        self.ask_agent_button.setFixedHeight(28)
+        self.ask_agent_button.setEnabled(callable(self.ask_callback))
+        self.ask_agent_button.setStyleSheet(
+            "QPushButton {"
+            "background: rgba(255, 255, 255, 240);"
+            "color: #475569;"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 12px;"
+            "padding: 4px 12px;"
+            "font-size: 9pt;"
+            "font-weight: 600;"
+            "}"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+            "QPushButton:disabled { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }"
+        )
+        self.ask_agent_button.clicked.connect(self._ask_agent)
+        bottom_row.addWidget(self.ask_agent_button)
+        layout.addLayout(bottom_row)
+
     def load_html(self, html_text):
         self.webview.setHtml(html_text)
+
+    def _ask_agent(self):
+        if not callable(self.ask_callback):
+            return
+        self.ask_callback()
+        self.close()
 
 
 
@@ -1519,6 +1574,13 @@ class quest_workflow(QWidget):
         self.notebook_preview = PythonEditor()
         self.notebook_preview.setMinimumHeight(220)
         self.notebook_preview_highlighter = PythonSyntaxHighlighter(self.notebook_preview.document())
+        self.notebook_save_watcher = QFileSystemWatcher(self)
+        self.notebook_save_watcher.fileChanged.connect(self._on_notebook_file_saved)
+        self._watched_notebook_path = ""
+        self._pending_saved_notebook_path = ""
+        self._notebook_save_sync_timer = QTimer(self)
+        self._notebook_save_sync_timer.setSingleShot(True)
+        self._notebook_save_sync_timer.timeout.connect(self._sync_saved_notebook_to_python_function)
 
         self.py_button = QPushButton("Update Python Function")
         self.py_button.clicked.connect(self.update_python_function_button)
@@ -2196,7 +2258,7 @@ class quest_workflow(QWidget):
 
         self.quest_agent_inner_tabs.addTab(self.quest_agent_chat_tab, "Chat")
         self.quest_agent_inner_tabs.addTab(self.quest_agent_skills_tab, "Skills")
-        self.quest_agent_inner_tabs.addTab(self.quest_agent_tools_tab, "Tool Registry")
+        self.quest_agent_inner_tabs.addTab(self.quest_agent_tools_tab, "Tools")
 
         self.quest_agent_layout.addWidget(self.quest_agent_header, 0)
         self.quest_agent_layout.addWidget(self.quest_agent_inner_tabs, 1)
@@ -2238,7 +2300,6 @@ class quest_workflow(QWidget):
         self._refresh_save_mode_options()
         self._refresh_quest_agent_chat_history()
         self._refresh_quest_agent_chat_attachment_list()
-
 
 
     def _quest_master_environment_label(self):
@@ -5968,6 +6029,32 @@ class quest_workflow(QWidget):
             )
         self.quest_agent_chat_input.setPlaceholderText(placeholder)
 
+    def _copy_quest_agent_chat_message(self, content):
+        text = str(content or "")
+        if not text:
+            return
+        QApplication.clipboard().setText(text)
+
+    def _create_quest_agent_chat_copy_button(self, content):
+        button = QPushButton("")
+        button.setFixedSize(24, 24)
+        button.setCursor(Qt.PointingHandCursor)
+        button.setIcon(self._load_workspace_icon("content_copy_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png"))
+        button.setIconSize(QSize(14, 14))
+        button.setStyleSheet(
+            "QPushButton {"
+            "background: #ffffff;"
+            "color: #475569;"
+            "border: 1px solid #cbd5e1;"
+            "border-radius: 12px;"
+            "padding: 0px;"
+            "}"
+            "QPushButton:hover { background: #f8fafc; border-color: #93c5fd; }"
+            "QPushButton:pressed { background: #eff6ff; }"
+        )
+        button.clicked.connect(lambda checked=False, text=content: self._copy_quest_agent_chat_message(text))
+        return button
+
     def _build_quest_agent_chat_message_widget(self, role, model, content, assistant_count=0, message_index=-1, is_pinned=False, sent_at="", attachment_count=0, available_width=None, is_status_message=False, action_suggestions=None):
         container = QWidget()
         container_layout = QVBoxLayout(container)
@@ -5997,7 +6084,7 @@ class quest_workflow(QWidget):
 
             bubble = QLabel(content)
             bubble.setWordWrap(True)
-            bubble.setTextInteractionFlags(Qt.TextSelectableByMouse)
+            bubble.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
             bubble.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
             bubble.adjustSize()
             bubble.setStyleSheet(
@@ -6050,7 +6137,6 @@ class quest_workflow(QWidget):
             pin_button.setFixedSize(24, 24)
             pin_button.setCheckable(True)
             pin_button.setChecked(bool(is_pinned))
-            pin_button.setToolTip("Pin this prompt as context")
             pin_button.setIcon(self._load_workspace_icon("keep_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png"))
             pin_button.setIconSize(QSize(14, 14))
             pin_button.setStyleSheet(
@@ -6061,6 +6147,7 @@ class quest_workflow(QWidget):
             )
             pin_button.toggled.connect(lambda checked, idx=message_index: self._toggle_quest_agent_chat_message_pin(idx, checked))
             toolbar_row.addWidget(pin_button, 0, Qt.AlignVCenter)
+            toolbar_row.addWidget(self._create_quest_agent_chat_copy_button(content), 0, Qt.AlignVCenter)
             container_layout.addLayout(toolbar_row)
         else:
             if is_status_message:
@@ -6070,7 +6157,7 @@ class quest_workflow(QWidget):
                 status_label = QLabel(content)
                 status_label.setObjectName("quest_agent_status_label")
                 status_label.setWordWrap(False)
-                status_label.setTextInteractionFlags(Qt.TextSelectableByMouse)
+                status_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
                 status_label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
                 status_label.setStyleSheet(
                     "QLabel {"
@@ -6083,6 +6170,7 @@ class quest_workflow(QWidget):
                     "}"
                 )
                 status_row.addWidget(status_label)
+                status_row.addWidget(self._create_quest_agent_chat_copy_button(content), 0, Qt.AlignVCenter)
                 status_row.addStretch(1)
                 container_layout.addLayout(status_row)
                 return container
@@ -6093,6 +6181,7 @@ class quest_workflow(QWidget):
             body.setOpenLinks(False)
             body.setReadOnly(True)
             body.setUndoRedoEnabled(False)
+            body.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.TextSelectableByKeyboard)
             body.setFrameShape(QFrame.NoFrame)
             body.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
             body.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -6117,6 +6206,12 @@ class quest_workflow(QWidget):
             document_height = int(body.document().documentLayout().documentSize().height())
             body.setMinimumHeight(document_height + 10)
             body.setMaximumHeight(document_height + 10)
+            assistant_toolbar_row = QHBoxLayout()
+            assistant_toolbar_row.setContentsMargins(0, 0, 0, 0)
+            assistant_toolbar_row.setSpacing(6)
+            assistant_toolbar_row.addWidget(self._create_quest_agent_chat_copy_button(content), 0, Qt.AlignLeft)
+            assistant_toolbar_row.addStretch(1)
+            container_layout.addLayout(assistant_toolbar_row)
             if action_suggestions:
                 actions_widget = QWidget()
                 actions_layout = QHBoxLayout(actions_widget)
@@ -6213,8 +6308,12 @@ class quest_workflow(QWidget):
 
     def _create_ai_icon(self):
         pixmap = QPixmap(24, 24)
+        if pixmap.isNull():
+            return QIcon()
         pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap)
+        if not painter.isActive():
+            return QIcon()
         painter.setRenderHint(QPainter.Antialiasing, True)
         font = QFont("Segoe UI", 9, QFont.Bold)
         painter.setFont(font)
@@ -6225,8 +6324,12 @@ class quest_workflow(QWidget):
 
     def _create_eraser_icon(self):
         pixmap = QPixmap(24, 24)
+        if pixmap.isNull():
+            return QIcon()
         pixmap.fill(Qt.transparent)
         painter = QPainter(pixmap)
+        if not painter.isActive():
+            return QIcon()
         painter.setRenderHint(QPainter.Antialiasing, True)
 
         painter.translate(12, 12)
@@ -6249,7 +6352,9 @@ class quest_workflow(QWidget):
     def _load_workspace_icon(self, icon_name):
         icon_path = os.path.join(base_dir, "images", "icons", icon_name)
         if os.path.exists(icon_path):
-            return QIcon(icon_path)
+            icon = QIcon(icon_path)
+            if not icon.isNull():
+                return icon
         return QIcon()
 
     def clear_canvas(self):
@@ -6659,7 +6764,9 @@ class quest_workflow(QWidget):
                 pass
 
             try:
-                self.py_editor_window.destroyed.disconnect(self.auto_dock_back_in)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", RuntimeWarning)
+                    self.py_editor_window.destroyed.disconnect(self.auto_dock_back_in)
             except Exception:
                 pass
             try:
@@ -6764,6 +6871,57 @@ class quest_workflow(QWidget):
         except Exception as e:
             if hasattr(self, "flow_result_label"):
                 self.flow_result_label.setText(f"Notebook → Editor sync failed:\n{e}")
+
+    def _watch_notebook_path(self, notebook_path):
+        normalized = self._normalize_python_path(notebook_path)
+        if normalized == getattr(self, "_watched_notebook_path", ""):
+            return
+        try:
+            watched_files = list(self.notebook_save_watcher.files())
+            if watched_files:
+                self.notebook_save_watcher.removePaths(watched_files)
+        except Exception:
+            pass
+        self._watched_notebook_path = ""
+        if normalized and os.path.exists(normalized):
+            try:
+                self.notebook_save_watcher.addPath(normalized)
+                self._watched_notebook_path = normalized
+            except Exception:
+                self._watched_notebook_path = ""
+
+    def _on_notebook_file_saved(self, notebook_path):
+        normalized = self._normalize_python_path(notebook_path)
+        if not normalized:
+            return
+        self._pending_saved_notebook_path = normalized
+        if os.path.exists(normalized) and normalized not in list(self.notebook_save_watcher.files()):
+            try:
+                self.notebook_save_watcher.addPath(normalized)
+            except Exception:
+                pass
+        self._notebook_save_sync_timer.start(500)
+
+    def _sync_saved_notebook_to_python_function(self):
+        notebook_path = self._normalize_python_path(getattr(self, "_pending_saved_notebook_path", ""))
+        self._pending_saved_notebook_path = ""
+        if not notebook_path or not os.path.exists(notebook_path):
+            return
+
+        selected_nodes = self.graph.selected_nodes()
+        if len(selected_nodes) != 1 or not isinstance(selected_nodes[0], PyNode):
+            return
+
+        node = selected_nodes[0]
+        node_notebook_path = self._normalize_python_path(getattr(node, "node_notebook_path", "") or "")
+        if node_notebook_path != notebook_path:
+            return
+
+        self.update_ports(sync_editor_to_notebook=False)
+        try:
+            self._notebook_to_editor(notebook_path)
+        except Exception:
+            pass
 
     def _write_notebook_from_legacy_python(self, node):
         notebook_path = self._ensure_node_notebook(node)
@@ -7253,13 +7411,56 @@ class quest_workflow(QWidget):
         parts.append("</body></html>")
         return "".join(parts)
 
-    def _show_node_outputs_payload(self, payload, node_name=None):
+    def _node_outputs_payload_to_agent_prompt(self, payload, node_name=None, is_error=False):
+        if not isinstance(payload, dict):
+            payload = {"value": payload}
+
+        content = {key: value for key, value in payload.items() if key != "title"}
+        try:
+            content_text = json.dumps(content, indent=2, default=self._safe_json_default)
+        except Exception:
+            content_text = repr(content)
+
+        node_label = str(node_name or payload.get("title", "the selected node") or "the selected node").strip()
+        if is_error:
+            return (
+                f"The node '{node_label}' threw this error while viewing node outputs.\n\n"
+                f"{content_text}\n\n"
+                "Please diagnose the cause and fix it in QuESt."
+            )
+
+        return (
+            f"The node '{node_label}' ran successfully and returned these outputs.\n\n"
+            f"{content_text}\n\n"
+            "Please interpret these results and explain the important takeaways. "
+            "If any output indicates an error, failure, or suspicious result, please diagnose it and tell me how to fix it in QuESt."
+        )
+
+    def _ask_quest_agent_about_node_outputs(self, payload, node_name=None, is_error=False):
+        prompt_text = self._node_outputs_payload_to_agent_prompt(payload, node_name=node_name, is_error=is_error)
+        if bool(getattr(self, "quest_agent_panel_collapsed", False)):
+            self._set_quest_agent_panel_collapsed(False)
+        if hasattr(self, "quest_agent_inner_tabs") and hasattr(self, "quest_agent_chat_tab"):
+            self.quest_agent_inner_tabs.setCurrentWidget(self.quest_agent_chat_tab)
+        if hasattr(self, "quest_agent_chat_input"):
+            self.quest_agent_chat_input.setPlainText(prompt_text)
+            self.quest_agent_chat_input.setFocus()
+        self._send_quest_agent_chat_message()
+
+    def _show_node_outputs_payload(self, payload, node_name=None, is_error=False):
         html_text = self._node_outputs_payload_to_html(payload)
 
         if not hasattr(self, "node_outputs_windows"):
             self.node_outputs_windows = []
 
-        window = NodeOutputsHtmlWindow(None)
+        window = NodeOutputsHtmlWindow(
+            None,
+            ask_callback=lambda p=payload, n=node_name, e=is_error: self._ask_quest_agent_about_node_outputs(
+                p,
+                node_name=n,
+                is_error=e,
+            ),
+        )
         window.setAttribute(Qt.WA_DeleteOnClose, True)
 
         if node_name:
@@ -7411,7 +7612,7 @@ class quest_workflow(QWidget):
                 if not str(key).startswith("_"):
                     payload[key] = value
 
-            self._show_node_outputs_payload(payload, node.name())
+            self._show_node_outputs_payload(payload, node.name(), is_error=False)
             self._record_quest_agent_skill_action(
                 scope="flow",
                 action="view_node_outputs",
@@ -7420,11 +7621,11 @@ class quest_workflow(QWidget):
             )
 
         except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Node Outputs Error",
-                f"Failed to view node outputs:\n{e}"
-            )
+            payload = {
+                "title": f"Node Outputs Error - {node.name()}",
+                "Error": str(e),
+            }
+            self._show_node_outputs_payload(payload, node.name(), is_error=True)
 
     def normalize_layout_icons(self, layout_dict):
         if not isinstance(layout_dict, dict):
@@ -8685,16 +8886,106 @@ class quest_workflow(QWidget):
             nbf.write(nb, f)
         return notebook_path
 
+    def _flow_runner_notebook_results_prompt(self, notebook_path, visible_output_text=None):
+        normalized_path = self._normalize_python_path(notebook_path)
+        result_text = str(visible_output_text or "").strip()
+        if not result_text:
+            outputs = []
+            try:
+                with open(normalized_path, "r", encoding="utf-8") as f:
+                    nb = nbf.read(f, as_version=4)
+                for cell_index, cell in enumerate(nb.cells, start=1):
+                    if cell.cell_type != "code":
+                        continue
+                    for output in cell.get("outputs", []) or []:
+                        output_type = str(output.get("output_type", "") or "")
+                        if output_type == "stream":
+                            text = output.get("text", "")
+                            if isinstance(text, list):
+                                text = "".join(text)
+                            if str(text).strip():
+                                outputs.append(f"Cell {cell_index} stream output:\n{str(text).strip()}")
+                        elif output_type in ("execute_result", "display_data"):
+                            data = output.get("data", {}) or {}
+                            text = data.get("text/plain", "")
+                            if isinstance(text, list):
+                                text = "".join(text)
+                            if str(text).strip():
+                                outputs.append(f"Cell {cell_index} result:\n{str(text).strip()}")
+                        elif output_type == "error":
+                            traceback_text = output.get("traceback", []) or []
+                            if isinstance(traceback_text, list):
+                                traceback_text = "\n".join(str(item) for item in traceback_text)
+                            error_name = str(output.get("ename", "") or "").strip()
+                            error_value = str(output.get("evalue", "") or "").strip()
+                            outputs.append(
+                                f"Cell {cell_index} error:\n{error_name}: {error_value}\n{traceback_text}".strip()
+                            )
+            except Exception as exc:
+                outputs.append(f"Could not read runner notebook results: {exc}")
+            result_text = "\n\n".join(outputs).strip()
+        result_text = result_text or "No executed outputs were found in the runner notebook."
+        return (
+            f"Please review these QuESt flow runner notebook results from:\n{normalized_path}\n\n"
+            f"{result_text}\n\n"
+            "Please interpret the results and explain the important takeaways. "
+            "If any output indicates an error, failure, or suspicious result, please diagnose the cause and fix it in QuESt."
+        )
+
+    def _ask_quest_agent_about_flow_runner_notebook(self, notebook_path, notebook_view=None):
+        def send_prompt(visible_output_text=""):
+            prompt_text = self._flow_runner_notebook_results_prompt(
+                notebook_path,
+                visible_output_text=visible_output_text,
+            )
+            if bool(getattr(self, "quest_agent_panel_collapsed", False)):
+                self._set_quest_agent_panel_collapsed(False)
+            if hasattr(self, "quest_agent_inner_tabs") and hasattr(self, "quest_agent_chat_tab"):
+                self.quest_agent_inner_tabs.setCurrentWidget(self.quest_agent_chat_tab)
+            if hasattr(self, "quest_agent_chat_input"):
+                self.quest_agent_chat_input.setPlainText(prompt_text)
+                self.quest_agent_chat_input.setFocus()
+            self._send_quest_agent_chat_message()
+
+        if notebook_view is not None and hasattr(notebook_view, "extract_visible_outputs"):
+            notebook_view.extract_visible_outputs(send_prompt)
+            return
+        send_prompt()
+
+    def _runner_notebook_controls(self, notebook_path, close_callback, notebook_view=None):
+        controls = QWidget()
+        controls.setProperty("notebook_path", self._normalize_python_path(notebook_path))
+        controls.notebook_view = notebook_view
+        layout = QHBoxLayout(controls)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
+
+        ask_button = QPushButton("Ask QuESt Agent")
+        ask_button.clicked.connect(
+            lambda checked=False, widget=controls: self._ask_quest_agent_about_flow_runner_notebook(
+                str(widget.property("notebook_path") or ""),
+                notebook_view=getattr(widget, "notebook_view", None),
+            )
+        )
+        close_button = QPushButton("Close")
+        if callable(close_callback):
+            close_button.clicked.connect(close_callback)
+
+        layout.addWidget(ask_button)
+        layout.addWidget(close_button)
+        return controls
+
     def _open_flow_runner_notebook(self, notebook_path, open_new_window=False):
         if open_new_window:
             runner_notebook_view = EmbeddedNotebook()
-            runner_update_button = QPushButton("Close")
+            runner_update_button = self._runner_notebook_controls(notebook_path, None, runner_notebook_view)
             runner_notebook_window = PopOutNotebookEditor(
                 runner_notebook_view,
                 runner_update_button
             )
             runner_notebook_window.setWindowTitle("Flow Runner Notebook")
-            runner_update_button.clicked.connect(runner_notebook_window.close)
+            close_button = runner_update_button.findChildren(QPushButton)[-1]
+            close_button.clicked.connect(runner_notebook_window.close)
             runner_notebook_view.load_notebook(notebook_path)
             runner_notebook_window.show()
             runner_notebook_window.raise_()
@@ -8711,9 +9002,10 @@ class quest_workflow(QWidget):
 
         if not hasattr(self, "runner_notebook_window") or self.runner_notebook_window is None:
             self.runner_notebook_view = EmbeddedNotebook()
-            self.runner_update_button = QPushButton("Close")
-            self.runner_update_button.clicked.connect(
-                lambda: self.runner_notebook_window.close() if self.runner_notebook_window else None
+            self.runner_update_button = self._runner_notebook_controls(
+                notebook_path,
+                lambda: self.runner_notebook_window.close() if self.runner_notebook_window else None,
+                self.runner_notebook_view,
             )
 
             self.runner_notebook_window = PopOutNotebookEditor(
@@ -8723,6 +9015,10 @@ class quest_workflow(QWidget):
             self.runner_notebook_window.setWindowTitle("Flow Runner Notebook")
 
         self.runner_notebook_view.load_notebook(notebook_path)
+        try:
+            self.runner_update_button.setProperty("notebook_path", self._normalize_python_path(notebook_path))
+        except Exception:
+            pass
         self.runner_notebook_window.show()
         self.runner_notebook_window.raise_()
         self.runner_notebook_window.activateWindow()
@@ -9405,6 +9701,7 @@ class quest_workflow(QWidget):
                         notebook_path = self._write_notebook_from_legacy_python(node)
                     else:
                         notebook_path = self._ensure_node_notebook(node)
+                self._watch_notebook_path(notebook_path)
                 try:
                     preview_code = self._notebook_to_code(notebook_path)
                 except Exception:
@@ -9734,7 +10031,7 @@ class quest_workflow(QWidget):
 
         self.update_ports()
 
-    def update_ports(self):
+    def update_ports(self, sync_editor_to_notebook=True):
         selected_nodes = self.graph.selected_nodes()
         if len(selected_nodes) != 1:
             return
@@ -9745,7 +10042,7 @@ class quest_workflow(QWidget):
             try:
                 notebook_path = self._ensure_node_notebook(node)
 
-                if not self.is_popped_out:
+                if sync_editor_to_notebook and not self.is_popped_out:
                     self._editor_to_notebook(notebook_path)
 
                 python_code = self._notebook_to_code(notebook_path)

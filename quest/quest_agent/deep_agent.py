@@ -2,7 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from langgraph.graph import END, START, StateGraph
+from langchain_core._api.deprecation import suppress_langchain_deprecation_warning
+
+with suppress_langchain_deprecation_warning():
+    from langgraph.graph import END, START, StateGraph
 
 
 ChatCallbacks = dict[str, Callable[..., Any]]
