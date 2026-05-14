@@ -38,10 +38,10 @@ class python_node:
             missing_inputs = [input_name for input_name in self.input_names if input_name not in self.input_values]
             raise ValueError(f"Missing inputs: {missing_inputs}")
 
-        snapshot = self._make_input_snapshot()
-        if (not self._dirty) and (self._last_input_snapshot == snapshot):
+        if not self._dirty:
             return self.output_values
 
+        snapshot = self._make_input_snapshot()
         result = self.function(**self.input_values)
 
         if isinstance(result, dict):
@@ -101,10 +101,10 @@ class data_node(python_node):
 
     def get_outputs(self):
         """Executes the function with the provided inputs and updates outputs."""
-        snapshot = self._make_input_snapshot()
-        if (not self._dirty) and (self._last_input_snapshot == snapshot):
+        if not self._dirty:
             return self.output_values
 
+        snapshot = self._make_input_snapshot()
         result = self.function(**self.input_values)
 
         if isinstance(result, dict):
