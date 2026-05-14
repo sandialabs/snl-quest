@@ -38,6 +38,7 @@ setup(
         "pandas>=2.2.3,<2.3",
         "streamlit==1.55.0",
         "openai==2.32.0",
+        "anthropic==0.72.0",
         "langgraph==1.1.10",
         "psutil==5.9.0",
         "GitPython==3.1.43",

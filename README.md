@@ -2,9 +2,9 @@
 
 # QuESt: Open-source Platform for Energy Storage Analytics
 
-Current release version: 2.1
+Current release version: 2.2.2
 
-Release date: June, 2025
+Release date: May, 2026
 
 ## Contact
 For issues and feedback we would appreciate it if you could use the "Issues" feature of this repository. This helps others join the discussion and helps us keep track of and document issues.
@@ -14,6 +14,7 @@ Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 
 ## Table of contents
 - [Introduction](#what-is-it)
+- [What's New](#whats-new-in-222)
 - [App Hub](#the-app_hub)
 - [Workspace](#the-workspace)
 - [QuESt GPT](#quest-gpt)
@@ -33,6 +34,16 @@ QuESt 2.0 is an evolved version of the original QuESt, an open-source Python sof
 
 Currently, QuESt 2.0 includes three main components:
 
+### What's new in 2.2.2
+<a id="whats-new-in-222"></a>
+QuESt 2.2.2 focuses on two major platform updates: a stronger QuESt Workspace for building executable energy-storage workflows and a more capable QuESt Agent for guiding users through those workflows.
+
+- **QuESt Workspace:** The Workspace has been expanded into a richer workflow-building environment for master flows and subflows. Users can assemble data nodes, Python nodes, notebooks, subflows, and application-specific processing steps into reusable pipelines; manage Python environments and flow inputs; save and reload workflow files; run configured cases; and inspect generated outputs from a single canvas-centered interface.
+
+- **QuESt Agent:** The QuESt Agent now works directly with Workspace context to help users understand, edit, and extend workflows. It can review the active canvas, use pinned messages and attached files as context, identify relevant tools and reusable skills, draft workflow action plans, preview canvas changes before they are applied, and help troubleshoot node outputs or flow-run results.
+
+- **LLM provider support for the agent:** The QuESt Agent supports OpenAI, Anthropic Claude, and local Ollama/Gemma models from the model dropdown. Claude support uses the official Anthropic SDK and the saved `ANTHROPIC_API_KEY`; OpenAI uses `OPENAI_API_KEY`.
+
 ### The App Hub
 <a id="the-app_hub"></a>
 The QuESt App Hub operates similarly to an app store, offering access points to a multitude of applications. Currently, various energy storage analytics tools have been available on QuESt App hub. For example:
@@ -48,6 +59,10 @@ The QuESt App Hub operates similarly to an app store, offering access points to 
 - **QuESt Performance** evaluates the performance of energy storage systems in different climatic conditions.
 
 - **QuESt Microgrid** supports microgrid design and simulation considering energy storage as a key component.
+
+- **QuESt Planning** is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.
+
+- **Progress** is a Python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.
 
 It has been designed with key features to improve user experience and application management:
 
@@ -73,27 +88,38 @@ QuESt GPT represents a leap forward in data analytics within the platform, utili
 
 - **Utilization of LLMs:** By leveraging advanced open-source LLMs such as OpenAi’s GPT-4 and Meta’s Llama2, QuESt GPT can perform sophisticated data analytics tasks, such as characterizing and visualizing large datasets. This enables users to gain deeper insights from their data, supporting more informed decision-making at no costs.
 
-### What are the key innovations of QuESt 2.0?
+### What are the key innovations of QuESt 2.2.2?
 <a id="what-are-the-key-innovations-of-quest-20"></a>
-QuESt 2.0 facilitates the advancement of energy storage technology by making powerful analytics tools accessible to all energy storage stakeholders, aligning with DOE’s energy storage program goals. The platform standardizes data and program structures, integrates applications seamlessly, and utilizes generative AI for advanced analytics, simplifying user interaction and enabling deeper insights from diverse data sources. This positions QuESt 2.0 as a pioneering platform in the energy storage domain, with the potential to significantly impact both the field and the broader energy landscape. Specifically, the key innovations of QuESt 2.0 include:
-1. **Integration and Usability:** At its core, QuESt 2.0 revolutionizes how energy storage analytics are performed by providing a seamless, user-friendly platform that integrates multiple applications developed by independent developers. This allows for a more cohesive and efficient user experience, significantly lowering the learning curve for users at various levels of expertise.
-2. **AI-powered Data Analytics:** The incorporation of QuESt GPT, utilizing Large Language Models (LLM), represents a significant technological leap forward. This feature enables users to perform more sophisticated data analytics, providing deeper insights from diverse data sources. It allows users to interact with data in an intuitive way, asking questions and receiving insights, which democratizes access to complex data analysis.
-3. **Complex Workflows:** The QuESt Workspace and the QuESt App Hub enhance the platform's capability to support complex analytical workflows. Users can integrate multiple applications into a single process, creating efficient pipelines for data analysis. The users can run their workflows locally or schedule them to run on cloud services (e.g., AWS, Azure..)
+QuESt 2.2.2 advances QuESt from a collection of energy-storage applications into a workflow-centered analytics platform. It combines installable domain tools, an executable visual Workspace, and an AI-assisted QuESt Agent so users can move from data, to model setup, to workflow execution, to interpretation inside one environment.
 
-### How is QuESt 2.0 different from the other tools in Energy Storage Analytics?
+1. **Executable visual workflows:** The QuESt Workspace lets users assemble energy-storage studies as connected flows rather than one-off scripts. Data nodes, Python nodes, notebooks, subflows, application-specific processing steps, inputs, and outputs can be organized on the same canvas, making the logic of a study easier to inspect, rerun, revise, and share.
+2. **Agent-assisted workflow development:** The QuESt Agent works with the active Workspace context. It can review the current canvas, reason over pinned notes and attached files, identify relevant tools or reusable skills, suggest workflow actions, preview canvas changes, and help troubleshoot node outputs or flow-run results.
+3. **Provider-flexible LLM support:** QuESt Agent supports OpenAI, Anthropic Claude, and local Ollama/Gemma models. Users can choose between cloud-hosted frontier models and local models depending on cost, privacy, availability, and task complexity.
+4. **Reusable knowledge and skills:** QuESt 2.2.2 strengthens support for capturing workflow knowledge as reusable skills and action templates. This helps preserve successful study patterns and makes repeat analyses easier for both new and experienced users.
+5. **Integrated app-to-workflow pathway:** The App Hub provides specialized tools such as BTM, Valuation, Performance, Technology Selection, Planning, Progress, Microgrid, and Data Manager, while the Workspace provides the place to connect those capabilities into larger analyses.
+
+### How is QuESt 2.2.2 different from the other tools in Energy Storage Analytics?
 <a id="how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics"></a>
-QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics tools by offering a unified platform rather than a collection of individual tools. While there are numerous tools available, these tend to focus on specific aspects of energy storage analysis and lack the integration and broad applicability that QuESt 2.0 provides.
+Many energy-storage tools focus on a single analysis domain, such as valuation, performance modeling, planning, data acquisition, or microgrid simulation. QuESt 2.2.2 is different because it treats these capabilities as parts of a larger study environment. Users can install domain tools from the App Hub, connect them through the Workspace, and use QuESt Agent to understand and modify the workflow as it evolves.
 
-### Key Competitive Advantages of QuESt 2.0:
+This makes QuESt 2.2.2 especially useful for analyses that cross tool boundaries. A study can combine data preparation, technology assumptions, storage sizing, optimization, scenario execution, and result export in one repeatable workflow. Instead of forcing users to move manually between disconnected applications, scripts, and notes, QuESt provides a shared structure for building and revisiting the analysis.
+
+QuESt also remains open-source and Python-based, which makes it inspectable and extensible. Users can see how workflows are assembled, edit generated node code, attach notebooks, and adapt the platform to local research needs.
+
+### Key Competitive Advantages of QuESt 2.2.2:
 <a id="key-competitive-advantages-of-quest-20"></a>
 
-- **Unified Platform:** Unlike individual tools that offer limited capabilities in specific topics, QuESt 2.0 serves as a comprehensive platform that integrates multiple applications for energy storage analytics. This integration allows users to access a wide range of tools and functionalities within a single environment, streamlining the workflow and enhancing productivity.
+- **Unified energy-storage platform:** QuESt brings multiple energy-storage analytics applications into one platform while still allowing each tool to remain independently installable and maintainable.
 
-- **Advanced Data Analytics:** With the inclusion of QuESt GPT for advanced data analytics, QuESt 2.0 utilizes generative AI to provide deeper insights from diverse data sources. This capability is not commonly found in other tools, giving QuESt 2.0 a significant technological edge.
+- **Workflow-first analysis:** The Workspace gives users a visual, executable representation of a study. This improves transparency, repeatability, and collaboration compared with isolated scripts or single-purpose graphical tools.
 
-- **Flexibility and Scalability:** QuESt 2.0's modular design allows for the easy integration of new tools and applications, ensuring that the platform remains relevant and adaptable to future developments in energy storage analytics.
+- **AI assistance grounded in the active workflow:** QuESt Agent uses Workspace context, attachments, pinned messages, tool metadata, and reusable skills to provide more targeted assistance than a standalone chatbot.
 
-- **Collaborative Development:** As an open-source platform, QuESt 2.0 benefits from contributions by a wide community of developers, enhancing its capabilities and ensuring continuous improvement.
+- **Model choice and deployment flexibility:** Users can select OpenAI, Anthropic Claude, or local Ollama/Gemma models, allowing the agent experience to be tuned for performance, privacy, cost, or offline/local workflows.
+
+- **Extensible Python foundation:** Because QuESt is Python-based and open-source, researchers and developers can inspect, customize, and extend workflows, app integrations, node logic, and agent skills.
+
+- **Repeatable study patterns:** Reusable skills, workflow templates, node notebooks, saved flow files, and explicit input cases help teams preserve analysis methods and rerun studies with changed assumptions.
 
 ### How to download QuESt?
 <a id="how-to-download-quest"></a>

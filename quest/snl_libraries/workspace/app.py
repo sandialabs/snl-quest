@@ -52,6 +52,10 @@ from quest.snl_libraries.workspace.flow.questflow import *
 QUEST_AGENT_RUNTIME_LOG = os.path.join(tempfile.gettempdir(), "quest_agent_runtime.log")
 
 
+class QuestAgentChatTurnCanceled(Exception):
+    pass
+
+
 def _append_quest_agent_runtime_log(message):
     try:
         timestamp = QDateTime.currentDateTime().toString("yyyy-MM-dd HH:mm:ss")
@@ -167,7 +171,7 @@ def _quest_agent_run_structured_match_from_snapshot(task_description, selected_m
     )
 
 
-def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
+def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellation_callback=None):
     def _report_progress(message):
         _append_quest_agent_runtime_log(f"worker progress: {message}")
         if progress_callback is None:
@@ -176,6 +180,16 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
             progress_callback(str(message or "").strip())
         except Exception:
             return
+
+    def _check_canceled():
+        if cancellation_callback is None:
+            return
+        try:
+            is_canceled = bool(cancellation_callback())
+        except Exception:
+            is_canceled = False
+        if is_canceled:
+            raise QuestAgentChatTurnCanceled("QuESt Agent request was stopped.")
 
     prompt_text = str(payload.get("prompt_text", "") or "").strip()
     effective_prompt = str(payload.get("effective_prompt", prompt_text) or "").strip()
@@ -191,6 +205,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
     )
     canvas_context = dict(payload.get("canvas_context", {}) or {})
     route_result = {}
+    _check_canceled()
     if quest_agent_chat_service is None:
         route_result = {
             "action": "analyze_task" if not state_snapshot.get("task_match_results", {}) else "answer_only",
@@ -206,6 +221,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
             context_payload,
             run_chat_router,
         )
+    _check_canceled()
     if pending_control == "revise_plan":
         route_result["action"] = "execute_canvas_action"
     route_action = str(route_result.get("action", "") or "").strip()
@@ -219,6 +235,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
     }
 
     if route_action == "analyze_task":
+        _check_canceled()
         _report_progress("QuESt Agent is analyzing the task and checking tools and skills...")
         task_match_result = _quest_agent_run_structured_match_from_snapshot(
             effective_prompt,
@@ -226,6 +243,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
             state_snapshot,
             context_payload,
         )
+        _check_canceled()
         state_snapshot["task_match_results"] = dict(task_match_result or {})
         context_payload = _quest_agent_refresh_context_payload_snapshot(state_snapshot, context_payload)
         if quest_agent_chat_service is None:
@@ -241,12 +259,14 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
                 context_payload,
                 run_grounded_chat_reply,
             )
+        _check_canceled()
         worker_result["task_match_result"] = dict(task_match_result or {})
         worker_result["final_reply"] = dict(final_reply or {})
         _append_quest_agent_runtime_log("worker finished analyze_task")
         return worker_result
 
     if route_action == "execute_canvas_action":
+        _check_canceled()
         task_match_result = {}
         if quest_agent_chat_service is not None:
             try:
@@ -269,6 +289,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
                 state_snapshot,
                 context_payload,
             )
+            _check_canceled()
             state_snapshot["task_match_results"] = dict(task_match_result or {})
             context_payload = _quest_agent_refresh_context_payload_snapshot(state_snapshot, context_payload)
         _report_progress("QuESt Agent is planning canvas actions for the current workflow...")
@@ -283,6 +304,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
                 canvas_context,
                 run_workspace_action_plan,
             )
+        _check_canceled()
         worker_result["task_match_result"] = dict(task_match_result or {})
         worker_result["action_plan"] = dict(action_plan or {})
         worker_result["stored_prompt"] = effective_prompt if pending_control == "revise_plan" else prompt_text
@@ -294,6 +316,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
             "reply": "I couldn't analyze the current request yet. Try sending the prompt again after confirming the agent runtime is available.",
         }
     else:
+        _check_canceled()
         _report_progress("QuESt Agent is preparing a response from the current context...")
         final_reply = quest_agent_chat_service.generate_assistant_reply(
             effective_prompt,
@@ -302,6 +325,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
             context_payload,
             run_grounded_chat_reply,
         )
+    _check_canceled()
     worker_result["final_reply"] = dict(final_reply or {})
     _append_quest_agent_runtime_log(f"worker finished route_action={route_action or 'answer_only'}")
     return worker_result
@@ -310,16 +334,32 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None):
 class QuestAgentChatTurnWorker(QObject):
     finished = Signal(object)
     failed = Signal(str)
+    canceled = Signal(str)
     progress = Signal(str)
 
     def __init__(self, payload, parent=None):
         super().__init__(parent)
         self._payload = dict(payload or {})
+        self._cancel_requested = False
+
+    def cancel(self):
+        self._cancel_requested = True
+
+    def is_cancel_requested(self):
+        return bool(self._cancel_requested)
 
     @Slot()
     def run(self):
         try:
-            result = _run_quest_agent_chat_turn_worker(self._payload, self.progress.emit)
+            result = _run_quest_agent_chat_turn_worker(
+                self._payload,
+                self.progress.emit,
+                self.is_cancel_requested,
+            )
+        except QuestAgentChatTurnCanceled as exc:
+            _append_quest_agent_runtime_log("worker canceled")
+            self.canceled.emit(str(exc))
+            return
         except Exception as exc:
             _append_quest_agent_runtime_log("worker failed:\n" + traceback.format_exc())
             self.failed.emit(str(exc))
@@ -2208,6 +2248,9 @@ class quest_workflow(QWidget):
             "GPT-5.2 Codex",
             "GPT-4.1",
             "o4-mini",
+            "Claude Opus 4.7",
+            "Claude Sonnet 4.6",
+            "Claude Haiku 4.5",
             "Gemma 4 E2B",
             "Gemma 4 E4B",
             "Gemma 4 26B",
@@ -2218,15 +2261,9 @@ class quest_workflow(QWidget):
 
         self.quest_agent_send_button = QPushButton("")
         self.quest_agent_send_button.setFixedSize(32, 32)
-        self.quest_agent_send_button.setToolTip("Send prompt")
-        self.quest_agent_send_button.setIcon(self._load_workspace_icon("arrow_upward_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48 (1).png"))
         self.quest_agent_send_button.setIconSize(QSize(16, 16))
-        self.quest_agent_send_button.setStyleSheet(
-            "QPushButton { border-radius: 16px; border: 2px solid #cbd5e1; background: rgba(255, 255, 255, 240); padding: 0px; }"
-            "QPushButton:hover { background: rgba(239, 246, 255, 245); border-color: #93c5fd; }"
-            "QPushButton:pressed { background: rgba(219, 234, 254, 250); }"
-        )
-        self.quest_agent_send_button.clicked.connect(self._send_quest_agent_chat_message)
+        self._set_quest_agent_send_button_mode(False)
+        self.quest_agent_send_button.clicked.connect(self._handle_quest_agent_send_button_clicked)
 
         self.quest_agent_chat_controls_layout.addWidget(self.quest_agent_add_file_button)
         self.quest_agent_chat_controls_layout.addWidget(self.quest_agent_model_combo)
@@ -5150,14 +5187,42 @@ class quest_workflow(QWidget):
         thread = getattr(self, "_quest_agent_chat_turn_thread", None)
         return bool(thread is not None and thread.isRunning())
 
+    def _set_quest_agent_send_button_mode(self, is_stop_mode):
+        if not hasattr(self, "quest_agent_send_button"):
+            return
+        stop_mode = bool(is_stop_mode)
+        if stop_mode:
+            self.quest_agent_send_button.setToolTip("Stop response")
+            self.quest_agent_send_button.setIcon(self._load_workspace_icon("stop_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48.png"))
+            self.quest_agent_send_button.setStyleSheet(
+                "QPushButton { border-radius: 16px; border: 2px solid #fca5a5; background: #ffffff; padding: 0px; }"
+                "QPushButton:hover { background: #fef2f2; border-color: #ef4444; }"
+                "QPushButton:pressed { background: #fee2e2; border-color: #dc2626; }"
+            )
+            return
+        self.quest_agent_send_button.setToolTip("Send prompt")
+        self.quest_agent_send_button.setIcon(self._load_workspace_icon("arrow_upward_48dp_1F1F1F_FILL0_wght200_GRAD0_opsz48 (1).png"))
+        self.quest_agent_send_button.setStyleSheet(
+            "QPushButton { border-radius: 16px; border: 2px solid #cbd5e1; background: rgba(255, 255, 255, 240); padding: 0px; }"
+            "QPushButton:hover { background: rgba(239, 246, 255, 245); border-color: #93c5fd; }"
+            "QPushButton:pressed { background: rgba(219, 234, 254, 250); }"
+        )
+
     def _set_quest_agent_chat_controls_busy(self, is_busy):
         busy = bool(is_busy)
         if hasattr(self, "quest_agent_send_button"):
-            self.quest_agent_send_button.setEnabled(not busy)
+            self.quest_agent_send_button.setEnabled(True)
+            self._set_quest_agent_send_button_mode(busy)
         if hasattr(self, "quest_agent_add_file_button"):
             self.quest_agent_add_file_button.setEnabled(not busy)
         if hasattr(self, "quest_agent_model_combo"):
             self.quest_agent_model_combo.setEnabled(not busy)
+
+    def _handle_quest_agent_send_button_clicked(self):
+        if self._quest_agent_chat_turn_worker_active():
+            self._cancel_quest_agent_chat_turn()
+            return
+        self._send_quest_agent_chat_message()
 
     def _start_quest_agent_chat_turn_worker(self, worker_payload):
         if self._quest_agent_chat_turn_worker_active():
@@ -5168,25 +5233,85 @@ class quest_workflow(QWidget):
         thread.started.connect(worker.run)
         worker.finished.connect(self._handle_quest_agent_chat_turn_worker_finished)
         worker.failed.connect(self._handle_quest_agent_chat_turn_worker_failed)
+        worker.canceled.connect(self._handle_quest_agent_chat_turn_worker_canceled)
         worker.progress.connect(self._update_last_quest_agent_status_message)
         worker.finished.connect(thread.quit)
         worker.failed.connect(thread.quit)
+        worker.canceled.connect(thread.quit)
         worker.finished.connect(worker.deleteLater)
         worker.failed.connect(worker.deleteLater)
+        worker.canceled.connect(worker.deleteLater)
         thread.finished.connect(thread.deleteLater)
         self._quest_agent_chat_turn_thread = thread
         self._quest_agent_chat_turn_worker = worker
+        self._quest_agent_chat_turn_cancel_requested = False
+        self._quest_agent_chat_turn_stop_finalized = False
         self._set_quest_agent_chat_controls_busy(True)
         thread.start()
         return True
 
+    def _cancel_quest_agent_chat_turn(self):
+        if not self._quest_agent_chat_turn_worker_active():
+            return
+        self._quest_agent_chat_turn_cancel_requested = True
+        worker = getattr(self, "_quest_agent_chat_turn_worker", None)
+        thread = getattr(self, "_quest_agent_chat_turn_thread", None)
+
+        if worker is not None:
+            try:
+                worker.cancel()
+            except Exception:
+                pass
+            for signal_name, handler in (
+                ("finished", self._handle_quest_agent_chat_turn_worker_finished),
+                ("failed", self._handle_quest_agent_chat_turn_worker_failed),
+                ("canceled", self._handle_quest_agent_chat_turn_worker_canceled),
+                ("progress", self._update_last_quest_agent_status_message),
+            ):
+                try:
+                    getattr(worker, signal_name).disconnect(handler)
+                except Exception:
+                    pass
+        if thread is not None:
+            try:
+                thread.requestInterruption()
+            except Exception:
+                pass
+        if thread is not None and worker is not None:
+            abandoned_turns = list(getattr(self, "_quest_agent_abandoned_chat_turns", []) or [])
+            abandoned_turns.append((thread, worker))
+            self._quest_agent_abandoned_chat_turns = abandoned_turns
+            thread.finished.connect(
+                lambda t=thread, w=worker: self._forget_quest_agent_abandoned_chat_turn(t, w)
+            )
+        _append_quest_agent_runtime_log("ui detached canceled worker")
+        self._finalize_stopped_quest_agent_chat_turn()
+        self._clear_quest_agent_chat_turn_worker()
+
+    def _forget_quest_agent_abandoned_chat_turn(self, thread, worker):
+        abandoned_turns = list(getattr(self, "_quest_agent_abandoned_chat_turns", []) or [])
+        self._quest_agent_abandoned_chat_turns = [
+            item for item in abandoned_turns if item != (thread, worker)
+        ]
+
+    def _finalize_stopped_quest_agent_chat_turn(self):
+        if bool(getattr(self, "_quest_agent_chat_turn_stop_finalized", False)):
+            return
+        self._quest_agent_chat_turn_stop_finalized = True
+        self._finalize_last_quest_agent_status_message({"reply": "Stopped the QuESt Agent request."})
+
     def _clear_quest_agent_chat_turn_worker(self):
         self._quest_agent_chat_turn_worker = None
         self._quest_agent_chat_turn_thread = None
+        self._quest_agent_chat_turn_cancel_requested = False
         self._set_quest_agent_chat_controls_busy(False)
 
     def _handle_quest_agent_chat_turn_worker_finished(self, worker_result):
         _append_quest_agent_runtime_log("ui received worker finished signal")
+        if bool(getattr(self, "_quest_agent_chat_turn_cancel_requested", False)):
+            self._finalize_stopped_quest_agent_chat_turn()
+            self._clear_quest_agent_chat_turn_worker()
+            return
         self._clear_quest_agent_chat_turn_worker()
         result = dict(worker_result or {})
         task_match_result = dict(result.get("task_match_result", {}) or {})
@@ -5234,11 +5359,20 @@ class quest_workflow(QWidget):
 
     def _handle_quest_agent_chat_turn_worker_failed(self, error_text):
         _append_quest_agent_runtime_log(f"ui received worker failed signal: {error_text}")
+        if bool(getattr(self, "_quest_agent_chat_turn_cancel_requested", False)):
+            self._finalize_stopped_quest_agent_chat_turn()
+            self._clear_quest_agent_chat_turn_worker()
+            return
         self._clear_quest_agent_chat_turn_worker()
         details = str(error_text or "").strip() or "Unknown background error."
         self._finalize_last_quest_agent_status_message(
             {"reply": f"I couldn't complete the QuESt Agent request.\n\nDetails: {details}"}
         )
+
+    def _handle_quest_agent_chat_turn_worker_canceled(self, message):
+        _append_quest_agent_runtime_log(f"ui received worker canceled signal: {message}")
+        self._finalize_stopped_quest_agent_chat_turn()
+        self._clear_quest_agent_chat_turn_worker()
 
     def _process_quest_agent_chat_turn(self, prompt_text, model_name):
         _append_quest_agent_runtime_log(f"process chat turn model={model_name} prompt={str(prompt_text or '')[:160]}")
@@ -6254,6 +6388,8 @@ class quest_workflow(QWidget):
         return container
 
     def _send_quest_agent_quick_action(self, prompt_text, button_label=""):
+        if self._quest_agent_chat_turn_worker_active():
+            return
         _refresh_quest_agent_runtime()
         prompt_text = str(prompt_text or "").strip()
         if not prompt_text:
@@ -6278,6 +6414,8 @@ class quest_workflow(QWidget):
         QTimer.singleShot(0, lambda text=prompt_text, model=model_name: self._process_quest_agent_chat_turn(text, model))
 
     def _send_quest_agent_chat_message(self):
+        if self._quest_agent_chat_turn_worker_active():
+            return
         _refresh_quest_agent_runtime()
         prompt_text = ""
         if hasattr(self, "quest_agent_chat_input"):

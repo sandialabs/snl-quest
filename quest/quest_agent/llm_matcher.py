@@ -10,6 +10,11 @@ import urllib.error
 import urllib.request
 
 try:
+    from anthropic import Anthropic
+except ImportError:
+    Anthropic = None
+
+try:
     from openai import OpenAI
 except ImportError:
     OpenAI = None
@@ -24,6 +29,11 @@ MODEL_NAME_MAP = {
     "GPT-5.2 Codex": "gpt-5.2-codex",
     "GPT-4.1": "gpt-4.1",
     "o4-mini": "o4-mini",
+    "Claude Opus 4.7": "claude-opus-4-7",
+    "Claude Sonnet 4.6": "claude-sonnet-4-6",
+    "Claude Haiku 4.5": "claude-haiku-4-5-20251001",
+    "Claude Sonnet 4": "claude-sonnet-4-6",
+    "Claude Haiku 3.5": "claude-haiku-4-5-20251001",
     "Gemma 4 E2B": "ollama:gemma4:e2b",
     "Gemma 4 E4B": "ollama:gemma4:e4b",
     "Gemma 4 26B": "ollama:gemma4:26b",
@@ -34,6 +44,15 @@ MODEL_NAME_LABEL_MAP = {value: key for key, value in MODEL_NAME_MAP.items()}
 OLLAMA_MODEL_PREFIX = "ollama:"
 DEFAULT_OLLAMA_HOST = "http://127.0.0.1:11434"
 DEFAULT_OLLAMA_TIMEOUT_SECONDS = 600
+DEFAULT_ANTHROPIC_TIMEOUT_SECONDS = 600
+ANTHROPIC_MODEL_MAX_TOKENS = {
+    "claude-opus-4-7": 128000,
+    "claude-sonnet-4-6": 64000,
+    "claude-haiku-4-5-20251001": 64000,
+}
+ANTHROPIC_MODELS_WITHOUT_TEMPERATURE = {
+    "claude-opus-4-7",
+}
 DEFAULT_OLLAMA_CONTEXT_TOKENS = 2048
 OLLAMA_MODEL_CONTEXT_TOKENS = {
     "gemma4:e2b": 2048,
@@ -100,8 +119,21 @@ def _resolve_api_key(explicit_api_key: str | None = None) -> str:
     raise RuntimeError("OpenAI API key is not configured. Set OPENAI_API_KEY before using QuESt Agent task analysis.")
 
 
+def _resolve_anthropic_api_key(explicit_api_key: str | None = None) -> str:
+    if explicit_api_key and str(explicit_api_key).strip():
+        return str(explicit_api_key).strip()
+    env_key = str(os.environ.get("ANTHROPIC_API_KEY", "") or "").strip()
+    if env_key:
+        return env_key
+    raise RuntimeError("Anthropic API key is not configured. Set ANTHROPIC_API_KEY before using Claude models.")
+
+
 def _is_ollama_model(model_name: str | None) -> bool:
     return str(model_name or "").strip().startswith(OLLAMA_MODEL_PREFIX)
+
+
+def _is_anthropic_model(model_name: str | None) -> bool:
+    return str(model_name or "").strip().startswith("claude-")
 
 
 def _resolve_ollama_model_tag(model_name: str) -> str:
@@ -122,6 +154,15 @@ def _resolve_ollama_timeout_seconds() -> float:
         timeout_seconds = float(raw_value) if raw_value else float(DEFAULT_OLLAMA_TIMEOUT_SECONDS)
     except Exception:
         timeout_seconds = float(DEFAULT_OLLAMA_TIMEOUT_SECONDS)
+    return max(30.0, timeout_seconds)
+
+
+def _resolve_anthropic_timeout_seconds() -> float:
+    raw_value = str(os.environ.get("ANTHROPIC_REQUEST_TIMEOUT_SECONDS", "") or "").strip()
+    try:
+        timeout_seconds = float(raw_value) if raw_value else float(DEFAULT_ANTHROPIC_TIMEOUT_SECONDS)
+    except Exception:
+        timeout_seconds = float(DEFAULT_ANTHROPIC_TIMEOUT_SECONDS)
     return max(30.0, timeout_seconds)
 
 
@@ -641,6 +682,94 @@ def _ollama_chat_completion_content(
     return content
 
 
+def _anthropic_max_tokens(model_name: str) -> int:
+    resolved_name = _resolve_model_name(model_name)
+    return int(ANTHROPIC_MODEL_MAX_TOKENS.get(resolved_name, 8192))
+
+
+def _prepare_anthropic_messages(
+    messages: list[dict[str, Any]],
+    *,
+    response_json: bool = True,
+) -> tuple[str, list[dict[str, str]]]:
+    system_parts = []
+    prepared_messages = []
+    for message in list(messages or []):
+        role = str(message.get("role", "") or "").strip().lower()
+        content = str(message.get("content", "") or "")
+        if not content:
+            continue
+        if role == "system":
+            system_parts.append(content)
+            continue
+        if role not in {"user", "assistant"}:
+            role = "user"
+        prepared_messages.append({"role": role, "content": content})
+
+    if response_json:
+        json_instruction = "Return only valid JSON. Do not include markdown fences or explanatory text outside the JSON object."
+        for index in range(len(prepared_messages) - 1, -1, -1):
+            if prepared_messages[index]["role"] == "user":
+                prepared_messages[index]["content"] = prepared_messages[index]["content"].rstrip() + "\n\n" + json_instruction
+                break
+        else:
+            prepared_messages.append({"role": "user", "content": json_instruction})
+
+    if not prepared_messages:
+        prepared_messages.append({"role": "user", "content": "Respond to the current QuESt Agent request."})
+
+    merged_messages = []
+    for message in prepared_messages:
+        if merged_messages and merged_messages[-1]["role"] == message["role"]:
+            merged_messages[-1]["content"] = merged_messages[-1]["content"].rstrip() + "\n\n" + message["content"]
+        else:
+            merged_messages.append(message)
+    return "\n\n".join(system_parts).strip(), merged_messages
+
+
+def _anthropic_chat_completion_content(
+    messages: list[dict[str, Any]],
+    model_name: str,
+    *,
+    temperature: float = 0,
+    api_key: str | None = None,
+    response_json: bool = True,
+) -> str:
+    if Anthropic is None:
+        raise RuntimeError(
+            "The anthropic Python package is not installed. Install it to use Claude models."
+        )
+    system_text, prepared_messages = _prepare_anthropic_messages(messages, response_json=response_json)
+    client = Anthropic(
+        api_key=_resolve_anthropic_api_key(api_key),
+        timeout=_resolve_anthropic_timeout_seconds(),
+    )
+    request_kwargs: dict[str, Any] = {
+        "model": _resolve_model_name(model_name),
+        "max_tokens": _anthropic_max_tokens(model_name),
+        "messages": prepared_messages,
+    }
+    if _resolve_model_name(model_name) not in ANTHROPIC_MODELS_WITHOUT_TEMPERATURE:
+        request_kwargs["temperature"] = temperature
+    if system_text:
+        request_kwargs["system"] = system_text
+    try:
+        response = client.messages.create(**request_kwargs)
+    except Exception as exc:
+        raise RuntimeError(f"Anthropic API request failed. {exc}") from exc
+
+    content_blocks = list(getattr(response, "content", []) or [])
+    text_parts = []
+    for block in content_blocks:
+        block_type = str(getattr(block, "type", "") or "").strip()
+        if block_type == "text":
+            text_parts.append(str(getattr(block, "text", "") or ""))
+    content = "\n".join(part.strip() for part in text_parts if part.strip()).strip()
+    if not content:
+        raise RuntimeError("Anthropic returned an empty response.")
+    return content
+
+
 def _chat_completion_content(
     messages: list[dict[str, Any]],
     *,
@@ -658,6 +787,16 @@ def _chat_completion_content(
             response_json=response_json,
         )
         return content, _resolve_ollama_runtime_model_name(resolved_model_name, messages)
+
+    if _is_anthropic_model(resolved_model_name):
+        content = _anthropic_chat_completion_content(
+            messages,
+            resolved_model_name,
+            temperature=temperature,
+            api_key=api_key,
+            response_json=response_json,
+        )
+        return content, resolved_model_name
 
     if OpenAI is None:
         raise RuntimeError(

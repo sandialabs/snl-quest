@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 from cx_Freeze import setup, Executable
 
 DISTNAME = "Quest"
-VERSION = "2.1.0"
+VERSION = "2.2.2"
 PYTHON_REQUIRES = ">=3.9, <3.14"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
 LONG_DESCRIPTION = open("README.md").read()
@@ -18,6 +18,8 @@ options = {
             "pandas",
             "streamlit",
             "openai",
+            "anthropic",
+            "langgraph",
             "psutil",
             "NodeGraphQt",
             "notebook",
