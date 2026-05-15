@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .llm_matcher import _chat_completion_content, _parse_json_response
-from .skill_library import build_skills_manifest, get_quest_agent_root
+from .skill_library import build_skills_manifest, get_quest_agent_root, load_skill_library
 from .tool_registry import write_active_tool_registry
 
 
@@ -109,6 +109,42 @@ def _normalize_named_items(items: list[Any] | None = None, *, default_type: str)
     return normalized
 
 
+def _active_tool_match_terms(active_tools: list[dict[str, Any]] | None = None) -> dict[str, list[str]]:
+    terms_by_tool = {}
+    for tool in list(active_tools or []):
+        tool = dict(tool or {})
+        tool_id = str(tool.get("tool_id", "") or "").strip()
+        if not tool_id:
+            continue
+        raw_terms = [
+            tool_id,
+            tool.get("name", ""),
+            tool.get("search_key", ""),
+            tool.get("launch_value", ""),
+        ]
+        for field in ("aliases", "input_types", "output_types", "typical_tasks", "workflow_roles"):
+            raw_terms.extend(list(tool.get(field, []) or []))
+        cleaned_terms = []
+        for term in raw_terms:
+            cleaned = str(term or "").strip().casefold()
+            if len(cleaned) >= 3 and cleaned not in cleaned_terms:
+                cleaned_terms.append(cleaned)
+        if cleaned_terms:
+            terms_by_tool[tool_id] = cleaned_terms
+    return terms_by_tool
+
+
+def _matched_tool_ids_from_text(text: str, terms_by_tool: dict[str, list[str]]) -> list[str]:
+    lowered = str(text or "").casefold()
+    if not lowered:
+        return []
+    return [
+        str(tool_id)
+        for tool_id, terms in dict(terms_by_tool or {}).items()
+        if any(term in lowered for term in list(terms or []))
+    ]
+
+
 def _workflow_nodes(current_flow_json_data: dict[str, Any]) -> list[dict[str, Any]]:
     return [dict(node or {}) for node in list(current_flow_json_data.get("nodes_df", []) or []) if isinstance(node, dict)]
 
@@ -159,56 +195,6 @@ def _infer_structural_tags(current_flow_json_data: dict[str, Any], action_record
         tags.append("plotting")
 
     return _normalize_string_list(tags)
-
-
-def _infer_task_pattern_tags(project_description: str, flow_description: str, action_records: list[dict[str, Any]]) -> list[str]:
-    searchable_text = "\n".join(
-        [
-            str(project_description or "").strip(),
-            str(flow_description or "").strip(),
-            json.dumps(action_records or [], ensure_ascii=True, sort_keys=True, default=str),
-        ]
-    ).casefold()
-    tags = []
-    if re.search(r"\b(add|sum|plus)\b", searchable_text) and re.search(r"\b(number|numbers)\b", searchable_text):
-        tags.append("sum_numbers")
-    if re.search(r"\bsquare|squared|square the result\b", searchable_text):
-        tags.append("square_result")
-    if re.search(r"\bparameter sweep|param sweep|sensitivity|scenario sweep|sweep\b", searchable_text):
-        tags.append("parameter_sweep")
-    if re.search(r"\bmultiply|product\b", searchable_text) and re.search(r"\b(number|numbers)\b", searchable_text):
-        tags.append("multiply_numbers")
-    return _normalize_string_list(tags)
-
-
-def _infer_transformation_intents(
-    project_description: str,
-    flow_description: str,
-    action_records: list[dict[str, Any]],
-) -> list[str]:
-    searchable_text = "\n".join(
-        [
-            str(project_description or "").strip(),
-            str(flow_description or "").strip(),
-            json.dumps(action_records or [], ensure_ascii=True, sort_keys=True, default=str),
-        ]
-    ).casefold()
-    intents = []
-
-    if re.search(r"\b(add|another|extra|third|fourth|fifth).{0,24}\b(input|number)\b", searchable_text):
-        intents.append("add one more input")
-    if re.search(r"\b(split|separate|convert).{0,40}\bpython\b", searchable_text) or re.search(r"\beach function in one python node\b", searchable_text):
-        intents.append("split one Python node into multiple steps")
-    if re.search(r"\b(change|replace|update|initialize).{0,24}\b(value|constant|constants)\b", searchable_text):
-        intents.append("replace constant values")
-    if re.search(r"\b(remove|delete|drop).{0,24}\b(extra|unused)?\s*data node\b", searchable_text):
-        intents.append("remove extra data node")
-    if any(str(record.get("action", "") or "").strip() == "update_node_value" for record in action_records):
-        intents.append("replace constant values")
-    if any(str(record.get("action", "") or "").strip() in {"delete_selected_nodes", "delete_node"} for record in action_records):
-        intents.append("remove extra data node")
-
-    return _normalize_string_list(intents)
 
 
 def _infer_expected_outputs(current_flow_json_data: dict[str, Any]) -> list[dict[str, str]]:
@@ -344,8 +330,9 @@ def _prefer_richer_workflow_json(current_flow_json_data: dict[str, Any], attache
     return best_data, best_source
 
 
-def _describe_workflow_baseline(current_flow_json_data: dict[str, Any]) -> dict[str, Any]:
+def _describe_workflow_baseline(current_flow_json_data: dict[str, Any], active_tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     workflow_data = dict(current_flow_json_data or {})
+    tool_match_terms = _active_tool_match_terms(active_tools)
     nodes = _workflow_nodes(workflow_data)
     connections = _workflow_connections(workflow_data)
     subflows = [dict(item or {}) for item in list(workflow_data.get("subflows_df", []) or []) if isinstance(item, dict)]
@@ -371,16 +358,7 @@ def _describe_workflow_baseline(current_flow_json_data: dict[str, Any]) -> dict[
             imports_text = str(node.get("node_imports", "") or "")
             wrapper_text = str(node.get("node_function_wrapper", "") or "")
             combined = f"{node_name}\n{imports_text}\n{wrapper_text}".casefold()
-            if "progress" in combined:
-                tool_evidence.add("progress")
-            if "btm" in combined:
-                tool_evidence.add("btm")
-            if "valuation" in combined:
-                tool_evidence.add("valuation")
-            if "performance" in combined:
-                tool_evidence.add("performance")
-            if "planning" in combined:
-                tool_evidence.add("planning")
+            tool_evidence.update(_matched_tool_ids_from_text(combined, tool_match_terms))
             python_nodes.append({
                 "name": node_name,
                 "input_preview": str(wrapper_text.split("\n", 1)[0] if wrapper_text else "").strip(),
@@ -412,21 +390,9 @@ def _describe_workflow_baseline(current_flow_json_data: dict[str, Any]) -> dict[
                 f"{str(node.get('node_imports', '') or '')}\n"
                 f"{str(node.get('node_function_wrapper', '') or '')}"
             ).casefold()
-            if "progress" in combined:
-                tool_evidence.add("progress")
-                subflow_tool_evidence.add("progress")
-            if "btm" in combined:
-                tool_evidence.add("btm")
-                subflow_tool_evidence.add("btm")
-            if "valuation" in combined:
-                tool_evidence.add("valuation")
-                subflow_tool_evidence.add("valuation")
-            if "performance" in combined:
-                tool_evidence.add("performance")
-                subflow_tool_evidence.add("performance")
-            if "planning" in combined:
-                tool_evidence.add("planning")
-                subflow_tool_evidence.add("planning")
+            matched_tool_ids = _matched_tool_ids_from_text(combined, tool_match_terms)
+            tool_evidence.update(matched_tool_ids)
+            subflow_tool_evidence.update(matched_tool_ids)
             subflow_python_nodes.append({
                 "name": node_name,
                 "input_preview": str(str(node.get("node_function_wrapper", "") or "").split("\n", 1)[0]).strip(),
@@ -483,16 +449,8 @@ def _is_generic_skill_summary(summary: str) -> bool:
 
 
 def _tool_display_name(tool_id: str) -> str:
-    mapping = {
-        "btm": "BTM",
-        "progress": "Progress",
-        "valuation": "Valuation",
-        "performance": "Performance",
-        "planning": "Planning",
-        "workspace": "Workspace",
-    }
     cleaned = str(tool_id or "").strip().casefold()
-    return mapping.get(cleaned, _humanize_identifier(cleaned))
+    return _humanize_identifier(cleaned)
 
 
 def _workflow_domain_label(workflow_baseline_profile: dict[str, Any]) -> str:
@@ -794,9 +752,7 @@ def _normalize_skill_payload(
     structural_tags = _normalize_string_list(
         list(payload.get("structural_tags", []) or []) + _infer_structural_tags(current_flow_json_data, action_records)
     )
-    task_pattern_tags = _normalize_string_list(
-        list(payload.get("task_pattern_tags", []) or []) + _infer_task_pattern_tags(project_description, flow_description, action_records)
-    )
+    task_pattern_tags = _normalize_string_list(payload.get("task_pattern_tags", []))
     tags = _normalize_string_list(
         list(payload.get("tags", []) or []) + tool_tags + structural_tags + task_pattern_tags
     )
@@ -880,10 +836,7 @@ def _normalize_skill_payload(
         validation_criteria = _derive_workflow_validation_criteria(workflow_baseline_profile)
     common_variations = _normalize_string_list(payload.get("common_variations", []))
     common_fixes = _normalize_string_list(payload.get("common_fixes", []))
-    transformation_intents = _normalize_string_list(
-        list(payload.get("transformation_intents", []) or [])
-        + _infer_transformation_intents(project_description, flow_description, action_records)
-    )
+    transformation_intents = _normalize_string_list(payload.get("transformation_intents", []))
     pinned_context_summary = str(payload.get("pinned_context_summary", "") or "").strip()
     skill_mode = _infer_skill_mode(payload, project_description, flow_description, transformation_intents)
 
@@ -959,8 +912,8 @@ def _build_skill_messages(
         "Do not invent a broader domain story than the workflow actually shows. "
         "If workflow_json_baseline_profile and task_match_result disagree, trust workflow_json_baseline_profile. "
         "Do not recommend QuESt tools unless they are strongly evidenced by the workflow baseline, the recorded actions, or the task-match result. "
-        "If the workflow baseline clearly points to one QuESt tool such as progress, prefer that specific tool and avoid unrelated tools like btm or valuation unless they are directly evidenced. "
-        "Classify the skill as quest_tool_specific when the underlying task is clearly about a non-workspace QuESt tool such as btm, valuation, planning, evaluation, performance, microgrid, or technology screening, even if the workflow was built inside Workspace. "
+        "If the workflow baseline clearly points to one specific active QuESt tool, prefer that tool and avoid unrelated tools unless they are directly evidenced. "
+        "Classify the skill as quest_tool_specific when the underlying task is clearly about a non-workspace QuESt tool, even if the workflow was built inside Workspace. "
         "Only classify the skill as general_python when the task is not tied to a specific non-workspace QuESt tool and the workflow pattern is broadly reusable. "
         "Do not treat the mere use of Workspace as evidence that the skill should be matched to Workspace tasks. "
         "Assign exactly one skill_level using this scale: Novice, Advanced Beginner, Competent, Proficient, Expert. "
@@ -1059,6 +1012,7 @@ def develop_skill_from_record(
     selected_model: str | None = None,
     quest_agent_root: str | Path | None = None,
     api_key: str | None = None,
+    update_skill_id: str | None = None,
 ) -> dict[str, Any]:
     task_match_result = dict(task_match_result or {})
     action_records = list(action_records or [])
@@ -1074,7 +1028,7 @@ def develop_skill_from_record(
     active_tools = list(registry.get("tools", []))
     active_tool_ids = {str(tool.get("tool_id", "") or "").strip() for tool in active_tools}
     current_flow_json_data, workflow_baseline_source = _prefer_richer_workflow_json(current_flow_json_data, attached_files)
-    workflow_baseline_profile = _describe_workflow_baseline(current_flow_json_data)
+    workflow_baseline_profile = _describe_workflow_baseline(current_flow_json_data, active_tools)
     inferred_specific_tools = _infer_specific_tools(
         task_match_result=task_match_result,
         current_flow_json_data=current_flow_json_data,
@@ -1130,10 +1084,37 @@ def develop_skill_from_record(
     )
 
     skills_root = quest_agent_root / "skills"
-    target_root = skills_root / normalized["skill_type"]
-    target_root.mkdir(parents=True, exist_ok=True)
-    slug = _unique_slug(target_root, parsed.get("slug", normalized["title"]))
-    skill_dir = target_root / slug
+    update_skill_id = str(update_skill_id or "").strip()
+    existing_skill = None
+    existing_skill_data: dict[str, Any] = {}
+    skill_id = ""
+    if update_skill_id:
+        library_result = load_skill_library(quest_agent_root)
+        for skill in list(library_result.get("skills", []) or []):
+            if str(getattr(skill, "skill_id", "") or "").strip() == update_skill_id:
+                existing_skill = skill
+                existing_skill_data = dict(getattr(skill, "raw_data", {}) or {})
+                break
+        if existing_skill is None:
+            raise RuntimeError(f"Cannot update skill; skill id was not found: {update_skill_id}")
+        existing_dir = Path(str(getattr(existing_skill, "folder_path", "") or ""))
+        try:
+            existing_dir.relative_to(skills_root)
+        except ValueError as exc:
+            raise RuntimeError(f"Cannot update skill outside the QuESt skill library: {existing_dir}") from exc
+        skill_dir = existing_dir
+        target_root = skill_dir.parent
+        slug = str(existing_skill_data.get("slug", "") or getattr(existing_skill, "slug", "") or update_skill_id).strip()
+        skill_id = str(existing_skill_data.get("skill_id", "") or getattr(existing_skill, "skill_id", "") or update_skill_id).strip()
+        normalized["skill_type"] = str(existing_skill_data.get("skill_type", "") or getattr(existing_skill, "skill_type", "") or normalized["skill_type"]).strip()
+        normalized["title"] = str(existing_skill_data.get("title", "") or getattr(existing_skill, "title", "") or normalized["title"]).strip()
+        target_root.mkdir(parents=True, exist_ok=True)
+    else:
+        target_root = skills_root / normalized["skill_type"]
+        target_root.mkdir(parents=True, exist_ok=True)
+        slug = _unique_slug(target_root, parsed.get("slug", normalized["title"]))
+        skill_id = slug
+        skill_dir = target_root / slug
     attachments_dir = skill_dir / "attachments"
     workflow_dir = skill_dir / "workflow"
     artifacts_dir = skill_dir / "artifacts"
@@ -1183,23 +1164,35 @@ def develop_skill_from_record(
         json.dump(action_records, handle, indent=2)
 
     created_at = _iso_now()
+    updated_at = created_at
+    version = 1
+    parent_skill_id = None
+    status = "draft"
+    if existing_skill_data:
+        created_at = str(existing_skill_data.get("created_at", "") or created_at)
+        parent_skill_id = existing_skill_data.get("parent_skill_id", None)
+        status = str(existing_skill_data.get("status", "") or status)
+        try:
+            version = int(existing_skill_data.get("version", 1) or 1) + 1
+        except Exception:
+            version = 2
     project_description = str(project_description or "").strip()
     flow_description = str(flow_description or "").strip()
     pinned_context_summary = normalized["pinned_context_summary"] or "\n".join(pinned_context[:4]).strip() or "None provided."
 
     skill_json = {
         "schema_version": "1.1",
-        "skill_id": slug,
-        "version": 1,
-        "parent_skill_id": None,
+        "skill_id": skill_id,
+        "version": version,
+        "parent_skill_id": parent_skill_id,
         "title": normalized["title"],
         "slug": slug,
         "skill_type": normalized["skill_type"],
         "skill_level": normalized["skill_level"],
         "summary": normalized["summary"],
-        "status": "draft",
+        "status": status,
         "created_at": created_at,
-        "updated_at": created_at,
+        "updated_at": updated_at,
         "created_by": "quest_agent",
         "source": {
             "session_id": "",
@@ -1390,7 +1383,7 @@ def develop_skill_from_record(
 
     build_skills_manifest(quest_agent_root)
     return {
-        "skill_id": slug,
+        "skill_id": skill_id,
         "title": normalized["title"],
         "skill_type": normalized["skill_type"],
         "skill_level": normalized["skill_level"],
@@ -1398,4 +1391,5 @@ def develop_skill_from_record(
         "skill_json_path": (skill_dir / "skill.json").as_posix(),
         "skill_md_path": (skill_dir / "SKILL.md").as_posix(),
         "workflow_json_path": (workflow_dir / "final_workflow.json").as_posix() if workflow_relative else "",
+        "updated_existing_skill": bool(update_skill_id),
     }

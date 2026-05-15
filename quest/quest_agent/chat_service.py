@@ -109,9 +109,14 @@ def _build_structured_flow_analysis_lines(task_match_result):
         ]
         for item in list(analysis.get("connections", []) or [])
     ]
+    missing_source = (
+        result.get("missing_parts", None)
+        or analysis.get("semantic_missing_parts", None)
+        or analysis.get("missing_parts", None)
+    )
     missing_parts = [
         str(item).strip()
-        for item in list(result.get("missing_parts", analysis.get("missing_parts", [])) or [])
+        for item in list(missing_source or [])
         if str(item).strip()
     ]
     lines = [
@@ -130,6 +135,16 @@ def _build_structured_flow_analysis_lines(task_match_result):
         lines.extend(f"- {item}" for item in missing_parts)
     else:
         lines.append("- None")
+    validation_summary = str(result.get("validation_summary", "") or "").strip()
+    validation_report = dict(result.get("validation_report", analysis.get("validation_report", {})) or {})
+    if validation_summary or validation_report:
+        lines.extend(["", "5. MCP validation facts:"])
+        if validation_summary:
+            lines.extend(validation_summary.splitlines())
+        else:
+            lines.append(f"validation_status: {validation_report.get('status', 'unknown')}")
+            lines.append(f"structural_valid: {bool(validation_report.get('structural_valid', False))}")
+            lines.append(f"task_alignment: {validation_report.get('task_alignment', 'unknown')}")
     return lines
 
 
@@ -186,13 +201,31 @@ def build_fallback_reply(task_match_result):
         if flow_description:
             lines.append(f"Current flow: {flow_description}")
 
+    validation_report = dict(result.get("validation_report", {}) or {})
+    structural_missing_parts = [
+        str(item).strip()
+        for item in list(result.get("structural_missing_parts", validation_report.get("missing_parts", [])) or [])
+        if str(item).strip()
+    ]
+    semantic_missing_parts = [
+        str(item).strip()
+        for item in list(result.get("missing_parts", []) or [])
+        if str(item).strip()
+    ]
+    review_has_gaps = bool(semantic_missing_parts or structural_missing_parts)
+    flow_is_structurally_complete = (
+        bool(validation_report.get("structural_valid", False))
+        and str(validation_report.get("status", "") or "").strip().casefold() == "complete"
+        and not structural_missing_parts
+    )
+
     next_step_map = {
         "use_quest_skill": "Next, I can use the closest saved QuESt skill as the starting point for the workflow plan.",
         "use_general_python_skill_plus_tools": "Next, I can combine the best general Python skill with the matched QuESt tools and draft the workflow plan.",
         "use_tools_only": "Next, I can draft a fresh QuESt workflow plan directly from the matched active tools.",
         "no_viable_quest_solution": "If you want, I can still help refine the project scope, clarify the flow, or suggest what QuESt capability is missing.",
     }
-    if strategy in next_step_map:
+    if strategy in next_step_map and (review_has_gaps or not flow_is_structurally_complete):
         lines.append(next_step_map[strategy])
 
     return {
@@ -264,108 +297,6 @@ def _extract_revision_request(prompt_text):
     return ""
 
 
-def _extract_add_two_numbers_initial_values(prompt_text):
-    text = str(prompt_text or "")
-    lowered = text.casefold()
-    patterns = [
-        r"(?:initialize|set)\s+(?:the\s+)?data\s+nodes?\s+with\s+values?\s+([^.;\n]+)",
-        r"values?\s+([^.;\n]+)",
-    ]
-    raw_values = ""
-    for pattern in patterns:
-        match = re.search(pattern, text, flags=re.IGNORECASE)
-        if match:
-            raw_values = str(match.group(1) or "").strip()
-            if raw_values:
-                break
-    if not raw_values:
-        return []
-
-    candidates = []
-    for quoted in re.findall(r'"([^"]*)"|\'([^\']*)\'', raw_values):
-        value = str(quoted[0] or quoted[1] or "").strip()
-        if value:
-            candidates.append(value)
-    if len(candidates) >= 2:
-        return candidates[:2]
-
-    numeric_matches = re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])", raw_values)
-    if len(numeric_matches) >= 2:
-        return numeric_matches[:2]
-
-    parts = [
-        part.strip().strip('"\'')
-        for part in re.split(r"\s*(?:,|and)\s*", raw_values)
-        if part.strip()
-    ]
-    cleaned = []
-    for part in parts:
-        lowered_part = part.casefold()
-        if lowered_part in {"value", "values", "respectively"}:
-            continue
-        cleaned.append(part)
-    return cleaned[:2]
-
-
-def _build_connected_add_two_numbers_actions(flow_name="", create_subflow=False, initial_values=None):
-    initial_values = list(initial_values or [])
-    first_value = str(initial_values[0]).strip() if len(initial_values) >= 1 else ""
-    second_value = str(initial_values[1]).strip() if len(initial_values) >= 2 else ""
-    actions = []
-    if create_subflow:
-        action = {"type": "add_subflow"}
-        if str(flow_name or "").strip():
-            action["flow_name"] = str(flow_name).strip()
-        actions.append(action)
-    first_data_action = {
-        "type": "create_node",
-        "node_type": "data",
-        "name": "x_input",
-        "variable_name": "x",
-        "value_display": True,
-    }
-    second_data_action = {
-        "type": "create_node",
-        "node_type": "data",
-        "name": "y_input",
-        "variable_name": "y",
-        "value_display": True,
-    }
-    if first_value:
-        first_data_action["value"] = first_value
-    if second_value:
-        second_data_action["value"] = second_value
-    actions.extend(
-        [
-            first_data_action,
-            second_data_action,
-            {
-                "type": "create_node",
-                "node_type": "py",
-                "name": "add_numbers",
-                "imports": "import pandas as pd\nimport numpy as np\n",
-                "wrapper": (
-                    "def add_numbers_function(x, y):\n"
-                    "    return {'sum': x + y}\n"
-                ),
-            },
-            {
-                "type": "connect_nodes",
-                "source_node": "x_input",
-                "target_node": "add_numbers",
-                "mapping": {"x": "x"},
-            },
-            {
-                "type": "connect_nodes",
-                "source_node": "y_input",
-                "target_node": "add_numbers",
-                "mapping": {"y": "y"},
-            },
-        ]
-    )
-    return actions
-
-
 def _ordered_node_names_in_prompt(prompt_text, canvas_context):
     prompt_lower = str(prompt_text or "").casefold()
     indexed = []
@@ -406,27 +337,40 @@ def _extract_existing_node_value_update_action(prompt_text, canvas_context):
     lowered = text.casefold()
     if not text or not any(token in lowered for token in ("edit", "update", "change", "set")):
         return None
+    if any(
+        token in lowered
+        for token in (
+            "wrapper",
+            "python node",
+            "py node",
+            "pynode",
+            "input port",
+            "output port",
+            "connect",
+            "connection",
+            "add input",
+            "adding input",
+            "accept ",
+            "compute",
+            "return",
+        )
+    ):
+        return None
     match = re.search(
-        r"(?:edit|update|change|set)\s+(?:the\s+)?value\s+(?:of|for)\s+([\w\- ]+?)\s+(?:to|as)\s+([^,.;\n]+)",
+        r"(?:edit|update|change|set)\s+(?:the\s+)?(?:data\s+node\s+)?value\s+(?:of|for)\s+([\w\- ]+?)\s+(?:to|as)\s+([^,.;\n]+)",
         text,
         flags=re.IGNORECASE,
     )
-    if match:
-        requested_name = str(match.group(1) or "").strip()
-        value_text = str(match.group(2) or "").strip().strip('"\'')
-    else:
-        ordered_names = _ordered_node_names_in_prompt(text, canvas_context)
-        if not ordered_names:
-            return None
-        requested_name = ordered_names[0]
-        value_text = _extract_named_value(
+    if not match:
+        match = re.search(
+            r"(?:edit|update|change|set)\s+([\w\- ]+?)\s+(?:value|input value)\s+(?:to|as)\s+([^,.;\n]+)",
             text,
-            [
-                r"(?:value|input value)\s+(?:to|as)\s+([^,.;\n]+)",
-                r"(?:edit|update|change|set)\s+[\w\- ]+?\s+(?:to|as)\s+([^,.;\n]+)",
-            ],
+            flags=re.IGNORECASE,
         )
-        value_text = str(value_text or "").strip().strip('"\'')
+    if not match:
+        return None
+    requested_name = str(match.group(1) or "").strip()
+    value_text = str(match.group(2) or "").strip().strip('"\'')
     if not requested_name or not value_text:
         return None
     node_entry = _find_canvas_node_entry(canvas_context, requested_name)
@@ -478,23 +422,6 @@ def _fallback_canvas_plan(user_prompt, canvas_context):
     selected_count = int(dict(canvas_context or {}).get("selected_node_count", 0) or 0)
     create_verbs = ("create", "add", "insert", "make")
     subflow_request = any(verb in lowered for verb in create_verbs) and ("subflow" in lowered or "sub-flow" in lowered)
-    initial_values = _extract_add_two_numbers_initial_values(text)
-
-    arithmetic_flow_request = _looks_like_add_two_numbers_flow_request(text)
-    if arithmetic_flow_request and subflow_request:
-        return {
-            "reply": "",
-            "actions": _build_connected_add_two_numbers_actions(
-                flow_name=_extract_subflow_name(text),
-                create_subflow=True,
-                initial_values=initial_values,
-            ),
-        }
-    if arithmetic_flow_request:
-        return {
-            "reply": "",
-            "actions": _build_connected_add_two_numbers_actions(initial_values=initial_values),
-        }
 
     existing_value_update_action = _extract_existing_node_value_update_action(text, canvas_context)
     if existing_value_update_action is not None:
@@ -570,122 +497,6 @@ def _fallback_canvas_plan(user_prompt, canvas_context):
             }
 
     return {"reply": "", "actions": []}
-
-
-def _looks_like_add_two_numbers_flow_request(user_prompt):
-    lowered = str(user_prompt or "").strip().casefold()
-    if not lowered:
-        return False
-    explicit_flow = any(
-        token in lowered
-        for token in (
-            "fully connected flow",
-            "connected flow",
-            "full flow",
-            "workflow",
-            "flow",
-        )
-    )
-    add_two_numbers = any(
-        token in lowered
-        for token in (
-            "add two numbers",
-            "sum two numbers",
-            "add 2 numbers",
-            "sum 2 numbers",
-            "add numbers",
-            "sum numbers",
-        )
-    )
-    return explicit_flow and add_two_numbers
-
-
-def _plan_has_connected_arithmetic_flow(plan):
-    actions = list(dict(plan or {}).get("actions", []) or [])
-    has_connect = any(str(dict(action).get("type", "") or "").strip() == "connect_nodes" for action in actions)
-    has_py_wrapper = any(
-        str(dict(action).get("type", "") or "").strip() == "create_node"
-        and str(dict(action).get("node_type", "") or "").strip() == "py"
-        and any(str(dict(action).get(key, "") or "").strip() for key in ("wrapper", "code", "node_function_wrapper"))
-        for action in actions
-    )
-    return has_connect and has_py_wrapper
-
-
-def _plan_has_named_arithmetic_inputs(plan):
-    actions = [dict(action or {}) for action in list(dict(plan or {}).get("actions", []) or [])]
-    data_actions = [
-        action for action in actions
-        if str(action.get("type", "") or "").strip() == "create_node"
-        and str(action.get("node_type", "") or "").strip() == "data"
-    ]
-    if len(data_actions) < 2:
-        return False
-
-    named_inputs = {}
-    for action in data_actions:
-        node_name = str(action.get("name", "") or "").strip()
-        variable_name = str(action.get("variable_name", "") or "").strip()
-        if node_name and variable_name:
-            named_inputs[node_name] = variable_name
-
-    if len(named_inputs) < 2:
-        return False
-
-    py_actions = [
-        action for action in actions
-        if str(action.get("type", "") or "").strip() == "create_node"
-        and str(action.get("node_type", "") or "").strip() == "py"
-    ]
-    if not py_actions:
-        return False
-
-    py_names = {
-        str(action.get("name", "") or "").strip()
-        for action in py_actions
-        if str(action.get("name", "") or "").strip()
-    }
-    if not py_names:
-        return False
-
-    connect_actions = [
-        action for action in actions
-        if str(action.get("type", "") or "").strip() == "connect_nodes"
-    ]
-    if len(connect_actions) < 2:
-        return False
-
-    connected_variables = set()
-    for action in connect_actions:
-        source_node = str(action.get("source_node", "") or action.get("from_node", "") or "").strip()
-        target_node = str(action.get("target_node", "") or action.get("to_node", "") or "").strip()
-        if source_node not in named_inputs or target_node not in py_names:
-            continue
-        mapping = action.get("mapping")
-        if isinstance(mapping, dict):
-            for source_port, target_port in mapping.items():
-                if str(source_port or "").strip() == named_inputs[source_node] and str(target_port or "").strip():
-                    connected_variables.add(named_inputs[source_node])
-        else:
-            source_port = str(action.get("source_port", "") or "").strip()
-            target_port = str(action.get("target_port", "") or "").strip()
-            if source_port and target_port and source_port == named_inputs[source_node]:
-                connected_variables.add(named_inputs[source_node])
-
-    required_variables = set(named_inputs.values())
-    return len(required_variables) >= 2 and required_variables.issubset(connected_variables)
-
-
-def _plan_matches_add_two_numbers_request(plan, user_prompt):
-    if not _plan_has_connected_arithmetic_flow(plan):
-        return False
-    if not _plan_has_named_arithmetic_inputs(plan):
-        return False
-    lowered = str(user_prompt or "").strip().casefold()
-    if "subflow" in lowered or "sub-flow" in lowered:
-        actions = list(dict(plan or {}).get("actions", []) or [])
-        return any(str(dict(action).get("type", "") or "").strip() == "add_subflow" for action in actions)
-    return True
 
 
 def route_chat_turn(user_prompt, model_name, state, context_payload, run_chat_router_func):
@@ -827,54 +638,6 @@ def should_refresh_analysis_before_canvas_plan(user_prompt, state, route_result=
     return False
 
 
-def _should_prefer_analysis_guided_plan(user_prompt, state, canvas_context=None):
-    task_match_result = dict((state or {}).get("task_match_results", {}) or {})
-    canvas_context = dict(canvas_context or {})
-    lowered = str(user_prompt or "").strip().casefold()
-    flow_description = str(task_match_result.get("flow_description", "") or "").strip()
-    notes = [
-        str(note).strip().casefold()
-        for note in list(task_match_result.get("notes", []) or [])
-        if str(note).strip()
-    ]
-    node_count = len(list(canvas_context.get("nodes", []) or []))
-
-    if node_count <= 0 and not flow_description:
-        return False
-
-    if any(token in lowered for token in ("revise", "change", "modify", "adjust", "fix", "repair", "complete", "finish")):
-        return True
-
-    if flow_description:
-        return True
-
-    analysis_gap_tokens = (
-        "unconnected",
-        "missing",
-        "no connections",
-        "no inferred input or output ports",
-        "empty input values",
-        "default output port",
-        "incomplete",
-    )
-    return any(any(token in note for token in analysis_gap_tokens) for note in notes)
-
-
-def _has_reusable_skill_workflow_template(context_payload):
-    recipes = list(dict(context_payload or {}).get("skill_execution_recipes", {}).get("recipes", []) or [])
-    for recipe in recipes:
-        recipe = dict(recipe or {})
-        try:
-            confidence = float(recipe.get("confidence", 0.0))
-        except Exception:
-            confidence = 0.0
-        workflow_template = dict(recipe.get("workflow_template", {}) or {})
-        workflow_path = str(workflow_template.get("path", "") or "").strip()
-        if workflow_path and confidence >= 0.55:
-            return True
-    return False
-
-
 def _build_reusable_skill_workflow_plan(context_payload):
     recipes = list(dict(context_payload or {}).get("skill_execution_recipes", {}).get("recipes", []) or [])
     candidates = []
@@ -960,17 +723,6 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
     existing_value_update_action = _extract_existing_node_value_update_action(user_prompt, canvas_context)
     revision_request = _extract_revision_request(user_prompt)
     is_revision_request = bool(revision_request)
-    if _looks_like_add_two_numbers_flow_request(user_prompt) and not is_revision_request and not _should_prefer_analysis_guided_plan(
-        user_prompt,
-        state,
-        canvas_context,
-    ) and not _has_reusable_skill_workflow_template(context_payload):
-        deterministic_plan = dict(fallback_plan or {})
-        deterministic_plan["planning_source"] = "deterministic_fallback"
-        deterministic_plan["planning_path"] = "manual_canvas_build"
-        deterministic_plan["path_reason"] = "Used the deterministic canvas build fallback because no stronger reusable template path was available."
-        deterministic_plan["reply"] = str(deterministic_plan.get("reply", "") or "").strip()
-        return _collapse_local_plan_to_single_step(deterministic_plan, user_prompt, model_name)
     if run_workspace_action_plan_func is None:
         return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
 
@@ -1002,21 +754,6 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
         has_load_action = any(str(dict(action or {}).get("type", "") or "").strip() == "load_workflow_json" for action in planned_actions)
         if not planned_actions or not has_load_action:
             return _collapse_local_plan_to_single_step(reusable_template_plan, user_prompt, model_name)
-    if _looks_like_add_two_numbers_flow_request(user_prompt) and not is_revision_request and not _plan_matches_add_two_numbers_request(planned, user_prompt):
-        fallback_actions = list(dict(fallback_plan or {}).get("actions", []) or [])
-        if fallback_actions:
-            upgraded = dict(planned)
-            upgraded["actions"] = fallback_actions
-            reply_text = str(upgraded.get("reply", "") or "").strip()
-            if not reply_text:
-                upgraded["reply"] = ""
-            upgraded["planning_source"] = "deterministic_fallback"
-            upgraded["planning_path"] = "manual_canvas_build"
-            upgraded["path_reason"] = "Replaced an incomplete arithmetic-flow plan with the deterministic manual canvas build fallback."
-            notes = list(upgraded.get("dropped_actions", []) or [])
-            notes.append("Replaced partial arithmetic-flow plan with deterministic connected flow plan.")
-            upgraded["dropped_actions"] = notes
-            planned = upgraded
     if existing_value_update_action is not None and not _plan_matches_existing_node_value_update(planned, existing_value_update_action):
         fallback_actions = list(dict(fallback_plan or {}).get("actions", []) or [])
         if fallback_actions:

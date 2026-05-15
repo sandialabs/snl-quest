@@ -27,6 +27,7 @@ QUEST_AGENT_IMPORT_ERROR = ""
 try:
     from quest.quest_agent import get_quest_agent_root, load_skill_library, build_skills_manifest, run_chat_router, run_grounded_chat_reply, run_structured_task_match, run_workspace_action_plan, write_active_tool_registry, develop_skill_from_record, format_action_records_table
     from quest.quest_agent.llm_matcher import reset_llm_usage_tracking, get_llm_usage_summary
+    from quest.quest_agent.mcp_server import summarize_validation_report, validate_flow_analysis
     from quest.quest_agent import chat_service as quest_agent_chat_service
     from quest.quest_agent import context_service as quest_agent_context_service
     from quest.quest_agent import workspace_actions as quest_agent_workspace_actions
@@ -49,6 +50,8 @@ except Exception as exc:
     write_active_tool_registry = None
     reset_llm_usage_tracking = None
     get_llm_usage_summary = None
+    summarize_validation_report = None
+    validate_flow_analysis = None
 
 from quest.snl_libraries.workspace.flow.questflow import *
 
@@ -77,6 +80,7 @@ def _refresh_quest_agent_runtime():
     global run_workspace_action_plan, write_active_tool_registry
     global develop_skill_from_record, format_action_records_table
     global reset_llm_usage_tracking, get_llm_usage_summary
+    global summarize_validation_report, validate_flow_analysis
     global quest_agent_chat_service, quest_agent_context_service
     global quest_agent_workspace_actions, quest_agent_deep_agent
 
@@ -86,6 +90,7 @@ def _refresh_quest_agent_runtime():
         skill_library_module = importlib.reload(importlib.import_module("quest.quest_agent.skill_library"))
         tool_registry_module = importlib.reload(importlib.import_module("quest.quest_agent.tool_registry"))
         llm_matcher_module = importlib.reload(importlib.import_module("quest.quest_agent.llm_matcher"))
+        mcp_tools_module = importlib.reload(importlib.import_module("quest.quest_agent.mcp_server.tools_skills_manager"))
         context_service_module = importlib.reload(importlib.import_module("quest.quest_agent.context_service"))
         chat_service_module = importlib.reload(importlib.import_module("quest.quest_agent.chat_service"))
         workspace_actions_module = importlib.reload(importlib.import_module("quest.quest_agent.workspace_actions"))
@@ -101,6 +106,8 @@ def _refresh_quest_agent_runtime():
         run_workspace_action_plan = llm_matcher_module.run_workspace_action_plan
         reset_llm_usage_tracking = llm_matcher_module.reset_llm_usage_tracking
         get_llm_usage_summary = llm_matcher_module.get_llm_usage_summary
+        summarize_validation_report = mcp_tools_module.summarize_validation_report
+        validate_flow_analysis = mcp_tools_module.validate_flow_analysis
         write_active_tool_registry = tool_registry_module.write_active_tool_registry
         develop_skill_from_record = skill_development_module.develop_skill_from_record
         format_action_records_table = skill_development_module.format_action_records_table
@@ -175,6 +182,96 @@ def _quest_agent_run_structured_match_from_snapshot(task_description, selected_m
         selected_model=selected_model,
         quest_agent_root=quest_agent_root,
     )
+
+
+def _quest_agent_reply_looks_like_canvas_guidance(reply_payload, canvas_context):
+    text = str(dict(reply_payload or {}).get("reply", "") or "").strip().casefold()
+    if not text:
+        return False
+    if len(list(dict(canvas_context or {}).get("nodes", []) or [])) <= 0:
+        return False
+    edit_terms = (
+        "recommended change",
+        "recommended update",
+        "suggested wrapper",
+        "suggested code",
+        "update ",
+        "revise ",
+        "modify ",
+        "replace ",
+        "add ",
+        "create ",
+        "connect ",
+        "delete ",
+        "remove ",
+        "rename ",
+        "wrapper",
+        "python node",
+        "data node",
+    )
+    context_terms = (
+        "what's missing",
+        "what is missing",
+        "missing",
+        "recommended",
+        "suggested",
+        "best update",
+        "best change",
+        "next draft",
+        "exact flow edit",
+        "canvas",
+    )
+    return any(term in text for term in edit_terms) and any(term in text for term in context_terms)
+
+
+def _quest_agent_compose_action_plan_prompt_from_reply(user_prompt, reply_payload):
+    reply_text = str(dict(reply_payload or {}).get("reply", "") or "").strip()
+    return (
+        "Convert the assistant's current flow analysis into an executable QuESt Workspace canvas action plan.\n\n"
+        "Original user request:\n"
+        f"{str(user_prompt or '').strip()}\n\n"
+        "Assistant analysis and recommendation:\n"
+        f"{reply_text}\n\n"
+        "Return concrete canvas actions only. Prefer editing existing nodes, wrappers, ports, and connections when the recommendation names them."
+    )
+
+
+def _quest_agent_try_plan_from_reply_guidance(
+    user_prompt,
+    reply_payload,
+    model_name,
+    state_snapshot,
+    context_payload,
+    canvas_context,
+):
+    if quest_agent_chat_service is None or run_workspace_action_plan is None:
+        return {}
+    if not _quest_agent_reply_looks_like_canvas_guidance(reply_payload, canvas_context):
+        return {}
+    planner_prompt = _quest_agent_compose_action_plan_prompt_from_reply(user_prompt, reply_payload)
+    try:
+        action_plan = quest_agent_chat_service.plan_canvas_actions(
+            planner_prompt,
+            model_name,
+            state_snapshot,
+            context_payload,
+            canvas_context,
+            run_workspace_action_plan,
+        )
+    except Exception:
+        return {}
+    action_plan = dict(action_plan or {})
+    if not list(action_plan.get("actions", []) or []):
+        return {}
+    if not str(action_plan.get("reply", "") or "").strip():
+        action_plan["reply"] = "Converted the analysis recommendation into an executable canvas plan."
+    action_plan["planning_source"] = str(action_plan.get("planning_source", "") or "llm_guidance_conversion")
+    action_plan["planning_path"] = str(action_plan.get("planning_path", "") or "edit_current_flow")
+    action_plan["path_reason"] = str(
+        action_plan.get("path_reason", "")
+        or "The previous assistant response contained concrete canvas-edit guidance, so QuESt Agent converted it into executable actions."
+    )
+    return action_plan
 
 
 def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellation_callback=None):
@@ -292,6 +389,21 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellat
             )
         _check_canceled()
         worker_result["task_match_result"] = dict(task_match_result or {})
+        converted_action_plan = _quest_agent_try_plan_from_reply_guidance(
+            effective_prompt,
+            final_reply,
+            model_name,
+            state_snapshot,
+            context_payload,
+            canvas_context,
+        )
+        _check_canceled()
+        if converted_action_plan:
+            worker_result["route_action"] = "execute_canvas_action"
+            worker_result["action_plan"] = dict(converted_action_plan or {})
+            worker_result["stored_prompt"] = prompt_text
+            _append_quest_agent_runtime_log("worker converted analyze_task reply into canvas action plan")
+            return _attach_usage_summary(worker_result)
         worker_result["final_reply"] = dict(final_reply or {})
         _append_quest_agent_runtime_log("worker finished analyze_task")
         return _attach_usage_summary(worker_result)
@@ -357,6 +469,21 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellat
             run_grounded_chat_reply,
         )
     _check_canceled()
+    converted_action_plan = _quest_agent_try_plan_from_reply_guidance(
+        effective_prompt,
+        final_reply,
+        model_name,
+        state_snapshot,
+        context_payload,
+        canvas_context,
+    )
+    _check_canceled()
+    if converted_action_plan:
+        worker_result["route_action"] = "execute_canvas_action"
+        worker_result["action_plan"] = dict(converted_action_plan or {})
+        worker_result["stored_prompt"] = prompt_text
+        _append_quest_agent_runtime_log("worker converted answer reply into canvas action plan")
+        return _attach_usage_summary(worker_result)
     worker_result["final_reply"] = dict(final_reply or {})
     _append_quest_agent_runtime_log(f"worker finished route_action={route_action or 'answer_only'}")
     return _attach_usage_summary(worker_result)
@@ -2821,7 +2948,7 @@ class quest_workflow(QWidget):
                 current_flow_json_data["flow_type"] = flow_type
         return current_flow_json_data if isinstance(current_flow_json_data, dict) else {}
 
-    def _develop_quest_agent_skill_from_records(self, records, task_match_result=None, flow_description="", current_flow_json_data=None):
+    def _develop_quest_agent_skill_from_records(self, records, task_match_result=None, flow_description="", current_flow_json_data=None, update_skill_id=""):
         if develop_skill_from_record is None or get_quest_agent_root is None:
             raise RuntimeError("QuESt Agent skill development is not available in this environment.")
         result = dict(task_match_result or self.quest_agent_state.get("task_match_results", {}) or {})
@@ -2854,6 +2981,7 @@ class quest_workflow(QWidget):
             current_flow_json_data=workflow_json,
             selected_model=str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini",
             quest_agent_root=get_quest_agent_root(),
+            update_skill_id=str(update_skill_id or "").strip() or None,
         )
         self._load_quest_agent_skill_library()
         return developed
@@ -3599,6 +3727,12 @@ class quest_workflow(QWidget):
         )
 
     def _get_quest_agent_chat_context_payload(self):
+        structured_flow_analysis = self._quest_agent_collect_structured_flow_analysis(self._get_quest_agent_target_workflow())
+        validation_report = self._quest_agent_build_validation_report(
+            structured_flow_analysis,
+            str(self.quest_agent_state.get("pending_canvas_prompt", "") or ""),
+        )
+        structured_flow_analysis["validation_report"] = validation_report
         return {
             "pinned_context": (
                 quest_agent_context_service.extract_pinned_context(self.quest_agent_state.get("chat_messages", []))
@@ -3611,6 +3745,8 @@ class quest_workflow(QWidget):
             "implicit_code_context": self._get_quest_agent_implicit_code_context(),
             "python_node_wrapper_rules": self._get_quest_agent_python_node_wrapper_rules(),
             "skill_execution_recipes": self._get_quest_agent_skill_execution_recipes(),
+            "structured_flow_analysis": structured_flow_analysis,
+            "validation_report": validation_report,
         }
 
     def _clear_quest_agent_pending_canvas_plan(self):
@@ -3664,13 +3800,18 @@ class quest_workflow(QWidget):
         lowered = self._normalize_quest_agent_prompt_text(prompt_text).casefold()
         if not lowered:
             return ""
-        if lowered in {"yes", "y", "create skill", "develop skill", "save skill", "make skill", "add skill", "create", "save"}:
+        if lowered in {"yes", "y", "create skill", "create new skill", "develop skill", "save skill", "make skill", "add skill", "create", "save"}:
             return "create_skill_from_completed_plan"
+        if lowered in {"update skill", "update best skill", "update best match skill", "update matched skill", "update existing skill", "improve skill", "revise skill"}:
+            return "update_skill_from_completed_plan"
         if lowered in {"no", "n", "skip", "skip skill", "cancel", "not now", "no thanks"}:
             return "skip_skill_from_completed_plan"
         return ""
 
     def _expand_quest_agent_canvas_plan_steps(self, action_plan):
+        if bool(dict(action_plan or {}).get("flow_already_valid", False)):
+            return []
+        goal_prompt = str(dict(action_plan or {}).get("goal_prompt", "") or "").strip()
         steps = []
         for action in list(dict(action_plan or {}).get("actions", []) or []):
             item = dict(action or {})
@@ -3688,7 +3829,7 @@ class quest_workflow(QWidget):
                 "reply": "",
                 "actions": [{
                     "type": "validate_flow",
-                    "goal_prompt": str(dict(action_plan or {}).get("goal_prompt", "") or "").strip(),
+                    "goal_prompt": goal_prompt,
                 }],
             })
         return steps
@@ -3816,6 +3957,22 @@ class quest_workflow(QWidget):
         return f"{text}\n\n{notes}" if text else notes
 
     def _build_quest_agent_canvas_plan_preview(self, action_plan):
+        if bool(dict(action_plan or {}).get("flow_already_valid", False)):
+            reply_text = str(dict(action_plan or {}).get("reply", "") or "").strip()
+            lines = [reply_text] if reply_text else ["The current flow already satisfies the task. No canvas changes are needed."]
+            planning_path_label, planning_path_reason = self._describe_quest_agent_planning_path(action_plan)
+            if planning_path_label:
+                lines.append("")
+                lines.append(f"Build path: {planning_path_label}")
+                if planning_path_reason:
+                    lines.append(f"Reason: {planning_path_reason}")
+            model_used_note = self._quest_agent_model_used_note(action_plan)
+            if model_used_note:
+                lines.append(model_used_note)
+            usage_note = self._quest_agent_usage_note(action_plan)
+            if usage_note:
+                lines.append(usage_note)
+            return {"reply": "\n".join(line for line in lines if str(line).strip())}
         steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
         if not steps:
             if quest_agent_chat_service is not None:
@@ -3858,12 +4015,16 @@ class quest_workflow(QWidget):
         }
 
     def _store_quest_agent_pending_canvas_plan(self, prompt_text, action_plan):
-        steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
+        normalized_prompt = self._normalize_quest_agent_prompt_text(prompt_text)
+        plan = dict(action_plan or {})
+        if normalized_prompt and not str(plan.get("goal_prompt", "") or "").strip():
+            plan["goal_prompt"] = normalized_prompt
+        steps = self._expand_quest_agent_canvas_plan_steps(plan)
         self._clear_quest_agent_pending_skill_offer()
-        self.quest_agent_state["pending_canvas_plan"] = dict(action_plan or {})
+        self.quest_agent_state["pending_canvas_plan"] = plan
         self.quest_agent_state["pending_canvas_steps"] = steps
         self.quest_agent_state["pending_canvas_step_index"] = 0
-        self.quest_agent_state["pending_canvas_prompt"] = self._normalize_quest_agent_prompt_text(prompt_text)
+        self.quest_agent_state["pending_canvas_prompt"] = normalized_prompt
         self.quest_agent_state["pending_canvas_waiting"] = bool(steps)
         self.quest_agent_state["pending_canvas_failure_count"] = 0
         self.quest_agent_state["pending_canvas_last_failure_signature"] = ""
@@ -3888,11 +4049,13 @@ class quest_workflow(QWidget):
         suggestions.append({"label": "Cancel", "prompt": "cancel"})
         return suggestions
 
-    def _quest_agent_skill_offer_action_suggestions(self):
-        return [
-            {"label": "Create Skill", "prompt": "create skill", "primary": True},
-            {"label": "Skip", "prompt": "skip skill"},
-        ]
+    def _quest_agent_skill_offer_action_suggestions(self, offer=None):
+        suggestions = [{"label": "Create New Skill", "prompt": "create new skill", "primary": True}]
+        best_match = dict((offer or self.quest_agent_state.get("pending_skill_development_offer", {}) or {}).get("best_skill_match", {}) or {})
+        if str(best_match.get("skill_id", "") or "").strip():
+            suggestions.append({"label": "Update Best Match", "prompt": "update best match skill"})
+        suggestions.append({"label": "Skip", "prompt": "skip skill"})
+        return suggestions
 
     def _compose_quest_agent_canvas_revision_prompt(self, revision_text):
         base_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
@@ -4146,52 +4309,8 @@ class quest_workflow(QWidget):
             return "text"
         return lowered
 
-    def _quest_agent_extract_requested_data_count(self, objective_text):
-        text = str(objective_text or "").casefold()
-        word_map = {
-            "one": 1,
-            "two": 2,
-            "three": 3,
-            "four": 4,
-            "five": 5,
-            "six": 6,
-            "seven": 7,
-            "eight": 8,
-            "nine": 9,
-            "ten": 10,
-        }
-        digit_match = re.search(r"\badd\s+(\d+)\s+numbers?\b", text)
-        if digit_match:
-            try:
-                return max(1, int(digit_match.group(1)))
-            except Exception:
-                return 0
-        word_match = re.search(
-            r"\badd\s+(one|two|three|four|five|six|seven|eight|nine|ten)\s+numbers?\b",
-            text,
-        )
-        if word_match:
-            return int(word_map.get(str(word_match.group(1) or "").casefold(), 0) or 0)
-        return 0
-
-    def _quest_agent_expected_python_node_count(self, objective_text):
-        text = str(objective_text or "").casefold()
-        if not text:
-            return 0
-        count = 0
-        if "add" in text or "sum" in text:
-            count += 1
-        if "square" in text:
-            count += 1
-        if count <= 0:
-            return 0
-        if any(token in text for token in ("separate", "each function", "one python node per function", "1 python node per function")):
-            return count
-        return max(1, count)
-
     def _quest_agent_extract_requested_numeric_values(self, objective_text):
         text = str(objective_text or "")
-        lowered = text.casefold()
         explicit_value_patterns = [
             r"(?:initialize|set)\s+(?:the\s+)?data\s+nodes?\s+with\s+values?\s+([^.;\n]+)",
             r"values?\s+([^.;\n]+)",
@@ -4209,64 +4328,7 @@ class quest_workflow(QWidget):
             values = re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])", raw_values)
         else:
             values = re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?(?![\w.])", text)
-            requested_count = self._quest_agent_extract_requested_data_count(lowered)
-            if requested_count > 0 and len(values) == requested_count + 1:
-                try:
-                    if int(float(values[0])) == int(requested_count):
-                        values = values[1:]
-                except Exception:
-                    pass
         return [str(value).strip() for value in list(values or []) if str(value).strip()]
-
-    def _quest_agent_collect_goal_alignment_missing_parts(self, objective_text, data_nodes, python_nodes):
-        text = str(objective_text or "").strip()
-        lowered = text.casefold()
-        if not lowered:
-            return []
-        missing_parts = []
-        requested_data_count = self._quest_agent_extract_requested_data_count(lowered)
-        actual_data_count = len(list(data_nodes or []))
-        if requested_data_count > 0:
-            if actual_data_count < requested_data_count:
-                missing_parts.append(
-                    f"The current flow has {actual_data_count} data nodes, but the goal calls for {requested_data_count} input numbers."
-                )
-            elif actual_data_count > requested_data_count:
-                missing_parts.append(
-                    f"The current flow has {actual_data_count} data nodes, but the goal only calls for {requested_data_count} input numbers."
-                )
-
-        expected_python_count = self._quest_agent_expected_python_node_count(lowered)
-        actual_python_count = len(list(python_nodes or []))
-        if expected_python_count > 0:
-            if actual_python_count < expected_python_count:
-                missing_parts.append(
-                    f"The current flow has {actual_python_count} Python nodes, but the goal needs {expected_python_count} Python steps."
-                )
-            elif any(
-                token in lowered
-                for token in ("separate", "each function", "one python node per function", "1 python node per function")
-            ) and actual_python_count != expected_python_count:
-                missing_parts.append(
-                    f"The goal asks for separate Python nodes per function, so the flow should use {expected_python_count} Python nodes instead of {actual_python_count}."
-                )
-
-        if "square" in lowered:
-            square_like = False
-            for item in list(python_nodes or []):
-                combined_text = " ".join(
-                    [
-                        str(item.get("name", "") or ""),
-                        str(item.get("brief_description", "") or ""),
-                        str(item.get("wrapper_text", "") or ""),
-                    ]
-                ).casefold()
-                if "square" in combined_text or "squared" in combined_text or "** 2" in combined_text:
-                    square_like = True
-                    break
-            if not square_like:
-                missing_parts.append("The goal includes squaring the result, but no Python node currently looks like a square step.")
-        return missing_parts
 
     def _quest_agent_collect_structured_flow_analysis(self, workflow=None):
         workflow = workflow or self._get_quest_agent_target_workflow()
@@ -4396,23 +4458,6 @@ class quest_workflow(QWidget):
                 else:
                     missing_parts.append(f"Provide a source connection to `{node_name}.{input_name}`.")
 
-        objective_text = "\n".join(
-            part
-            for part in [
-                str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip(),
-                str(dict(self.quest_agent_state.get("task_match_results", {}) or {}).get("task", "") or "").strip(),
-                str(dict(self.quest_agent_state.get("task_match_results", {}) or {}).get("project_description", "") or "").strip(),
-            ]
-            if str(part).strip()
-        )
-        missing_parts.extend(
-            self._quest_agent_collect_goal_alignment_missing_parts(
-                objective_text,
-                data_nodes,
-                python_nodes,
-            )
-        )
-
         deduped_missing_parts = []
         seen_missing_parts = set()
         for item in missing_parts:
@@ -4468,12 +4513,123 @@ class quest_workflow(QWidget):
             self._quest_agent_collect_structured_flow_analysis(workflow)
         )
 
+    def _quest_agent_build_validation_report(self, analysis, task_text=""):
+        if validate_flow_analysis is None:
+            return {
+                "status": "complete" if not list(dict(analysis or {}).get("missing_parts", []) or []) else "incomplete",
+                "structural_valid": not bool(list(dict(analysis or {}).get("missing_parts", []) or [])),
+                "task_alignment": "unknown",
+                "facts": {
+                    "data_node_count": len(list(dict(analysis or {}).get("data_nodes", []) or [])),
+                    "python_node_count": len(list(dict(analysis or {}).get("python_nodes", []) or [])),
+                    "connection_count": len(list(dict(analysis or {}).get("connections", []) or [])),
+                },
+                "missing_parts": list(dict(analysis or {}).get("missing_parts", []) or []),
+                "warnings": [],
+                "evidence": [],
+                "source": "quest_workspace_fallback",
+            }
+        try:
+            return dict(validate_flow_analysis(dict(analysis or {}), str(task_text or "")) or {})
+        except Exception:
+            return {}
+
+    def _quest_agent_validation_report_summary(self, report):
+        if summarize_validation_report is not None:
+            try:
+                return str(summarize_validation_report(dict(report or {})) or "").strip()
+            except Exception:
+                pass
+        data = dict(report or {})
+        return "\n".join(
+            line for line in [
+                f"validation_status: {data.get('status', 'unknown')}",
+                f"structural_valid: {bool(data.get('structural_valid', False))}",
+                f"task_alignment: {data.get('task_alignment', 'unknown')}",
+            ]
+            if str(line).strip()
+        )
+
+    def _quest_agent_semantic_missing_parts_from_result(self, result):
+        data = dict(result or {})
+        candidates = []
+        for item in list(data.get("missing_parts", []) or []):
+            text = str(item or "").strip()
+            if text:
+                candidates.append(text)
+        gap_markers = (
+            "missing",
+            "incomplete",
+            "does not",
+            "doesn't",
+            "not yet",
+            "lacks",
+            "without",
+            "needs",
+            "should",
+            "required",
+        )
+        optional_markers = (
+            "if the user wants",
+            "if you want",
+            "can likely",
+            "can be saved",
+            "could be saved",
+            "may be useful",
+            "no structural changes",
+            "without structural changes",
+            "reusable workflow",
+            "saved as a reusable",
+        )
+        for item in list(data.get("notes", []) or []):
+            text = str(item or "").strip()
+            lowered = text.casefold()
+            if not text:
+                continue
+            if any(marker in lowered for marker in optional_markers):
+                continue
+            if any(marker in lowered for marker in gap_markers):
+                candidates.append(text)
+        deduped = []
+        seen = set()
+        for item in candidates:
+            key = item.casefold()
+            if key in seen:
+                continue
+            seen.add(key)
+            deduped.append(item)
+        return deduped
+
     def _quest_agent_enrich_task_match_result(self, result):
         enriched = dict(result or {})
         analysis = self._quest_agent_collect_structured_flow_analysis(self._get_quest_agent_target_workflow())
+        task_text = "\n".join(
+            part for part in [
+                str(enriched.get("task", "") or "").strip(),
+                str(enriched.get("project_description", "") or "").strip(),
+                str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip(),
+            ]
+            if str(part).strip()
+        )
+        validation_report = self._quest_agent_build_validation_report(analysis, task_text)
+        structural_missing_parts = [
+            str(item).strip()
+            for item in list(validation_report.get("missing_parts", analysis.get("missing_parts", [])) or [])
+            if str(item).strip()
+        ]
+        semantic_missing_parts = self._quest_agent_semantic_missing_parts_from_result(enriched)
+        analysis["validation_report"] = validation_report
+        analysis["structural_missing_parts"] = structural_missing_parts
+        analysis["semantic_missing_parts"] = semantic_missing_parts
+        analysis["missing_parts"] = semantic_missing_parts or structural_missing_parts
         enriched["structured_flow_analysis"] = analysis
-        enriched["missing_parts"] = list(analysis.get("missing_parts", []) or [])
+        enriched["validation_report"] = validation_report
+        enriched["structural_missing_parts"] = structural_missing_parts
+        enriched["missing_parts"] = semantic_missing_parts or structural_missing_parts
         enriched["structured_flow_summary"] = self._quest_agent_standardized_flow_summary_from_analysis(analysis)
+        validation_summary = self._quest_agent_validation_report_summary(validation_report)
+        if validation_summary:
+            enriched["validation_summary"] = validation_summary
         return enriched
 
     def _quest_agent_format_structured_flow_analysis_lines(self, analysis):
@@ -4523,6 +4679,12 @@ class quest_workflow(QWidget):
             lines.extend(f"- {item}" for item in missing_parts)
         else:
             lines.append("- None")
+        validation_report = dict(summary.get("validation_report", {}) or {})
+        if validation_report:
+            lines.append("")
+            lines.append("5. MCP validation facts:")
+            validation_summary = self._quest_agent_validation_report_summary(validation_report)
+            lines.extend(validation_summary.splitlines() if validation_summary else ["(unavailable)"])
         return lines
 
     def _quest_agent_action_is_satisfied(self, workflow, action):
@@ -4687,10 +4849,51 @@ class quest_workflow(QWidget):
                 pass
         return max(confidence_values) if confidence_values else 0.0
 
+    def _quest_agent_best_skill_match(self, task_match_result=None):
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        if isinstance(task_match_result, dict):
+            result.update({key: value for key, value in task_match_result.items() if value})
+        candidates = []
+        for item in list(result.get("skill_matches", []) or []):
+            candidate = dict(item or {})
+            skill_id = str(candidate.get("skill_id", "") or "").strip()
+            if not skill_id:
+                continue
+            try:
+                confidence = float(candidate.get("confidence", 0.0) or 0.0)
+            except Exception:
+                confidence = 0.0
+            candidates.append({
+                "skill_id": skill_id,
+                "title": str(candidate.get("title", "") or skill_id).strip(),
+                "confidence": confidence,
+            })
+        best_template = dict(result.get("best_workflow_template", {}) or {})
+        best_template_id = str(best_template.get("skill_id", "") or "").strip()
+        if best_template_id:
+            try:
+                confidence = float(best_template.get("confidence", 0.0) or 0.0)
+            except Exception:
+                confidence = 0.0
+            candidates.append({
+                "skill_id": best_template_id,
+                "title": str(best_template.get("title", "") or best_template_id).strip(),
+                "confidence": confidence,
+            })
+        if not candidates:
+            return {}
+        candidates.sort(key=lambda item: float(item.get("confidence", 0.0) or 0.0), reverse=True)
+        best = dict(candidates[0])
+        for skill in list(self.quest_agent_state.get("loaded_skills", []) or []):
+            if str(getattr(skill, "skill_id", "") or "").strip() != str(best.get("skill_id", "") or "").strip():
+                continue
+            best["title"] = str(getattr(skill, "title", "") or best.get("title", "") or best.get("skill_id", "")).strip()
+            best["folder_path"] = str(getattr(skill, "folder_path", "") or "").strip()
+            best["skill_json_path"] = str(getattr(skill, "skill_json_path", "") or "").strip()
+            break
+        return best
+
     def _quest_agent_should_offer_skill_after_completion(self, task_match_result=None):
-        result = dict(task_match_result or self.quest_agent_state.get("task_match_results", {}) or {})
-        if self._quest_agent_top_skill_confidence(result) >= 0.55:
-            return False
         workflow_json = self._get_quest_agent_current_flow_json_data_for_skill()
         nodes = list(workflow_json.get("nodes_df", []) or []) if isinstance(workflow_json, dict) else []
         return bool(nodes)
@@ -4742,42 +4945,76 @@ class quest_workflow(QWidget):
             "action_records": action_records,
             "final_flow_json": dict(final_flow_json or {}),
             "top_skill_confidence": self._quest_agent_top_skill_confidence(result),
+            "best_skill_match": self._quest_agent_best_skill_match(result),
         }
         self.quest_agent_state["pending_skill_development_offer"] = offer
         return offer
 
     def _build_quest_agent_skill_development_offer_reply(self, base_text, offer):
-        confidence = float(dict(offer or {}).get("top_skill_confidence", 0.0) or 0.0)
+        best_match = dict(dict(offer or {}).get("best_skill_match", {}) or {})
+        best_title = str(best_match.get("title", "") or best_match.get("skill_id", "") or "").strip()
+        try:
+            confidence = float(best_match.get("confidence", dict(offer or {}).get("top_skill_confidence", 0.0)) or 0.0)
+        except Exception:
+            confidence = 0.0
         lines = []
         if str(base_text or "").strip():
             lines.append(str(base_text).strip())
             lines.append("")
-        if confidence <= 0.0:
-            lines.append("I did not find a reusable saved skill that matched this workflow strongly.")
+        lines.append("Plan complete. This completed workflow can now be saved as reusable skill knowledge.")
+        if best_title:
+            lines.append(f"Best matched skill: `{best_title}` (confidence {confidence:.2f}).")
+            lines.append("")
+            lines.append("Choose one:")
+            lines.append("1. Create a new skill from this completed flow.")
+            lines.append("2. Update the best matched skill with this completed flow.")
+            lines.append("3. Skip skill development for now.")
         else:
-            lines.append(f"The best saved-skill match was low confidence ({confidence:.2f}), so this completed workflow may be useful as a new skill.")
-        lines.append("Would you like to create a new skill from this completed flow?")
-        lines.append("If yes, I will use the task analysis, flow description, completed action plan, and final workflow JSON as the skill baseline.")
+            lines.append("I did not find an existing saved skill to update.")
+            lines.append("")
+            lines.append("Choose one:")
+            lines.append("1. Create a new skill from this completed flow.")
+            lines.append("2. Skip skill development for now.")
+        lines.append("")
+        lines.append("The skill baseline will use the task analysis, flow description, completed action plan, and final workflow JSON.")
         return {
             "reply": "\n".join(lines),
-            "action_suggestions": self._quest_agent_skill_offer_action_suggestions(),
+            "action_suggestions": self._quest_agent_skill_offer_action_suggestions(offer),
         }
 
-    def _handle_quest_agent_skill_offer_response(self, create_skill):
+    def _handle_quest_agent_skill_offer_response(self, mode):
         if not self._has_quest_agent_pending_skill_offer():
             return {"reply": "There is no completed-flow skill offer pending."}
         offer = dict(self.quest_agent_state.get("pending_skill_development_offer", {}) or {})
-        if not create_skill:
+        mode_text = str(mode or "").strip()
+        if mode_text in {"skip", "False", "false"} or mode is False:
             self._clear_quest_agent_pending_skill_offer()
-            return {"reply": "Skipped skill creation for this completed flow."}
+            return {"reply": "Skipped skill development for this completed flow."}
+        update_skill_id = ""
+        if mode_text == "update_best_match":
+            best_match = dict(offer.get("best_skill_match", {}) or {})
+            update_skill_id = str(best_match.get("skill_id", "") or "").strip()
+            if not update_skill_id:
+                return {
+                    "reply": "I could not find a best matched skill to update. You can create a new skill instead, or skip.",
+                    "action_suggestions": self._quest_agent_skill_offer_action_suggestions(offer),
+                }
         try:
             developed = self._develop_quest_agent_skill_from_records(
                 list(offer.get("action_records", []) or []),
                 task_match_result=dict(offer.get("task_match_result", {}) or {}),
                 flow_description=str(offer.get("flow_description", "") or ""),
                 current_flow_json_data=dict(offer.get("final_flow_json", {}) or {}),
+                update_skill_id=update_skill_id,
             )
             self._clear_quest_agent_pending_skill_offer()
+            if update_skill_id:
+                return {
+                    "reply": (
+                        f"Updated skill `{developed.get('title', 'Untitled Skill')}`.\n\n"
+                        f"Location: {developed.get('folder_path', '')}"
+                    )
+                }
             return {
                 "reply": (
                     f"Created new skill `{developed.get('title', 'Untitled Skill')}`.\n\n"
@@ -4785,9 +5022,10 @@ class quest_workflow(QWidget):
                 )
             }
         except Exception as exc:
+            verb = "update the skill" if update_skill_id else "create the skill"
             return {
-                "reply": f"I couldn't create the skill from the completed flow.\n\nDetails: {exc}",
-                "action_suggestions": self._quest_agent_skill_offer_action_suggestions(),
+                "reply": f"I couldn't {verb} from the completed flow.\n\nDetails: {exc}",
+                "action_suggestions": self._quest_agent_skill_offer_action_suggestions(offer),
             }
 
     def _quest_agent_canvas_action_signature(self, action):
@@ -4906,8 +5144,8 @@ class quest_workflow(QWidget):
             "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
         }
 
-    def _finalize_quest_agent_canvas_validation_step(self, reply_text=""):
-        pending_prompt = str(self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
+    def _finalize_quest_agent_canvas_validation_step(self, reply_text="", goal_prompt=""):
+        pending_prompt = str(goal_prompt or self.quest_agent_state.get("pending_canvas_prompt", "") or "").strip()
         selected_model = str(self.quest_agent_state.get("selected_model", "GPT-5.4 Mini")).strip() or "GPT-5.4 Mini"
         review_reply = self._run_quest_agent_flow_review(pending_prompt, selected_model)
         review_text = str(dict(review_reply or {}).get("reply", "") or "").strip()
@@ -5031,7 +5269,10 @@ class quest_workflow(QWidget):
             step_index += 1
             self.quest_agent_state["pending_canvas_step_index"] = step_index
             self.quest_agent_state["pending_canvas_waiting"] = step_index < len(steps)
-            return self._finalize_quest_agent_canvas_validation_step("Validated the current flow against the goal.")
+            return self._finalize_quest_agent_canvas_validation_step(
+                "Validated the current flow against the goal.",
+                str(current_action.get("goal_prompt", "") or "").strip(),
+            )
         executed = self._execute_quest_agent_canvas_actions(step_plan)
         if quest_agent_chat_service is not None:
             step_reply = quest_agent_chat_service.build_canvas_action_reply(step_plan, executed)
@@ -5426,11 +5667,16 @@ class quest_workflow(QWidget):
         skill_offer_control = self._interpret_quest_agent_pending_skill_offer_control(prompt_text)
         if skill_offer_control == "create_skill_from_completed_plan":
             self._update_last_quest_agent_status_message("QuESt Agent is creating a reusable skill from the completed flow...")
-            final_reply = self._handle_quest_agent_skill_offer_response(True)
+            final_reply = self._handle_quest_agent_skill_offer_response("create_new")
+            self._finalize_last_quest_agent_status_message(final_reply)
+            return
+        if skill_offer_control == "update_skill_from_completed_plan":
+            self._update_last_quest_agent_status_message("QuESt Agent is updating the best matched skill from the completed flow...")
+            final_reply = self._handle_quest_agent_skill_offer_response("update_best_match")
             self._finalize_last_quest_agent_status_message(final_reply)
             return
         if skill_offer_control == "skip_skill_from_completed_plan":
-            final_reply = self._handle_quest_agent_skill_offer_response(False)
+            final_reply = self._handle_quest_agent_skill_offer_response("skip")
             self._finalize_last_quest_agent_status_message(final_reply)
             return
         pending_control = self._interpret_quest_agent_pending_canvas_control(prompt_text)

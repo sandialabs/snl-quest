@@ -1866,9 +1866,11 @@ def _task_analysis_guidance(task_match_result: dict[str, Any] | None) -> dict[st
 
     flow_description = str(result.get("flow_description", "") or "").strip()
     structured_flow_summary = str(result.get("structured_flow_summary", "") or "").strip()
+    validation_summary = str(result.get("validation_summary", "") or "").strip()
+    validation_report = dict(result.get("validation_report", {}) or {})
     missing_parts = [
         str(item).strip()
-        for item in list(result.get("missing_parts", []) or [])[:8]
+        for item in list(result.get("missing_parts", validation_report.get("missing_parts", [])) or [])[:8]
         if str(item).strip()
     ]
     notes = [str(note).strip() for note in list(result.get("notes", []) or [])[:6] if str(note).strip()]
@@ -1910,6 +1912,10 @@ def _task_analysis_guidance(task_match_result: dict[str, Any] | None) -> dict[st
         planning_directives.append(
             "A best reusable workflow template is available; prefer JSON diff/edit -> load -> validate over rebuilding the flow from scratch."
         )
+    if validation_report:
+        planning_directives.append(
+            "Treat validation_report as the deterministic source of truth for structural flow facts."
+        )
 
     return {
         "strategy": str(result.get("strategy", "") or "").strip(),
@@ -1917,6 +1923,8 @@ def _task_analysis_guidance(task_match_result: dict[str, Any] | None) -> dict[st
         "project_description": str(result.get("project_description", "") or "").strip(),
         "flow_description": flow_description,
         "structured_flow_summary": structured_flow_summary,
+        "validation_summary": validation_summary,
+        "validation_report": validation_report,
         "top_tool_matches": top_tool_matches,
         "top_skill_matches": top_skill_matches,
         "best_workflow_template": best_workflow_template,
@@ -3837,6 +3845,9 @@ def _repair_workspace_action_plan(
         "Use build_path_guidance to choose the easiest viable build path before repairing the plan. "
         "Use only these action types: create_node, update_node, add_subflow, connect_nodes, rename_selected_node, update_selected_text_node, delete_selected_nodes, load_workflow_json. "
         "Use only these create_node node types: data, py, text. "
+        "When task_analysis.missing_parts says an input/data node is missing, repair that gap with create_node node_type='data' using the named missing input as both name and variable_name when appropriate; do not encode a missing input as a value edit on an unrelated existing node. "
+        "When task_analysis.missing_parts says an existing Python wrapper or node logic is incomplete, repair that gap with update_node on the named existing Python node and include the revised wrapper when possible. "
+        "When a new input must feed an existing Python node, include the needed connect_nodes action unless local single-step mode requires returning only the first action. "
         "If the request is clearly a canvas edit, return at least one action. "
         "Return valid JSON only with shape {\"reply\": string, \"planning_path\": string, \"path_reason\": string, \"actions\": [ ... ]}."
     )
@@ -4006,6 +4017,9 @@ def run_workspace_action_plan(
         "Use task_analysis_guidance.flow_description, task_analysis_guidance.structured_flow_summary, task_analysis_guidance.missing_parts, and task_analysis_guidance.notes as authoritative current-state evidence about what already exists on canvas. "
         "If analysis shows an incomplete or partially built flow, prefer actions that complete, connect, initialize, or repair existing nodes instead of rebuilding the flow from scratch, unless the user explicitly asks to rebuild or replace it. "
         "Treat task_analysis_guidance.missing_parts as the highest-priority gaps to resolve in the next plan. "
+        "When task_analysis_guidance.missing_parts says an input/data node is missing, produce a create_node action with node_type='data' for that named input; do not turn missing input requirements into update_node value edits on existing nodes. "
+        "When task_analysis_guidance.missing_parts says an existing Python wrapper or node logic is incomplete, produce an update_node action for the named existing Python node and include a revised wrapper when possible. "
+        "When a new input must feed an existing Python node, include a connect_nodes action for the new data node to the existing Python node unless local single-step mode requires returning only the first action. "
         "Follow task_analysis_guidance.planning_directives strictly when they are present. "
         "Use top_skill_matches and top_tool_matches to shape how the plan should be implemented, but not to ignore the analyzed current flow. "
         "If task_analysis_guidance.best_workflow_template is available, treat it as the preferred baseline for a JSON diff/edit -> load -> validate workflow. "
@@ -4018,7 +4032,7 @@ def run_workspace_action_plan(
         "Supported action types are: create_node, update_node, add_subflow, connect_nodes, rename_selected_node, update_selected_text_node, delete_selected_nodes, load_workflow_json. "
         "For create_node, node_type must be one of data, py, text and count must be an integer from 1 to 5. "
         "For create_node you may include name, variable_name, value, value_display, is_path, text, imports, wrapper, and code when requested. "
-        "For update_node, provide node_name for the existing node to edit, and include only the fields that should change such as new_name, variable_name, value, value_display, is_path, text, imports, wrapper, or code. Prefer update_node over create_node when build_path_guidance recommends editing the current flow. "
+        "For update_node, provide node_name for the existing node to edit, and include only the fields that should change such as new_name, variable_name, value, value_display, is_path, text, imports, wrapper, or code. Prefer update_node for editing existing wrappers, text, or values; prefer create_node when the required node or input does not exist yet. "
         "For add_subflow you may include flow_name or name for the new subflow tab. "
         "For connect_nodes, provide source_node and target_node, and include source_port/target_port or mapping when needed. "
         "For load_workflow_json, provide workflow_path when reusing a saved template, or workflow_content when drafting a full workflow JSON directly; you may also include source_skill_id. "
