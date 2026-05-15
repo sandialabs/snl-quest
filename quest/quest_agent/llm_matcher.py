@@ -1,4 +1,5 @@
 import ctypes
+import contextvars
 import copy
 import json
 import os
@@ -24,6 +25,7 @@ from .tool_registry import write_active_tool_registry
 
 
 MODEL_NAME_MAP = {
+    "GPT-5.5": "gpt-5.5",
     "GPT-5.4": "gpt-5.4",
     "GPT-5.4 Mini": "gpt-5.4-mini",
     "GPT-5.2 Codex": "gpt-5.2-codex",
@@ -34,6 +36,8 @@ MODEL_NAME_MAP = {
     "Claude Haiku 4.5": "claude-haiku-4-5-20251001",
     "Claude Sonnet 4": "claude-sonnet-4-6",
     "Claude Haiku 3.5": "claude-haiku-4-5-20251001",
+    "GPT-OSS 120B": "ollama:gpt-oss:120b",
+    "GPT OSS 120B": "ollama:gpt-oss:120b",
     "Gemma 4 E2B": "ollama:gemma4:e2b",
     "Gemma 4 E4B": "ollama:gemma4:e4b",
     "Gemma 4 26B": "ollama:gemma4:26b",
@@ -53,8 +57,20 @@ ANTHROPIC_MODEL_MAX_TOKENS = {
 ANTHROPIC_MODELS_WITHOUT_TEMPERATURE = {
     "claude-opus-4-7",
 }
+OPENAI_MODELS_WITH_DEFAULT_TEMPERATURE_ONLY = {
+    "gpt-5.5",
+}
+MODEL_PRICING_USD_PER_MILLION_TOKENS = {
+    "gpt-5.5": {"input": 5.00, "cached_input": 0.50, "output": 30.00},
+    "gpt-5.4": {"input": 2.50, "cached_input": 0.25, "output": 15.00},
+    "gpt-5.4-mini": {"input": 0.75, "cached_input": 0.075, "output": 4.50},
+    "claude-opus-4-7": {"input": 5.00, "cached_input": 0.50, "output": 25.00},
+    "claude-sonnet-4-6": {"input": 3.00, "cached_input": 0.30, "output": 15.00},
+    "claude-haiku-4-5-20251001": {"input": 1.00, "cached_input": 0.10, "output": 5.00},
+}
 DEFAULT_OLLAMA_CONTEXT_TOKENS = 2048
 OLLAMA_MODEL_CONTEXT_TOKENS = {
+    "gpt-oss:120b": 8192,
     "gemma4:e2b": 2048,
     "gemma4:e4b": 2048,
     "gemma4:26b": 1024,
@@ -101,6 +117,110 @@ CANVAS_ACTION_TYPES = {
 }
 
 CANONICAL_NODE_TYPES = {"data", "py", "text"}
+_LLM_USAGE_RECORDS = contextvars.ContextVar("quest_agent_llm_usage_records", default=None)
+
+
+def reset_llm_usage_tracking() -> None:
+    _LLM_USAGE_RECORDS.set([])
+
+
+def _extract_attr_or_key(value: Any, name: str, default: Any = 0) -> Any:
+    if isinstance(value, dict):
+        return value.get(name, default)
+    return getattr(value, name, default)
+
+
+def _coerce_token_count(value: Any) -> int:
+    try:
+        return max(0, int(value or 0))
+    except Exception:
+        return 0
+
+
+def _estimate_llm_cost_usd(model_name: str, input_tokens: int, output_tokens: int, cached_input_tokens: int = 0) -> float | None:
+    resolved_name = _resolve_model_name(model_name)
+    if _is_ollama_model(resolved_name):
+        return 0.0
+    pricing = MODEL_PRICING_USD_PER_MILLION_TOKENS.get(resolved_name)
+    if not pricing:
+        return None
+    cached_tokens = min(_coerce_token_count(cached_input_tokens), _coerce_token_count(input_tokens))
+    regular_input_tokens = max(0, _coerce_token_count(input_tokens) - cached_tokens)
+    output_tokens = _coerce_token_count(output_tokens)
+    return (
+        (regular_input_tokens * float(pricing.get("input", 0.0) or 0.0))
+        + (cached_tokens * float(pricing.get("cached_input", pricing.get("input", 0.0)) or 0.0))
+        + (output_tokens * float(pricing.get("output", 0.0) or 0.0))
+    ) / 1_000_000.0
+
+
+def _record_llm_usage(
+    *,
+    provider: str,
+    model_name: str,
+    input_tokens: int = 0,
+    output_tokens: int = 0,
+    cached_input_tokens: int = 0,
+) -> None:
+    records = _LLM_USAGE_RECORDS.get()
+    if records is None:
+        return
+    input_tokens = _coerce_token_count(input_tokens)
+    output_tokens = _coerce_token_count(output_tokens)
+    cached_input_tokens = _coerce_token_count(cached_input_tokens)
+    records.append({
+        "provider": str(provider or "").strip(),
+        "model": _resolve_model_name(model_name),
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "cached_input_tokens": min(cached_input_tokens, input_tokens),
+        "total_tokens": input_tokens + output_tokens,
+        "estimated_cost_usd": _estimate_llm_cost_usd(model_name, input_tokens, output_tokens, cached_input_tokens),
+    })
+    _LLM_USAGE_RECORDS.set(records)
+
+
+def _format_usd(value: float | None) -> str:
+    if value is None:
+        return "unavailable"
+    if value == 0:
+        return "$0.00"
+    if value < 1:
+        return f"${value:.4f}"
+    return f"${value:.2f}"
+
+
+def get_llm_usage_summary() -> dict[str, Any]:
+    records = list(_LLM_USAGE_RECORDS.get() or [])
+    total_input_tokens = sum(_coerce_token_count(record.get("input_tokens")) for record in records)
+    total_output_tokens = sum(_coerce_token_count(record.get("output_tokens")) for record in records)
+    total_cached_input_tokens = sum(_coerce_token_count(record.get("cached_input_tokens")) for record in records)
+    known_costs = [record.get("estimated_cost_usd") for record in records if record.get("estimated_cost_usd") is not None]
+    total_cost = sum(float(value or 0.0) for value in known_costs) if len(known_costs) == len(records) else None
+    models = []
+    for record in records:
+        label = _describe_model_label(record.get("model"))
+        if label not in models:
+            models.append(label)
+    note = ""
+    if records:
+        cache_text = f", cached input {total_cached_input_tokens:,}" if total_cached_input_tokens else ""
+        model_text = f", models: {', '.join(models)}" if len(models) > 1 else ""
+        note = (
+            f"Token usage: {len(records)} LLM call{'s' if len(records) != 1 else ''}; "
+            f"input {total_input_tokens:,}{cache_text}; output {total_output_tokens:,}; "
+            f"total {total_input_tokens + total_output_tokens:,}; estimated cost {_format_usd(total_cost)}{model_text}."
+        )
+    return {
+        "records": records,
+        "call_count": len(records),
+        "input_tokens": total_input_tokens,
+        "output_tokens": total_output_tokens,
+        "cached_input_tokens": total_cached_input_tokens,
+        "total_tokens": total_input_tokens + total_output_tokens,
+        "estimated_cost_usd": total_cost,
+        "usage_note": note,
+    }
 
 
 def _resolve_model_name(model_name: str | None) -> str:
@@ -175,6 +295,10 @@ def _fast_local_mode_enabled(selected_model: str | None) -> bool:
 
 def _resolve_fast_local_reasoning_model(selected_model: str | None) -> str | None:
     if not _fast_local_mode_enabled(selected_model):
+        return selected_model
+    resolved_model = _resolve_model_name(selected_model)
+    model_tag = _resolve_ollama_model_tag(resolved_model)
+    if model_tag == "gpt-oss:120b":
         return selected_model
     return "Gemma 4 E4B"
 
@@ -663,12 +787,12 @@ def _ollama_chat_completion_content(
             raw_content = response.read().decode("utf-8")
     except urllib.error.URLError as exc:
         raise RuntimeError(
-            "The local Ollama server is not available. Install and start Ollama, then pull the selected Gemma 4 model."
+            f"The local Ollama server is not available. Install and start Ollama, then pull the selected model: ollama pull {model_tag}."
         ) from exc
     except OSError as exc:
         raise RuntimeError(
-            "The local Gemma request failed at the system level, which usually means the model ran out of usable local resources. "
-            "Try Gemma 4 E4B/E2B, close other memory-heavy apps, or reduce the planning context."
+            "The local Ollama request failed at the system level, which usually means the model ran out of usable local resources. "
+            "Try a smaller local model, close other memory-heavy apps, or reduce the planning context."
         ) from exc
     try:
         parsed = json.loads(raw_content)
@@ -679,6 +803,12 @@ def _ollama_chat_completion_content(
     content = str(message.get("content", "") or parsed.get("response", "") or "").strip()
     if not content:
         raise RuntimeError("Ollama returned an empty response.")
+    _record_llm_usage(
+        provider="ollama",
+        model_name=runtime_model_name,
+        input_tokens=parsed.get("prompt_eval_count", 0),
+        output_tokens=parsed.get("eval_count", 0),
+    )
     return content
 
 
@@ -758,6 +888,18 @@ def _anthropic_chat_completion_content(
     except Exception as exc:
         raise RuntimeError(f"Anthropic API request failed. {exc}") from exc
 
+    usage = getattr(response, "usage", None)
+    _record_llm_usage(
+        provider="anthropic",
+        model_name=_resolve_model_name(model_name),
+        input_tokens=(
+            _coerce_token_count(_extract_attr_or_key(usage, "input_tokens", 0))
+            + _coerce_token_count(_extract_attr_or_key(usage, "cache_creation_input_tokens", 0))
+            + _coerce_token_count(_extract_attr_or_key(usage, "cache_read_input_tokens", 0))
+        ),
+        output_tokens=_extract_attr_or_key(usage, "output_tokens", 0),
+        cached_input_tokens=_extract_attr_or_key(usage, "cache_read_input_tokens", 0),
+    )
     content_blocks = list(getattr(response, "content", []) or [])
     text_parts = []
     for block in content_blocks:
@@ -805,12 +947,22 @@ def _chat_completion_content(
     client = OpenAI(api_key=_resolve_api_key(api_key))
     request_kwargs: dict[str, Any] = {
         "model": resolved_model_name,
-        "temperature": temperature,
         "messages": messages,
     }
+    if resolved_model_name not in OPENAI_MODELS_WITH_DEFAULT_TEMPERATURE_ONLY:
+        request_kwargs["temperature"] = temperature
     if response_json:
         request_kwargs["response_format"] = {"type": "json_object"}
     response = client.chat.completions.create(**request_kwargs)
+    usage = getattr(response, "usage", None)
+    prompt_tokens_details = _extract_attr_or_key(usage, "prompt_tokens_details", None)
+    _record_llm_usage(
+        provider="openai",
+        model_name=resolved_model_name,
+        input_tokens=_extract_attr_or_key(usage, "prompt_tokens", 0),
+        output_tokens=_extract_attr_or_key(usage, "completion_tokens", 0),
+        cached_input_tokens=_extract_attr_or_key(prompt_tokens_details, "cached_tokens", 0),
+    )
     content = str(response.choices[0].message.content or "").strip() if response.choices else ""
     return content, resolved_model_name
 

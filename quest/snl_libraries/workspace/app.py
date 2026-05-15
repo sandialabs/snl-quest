@@ -26,6 +26,7 @@ base_dir = get_path()
 QUEST_AGENT_IMPORT_ERROR = ""
 try:
     from quest.quest_agent import get_quest_agent_root, load_skill_library, build_skills_manifest, run_chat_router, run_grounded_chat_reply, run_structured_task_match, run_workspace_action_plan, write_active_tool_registry, develop_skill_from_record, format_action_records_table
+    from quest.quest_agent.llm_matcher import reset_llm_usage_tracking, get_llm_usage_summary
     from quest.quest_agent import chat_service as quest_agent_chat_service
     from quest.quest_agent import context_service as quest_agent_context_service
     from quest.quest_agent import workspace_actions as quest_agent_workspace_actions
@@ -46,6 +47,8 @@ except Exception as exc:
     quest_agent_workspace_actions = None
     quest_agent_deep_agent = None
     write_active_tool_registry = None
+    reset_llm_usage_tracking = None
+    get_llm_usage_summary = None
 
 from quest.snl_libraries.workspace.flow.questflow import *
 
@@ -73,6 +76,7 @@ def _refresh_quest_agent_runtime():
     global run_chat_router, run_grounded_chat_reply, run_structured_task_match
     global run_workspace_action_plan, write_active_tool_registry
     global develop_skill_from_record, format_action_records_table
+    global reset_llm_usage_tracking, get_llm_usage_summary
     global quest_agent_chat_service, quest_agent_context_service
     global quest_agent_workspace_actions, quest_agent_deep_agent
 
@@ -95,6 +99,8 @@ def _refresh_quest_agent_runtime():
         run_grounded_chat_reply = llm_matcher_module.run_grounded_chat_reply
         run_structured_task_match = llm_matcher_module.run_structured_task_match
         run_workspace_action_plan = llm_matcher_module.run_workspace_action_plan
+        reset_llm_usage_tracking = llm_matcher_module.reset_llm_usage_tracking
+        get_llm_usage_summary = llm_matcher_module.get_llm_usage_summary
         write_active_tool_registry = tool_registry_module.write_active_tool_registry
         develop_skill_from_record = skill_development_module.develop_skill_from_record
         format_action_records_table = skill_development_module.format_action_records_table
@@ -172,6 +178,26 @@ def _quest_agent_run_structured_match_from_snapshot(task_description, selected_m
 
 
 def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellation_callback=None):
+    def _attach_usage_summary(result):
+        finalized = dict(result or {})
+        if get_llm_usage_summary is None:
+            return finalized
+        try:
+            usage_summary = dict(get_llm_usage_summary() or {})
+        except Exception:
+            usage_summary = {}
+        if usage_summary:
+            finalized["llm_usage_summary"] = usage_summary
+            usage_note = str(usage_summary.get("usage_note", "") or "").strip()
+            for key in ("final_reply", "action_plan", "task_match_result", "route_result"):
+                payload_value = finalized.get(key)
+                if not isinstance(payload_value, dict):
+                    continue
+                existing_note = str(payload_value.get("usage_note", "") or "").strip()
+                if usage_note and not existing_note:
+                    payload_value["usage_note"] = usage_note
+        return finalized
+
     def _report_progress(message):
         _append_quest_agent_runtime_log(f"worker progress: {message}")
         if progress_callback is None:
@@ -195,6 +221,11 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellat
     effective_prompt = str(payload.get("effective_prompt", prompt_text) or "").strip()
     model_name = str(payload.get("model_name", "") or "").strip() or "GPT-5.4 Mini"
     pending_control = str(payload.get("pending_control", "") or "").strip()
+    if reset_llm_usage_tracking is not None:
+        try:
+            reset_llm_usage_tracking()
+        except Exception:
+            pass
     _append_quest_agent_runtime_log(
         f"worker start model={model_name} control={pending_control or 'none'} prompt={prompt_text[:160]}"
     )
@@ -263,7 +294,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellat
         worker_result["task_match_result"] = dict(task_match_result or {})
         worker_result["final_reply"] = dict(final_reply or {})
         _append_quest_agent_runtime_log("worker finished analyze_task")
-        return worker_result
+        return _attach_usage_summary(worker_result)
 
     if route_action == "execute_canvas_action":
         _check_canceled()
@@ -309,7 +340,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellat
         worker_result["action_plan"] = dict(action_plan or {})
         worker_result["stored_prompt"] = effective_prompt if pending_control == "revise_plan" else prompt_text
         _append_quest_agent_runtime_log("worker finished execute_canvas_action planning")
-        return worker_result
+        return _attach_usage_summary(worker_result)
 
     if quest_agent_chat_service is None:
         final_reply = {
@@ -328,7 +359,7 @@ def _run_quest_agent_chat_turn_worker(payload, progress_callback=None, cancellat
     _check_canceled()
     worker_result["final_reply"] = dict(final_reply or {})
     _append_quest_agent_runtime_log(f"worker finished route_action={route_action or 'answer_only'}")
-    return worker_result
+    return _attach_usage_summary(worker_result)
 
 
 class QuestAgentChatTurnWorker(QObject):
@@ -2243,6 +2274,7 @@ class quest_workflow(QWidget):
             "}"
         )
         self.quest_agent_model_combo.addItems([
+            "GPT-5.5",
             "GPT-5.4",
             "GPT-5.4 Mini",
             "GPT-5.2 Codex",
@@ -2251,6 +2283,7 @@ class quest_workflow(QWidget):
             "Claude Opus 4.7",
             "Claude Sonnet 4.6",
             "Claude Haiku 4.5",
+            "GPT-OSS 120B",
             "Gemma 4 E2B",
             "Gemma 4 E4B",
             "Gemma 4 26B",
@@ -3768,14 +3801,19 @@ class quest_workflow(QWidget):
     def _quest_agent_model_used_note(self, payload):
         return str(dict(payload or {}).get("model_used_note", "") or "").strip()
 
+    def _quest_agent_usage_note(self, payload):
+        return str(dict(payload or {}).get("usage_note", "") or "").strip()
+
     def _append_quest_agent_model_used_note(self, reply_text, payload):
         note = self._quest_agent_model_used_note(payload)
+        usage_note = self._quest_agent_usage_note(payload)
         text = str(reply_text or "").strip()
-        if not note:
+        if not note and not usage_note:
             return text
-        if note in text:
+        notes = "\n".join(part for part in (note, usage_note) if part)
+        if notes in text:
             return text
-        return f"{text}\n\n{note}" if text else note
+        return f"{text}\n\n{notes}" if text else notes
 
     def _build_quest_agent_canvas_plan_preview(self, action_plan):
         steps = self._expand_quest_agent_canvas_plan_steps(action_plan)
@@ -3796,9 +3834,15 @@ class quest_workflow(QWidget):
             model_used_note = self._quest_agent_model_used_note(action_plan)
             if model_used_note:
                 lines.append(model_used_note)
+            usage_note = self._quest_agent_usage_note(action_plan)
+            if usage_note:
+                lines.append(usage_note)
             lines.append("")
         elif self._quest_agent_model_used_note(action_plan):
             lines.append(self._quest_agent_model_used_note(action_plan))
+            usage_note = self._quest_agent_usage_note(action_plan)
+            if usage_note:
+                lines.append(usage_note)
             lines.append("")
         lines.append("Proposed canvas plan:")
         for index, step_plan in enumerate(steps, start=1):
@@ -5343,6 +5387,7 @@ class quest_workflow(QWidget):
                         "reply": reminder_text + "\n\n" + reminder if reminder_text else reminder,
                         "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
                         "model_used_note": str(final_reply.get("model_used_note", "") or "").strip(),
+                        "usage_note": str(final_reply.get("usage_note", "") or "").strip(),
                     }
             self._finalize_last_quest_agent_status_message(final_reply)
             return
@@ -5354,6 +5399,7 @@ class quest_workflow(QWidget):
                 final_reply = {
                     "reply": reply_text + "\n\n" + reminder if reply_text else reminder,
                     "model_used_note": str(final_reply.get("model_used_note", "") or "").strip(),
+                    "usage_note": str(final_reply.get("usage_note", "") or "").strip(),
                 }
         self._finalize_last_quest_agent_status_message(final_reply)
 
