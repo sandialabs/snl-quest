@@ -134,6 +134,39 @@ def _active_tool_match_terms(active_tools: list[dict[str, Any]] | None = None) -
     return terms_by_tool
 
 
+def _active_tool_import_terms(active_tools: list[dict[str, Any]] | None = None) -> dict[str, list[str]]:
+    terms_by_tool = {}
+    explicit_import_terms = {
+        "btm": ["btm.", "es_gui.apps.btm", "BtmOptimizerHandler"],
+        "data_manager": ["btm_dms", "BtmDMS", ".tools.btm."],
+        "valuation": ["valuation.", "es_gui.apps.valuation", "es_gui.tools.valuation"],
+        "planning": ["quest_planning", "planning.", "es_gui.apps.planning"],
+        "microgrid": ["microgrid", "ssim"],
+        "performance": ["performance.", "es_gui.apps.performance"],
+        "tech": ["tech_selection", "technology_selection"],
+        "gpt": ["snl_libraries.gpt"],
+        "progress": ["progress."],
+    }
+    for tool in list(active_tools or []):
+        tool = dict(tool or {})
+        tool_id = str(tool.get("tool_id", "") or "").strip()
+        if not tool_id or tool_id == "workspace":
+            continue
+        raw_terms = [
+            tool_id,
+            tool.get("search_key", ""),
+            tool.get("launch_value", ""),
+        ] + explicit_import_terms.get(tool_id, [])
+        cleaned_terms = []
+        for term in raw_terms:
+            cleaned = str(term or "").strip()
+            if len(cleaned) >= 3 and cleaned not in cleaned_terms:
+                cleaned_terms.append(cleaned)
+        if cleaned_terms:
+            terms_by_tool[tool_id] = cleaned_terms
+    return terms_by_tool
+
+
 def _matched_tool_ids_from_text(text: str, terms_by_tool: dict[str, list[str]]) -> list[str]:
     lowered = str(text or "").casefold()
     if not lowered:
@@ -143,6 +176,35 @@ def _matched_tool_ids_from_text(text: str, terms_by_tool: dict[str, list[str]]) 
         for tool_id, terms in dict(terms_by_tool or {}).items()
         if any(term in lowered for term in list(terms or []))
     ]
+
+
+def _workflow_python_import_blocks(workflow_data: dict[str, Any]) -> list[str]:
+    blocks = []
+    for node in _workflow_nodes(dict(workflow_data or {})):
+        if str(node.get("node_type", "") or "").strip() == "python_node":
+            imports_text = str(node.get("node_imports", "") or "").strip()
+            if imports_text:
+                blocks.append(imports_text)
+    for subflow in list(dict(workflow_data or {}).get("subflows_df", []) or []):
+        if not isinstance(subflow, dict):
+            continue
+        for node in list(subflow.get("nodes_df", []) or []):
+            item = dict(node or {})
+            if str(item.get("node_type", "") or "").strip() == "python_node":
+                imports_text = str(item.get("node_imports", "") or "").strip()
+                if imports_text:
+                    blocks.append(imports_text)
+    return blocks
+
+
+def _tool_ids_from_workflow_imports(workflow_data: dict[str, Any], active_tools: list[dict[str, Any]] | None = None) -> list[str]:
+    terms_by_tool = _active_tool_import_terms(active_tools)
+    found = []
+    for imports_text in _workflow_python_import_blocks(dict(workflow_data or {})):
+        for tool_id in _matched_tool_ids_from_text(imports_text, terms_by_tool):
+            if tool_id != "workspace" and tool_id not in found:
+                found.append(tool_id)
+    return found
 
 
 def _workflow_nodes(current_flow_json_data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -332,7 +394,7 @@ def _prefer_richer_workflow_json(current_flow_json_data: dict[str, Any], attache
 
 def _describe_workflow_baseline(current_flow_json_data: dict[str, Any], active_tools: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     workflow_data = dict(current_flow_json_data or {})
-    tool_match_terms = _active_tool_match_terms(active_tools)
+    tool_match_terms = _active_tool_import_terms(active_tools)
     nodes = _workflow_nodes(workflow_data)
     connections = _workflow_connections(workflow_data)
     subflows = [dict(item or {}) for item in list(workflow_data.get("subflows_df", []) or []) if isinstance(item, dict)]
@@ -357,8 +419,7 @@ def _describe_workflow_baseline(current_flow_json_data: dict[str, Any], active_t
         elif node_type == "python_node":
             imports_text = str(node.get("node_imports", "") or "")
             wrapper_text = str(node.get("node_function_wrapper", "") or "")
-            combined = f"{node_name}\n{imports_text}\n{wrapper_text}".casefold()
-            tool_evidence.update(_matched_tool_ids_from_text(combined, tool_match_terms))
+            tool_evidence.update(_matched_tool_ids_from_text(imports_text, tool_match_terms))
             python_nodes.append({
                 "name": node_name,
                 "input_preview": str(wrapper_text.split("\n", 1)[0] if wrapper_text else "").strip(),
@@ -386,9 +447,7 @@ def _describe_workflow_baseline(current_flow_json_data: dict[str, Any], active_t
             if str(node.get("node_type", "") or "").strip() != "python_node":
                 continue
             combined = (
-                f"{str(node.get('node_name', '') or '')}\n"
                 f"{str(node.get('node_imports', '') or '')}\n"
-                f"{str(node.get('node_function_wrapper', '') or '')}"
             ).casefold()
             matched_tool_ids = _matched_tool_ids_from_text(combined, tool_match_terms)
             tool_evidence.update(matched_tool_ids)
@@ -685,35 +744,7 @@ def _infer_specific_tools(
     flow_description: str,
     active_tools: list[dict[str, Any]],
 ) -> list[str]:
-    inferred = []
-
-    for item in list(task_match_result.get("tool_matches", []) or []):
-        tool_id = str(item.get("tool_id", "") or "").strip()
-        if tool_id and tool_id != "workspace" and tool_id not in inferred:
-            inferred.append(tool_id)
-
-    searchable_text = "\n".join(
-        part
-        for part in (
-            str(project_description or "").strip(),
-            str(flow_description or "").strip(),
-            json.dumps(current_flow_json_data or {}, ensure_ascii=True, sort_keys=True, default=str),
-            json.dumps(action_records or [], ensure_ascii=True, sort_keys=True, default=str),
-        )
-        if str(part).strip()
-    ).casefold()
-
-    for tool in list(active_tools or []):
-        tool_id = str(tool.get("tool_id", "") or "").strip()
-        if not tool_id or tool_id == "workspace" or tool_id in inferred:
-            continue
-        for term in _tool_search_terms(tool):
-            pattern = rf"(?<![a-z0-9]){re.escape(term)}(?![a-z0-9])"
-            if re.search(pattern, searchable_text):
-                inferred.append(tool_id)
-                break
-
-    return inferred
+    return _tool_ids_from_workflow_imports(current_flow_json_data, active_tools)
 
 
 def _normalize_skill_payload(
@@ -742,9 +773,14 @@ def _normalize_skill_payload(
     skill_level = str(payload.get("skill_level", "Competent") or "").strip() or "Competent"
     if skill_level not in {"Novice", "Advanced Beginner", "Competent", "Proficient", "Expert"}:
         skill_level = "Competent"
+    import_evidence_tools = _tool_ids_from_workflow_imports(current_flow_json_data, [
+        {"tool_id": tool_id}
+        for tool_id in sorted(active_tool_ids)
+        if str(tool_id or "").strip()
+    ])
     workflow_evidence_tools = [
         tool_id for tool_id in list(workflow_baseline_profile.get("tool_evidence", []) or [])
-        if str(tool_id or "").strip() in active_tool_ids
+        if str(tool_id or "").strip() in active_tool_ids and str(tool_id or "").strip() in import_evidence_tools
     ]
     tool_tags = _normalize_string_list(
         list(payload.get("tool_tags", []) or []) + list(specific_tool_ids or []) + workflow_evidence_tools
@@ -757,25 +793,12 @@ def _normalize_skill_payload(
         list(payload.get("tags", []) or []) + tool_tags + structural_tags + task_pattern_tags
     )
 
-    suggested_tools = [str(tool_id).strip() for tool_id in list(payload.get("recommended_tools", []) or []) if str(tool_id).strip()]
-    recommended_tools = [tool_id for tool_id in suggested_tools if tool_id in active_tool_ids]
-    if not recommended_tools:
-        recommended_tools = [
-            str(item.get("tool_id", "") or "").strip()
-            for item in list(task_match_result.get("tool_matches", []) or [])
-            if str(item.get("tool_id", "") or "").strip() in active_tool_ids
-        ][:5]
-    if workflow_evidence_tools:
-        recommended_tools = [
-            tool_id for tool_id in workflow_evidence_tools + recommended_tools
-            if tool_id in active_tool_ids
-        ]
-        recommended_tools = _normalize_string_list(recommended_tools)
+    recommended_tools = _normalize_string_list([
+        tool_id for tool_id in workflow_evidence_tools
+        if tool_id in active_tool_ids and tool_id != "workspace"
+    ])
 
-    required_tools = [
-        tool_id for tool_id in [str(tool_id).strip() for tool_id in list(payload.get("required_tools", []) or []) if str(tool_id).strip()]
-        if tool_id in active_tool_ids
-    ]
+    required_tools = []
 
     specific_tool_ids = [
         tool_id for tool_id in [str(tool_id).strip() for tool_id in list(specific_tool_ids or []) if str(tool_id).strip()]
@@ -787,27 +810,17 @@ def _normalize_skill_payload(
             if tool_id and tool_id not in merged_recommended:
                 merged_recommended.append(tool_id)
         recommended_tools = merged_recommended
-        required_specific = [tool_id for tool_id in required_tools if tool_id != "workspace"]
-        if "workspace" in active_tool_ids and "workspace" not in required_tools:
-            required_tools = required_specific + ["workspace"]
-        else:
-            required_tools = required_specific
+        required_tools = list(recommended_tools)
         skill_type = "quest_tool_specific"
     else:
         skill_type = "general_python"
-        effective_tool_set = set(recommended_tools + required_tools)
-        if not effective_tool_set and "workspace" in active_tool_ids:
-            recommended_tools = ["workspace"]
-        elif effective_tool_set and effective_tool_set.issubset({"workspace"}):
-            recommended_tools = ["workspace"] if "workspace" in active_tool_ids else recommended_tools
-            required_tools = [tool_id for tool_id in required_tools if tool_id == "workspace"]
+        recommended_tools = []
+        required_tools = []
     tool_tags = _normalize_string_list(tool_tags + recommended_tools + required_tools)
     tags = _normalize_string_list(tags + tool_tags)
     if workflow_evidence_tools:
-        required_tools = _normalize_string_list(
-            [tool_id for tool_id in required_tools if tool_id == "workspace"] + workflow_evidence_tools + (["workspace"] if "workspace" in active_tool_ids else [])
-        )
-        recommended_tools = _normalize_string_list(workflow_evidence_tools + recommended_tools + (["workspace"] if "workspace" in active_tool_ids else []))
+        required_tools = _normalize_string_list([tool_id for tool_id in required_tools if tool_id != "workspace"] + workflow_evidence_tools)
+        recommended_tools = _normalize_string_list(workflow_evidence_tools + recommended_tools)
 
     workflow_strategy = str(payload.get("workflow_strategy", "") or "").strip() or "recorded_workflow_replay"
     if not str(payload.get("workflow_strategy", "") or "").strip() and workflow_baseline_profile:

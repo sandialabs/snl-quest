@@ -29,6 +29,8 @@ class SkillRecord:
     skill_mode: str
     title: str
     summary: str
+    created_at: str
+    updated_at: str
     status: str
     tags: list[str]
     tool_tags: list[str]
@@ -68,6 +70,8 @@ class SkillRecord:
             "skill_mode": self.skill_mode,
             "title": self.title,
             "summary": self.summary,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
             "status": self.status,
             "tags": list(self.tags),
             "tool_tags": list(self.tool_tags),
@@ -416,6 +420,8 @@ def load_skill_folder(skill_folder: str | Path, expected_type: str) -> SkillReco
         skill_mode=str(normalized.get("plan", {}).get("skill_mode", "build") or "build"),
         title=str(normalized["title"]),
         summary=str(normalized["summary"]),
+        created_at=str(normalized.get("created_at", "") or ""),
+        updated_at=str(normalized.get("updated_at", "") or ""),
         status=str(normalized["status"]),
         tags=list(normalized["classification"].get("tags", [])),
         tool_tags=list(normalized["classification"].get("tool_tags", [])),
@@ -477,5 +483,44 @@ def build_skills_manifest(
 
     with manifest_path.open("w", encoding="utf-8") as handle:
         json.dump(manifest, handle, indent=2)
+
+    catalog_path = registry_root / "skills_catalog.json"
+    catalog = {
+        "schema_version": SKILL_SCHEMA_VERSION,
+        "updated_at": manifest["updated_at"],
+        "root_path": "skills",
+        "skills": [
+            {
+                "skill_id": record.skill_id,
+                "name": record.title,
+                "skill_type": record.skill_type,
+                "created_at": record.created_at,
+                "updated_at": record.updated_at,
+                "related_tools": sorted(
+                    {
+                        str(tool_id or "").strip()
+                        for tool_id in list(record.recommended_tools or []) + list(record.required_tools or []) + list(record.tool_tags or [])
+                        if str(tool_id or "").strip() and str(tool_id or "").strip() != "workspace"
+                    }
+                ),
+                "recommended_tools": [
+                    str(tool_id or "").strip()
+                    for tool_id in list(record.recommended_tools or [])
+                    if str(tool_id or "").strip() and str(tool_id or "").strip() != "workspace"
+                ],
+                "required_tools": [
+                    str(tool_id or "").strip()
+                    for tool_id in list(record.required_tools or [])
+                    if str(tool_id or "").strip() and str(tool_id or "").strip() != "workspace"
+                ],
+                "summary": record.summary,
+                "workflow_json_path": record.to_manifest_entry(quest_agent_root).get("workflow_json_path", ""),
+            }
+            for record in loaded["skills"]
+        ],
+        "errors": [asdict(error) for error in loaded["errors"]],
+    }
+    with catalog_path.open("w", encoding="utf-8") as handle:
+        json.dump(catalog, handle, indent=2)
 
     return manifest

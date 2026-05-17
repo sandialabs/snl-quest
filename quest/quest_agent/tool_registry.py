@@ -253,32 +253,6 @@ def build_active_tool_registry(package_root: str | Path | None = None) -> dict[s
             )
         )
 
-    tools.append(
-        ToolRecord(
-            tool_id="workspace",
-            name="Workspace",
-            active=True,
-            category="quest_core",
-            description="QuESt workspace canvas for building, editing, saving, loading, and organizing workflows and nodes.",
-            input_types=["text_request", "workflow_json"],
-            output_types=["workflow_json", "canvas_nodes"],
-            typical_tasks=[
-                "create workflow nodes",
-                "edit workflow canvas",
-                "load workflow json",
-                "save workflow json",
-            ],
-            limitations=[],
-            workflow_roles=["workflow_authoring", "canvas_editing"],
-            aliases=["workspace", "quest workspace", "canvas", "workflow canvas"],
-            search_key="workspace",
-            launch_type="internal",
-            launch_value="snl_libraries.workspace.app",
-            source_app_card_path=app_cards_path.as_posix(),
-            raw_data={"synthetic": True},
-        )
-    )
-
     registry = {
         "schema_version": TOOL_REGISTRY_SCHEMA_VERSION,
         "updated_at": _iso_now(),

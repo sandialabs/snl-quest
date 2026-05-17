@@ -40,6 +40,7 @@ setup(
         "openai==2.32.0",
         "anthropic==0.72.0",
         "langgraph==1.1.10",
+        "mcp>=1.13.0",
         "psutil==5.9.0",
         "GitPython==3.1.43",
         'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
@@ -60,7 +61,8 @@ setup(
 
     entry_points={
         'console_scripts': [
-            'quest = quest.__main__:main'
+            'quest = quest.__main__:main',
+            'quest-mcp-server = quest.quest_agent.mcp_server.server:main'
         ]
     }
 )

@@ -49,6 +49,81 @@ def _looks_like_canvas_action_request(user_prompt):
     return any(token in prompt for token in action_signals) and any(token in prompt for token in canvas_targets)
 
 
+def _looks_like_direct_workspace_action_request(user_prompt):
+    prompt = str(user_prompt or "").casefold()
+    if not prompt:
+        return False
+    direct_targets = (
+        "datanode",
+        "data node",
+        "data-node",
+        "pynode",
+        "py node",
+        "pythonnode",
+        "python node",
+        "text node",
+        "annotation",
+        "note node",
+        "selected node",
+        "selected nodes",
+    )
+    direct_actions = (
+        "connect",
+        "wire",
+        "rename selected",
+        "rename this node",
+        "delete selected",
+        "remove selected",
+        "delete this node",
+        "remove this node",
+        "update selected",
+        "change selected",
+        "set selected",
+    )
+    if any(target in prompt for target in direct_targets):
+        return any(
+            action in prompt
+            for action in (
+                "create",
+                "add",
+                "insert",
+                "make",
+                "connect",
+                "wire",
+                "rename",
+                "delete",
+                "remove",
+                "update",
+                "change",
+                "set",
+                "edit",
+            )
+        )
+    return any(action in prompt for action in direct_actions)
+
+
+def _looks_like_flow_analysis_request(user_prompt):
+    prompt = str(user_prompt or "").casefold()
+    analysis_signals = (
+        "analyze",
+        "analyse",
+        "validate",
+        "review",
+        "check",
+        "inspect",
+    )
+    flow_targets = (
+        "this flow",
+        "current flow",
+        "the flow",
+        "canvas",
+        "workflow",
+        "against the task",
+        "against task",
+    )
+    return any(signal in prompt for signal in analysis_signals) and any(target in prompt for target in flow_targets)
+
+
 def _format_plain_text_table(headers, rows):
     header_cells = [str(value or "").strip() for value in list(headers or [])]
     if not header_cells:
@@ -212,6 +287,15 @@ def build_fallback_reply(task_match_result):
         for item in list(result.get("missing_parts", []) or [])
         if str(item).strip()
     ]
+    semantic_validation = dict(result.get("semantic_validation", {}) or {})
+    semantic_aligned = (
+        str(semantic_validation.get("task_alignment", "") or "").strip().casefold() == "aligned"
+        and not list(semantic_validation.get("missing_parts", []) or [])
+        and not list(semantic_validation.get("unexpected_parts", []) or [])
+    )
+    if semantic_aligned:
+        semantic_missing_parts = []
+        structural_missing_parts = []
     review_has_gaps = bool(semantic_missing_parts or structural_missing_parts)
     flow_is_structurally_complete = (
         bool(validation_report.get("structural_valid", False))
@@ -264,6 +348,16 @@ def _extract_named_value(prompt_text, patterns):
         if value:
             return value
     return ""
+
+
+def _clean_canvas_node_name(value):
+    cleaned = re.split(
+        r"\s+(?:with\s+)?(?:variable|value|wrapper|code|text|that|which|and\s+value|and\s+variable)\b",
+        str(value or "").strip(),
+        maxsplit=1,
+        flags=re.IGNORECASE,
+    )[0]
+    return re.sub(r"\s+", " ", str(cleaned or "")).strip(" -")
 
 
 def _extract_subflow_name(prompt_text):
@@ -443,6 +537,7 @@ def _fallback_canvas_plan(user_prompt, canvas_context):
         if "data node" in lowered or "datanode" in lowered or "data-node" in lowered:
             action = {"type": "create_node", "node_type": "data", "count": _extract_count(text)}
             name = _extract_named_value(text, [r"(?:named|called)\s+([\w\- ]+)", r"name\s+(?:it|them)\s+([\w\- ]+)"])
+            name = _clean_canvas_node_name(name)
             variable_name = _extract_named_value(text, [r"variable\s+(?:named\s+)?([A-Za-z_][\w\.]*)"])
             value = _extract_named_value(text, [r"value\s+(?:to\s+)?([^,.;\n]+)"])
             if name:
@@ -459,6 +554,7 @@ def _fallback_canvas_plan(user_prompt, canvas_context):
         if "python node" in lowered or "pythonnode" in lowered or re.search(r"\bpynode\b", lowered) or re.search(r"\bpy node\b", lowered):
             action = {"type": "create_node", "node_type": "py", "count": _extract_count(text)}
             name = _extract_named_value(text, [r"(?:named|called)\s+([\w\- ]+)", r"name\s+(?:it|them)\s+([\w\- ]+)"])
+            name = _clean_canvas_node_name(name)
             if name:
                 action["name"] = name
             return {"reply": "", "actions": [action]}
@@ -501,6 +597,12 @@ def _fallback_canvas_plan(user_prompt, canvas_context):
 
 def route_chat_turn(user_prompt, model_name, state, context_payload, run_chat_router_func):
     task_match_result = dict((state or {}).get("task_match_results", {}) or {})
+    if _looks_like_flow_analysis_request(user_prompt):
+        return {
+            "action": "analyze_task",
+            "reason": "Explicit current-flow analysis request.",
+            "task_focus": str(user_prompt or "").strip(),
+        }
     if run_chat_router_func is None:
         if _looks_like_canvas_action_request(user_prompt):
             return {
@@ -685,6 +787,89 @@ def _build_reusable_skill_workflow_plan(context_payload):
     }
 
 
+def _is_simple_deterministic_canvas_plan(plan):
+    actions = [dict(action or {}) for action in list(dict(plan or {}).get("actions", []) or [])]
+    if len(actions) != 1:
+        return False
+    action = actions[0]
+    action_type = str(action.get("type", "") or "").strip()
+    if action_type in {
+        "add_subflow",
+        "connect_nodes",
+        "rename_selected_node",
+        "update_selected_text_node",
+        "delete_node",
+        "delete_selected_nodes",
+    }:
+        return True
+    if action_type == "update_node":
+        return True
+    if action_type == "create_node":
+        node_type = str(action.get("node_type", "") or "").strip()
+        return node_type in {"data", "text"}
+    return False
+
+
+def _operation_id_for_canvas_action(action):
+    item = dict(action or {})
+    action_type = str(item.get("type", "") or "").strip()
+    if action_type == "create_node":
+        node_type = str(item.get("node_type", "") or "").strip()
+        if node_type == "data":
+            return "workspace.create_data_node"
+        if node_type == "py":
+            return "workspace.create_python_node"
+        if node_type == "text":
+            return "workspace.create_text_node"
+        return "workspace.create_node"
+    if action_type == "update_node":
+        node_type = str(item.get("node_type", "") or "").strip()
+        if node_type == "data":
+            return "workspace.update_data_node"
+        if node_type == "py":
+            return "workspace.update_python_node"
+        if node_type == "text":
+            return "workspace.update_text_node"
+        return "workspace.update_node"
+    mapping = {
+        "add_subflow": "workspace.add_subflow",
+        "connect_nodes": "workspace.connect_ports",
+        "delete_node": "workspace.delete_node",
+        "delete_selected_nodes": "workspace.delete_selected_nodes",
+        "load_workflow_json": "workspace.load_template",
+        "rename_selected_node": "workspace.rename_selected_node",
+        "update_selected_text_node": "workspace.update_selected_text_node",
+        "validate_flow": "workspace.validate_flow",
+    }
+    return mapping.get(action_type, f"workspace.{action_type}" if action_type else "")
+
+
+def _ensure_workspace_operations(plan):
+    finalized = dict(plan or {})
+    operations = [
+        dict(item or {})
+        for item in list(finalized.get("operations", []) or [])
+        if isinstance(item, dict) and str(dict(item or {}).get("operation", "") or "").strip()
+    ]
+    if not operations:
+        for action in list(finalized.get("actions", []) or []):
+            item = dict(action or {})
+            operation_id = _operation_id_for_canvas_action(item)
+            if not operation_id:
+                continue
+            arguments = {
+                key: value
+                for key, value in item.items()
+                if key != "type"
+            }
+            operations.append({"operation": operation_id, "arguments": arguments})
+    if operations:
+        finalized["operations"] = operations
+        finalized.setdefault("planner_contract", "mcp_workspace_operations_v1")
+        finalized.setdefault("planner_prompt_profile", str(finalized.get("planning_source", "") or "deterministic_canvas_action"))
+    return finalized
+
+
 def _collapse_local_plan_to_single_step(plan, user_prompt, model_name):
     finalized = dict(plan or {})
     goal_prompt = str(finalized.get("goal_prompt", "") or user_prompt or "").strip()
@@ -692,11 +877,11 @@ def _collapse_local_plan_to_single_step(plan, user_prompt, model_name):
         finalized["goal_prompt"] = goal_prompt
 
     if not _fast_local_mode_selected(model_name):
-        return finalized
+        return _ensure_workspace_operations(finalized)
 
     actions = [dict(action or {}) for action in list(finalized.get("actions", []) or [])]
     if not actions:
-        return finalized
+        return _ensure_workspace_operations(finalized)
 
     first_action = dict(actions[0] or {})
     if str(first_action.get("type", "") or "").strip() == "create_node":
@@ -708,6 +893,7 @@ def _collapse_local_plan_to_single_step(plan, user_prompt, model_name):
             first_action["count"] = 1
 
     finalized["actions"] = [first_action]
+    finalized = _ensure_workspace_operations(finalized)
     finalized["planning_mode"] = "local_single_step"
     note = "Local stepwise mode is active, so this plan includes only the next build step."
     reply_text = str(finalized.get("reply", "") or "").strip()
@@ -716,35 +902,64 @@ def _collapse_local_plan_to_single_step(plan, user_prompt, model_name):
     return finalized
 
 
-def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_context, run_workspace_action_plan_func):
+def plan_canvas_actions(
+    user_prompt,
+    model_name,
+    state,
+    context_payload,
+    canvas_context,
+    run_workspace_action_plan_func,
+    analysis_driven=False,
+):
     local_single_step = _fast_local_mode_selected(model_name)
-    fallback_plan = _fallback_canvas_plan(user_prompt, canvas_context)
-    reusable_template_plan = _build_reusable_skill_workflow_plan(context_payload)
+    fallback_plan = {"reply": "", "actions": []} if analysis_driven else _fallback_canvas_plan(user_prompt, canvas_context)
+    direct_workspace_action = False if analysis_driven else _looks_like_direct_workspace_action_request(user_prompt)
+    simple_direct_plan = direct_workspace_action and _is_simple_deterministic_canvas_plan(fallback_plan)
+    reusable_template_plan = {} if direct_workspace_action else _build_reusable_skill_workflow_plan(context_payload)
     existing_value_update_action = _extract_existing_node_value_update_action(user_prompt, canvas_context)
     revision_request = _extract_revision_request(user_prompt)
     is_revision_request = bool(revision_request)
+    if simple_direct_plan:
+        direct_plan = dict(fallback_plan or {})
+        direct_plan["planning_source"] = "deterministic_canvas_action"
+        direct_plan["planning_path"] = str(direct_plan.get("planning_path", "") or "edit_current_flow")
+        direct_plan["path_reason"] = str(
+            direct_plan.get("path_reason", "")
+            or "The request is a direct Workspace canvas action, so QuESt used the canvas action tool instead of loading a skill template."
+        )
+        return _collapse_local_plan_to_single_step(direct_plan, user_prompt, model_name)
     if run_workspace_action_plan_func is None:
-        return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
+        return _collapse_local_plan_to_single_step(_ensure_workspace_operations(fallback_plan), user_prompt, model_name)
 
     try:
+        task_match_result = dict((state or {}).get("task_match_results", {}) or {})
+        skill_execution_recipes = dict(context_payload.get("skill_execution_recipes", {}) or {})
+        if direct_workspace_action:
+            task_match_result["skill_matches"] = []
+            task_match_result["top_skill_matches"] = []
+            task_match_result["best_workflow_template"] = {}
+            skill_execution_recipes = {"recipes": []}
         planned = run_workspace_action_plan_func(
             user_prompt=user_prompt,
             canvas_context=dict(canvas_context or {}),
-            task_match_result=dict((state or {}).get("task_match_results", {}) or {}),
+            task_match_result=task_match_result,
             pinned_context=list(context_payload.get("pinned_context", []) or []),
             attached_files=list(context_payload.get("attached_files", []) or []),
             attached_workflow_jsons=list(context_payload.get("attached_workflow_jsons", []) or []),
             workspace_relationship_context=dict(context_payload.get("workspace_relationship_context", {}) or {}),
             implicit_code_context=list(context_payload.get("implicit_code_context", []) or []),
             python_node_wrapper_rules=dict(context_payload.get("python_node_wrapper_rules", {}) or {}),
-            skill_execution_recipes=dict(context_payload.get("skill_execution_recipes", {}) or {}),
+            skill_execution_recipes=skill_execution_recipes,
             recent_messages=list(context_payload.get("recent_messages", []) or []),
             selected_model=model_name,
             single_step_only=local_single_step,
+            force_planning_path="edit_current_flow" if direct_workspace_action and len(list(dict(canvas_context or {}).get("nodes", []) or [])) > 0 else ("manual_canvas_build" if direct_workspace_action else None),
         )
     except Exception:
         if len(list(dict(canvas_context or {}).get("nodes", []) or [])) <= 0 and reusable_template_plan:
-            return _collapse_local_plan_to_single_step(reusable_template_plan, user_prompt, model_name)
+            return _collapse_local_plan_to_single_step(_ensure_workspace_operations(reusable_template_plan), user_prompt, model_name)
+        if analysis_driven:
+            return {"reply": "", "actions": [], "goal_prompt": str(user_prompt or "").strip()}
         return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
 
     planned = dict(planned or {})
@@ -753,7 +968,7 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
         planned_actions = list(planned.get("actions", []) or [])
         has_load_action = any(str(dict(action or {}).get("type", "") or "").strip() == "load_workflow_json" for action in planned_actions)
         if not planned_actions or not has_load_action:
-            return _collapse_local_plan_to_single_step(reusable_template_plan, user_prompt, model_name)
+            return _collapse_local_plan_to_single_step(_ensure_workspace_operations(reusable_template_plan), user_prompt, model_name)
     if existing_value_update_action is not None and not _plan_matches_existing_node_value_update(planned, existing_value_update_action):
         fallback_actions = list(dict(fallback_plan or {}).get("actions", []) or [])
         if fallback_actions:
@@ -771,11 +986,11 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
             planned = upgraded
     if list(planned.get("actions", []) or []):
         planned["planning_source"] = str(planned.get("planning_source", "") or "llm")
-        return _collapse_local_plan_to_single_step(planned, user_prompt, model_name)
+        return _collapse_local_plan_to_single_step(_ensure_workspace_operations(planned), user_prompt, model_name)
 
     if list(planned.get("dropped_actions", []) or []):
         planned["planning_source"] = str(planned.get("planning_source", "") or "llm")
-        return _collapse_local_plan_to_single_step(planned, user_prompt, model_name)
+        return _collapse_local_plan_to_single_step(_ensure_workspace_operations(planned), user_prompt, model_name)
 
     fallback_actions = list(dict(fallback_plan or {}).get("actions", []) or [])
     if fallback_actions:
@@ -789,10 +1004,10 @@ def plan_canvas_actions(user_prompt, model_name, state, context_payload, canvas_
             or "Fell back to the manual canvas build heuristic because the planner did not return executable actions."
         )
         fallback_plan["reply"] = str(planned.get("reply", "") or fallback_plan.get("reply", "") or "").strip()
-        return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
+        return _collapse_local_plan_to_single_step(_ensure_workspace_operations(fallback_plan), user_prompt, model_name)
 
     planned["planning_source"] = "llm"
-    return _collapse_local_plan_to_single_step(planned, user_prompt, model_name)
+    return _collapse_local_plan_to_single_step(_ensure_workspace_operations(planned), user_prompt, model_name)
 
 
 def build_canvas_action_reply(action_plan, executed, error=None):

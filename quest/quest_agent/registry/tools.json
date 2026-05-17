@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "updated_at": "2026-05-02T20:23:58-06:00",
+  "updated_at": "2026-05-16T19:20:54-06:00",
   "source_app_cards_path": "app/home_page/app_cards.json",
   "tools": [
     {
@@ -263,42 +263,6 @@
       "search_key": "progress",
       "launch_type": "module",
       "launch_value": "progress",
-      "source_app_card_path": "app/home_page/app_cards.json"
-    },
-    {
-      "tool_id": "workspace",
-      "name": "Workspace",
-      "active": true,
-      "category": "quest_core",
-      "description": "QuESt workspace canvas for building, editing, saving, loading, and organizing workflows and nodes.",
-      "input_types": [
-        "text_request",
-        "workflow_json"
-      ],
-      "output_types": [
-        "workflow_json",
-        "canvas_nodes"
-      ],
-      "typical_tasks": [
-        "create workflow nodes",
-        "edit workflow canvas",
-        "load workflow json",
-        "save workflow json"
-      ],
-      "limitations": [],
-      "workflow_roles": [
-        "workflow_authoring",
-        "canvas_editing"
-      ],
-      "aliases": [
-        "workspace",
-        "quest workspace",
-        "canvas",
-        "workflow canvas"
-      ],
-      "search_key": "workspace",
-      "launch_type": "internal",
-      "launch_value": "snl_libraries.workspace.app",
       "source_app_card_path": "app/home_page/app_cards.json"
     }
   ]

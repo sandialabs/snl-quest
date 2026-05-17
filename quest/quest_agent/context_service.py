@@ -247,7 +247,7 @@ def get_skill_execution_recipes(state, normalize_path):
                 item,
             )
         )
-    ranked_matches.sort()
+    ranked_matches.sort(key=lambda entry: (entry[0], entry[1], entry[2]))
 
     selected_matches = []
     strong_matches = [item for _, _, _, item in ranked_matches if _normalize_skill_confidence(item.get("confidence", 0.0)) >= 0.55]
@@ -509,6 +509,10 @@ def get_canvas_context(workflow):
             "id": str(getattr(node, "id", "") or "").strip(),
             "input_ports": input_ports,
             "output_ports": output_ports,
+            "node_input_variable": str(getattr(node, "node_input_variable", "") or "").strip(),
+            "node_input_value": str(getattr(node, "node_input_value", "") or "").strip(),
+            "node_imports": str(getattr(node, "node_imports", "") or "").strip()[:1200],
+            "node_function_wrapper": str(getattr(node, "node_function_wrapper", "") or "").strip()[:2400],
         })
 
     return {

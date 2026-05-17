@@ -112,8 +112,10 @@ CANVAS_ACTION_TYPES = {
     "connect_nodes",
     "rename_selected_node",
     "update_selected_text_node",
+    "delete_node",
     "delete_selected_nodes",
     "load_workflow_json",
+    "validate_flow",
 }
 
 CANONICAL_NODE_TYPES = {"data", "py", "text"}
@@ -1303,6 +1305,8 @@ def _filter_skills_by_matched_tools(
             workspace_fallback.append(skill)
 
     if prioritized:
+        if non_workspace_tool_ids:
+            return prioritized
         return prioritized + general_fallback + workspace_fallback
     if include_general_fallback and (general_fallback or workspace_fallback):
         return general_fallback + workspace_fallback
@@ -1690,6 +1694,72 @@ def _apply_heuristic_match_floor(
     return _prefer_tool_specific_strategy(result)
 
 
+def _enforce_tool_derived_skill_matches(
+    result: dict[str, Any],
+    *,
+    skills: list[SkillRecord],
+    mcp_candidate_result: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized = dict(result or {})
+    preferred_tool_ids = {
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(normalized.get("tool_matches", []) or [])
+        if _normalized_tool_id(dict(item or {}).get("tool_id", "")) not in {"", "workspace"}
+    }
+    candidate_result = dict(mcp_candidate_result or {})
+    preferred_tool_ids.update(
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(candidate_result.get("tool_matches", []) or [])
+        if _normalized_tool_id(dict(item or {}).get("tool_id", "")) not in {"", "workspace"}
+    )
+    if not preferred_tool_ids:
+        return normalized
+
+    skill_lookup = {
+        str(getattr(skill, "skill_id", "") or "").strip(): skill
+        for skill in list(skills or [])
+        if str(getattr(skill, "skill_id", "") or "").strip()
+    }
+
+    def _match_has_tool_overlap(item: dict[str, Any]) -> bool:
+        skill_id = str(dict(item or {}).get("skill_id", "") or "").strip()
+        skill = skill_lookup.get(skill_id)
+        if skill is None:
+            return False
+        return bool(_skill_tool_ids(skill).intersection(preferred_tool_ids))
+
+    filtered_matches = [
+        dict(item or {})
+        for item in list(normalized.get("skill_matches", []) or [])
+        if _match_has_tool_overlap(dict(item or {}))
+    ]
+    existing_ids = {str(item.get("skill_id", "") or "").strip() for item in filtered_matches}
+    for item in list(candidate_result.get("skill_matches", []) or []):
+        candidate = dict(item or {})
+        skill_id = str(candidate.get("skill_id", "") or "").strip()
+        if not skill_id or skill_id in existing_ids:
+            continue
+        if not _match_has_tool_overlap(candidate):
+            continue
+        skill = skill_lookup.get(skill_id)
+        filtered_matches.append({
+            "skill_id": skill_id,
+            "title": str(getattr(skill, "title", "") or candidate.get("title", "") or skill_id).strip() if skill is not None else str(candidate.get("title", "") or skill_id).strip(),
+            "skill_type": str(getattr(skill, "skill_type", "") or candidate.get("skill_type", "") or "").strip() if skill is not None else str(candidate.get("skill_type", "") or "").strip(),
+            "confidence": _coerce_confidence(candidate.get("confidence", candidate.get("score", 0.0))),
+            "reason": str(candidate.get("reason", "") or "Matched through MCP tool-derived skill catalog.").strip(),
+        })
+        existing_ids.add(skill_id)
+
+    filtered_matches.sort(key=lambda item: (-float(item.get("confidence", 0.0) or 0.0), str(item.get("title", "") or "").casefold()))
+    normalized["skill_matches"] = filtered_matches[:8]
+    if filtered_matches:
+        normalized["strategy"] = "use_quest_skill"
+    elif normalized.get("tool_matches"):
+        normalized["strategy"] = "use_tools_only"
+    return normalized
+
+
 def _build_messages(
     task_description: str,
     pinned_context: list[str],
@@ -1702,6 +1772,7 @@ def _build_messages(
     skills: list[SkillRecord],
 ) -> list[dict[str, Any]]:
     active_tool_ids = {str(tool.get("tool_id", "") or "") for tool in tools}
+    active_tool_ids.add("workspace")
     tool_entries = [_tool_prompt_entry(tool) for tool in tools]
     skill_entries = [_skill_prompt_entry(skill, active_tool_ids) for skill in skills]
     attachment_names = [Path(str(path)).name for path in attached_files]
@@ -2107,6 +2178,97 @@ def run_grounded_chat_reply(
     }
 
 
+def run_semantic_flow_validation(
+    task_text: str,
+    structured_flow_analysis: dict[str, Any] | None = None,
+    validation_report: dict[str, Any] | None = None,
+    task_match_result: dict[str, Any] | None = None,
+    selected_model: str | None = None,
+    recent_messages: list[dict[str, Any]] | None = None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    system_prompt = (
+        "You are QuESt Agent's semantic flow validator. "
+        "MCP has already provided deterministic canvas facts and structural validation. "
+        "Your job is only to decide whether the current flow semantically satisfies the user's task. "
+        "Use the MCP facts as ground truth. Do not invent canvas nodes, ports, or connections. "
+        "If the task requires more inputs, outputs, operations, or a different formula than the current flow provides, list the missing or conflicting parts. "
+        "If the current flow satisfies the task, return no missing parts. "
+        "Return valid JSON only with this shape: "
+        "{\"task_alignment\": \"aligned\" | \"partial\" | \"not_aligned\" | \"ambiguous\", "
+        "\"missing_parts\": [string], "
+        "\"unexpected_parts\": [string], "
+        "\"notes\": [string]}."
+    )
+    payload = {
+        "task_text": str(task_text or "").strip(),
+        "mcp_structured_flow_analysis": dict(structured_flow_analysis or {}),
+        "mcp_structural_validation": dict(validation_report or {}),
+        "mcp_task_and_skill_context": {
+            "project_description": str(dict(task_match_result or {}).get("project_description", "") or ""),
+            "task": str(dict(task_match_result or {}).get("task", "") or ""),
+            "tool_matches": list(dict(task_match_result or {}).get("tool_matches", []) or [])[:5],
+            "skill_matches": list(dict(task_match_result or {}).get("skill_matches", []) or [])[:5],
+            "best_workflow_template": dict(dict(task_match_result or {}).get("best_workflow_template", {}) or {}),
+        },
+        "recent_conversation": _recent_conversation(recent_messages),
+    }
+    selected_reasoning_model = _resolve_fast_local_reasoning_model(selected_model)
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(payload, ensure_ascii=True, indent=2)},
+    ]
+    content, resolved_model_name = _chat_completion_content(
+        messages,
+        selected_model=selected_reasoning_model,
+        temperature=0,
+        api_key=api_key,
+        response_json=True,
+    )
+    try:
+        parsed = _parse_json_response(
+            content,
+            "OpenAI returned an empty semantic flow validation response.",
+            "OpenAI semantic flow validation response was not valid JSON.",
+        )
+    except RuntimeError:
+        if not _fast_local_mode_enabled(selected_model):
+            raise
+        parsed = _retry_local_json_response(
+            messages,
+            selected_model=selected_reasoning_model,
+            temperature=0,
+            api_key=api_key,
+        )
+    alignment = str(parsed.get("task_alignment", "") or "").strip()
+    if alignment not in {"aligned", "partial", "not_aligned", "ambiguous"}:
+        alignment = "ambiguous"
+    return {
+        "task_alignment": alignment,
+        "missing_parts": [
+            str(item).strip()
+            for item in list(parsed.get("missing_parts", []) or [])
+            if str(item).strip()
+        ],
+        "unexpected_parts": [
+            str(item).strip()
+            for item in list(parsed.get("unexpected_parts", []) or [])
+            if str(item).strip()
+        ],
+        "notes": [
+            str(item).strip()
+            for item in list(parsed.get("notes", []) or [])
+            if str(item).strip()
+        ],
+        "model_used_note": _build_model_used_note(
+            selected_model,
+            selected_reasoning_model,
+            resolved_model_name,
+        ),
+        "source": "llm_semantic_flow_validation",
+    }
+
+
 def run_chat_router(
     user_prompt: str,
     task_match_result: dict[str, Any] | None = None,
@@ -2332,8 +2494,12 @@ def _normalize_workspace_action_type(value: Any) -> str:
         "update_text": "update_selected_text_node",
         "update_text_node": "update_selected_text_node",
         "set_text": "update_selected_text_node",
-        "delete": "delete_selected_nodes",
-        "remove": "delete_selected_nodes",
+        "delete": "delete_node",
+        "remove": "delete_node",
+        "delete_node": "delete_node",
+        "remove_node": "delete_node",
+        "delete_data_node": "delete_node",
+        "remove_data_node": "delete_node",
         "delete_nodes": "delete_selected_nodes",
         "remove_nodes": "delete_selected_nodes",
         "load_workflow_json": "load_workflow_json",
@@ -2362,6 +2528,8 @@ def _normalize_workspace_node_type(value: Any) -> str:
         "code": "py",
         "text": "text",
         "text_node": "text",
+        "backnode": "text",
+        "back_node": "text",
         "note": "text",
         "annotation": "text",
         "backdrop": "text",
@@ -2485,6 +2653,12 @@ def _build_path_guidance(
     node_count = len(list(canvas_context.get("nodes", []) or []))
     flow_description = str(task_match_result.get("flow_description", "") or "").strip()
     current_flow_present = node_count > 0
+    missing_parts = [
+        str(item or "").strip()
+        for item in list(task_match_result.get("missing_parts", []) or [])
+        if str(item or "").strip()
+    ]
+    missing_text = "\n".join(missing_parts).casefold()
     best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
     recipe_entries = [
         dict(item or {})
@@ -2544,16 +2718,14 @@ def _build_path_guidance(
             },
         )
     if reusable_templates:
-        available_paths.insert(
-            0,
-            {
-                "path_id": "reuse_skill_workflow_json",
-                "label": "Load a matched skill/example flow directly",
-                "difficulty": "low",
-                "best_when": "A strong matched skill already includes a reusable workflow JSON template that can be used with little or no editing.",
-                "candidate_skills": reusable_templates[:3],
-            },
-        )
+        for item in available_paths:
+            if item.get("path_id") == "template_json_edit_then_load":
+                item["candidate_skills"] = reusable_templates[:3]
+                item["best_when"] = (
+                    "A strong matched skill already includes a reusable workflow JSON template; "
+                    "validate and adapt that JSON with MCP facts plus LLM review before loading it."
+                )
+                break
 
     explicit_json = any(
         token in lowered
@@ -2609,24 +2781,59 @@ def _build_path_guidance(
         and not current_flow_present
         and exact_match_confidence >= EXACT_TEMPLATE_LOCK_CONFIDENCE
         and not diff_detection.get("has_diff", False)
-        and not list(task_match_result.get("missing_parts", []) or [])
+        and not missing_parts
+    )
+    create_flow_request = any(
+        token in lowered
+        for token in (
+            "create a flow",
+            "create workflow",
+            "build a flow",
+            "build workflow",
+            "make a flow",
+            "make workflow",
+        )
+    )
+    significant_change = (
+        len(missing_parts) >= 5
+        or any(
+            token in missing_text or token in lowered
+            for token in (
+                "subflow",
+                "sub-flow",
+                "large",
+                "many",
+                "multiple nodes",
+                "replace the flow",
+                "rebuild",
+                "workflow json",
+                "template json",
+                "load workflow",
+            )
+        )
     )
 
     if exact_match_lock:
-        recommended_path = "reuse_skill_workflow_json"
+        recommended_path = "template_json_edit_then_load"
         reason = (
             f"Matched skill template '{str(best_workflow_template.get('title', '') or '').strip()}' is an exact-enough fit, "
-            "the canvas is empty, and no explicit differences were requested, so direct workflow reuse is the easiest path."
+            "the canvas is empty, and no explicit differences were requested; still validate and compile an adapted workflow_content copy before loading."
         ).strip()
     elif explicit_json:
         recommended_path = "draft_workflow_json_then_load"
         reason = "The request explicitly points to direct workflow JSON authoring."
-    elif current_flow_present and list(task_match_result.get("missing_parts", []) or []):
+    elif current_flow_present and missing_parts and significant_change:
         recommended_path = "current_flow_json_patch_then_load"
-        reason = "The current canvas already exists and analysis found explicit missing parts, so patching the current flow JSON and reloading it is the most direct repair path."
+        reason = "The current canvas exists and analysis found larger structural gaps, so patching the current flow JSON and reloading it is the safest repair path."
+    elif current_flow_present and missing_parts:
+        recommended_path = "edit_current_flow"
+        reason = "The current canvas exists and analysis found a small number of missing parts, so direct Workspace edits are the simplest repair path."
     elif edit_current:
         recommended_path = "edit_current_flow"
         reason = "The current canvas already has relevant structure, so editing the existing flow is easier than rebuilding."
+    elif node_count <= 0 and reusable_templates and create_flow_request:
+        recommended_path = "template_json_edit_then_load"
+        reason = "The canvas is empty, the user is creating a flow, and a reusable skill template is available, so adapting the template is the easiest starting path."
     elif reusable_templates and _request_prefers_template_json_edit(user_prompt, canvas_context):
         recommended_path = "template_json_edit_then_load"
         reason = "A strong matched skill already has a reusable workflow template, so the easiest path is usually to edit that JSON baseline, load it, and then validate the result."
@@ -2647,7 +2854,7 @@ def _build_path_guidance(
         "recommended_path": recommended_path,
         "reason": reason,
         "available_paths": available_paths,
-        "exact_match_lock": exact_match_lock,
+        "exact_match_lock": False,
         "explicit_diff_detected": bool(diff_detection.get("has_diff", False)),
         "diff_reasons": list(diff_detection.get("reasons", []) or []),
     }
@@ -2659,6 +2866,19 @@ def _canvas_node_name_lookup(canvas_context: dict[str, Any]) -> dict[str, str]:
         name = str(dict(item or {}).get("name", "") or "").strip()
         if name:
             lookup[name.casefold()] = name
+    return lookup
+
+
+def _canvas_node_type_lookup(canvas_context: dict[str, Any]) -> dict[str, str]:
+    lookup = {}
+    for item in list(dict(canvas_context or {}).get("nodes", []) or []):
+        node = dict(item or {})
+        name = str(node.get("name", "") or "").strip()
+        if not name:
+            continue
+        node_type = _normalize_workspace_node_type(str(node.get("node_type", "") or node.get("type", "") or ""))
+        if node_type in CANONICAL_NODE_TYPES:
+            lookup[name.casefold()] = node_type
     return lookup
 
 
@@ -2676,6 +2896,13 @@ def _resolve_canvas_node_name(requested_name: str, canvas_context: dict[str, Any
     return requested
 
 
+def _resolve_canvas_node_type(node_name: str, canvas_context: dict[str, Any]) -> str:
+    resolved_name = _resolve_canvas_node_name(node_name, canvas_context)
+    if not resolved_name:
+        return ""
+    return _canvas_node_type_lookup(canvas_context).get(resolved_name.casefold(), "")
+
+
 def _extract_candidate_actions(parsed: dict[str, Any]) -> list[dict[str, Any]]:
     for key in ("actions", "action_list", "operations", "steps"):
         value = parsed.get(key)
@@ -2685,6 +2912,80 @@ def _extract_candidate_actions(parsed: dict[str, Any]) -> list[dict[str, Any]]:
     if isinstance(single, dict):
         return [single]
     return []
+
+
+def _workspace_operation_to_action_item(item: dict[str, Any]) -> dict[str, Any]:
+    operation_id = str(dict(item or {}).get("operation", "") or "").strip()
+    if not operation_id:
+        return dict(item or {})
+    arguments = dict(dict(item or {}).get("arguments", {}) or {}) if isinstance(dict(item or {}).get("arguments", {}), dict) else {}
+    action = dict(arguments)
+    operation_map = {
+        "workspace.add_subflow": "add_subflow",
+        "workspace.connect_nodes": "connect_nodes",
+        "workspace.connect_ports": "connect_nodes",
+        "workspace.create_node": "create_node",
+        "workspace.create_data_node": "create_node",
+        "workspace.create_python_node": "create_node",
+        "workspace.create_text_node": "create_node",
+        "workspace.delete_node": "delete_node",
+        "workspace.delete_selected_nodes": "delete_selected_nodes",
+        "workspace.load_template": "load_workflow_json",
+        "workspace.load_workflow_json": "load_workflow_json",
+        "workspace.rename_selected_node": "rename_selected_node",
+        "workspace.update_node": "update_node",
+        "workspace.update_data_node": "update_node",
+        "workspace.update_python_node": "update_node",
+        "workspace.update_text_node": "update_node",
+        "workspace.update_selected_text_node": "update_selected_text_node",
+        "workspace.validate_flow": "validate_flow",
+    }
+    action["type"] = operation_map.get(operation_id, operation_id)
+    if operation_id == "workspace.create_data_node":
+        action.setdefault("node_type", "data")
+    elif operation_id == "workspace.create_python_node":
+        action.setdefault("node_type", "py")
+    elif operation_id == "workspace.create_text_node":
+        action.setdefault("node_type", "text")
+    elif operation_id == "workspace.update_data_node":
+        action.setdefault("node_type", "data")
+    elif operation_id == "workspace.update_python_node":
+        action.setdefault("node_type", "py")
+    return action
+
+
+def _workspace_operation_id_for_action(action: dict[str, Any]) -> str:
+    item = dict(action or {})
+    action_type = str(item.get("type", "") or "").strip()
+    if action_type == "create_node":
+        node_type = str(item.get("node_type", "") or "").strip()
+        if node_type == "data":
+            return "workspace.create_data_node"
+        if node_type == "py":
+            return "workspace.create_python_node"
+        if node_type == "text":
+            return "workspace.create_text_node"
+        return "workspace.create_node"
+    if action_type == "update_node":
+        node_type = str(item.get("node_type", "") or "").strip()
+        if node_type == "data":
+            return "workspace.update_data_node"
+        if node_type == "py":
+            return "workspace.update_python_node"
+        if node_type == "text":
+            return "workspace.update_text_node"
+        return "workspace.update_node"
+    mapping = {
+        "add_subflow": "workspace.add_subflow",
+        "connect_nodes": "workspace.connect_ports",
+        "delete_node": "workspace.delete_node",
+        "delete_selected_nodes": "workspace.delete_selected_nodes",
+        "load_workflow_json": "workspace.load_template",
+        "rename_selected_node": "workspace.rename_selected_node",
+        "update_selected_text_node": "workspace.update_selected_text_node",
+        "validate_flow": "workspace.validate_flow",
+    }
+    return mapping.get(action_type, f"workspace.{action_type}" if action_type else "")
 
 
 def _normalize_workspace_action_plan(
@@ -2697,6 +2998,7 @@ def _normalize_workspace_action_plan(
     dropped = []
 
     for item in _extract_candidate_actions(parsed):
+        item = _workspace_operation_to_action_item(item)
         action_type = _normalize_workspace_action_type(item.get("type", "") or item.get("action", ""))
         if action_type not in CANVAS_ACTION_TYPES:
             dropped.append(f"Unsupported action type: {item.get('type', item.get('action', ''))}")
@@ -2751,6 +3053,12 @@ def _normalize_workspace_action_plan(
             node_type = _normalize_workspace_node_type(
                 item.get("node_type", "") or item.get("kind", "") or item.get("node", "")
             )
+            actual_node_type = _resolve_canvas_node_type(node_name, canvas_context)
+            if node_type in CANONICAL_NODE_TYPES and actual_node_type and node_type != actual_node_type:
+                dropped.append(f"Corrected update_node `{node_name}` type from {node_type} to {actual_node_type} based on canvas context.")
+                node_type = actual_node_type
+            elif node_type not in CANONICAL_NODE_TYPES and actual_node_type:
+                node_type = actual_node_type
             if node_type in CANONICAL_NODE_TYPES:
                 normalized["node_type"] = node_type
             for source_key, target_key in (
@@ -2771,6 +3079,8 @@ def _normalize_workspace_action_plan(
                 value = str(item.get(source_key, "") or "").strip() if target_key != "value" else str(item.get(source_key, "") or "")
                 if value:
                     normalized[target_key] = value
+            if node_type == "text" and "text" not in normalized and "value" in normalized:
+                normalized["text"] = str(normalized.pop("value", "") or "")
             if _coerce_bool(item.get("value_display", False) or item.get("show_value", False)):
                 normalized["value_display"] = True
             if _coerce_bool(item.get("is_path", False) or item.get("path", False)):
@@ -2842,6 +3152,15 @@ def _normalize_workspace_action_plan(
             if selected_count <= 0:
                 dropped.append("delete_selected_nodes requires at least one selected node.")
                 continue
+        elif action_type == "delete_node":
+            node_name = _resolve_canvas_node_name(
+                item.get("node_name", "") or item.get("name", "") or item.get("target_node", "") or item.get("target_name", ""),
+                canvas_context,
+            )
+            if not node_name:
+                dropped.append("delete_node was missing node_name.")
+                continue
+            normalized["node_name"] = node_name
         elif action_type == "load_workflow_json":
             workflow_path = str(
                 item.get("workflow_path", "")
@@ -2871,11 +3190,23 @@ def _normalize_workspace_action_plan(
 
         normalized_actions.append(normalized)
 
+    normalized_operations = []
+    for action in normalized_actions[:5]:
+        operation_id = _workspace_operation_id_for_action(action)
+        arguments = {
+            key: value
+            for key, value in dict(action or {}).items()
+            if key != "type"
+        }
+        if operation_id:
+            normalized_operations.append({"operation": operation_id, "arguments": arguments})
+
     return {
         "reply": str(parsed.get("reply", "") or "").strip(),
         "planning_path": str(parsed.get("planning_path", "") or parsed.get("build_path", "") or "").strip(),
         "path_reason": str(parsed.get("path_reason", "") or parsed.get("build_path_reason", "") or "").strip(),
         "actions": normalized_actions[:5],
+        "operations": normalized_operations,
         "dropped_actions": dropped[:10],
     }
 
@@ -3109,6 +3440,7 @@ def _template_edits_has_changes(template_edits: dict[str, Any] | None) -> bool:
         "text_node_updates",
         "data_node_updates",
         "python_node_updates",
+        "node_removals",
         "node_additions",
         "connections_to_add",
         "connections_to_remove",
@@ -3142,6 +3474,30 @@ def _compile_template_edit_plan(
         for row in node_rows
         if str(row.get("node_name", "") or "").strip()
     }
+
+    removal_names = {
+        str(item.get("node_name", "") or item.get("name", "") or "").strip().casefold()
+        for item in list(edits.get("node_removals", []) or [])
+        if str(item.get("node_name", "") or item.get("name", "") or "").strip()
+    }
+    removed_node_ids = {
+        str(row.get("node_id", "") or "").strip()
+        for row in node_rows
+        if str(row.get("node_name", "") or "").strip().casefold() in removal_names
+        and str(row.get("node_id", "") or "").strip()
+    }
+    if removed_node_ids:
+        node_rows = [
+            row for row in node_rows
+            if str(row.get("node_id", "") or "").strip() not in removed_node_ids
+        ]
+        for node_id in removed_node_ids:
+            flow_layout_nodes.pop(node_id, None)
+        nodes_by_name = {
+            str(row.get("node_name", "") or "").strip().casefold(): row
+            for row in node_rows
+            if str(row.get("node_name", "") or "").strip()
+        }
 
     def _sync_node_after_edit(node_row: dict[str, Any]) -> None:
         node_id = str(node_row.get("node_id", "") or "").strip()
@@ -3320,6 +3676,8 @@ def _compile_template_edit_plan(
         item = dict(row or {})
         source_id = str(item.get("from_node", "") or "").strip()
         target_id = str(item.get("to_node", "") or "").strip()
+        if source_id in removed_node_ids or target_id in removed_node_ids:
+            continue
         source_name = str(next((r.get("node_name", "") for r in node_rows if str(r.get("node_id", "") or "").strip() == source_id), "") or "").strip()
         target_name = str(next((r.get("node_name", "") for r in node_rows if str(r.get("node_id", "") or "").strip() == target_id), "") or "").strip()
         mapping = dict(item.get("mapping", {}) or {}) if isinstance(item.get("mapping"), dict) else {}
@@ -3413,6 +3771,11 @@ def _normalize_template_edit_plan(parsed: dict[str, Any]) -> dict[str, Any]:
             "text_node_updates": _normalize_node_items("text_node_updates", allowed_fields=("new_name", "text")),
             "data_node_updates": _normalize_node_items("data_node_updates", allowed_fields=("new_name", "variable_name", "value", "value_display", "is_path")),
             "python_node_updates": _normalize_node_items("python_node_updates", allowed_fields=("new_name", "imports", "wrapper")),
+            "node_removals": [
+                {"node_name": str(dict(item or {}).get("node_name", "") or dict(item or {}).get("name", "") or "").strip()}
+                for item in list(edits.get("node_removals", []) or [])
+                if str(dict(item or {}).get("node_name", "") or dict(item or {}).get("name", "") or "").strip()
+            ][:8],
             "node_additions": [
                 {
                     "node_type": str(dict(item or {}).get("node_type", "") or "").strip(),
@@ -3463,12 +3826,22 @@ def _run_template_json_edit_repair(
     api_key: str | None = None,
 ) -> dict[str, Any]:
     compiled_inventory = _build_template_workflow_inventory(compiled_workflow)
+    compiled_mcp_analysis = {}
+    compiled_validation_report = {}
+    try:
+        from quest.quest_agent.mcp_server.tools_skills_manager import analyze_workflow_json_template, validate_flow_analysis
+        compiled_mcp_analysis = analyze_workflow_json_template(compiled_workflow)
+        compiled_validation_report = validate_flow_analysis(compiled_mcp_analysis, str(user_prompt or ""))
+    except Exception:
+        compiled_mcp_analysis = {}
+        compiled_validation_report = {}
     system_prompt = (
         "You are QuESt Agent's workflow template JSON repair reviewer. "
         "A first-pass template edit has already been compiled into a workflow JSON. "
-        "Review the compiled workflow inventory against the user's requested task and the analyzed missing parts. "
+        "Review the compiled workflow inventory and MCP validation facts against the user's requested task and the analyzed missing parts. "
         "If the compiled workflow still misses required nodes, wrappers, values, or connections, return only the additional structured template edits needed to finish the job. "
         "Do not return canvas actions. Do not return the full workflow JSON. "
+        "If the compiled workflow contains extra data, text, or Python nodes that make the flow irrelevant or overbuilt for the task, return node_removals and any connection cleanup needed. "
         "If the compiled workflow already satisfies the request, return empty template edits. "
         "Return valid JSON only with this shape: "
         "{"
@@ -3480,6 +3853,7 @@ def _run_template_json_edit_repair(
         "\"text_node_updates\": [{\"node_name\": string, \"new_name\": string, \"text\": string}], "
         "\"data_node_updates\": [{\"node_name\": string, \"new_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean}], "
         "\"python_node_updates\": [{\"node_name\": string, \"new_name\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"node_removals\": [{\"node_name\": string}], "
         "\"node_additions\": [{\"node_type\": \"data\"|\"py\"|\"text\", \"name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"text\": string, \"imports\": string, \"wrapper\": string}], "
         "\"connections_to_add\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}], "
         "\"connections_to_remove\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}]"
@@ -3492,6 +3866,8 @@ def _run_template_json_edit_repair(
         "task_analysis_guidance": _task_analysis_guidance(task_match_result),
         "best_workflow_template": dict(best_workflow_template or {}),
         "compiled_workflow_inventory": compiled_inventory,
+        "compiled_mcp_analysis": compiled_mcp_analysis,
+        "compiled_validation_report": compiled_validation_report,
         "previous_template_edits": dict(previous_template_edits or {}),
         "build_path_guidance": dict(build_path_guidance or {}),
     }
@@ -3503,6 +3879,8 @@ def _run_template_json_edit_repair(
                 "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
                 "best_workflow_template": dict(best_workflow_template or {}),
                 "compiled_workflow_inventory": compiled_inventory,
+                "compiled_mcp_analysis": compiled_mcp_analysis,
+                "compiled_validation_report": compiled_validation_report,
                 "previous_template_edits": dict(previous_template_edits or {}),
                 "build_path_guidance": dict(build_path_guidance or {}),
             },
@@ -3553,14 +3931,25 @@ def _run_template_json_edit_plan(
         raise RuntimeError("No best workflow template was available for JSON editing.")
     template_json = _read_workflow_json_file(workflow_path)
     template_inventory = _build_template_workflow_inventory(template_json)
+    template_mcp_analysis = {}
+    template_validation_report = {}
+    try:
+        from quest.quest_agent.mcp_server.tools_skills_manager import analyze_workflow_json_template, validate_flow_analysis
+        template_mcp_analysis = analyze_workflow_json_template(template_json)
+        template_validation_report = validate_flow_analysis(template_mcp_analysis, str(user_prompt or ""))
+    except Exception:
+        template_mcp_analysis = {}
+        template_validation_report = {}
 
     system_prompt = (
         "You are QuESt Agent's workflow template JSON editor. "
         "A best matched workflow template has already been chosen. "
-        "Your job is to return only the structured edits needed to adapt that template to the user's requested task. "
+        "Your job is to validate that template against the user's requested task and return only the structured edits needed to adapt it. "
         "Do not return canvas actions. Do not return the full workflow JSON. "
+        "Never load a saved skill workflow JSON by path directly; the output must compile into a workflow_content copy that can be loaded only after this validation/edit step. "
         "Prefer minimal edits to the template instead of rebuilding its structure. "
-        "Use the task analysis, missing parts, and template inventory as the source of truth. "
+        "Use the task analysis, missing parts, template inventory, and MCP validation facts as the source of truth. "
+        "Remove unnecessary template nodes when they exceed the requested task or make the workflow irrelevant. "
         "Make the JSON edit complete enough that the loaded workflow should satisfy the task without depending on later touch-up canvas actions for obvious missing pieces. "
         "The output pipeline is: JSON diff/edit -> compile -> load -> validate. "
         "Return valid JSON only with this shape: "
@@ -3573,6 +3962,7 @@ def _run_template_json_edit_plan(
         "\"text_node_updates\": [{\"node_name\": string, \"new_name\": string, \"text\": string}], "
         "\"data_node_updates\": [{\"node_name\": string, \"new_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean}], "
         "\"python_node_updates\": [{\"node_name\": string, \"new_name\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"node_removals\": [{\"node_name\": string}], "
         "\"node_additions\": [{\"node_type\": \"data\"|\"py\"|\"text\", \"name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"text\": string, \"imports\": string, \"wrapper\": string}], "
         "\"connections_to_add\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}], "
         "\"connections_to_remove\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}]"
@@ -3588,6 +3978,8 @@ def _run_template_json_edit_plan(
         "task_analysis_guidance": _task_analysis_guidance(task_match_result),
         "best_workflow_template": best_template,
         "template_inventory": template_inventory,
+        "template_mcp_analysis": template_mcp_analysis,
+        "template_validation_report": template_validation_report,
         "build_path_guidance": dict(build_path_guidance or {}),
         "skill_execution_recipes": dict(skill_execution_recipes or {}),
     }
@@ -3599,6 +3991,8 @@ def _run_template_json_edit_plan(
                 "task_analysis_guidance": _trim_task_analysis_guidance_for_fast_local(task_match_result),
                 "best_workflow_template": dict(best_template or {}),
                 "template_inventory": template_inventory,
+                "template_mcp_analysis": template_mcp_analysis,
+                "template_validation_report": template_validation_report,
                 "build_path_guidance": dict(build_path_guidance or {}),
             },
             max_chars=FAST_LOCAL_PROMPT_CHAR_LIMIT,
@@ -3659,6 +4053,17 @@ def _run_template_json_edit_plan(
         "reply": str(normalized.get("reply", "") or "").strip(),
         "planning_path": "template_json_edit_then_load",
         "path_reason": str(normalized.get("path_reason", "") or best_template.get("selection_reason", "") or "").strip(),
+        "planner_contract": "mcp_workspace_operations_v1",
+        "planner_prompt_profile": "template_json_edit_then_load",
+        "operations": [
+            {
+                "operation": "workspace.load_template",
+                "arguments": {
+                    "workflow_content": compiled_workflow,
+                    "source_skill_id": str(best_template.get("skill_id", "") or "").strip(),
+                },
+            }
+        ],
         "actions": [
             {
                 "type": "load_workflow_json",
@@ -3712,6 +4117,7 @@ def _run_current_flow_json_patch_plan(
         "\"text_node_updates\": [{\"node_name\": string, \"new_name\": string, \"text\": string}], "
         "\"data_node_updates\": [{\"node_name\": string, \"new_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean}], "
         "\"python_node_updates\": [{\"node_name\": string, \"new_name\": string, \"imports\": string, \"wrapper\": string}], "
+        "\"node_removals\": [{\"node_name\": string}], "
         "\"node_additions\": [{\"node_type\": \"data\"|\"py\"|\"text\", \"name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"text\": string, \"imports\": string, \"wrapper\": string}], "
         "\"connections_to_add\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}], "
         "\"connections_to_remove\": [{\"source_node\": string, \"source_port\": string, \"target_node\": string, \"target_port\": string}]"
@@ -3805,6 +4211,17 @@ def _run_current_flow_json_patch_plan(
         "reply": str(normalized.get("reply", "") or "").strip(),
         "planning_path": "current_flow_json_patch_then_load",
         "path_reason": str(normalized.get("path_reason", "") or "Patched the current canvas workflow JSON to resolve the analyzed missing parts.").strip(),
+        "planner_contract": "mcp_workspace_operations_v1",
+        "planner_prompt_profile": "current_flow_json_patch_then_load",
+        "operations": [
+            {
+                "operation": "workspace.load_template",
+                "arguments": {
+                    "workflow_content": compiled_workflow,
+                    "source_skill_id": "",
+                },
+            }
+        ],
         "actions": [
             {
                 "type": "load_workflow_json",
@@ -3835,24 +4252,24 @@ def _repair_workspace_action_plan(
     api_key: str | None = None,
 ) -> dict[str, Any]:
     repair_prompt = (
-        "You are repairing a QuESt Workspace canvas action plan. "
-        "The first draft was semantically close but did not normalize into executable canonical actions. "
+        "You are repairing a QuESt Workspace MCP operation plan. "
+        "The first draft was semantically close but did not normalize into executable canonical operations. "
         "Convert the user's request into the exact supported schema. "
         "Use task_analysis.flow_description, task_analysis.structured_flow_summary, task_analysis.missing_parts, and task_analysis.notes as authoritative evidence about the current flow state. "
         "If analysis indicates a partially built or incomplete flow, prefer repairing and completing the existing flow instead of rebuilding it from scratch unless the user explicitly asked for a rebuild. "
         "Treat task_analysis.missing_parts as the highest-priority issues to resolve in the repaired plan. "
         "If skill_execution_recipes contains strong matched skills, repair the plan toward those recipes instead of falling back to generic blank nodes. "
         "Use build_path_guidance to choose the easiest viable build path before repairing the plan. "
-        "Use only these action types: create_node, update_node, add_subflow, connect_nodes, rename_selected_node, update_selected_text_node, delete_selected_nodes, load_workflow_json. "
-        "Use only these create_node node types: data, py, text. "
-        "When task_analysis.missing_parts says an input/data node is missing, repair that gap with create_node node_type='data' using the named missing input as both name and variable_name when appropriate; do not encode a missing input as a value edit on an unrelated existing node. "
-        "When task_analysis.missing_parts says an existing Python wrapper or node logic is incomplete, repair that gap with update_node on the named existing Python node and include the revised wrapper when possible. "
-        "When a new input must feed an existing Python node, include the needed connect_nodes action unless local single-step mode requires returning only the first action. "
-        "If the request is clearly a canvas edit, return at least one action. "
-        "Return valid JSON only with shape {\"reply\": string, \"planning_path\": string, \"path_reason\": string, \"actions\": [ ... ]}."
+        "Use only these operation ids: workspace.create_data_node, workspace.create_python_node, workspace.create_text_node, workspace.update_data_node, workspace.update_python_node, workspace.update_text_node, workspace.connect_ports, workspace.load_template, workspace.add_subflow, workspace.rename_selected_node, workspace.update_selected_text_node, workspace.delete_node, workspace.delete_selected_nodes, workspace.validate_flow. "
+        "When task_analysis.missing_parts says an input/data node is missing, repair that gap with workspace.create_data_node using the named missing input as both name and variable_name when appropriate; do not encode a missing input as a value edit on an unrelated existing node. "
+        "When task_analysis.missing_parts says an existing Python wrapper or node logic is incomplete, repair that gap with workspace.update_python_node on the named existing Python node and include the revised wrapper when possible. "
+        "When a new input must feed an existing Python node, include the needed workspace.connect_ports operation unless local single-step mode requires returning only the first operation. "
+        "When analysis identifies a specific extra or conflicting node to remove, use workspace.delete_node with node_name; use workspace.delete_selected_nodes only when the user explicitly asked to delete the current GUI selection. "
+        "If the request is clearly a canvas edit, return at least one operation. "
+        "Return valid JSON only with shape {\"reply\": string, \"planning_path\": string, \"path_reason\": string, \"operations\": [{\"operation\": string, \"arguments\": object}]}."
     )
     if single_step_only:
-        repair_prompt += " Local single-step mode is active. Return exactly one next executable action, not a full multi-step plan."
+        repair_prompt += " Local single-step mode is active. Return exactly one next executable operation, not a full multi-step plan."
     repair_payload = {
         "latest_user_prompt": str(user_prompt or ""),
         "canvas_context": dict(canvas_context or {}),
@@ -3922,6 +4339,8 @@ def _repair_workspace_action_plan(
         except RuntimeError:
             return {"reply": "", "actions": [], "dropped_actions": ["Repair pass returned invalid JSON."]}
     normalized_plan = _normalize_workspace_action_plan(parsed, canvas_context=canvas_context)
+    normalized_plan["planner_contract"] = "mcp_workspace_operations_v1"
+    normalized_plan["planner_prompt_profile"] = "workspace_operation_planner"
     normalized_plan["model_used_note"] = _build_model_used_note(
         model_name,
         selected_reasoning_model,
@@ -3963,26 +4382,6 @@ def run_workspace_action_plan(
             build_path_guidance["reason"] = "Forced planning path."
     best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
     recommended_path = str(build_path_guidance.get("recommended_path", "") or "").strip()
-    if (
-        recommended_path == "reuse_skill_workflow_json"
-        and bool(build_path_guidance.get("exact_match_lock", False))
-        and best_workflow_template
-        and str(best_workflow_template.get("workflow_json_path", "") or "").strip()
-    ):
-        return {
-            "reply": "",
-            "intent": "reuse matched workflow template directly",
-            "planning_path": "reuse_skill_workflow_json",
-            "path_reason": str(build_path_guidance.get("reason", "") or "Reused the exact matched workflow template directly.").strip(),
-            "actions": [
-                {
-                    "type": "load_workflow_json",
-                    "workflow_path": str(best_workflow_template.get("workflow_json_path", "") or "").strip(),
-                    "source_skill_id": str(best_workflow_template.get("skill_id", "") or "").strip(),
-                }
-            ],
-            "planning_source": "deterministic_exact_skill_reuse",
-        }
     if recommended_path == "current_flow_json_patch_then_load":
         return _run_current_flow_json_patch_plan(
             user_prompt=user_prompt,
@@ -3996,7 +4395,6 @@ def run_workspace_action_plan(
     if (
         best_workflow_template
         and recommended_path == "template_json_edit_then_load"
-        and _request_prefers_template_json_edit(user_prompt, canvas_context)
     ):
         return _run_template_json_edit_plan(
             user_prompt=user_prompt,
@@ -4017,41 +4415,49 @@ def run_workspace_action_plan(
         "Use task_analysis_guidance.flow_description, task_analysis_guidance.structured_flow_summary, task_analysis_guidance.missing_parts, and task_analysis_guidance.notes as authoritative current-state evidence about what already exists on canvas. "
         "If analysis shows an incomplete or partially built flow, prefer actions that complete, connect, initialize, or repair existing nodes instead of rebuilding the flow from scratch, unless the user explicitly asks to rebuild or replace it. "
         "Treat task_analysis_guidance.missing_parts as the highest-priority gaps to resolve in the next plan. "
-        "When task_analysis_guidance.missing_parts says an input/data node is missing, produce a create_node action with node_type='data' for that named input; do not turn missing input requirements into update_node value edits on existing nodes. "
-        "When task_analysis_guidance.missing_parts says an existing Python wrapper or node logic is incomplete, produce an update_node action for the named existing Python node and include a revised wrapper when possible. "
-        "When a new input must feed an existing Python node, include a connect_nodes action for the new data node to the existing Python node unless local single-step mode requires returning only the first action. "
+        "When task_analysis_guidance.missing_parts says an input/data node is missing, produce a workspace.create_data_node operation for that named input; do not turn missing input requirements into value edits on unrelated existing nodes. "
+        "When task_analysis_guidance.missing_parts says an existing Python wrapper or node logic is incomplete, produce a workspace.update_python_node operation for the named existing Python node and include a revised wrapper when possible. "
+        "When a new input must feed an existing Python node, include a workspace.connect_ports operation for the new data node to the existing Python node unless local single-step mode requires returning only the first operation. "
         "Follow task_analysis_guidance.planning_directives strictly when they are present. "
         "Use top_skill_matches and top_tool_matches to shape how the plan should be implemented, but not to ignore the analyzed current flow. "
         "If task_analysis_guidance.best_workflow_template is available, treat it as the preferred baseline for a JSON diff/edit -> load -> validate workflow. "
         "Use build_path_guidance to choose the easiest viable build path before producing actions. "
-        "Prefer these paths in order when they fit: edit_current_flow, template_json_edit_then_load, reuse_skill_workflow_json, manual_canvas_build, draft_workflow_json_then_load. "
+        "When the current canvas exists and analysis shows a small number of missing parts, prefer edit_current_flow with direct Workspace operations. "
+        "When the canvas is empty and the task is to create a flow, prefer adapting a matched template or skill when one is available. "
+        "When the current canvas needs many edits, major restructuring, a subflow, or a large template-level change, prefer current_flow_json_patch_then_load. "
+        "You may combine direct edits, template loading, and JSON patching when that is the clearest route, but every action must still resolve the analyzed current-flow gaps. "
         "If skill_execution_recipes contains strong matched skills, treat those recipes as concrete prior examples to adapt. "
         "Prefer reusing a matched skill's workflow strategy, step pattern, validation criteria, and saved workflow template structure over inventing a fresh plan from scratch when the task is similar. "
-        "If a matched skill includes workflow_template metadata, prefer producing a load_workflow_json action with edited workflow_content that reflects the requested changes; only fall back to direct load_workflow_json with workflow_path when no JSON edits are needed. "
+        "If a matched skill includes workflow_template metadata, never load its workflow_path directly; produce edited workflow_content only after validating and adapting it against the task. "
         "If relevant saved skills were matched, let their intent and reasons shape the concrete canvas actions you choose. "
-        "Supported action types are: create_node, update_node, add_subflow, connect_nodes, rename_selected_node, update_selected_text_node, delete_selected_nodes, load_workflow_json. "
-        "For create_node, node_type must be one of data, py, text and count must be an integer from 1 to 5. "
-        "For create_node you may include name, variable_name, value, value_display, is_path, text, imports, wrapper, and code when requested. "
-        "For update_node, provide node_name for the existing node to edit, and include only the fields that should change such as new_name, variable_name, value, value_display, is_path, text, imports, wrapper, or code. Prefer update_node for editing existing wrappers, text, or values; prefer create_node when the required node or input does not exist yet. "
-        "For add_subflow you may include flow_name or name for the new subflow tab. "
-        "For connect_nodes, provide source_node and target_node, and include source_port/target_port or mapping when needed. "
-        "For load_workflow_json, provide workflow_path when reusing a saved template, or workflow_content when drafting a full workflow JSON directly; you may also include source_skill_id. "
-        "If the request is a canvas change, prefer returning at least one action instead of leaving actions empty. "
+        "Canvas changes are executed through the MCP Workspace operation contract. "
+        "Return MCP operation requests in the operations array. "
+        "Supported operation ids are: workspace.create_data_node, workspace.create_python_node, workspace.create_text_node, workspace.update_data_node, workspace.update_python_node, workspace.update_text_node, workspace.connect_ports, workspace.load_template, workspace.add_subflow, workspace.rename_selected_node, workspace.update_selected_text_node, workspace.delete_node, workspace.delete_selected_nodes, workspace.validate_flow. "
+        "Each operation object must use {\"operation\": string, \"arguments\": object}. "
+        "For workspace.create_data_node, include name, variable_name, value, value_display, and is_path when relevant. "
+        "For workspace.create_python_node, include name, imports, wrapper, and code when relevant. "
+        "For workspace.update_python_node, provide node_name and only changed fields such as new_name, imports, wrapper, or code. "
+        "For workspace.update_data_node, provide node_name and only changed fields such as new_name, variable_name, value, value_display, or is_path. "
+        "For workspace.update_text_node, provide node_name and text. Use it for existing description, note, annotation, or BackNode text nodes. "
+        "For workspace.delete_node, provide node_name. Use it for a known extra or conflicting node; do not use workspace.delete_selected_nodes for this case. "
+        "For workspace.connect_ports, provide source_node, target_node, and source_port/target_port or mapping when needed. "
+        "For workspace.load_template, provide workflow_content for any matched skill/template reuse; workflow_path is only for explicit user-provided imports, not automatic skill reuse. "
+        "If the request is a canvas change, prefer returning at least one operation instead of leaving operations empty. "
         "Return valid JSON only with this shape: "
         "{"
         "\"reply\": string, "
         "\"intent\": string, "
         "\"planning_path\": string, "
         "\"path_reason\": string, "
-        "\"actions\": ["
-        "{\"type\": string, \"node_type\": string, \"count\": number, \"name\": string, \"node_name\": string, \"flow_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"imports\": string, \"wrapper\": string, \"code\": string, \"new_name\": string, \"text\": string, \"source_node\": string, \"target_node\": string, \"source_port\": string, \"target_port\": string, \"mapping\": object, \"workflow_path\": string, \"workflow_content\": object, \"source_skill_id\": string}"
+        "\"operations\": ["
+        "{\"operation\": string, \"arguments\": {\"count\": number, \"name\": string, \"node_name\": string, \"flow_name\": string, \"variable_name\": string, \"value\": string, \"value_display\": boolean, \"is_path\": boolean, \"imports\": string, \"wrapper\": string, \"code\": string, \"new_name\": string, \"text\": string, \"source_node\": string, \"target_node\": string, \"source_port\": string, \"target_port\": string, \"mapping\": object, \"workflow_path\": string, \"workflow_content\": object, \"source_skill_id\": string}}"
         "]"
         "}."
     )
     if single_step_only:
         system_prompt += (
             " Local single-step mode is active. "
-            "Return exactly one next executable action only. "
+            "Return exactly one next executable operation only. "
             "Do not include later follow-up build steps yet."
         )
 
@@ -4166,12 +4572,34 @@ def run_structured_task_match(
     selected_model: str | None = None,
     quest_agent_root: str | Path | None = None,
     api_key: str | None = None,
+    mcp_candidate_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     quest_agent_root = get_quest_agent_root(quest_agent_root)
     registry = write_active_tool_registry(quest_agent_root)
     skill_payload = load_skill_library(quest_agent_root)
     tools = list(registry.get("tools", []))
     skills = list(skill_payload.get("skills", []))
+    candidate_result = dict(mcp_candidate_result or {})
+    candidate_tool_ids = {
+        str(item.get("tool_id", "") or "").strip()
+        for item in list(candidate_result.get("tool_matches", []) or [])
+        if str(item.get("tool_id", "") or "").strip()
+    }
+    candidate_skill_ids = {
+        str(item.get("skill_id", "") or "").strip()
+        for item in list(candidate_result.get("skill_matches", []) or [])
+        if str(item.get("skill_id", "") or "").strip()
+    }
+    if candidate_tool_ids:
+        tools = [
+            tool for tool in tools
+            if str(tool.get("tool_id", "") or "").strip() in candidate_tool_ids
+        ]
+    if candidate_skill_ids:
+        skills = [
+            skill for skill in skills
+            if str(getattr(skill, "skill_id", "") or "").strip() in candidate_skill_ids
+        ]
     query_text = _build_matcher_search_text(
         task_description,
         list(pinned_context or []),
@@ -4238,6 +4666,11 @@ def run_structured_task_match(
         task_description=task_description,
         attached_workflow_jsons=list(attached_workflow_jsons or []),
         workspace_relationship_context=dict(workspace_relationship_context or {}),
+    )
+    result = _enforce_tool_derived_skill_matches(
+        result,
+        skills=skills,
+        mcp_candidate_result=candidate_result,
     )
     best_workflow_template = _build_best_workflow_template(
         list(result.get("skill_matches", []) or []),

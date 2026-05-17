@@ -1,6 +1,6 @@
 {
   "schema_version": "1.1",
-  "updated_at": "2026-05-03T18:51:47-06:00",
+  "updated_at": "2026-05-16T17:41:03-06:00",
   "root_path": "skills",
   "skills": [
     {
@@ -11,6 +11,8 @@
       "skill_mode": "build",
       "title": "Build a simple multiplication flow in Workspace",
       "summary": "Create a QuESt Workspace flow that documents a basic multiplication task, defines two numeric input data nodes, and prepares a Python node with two inputs and one output connected for multiplication logic.",
+      "created_at": "2026-04-30T12:07:50-06:00",
+      "updated_at": "2026-04-30T12:07:50-06:00",
       "status": "draft",
       "tags": [
         "workspace",
@@ -47,6 +49,8 @@
       "skill_mode": "build",
       "title": "Build a simple Workspace flow to add two numbers",
       "summary": "Create and save a QuESt Workspace flow that documents a simple addition task, defines two numeric data inputs, connects them to a Python node configured to output their sum, and saves the flow as a reusable JSON workflow file.",
+      "created_at": "2026-04-29T10:52:40-06:00",
+      "updated_at": "2026-04-29T10:52:40-06:00",
       "status": "draft",
       "tags": [
         "workspace",
@@ -83,6 +87,8 @@
       "skill_mode": "build",
       "title": "Build a Workspace flow to sum five numbers and square the result",
       "summary": "Create or verify a simple QuESt Workspace arithmetic workflow that uses five data nodes as numeric inputs and one Python node to compute both the total sum and the squared sum.",
+      "created_at": "2026-04-30T17:50:48-06:00",
+      "updated_at": "2026-04-30T17:50:48-06:00",
       "status": "draft",
       "tags": [
         "workspace",
@@ -120,6 +126,8 @@
       "skill_mode": "build",
       "title": "Run a BTM optimization subflow from master-provided PV, tariff, and load paths",
       "summary": "Execute a behind-the-meter (BTM) energy storage optimization workflow that accepts master-flow file path inputs for PV, tariff/rate, and load data, builds BTM request objects and ESS parameters, runs the BTM optimizer with a selected solver, and saves result CSVs plus checkpoint paths.",
+      "created_at": "2026-04-30T13:49:24-06:00",
+      "updated_at": "2026-04-30T13:49:24-06:00",
       "status": "draft",
       "tags": [
         "btm",
@@ -161,6 +169,8 @@
       "skill_mode": "build",
       "title": "Run multi-case BTM optimization from a Workspace master flow using shared PV, rate, and load inputs",
       "summary": "Execute a QuESt BTM workflow from a Workspace master flow that passes common PV profile, tariff, and load file paths into a BTM subflow, runs multiple subcases with different ESS parameters, and saves per-case optimization result files.",
+      "created_at": "2026-04-30T14:08:20-06:00",
+      "updated_at": "2026-04-30T14:08:20-06:00",
       "status": "draft",
       "tags": [
         "btm",

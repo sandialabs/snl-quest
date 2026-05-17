@@ -2,6 +2,9 @@ import ast
 import json
 import os
 import re
+import shutil
+import tempfile
+import time
 
 
 def _get_selected_single_node(workflow):
@@ -433,9 +436,25 @@ def _load_workflow_json_into_current_workflow(workflow, action):
 
     workflow_path = str(dict(action or {}).get("workflow_path", "") or "").strip()
     workflow_content = dict(action.get("workflow_content", {}) or {}) if isinstance(action.get("workflow_content"), dict) else {}
+    source_skill_id = str(dict(action or {}).get("source_skill_id", "") or "").strip()
 
     if workflow_path:
         normalized_path = os.path.normpath(workflow_path)
+        if source_skill_id:
+            try:
+                source_path = os.path.abspath(normalized_path)
+                working_dir = os.path.join(tempfile.gettempdir(), "quest_skill_template_working_copies")
+                os.makedirs(working_dir, exist_ok=True)
+                base_name = os.path.splitext(os.path.basename(source_path))[0] or "workflow_template"
+                safe_skill_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", source_skill_id).strip("_") or "skill"
+                copy_name = f"{safe_skill_id}_{base_name}_{int(time.time() * 1000)}.json"
+                working_path = os.path.join(working_dir, copy_name)
+                shutil.copy2(source_path, working_path)
+                normalized_path = os.path.normpath(working_path)
+                action["workflow_path"] = normalized_path
+                action["source_workflow_path"] = source_path
+            except Exception as exc:
+                return False, f"load_workflow_json failed to copy skill template before loading '{workflow_path}': {exc}"
         try:
             with open(normalized_path, "r", encoding="utf-8") as handle:
                 flow_json_data = json.load(handle)
@@ -449,6 +468,11 @@ def _load_workflow_json_into_current_workflow(workflow, action):
 
     if not isinstance(flow_json_data, dict):
         return False, "load_workflow_json requires a workflow JSON object."
+    flow_json_data = _normalize_workflow_json_payload(flow_json_data)
+    if not isinstance(flow_json_data, dict):
+        return False, "load_workflow_json requires a workflow JSON object."
+    if "nodes_df" not in flow_json_data or "flow_layout" not in flow_json_data:
+        return False, "load_workflow_json requires workflow JSON with nodes_df and flow_layout."
 
     requested_flow_type = str(flow_json_data.get("flow_type", "sub-flow") or "").strip().lower()
     if requested_flow_type not in {"master-flow", "sub-flow"}:
@@ -484,6 +508,23 @@ def _load_workflow_json_into_current_workflow(workflow, action):
         return True, ""
     except Exception as exc:
         return False, f"load_workflow_json failed: {exc}"
+
+
+def _normalize_workflow_json_payload(flow_json_data):
+    data = dict(flow_json_data or {})
+    if "nodes_df" in data and "flow_layout" in data:
+        return data
+    for key in ("workflow_content", "workflow_template", "workflow_json", "flow_json", "template", "content"):
+        value = data.get(key)
+        if isinstance(value, dict):
+            normalized = _normalize_workflow_json_payload(value)
+            if "nodes_df" in normalized and "flow_layout" in normalized:
+                return normalized
+    if isinstance(data.get("workflow"), dict):
+        normalized = _normalize_workflow_json_payload(data.get("workflow"))
+        if "nodes_df" in normalized and "flow_layout" in normalized:
+            return normalized
+    return data
 
 
 def _resolve_port(port_dict, requested_name):
@@ -743,6 +784,61 @@ def execute_canvas_actions(workflow, action_plan):
             if current_workflow not in touched_workflows:
                 touched_workflows.append(current_workflow)
             executed.append(f"Deleted {selected_count} selected node{'s' if selected_count != 1 else ''}.")
+        elif action_type == "delete_node":
+            node_name = str(action.get("node_name", "") or action.get("name", "") or action.get("target_node", "") or "").strip()
+            node = _resolve_action_node(current_workflow, created_node_aliases, node_name)
+            graph = getattr(current_workflow, "graph", None)
+            if graph is None:
+                action_plan["execution_notes"].append("delete_node requires an active workflow graph.")
+                continue
+            if node is None:
+                action_plan["execution_notes"].append(f"delete_node could not resolve node {node_name or '<missing>'}.")
+                continue
+            previous_selection = []
+            try:
+                previous_selection = list(graph.selected_nodes())
+            except Exception:
+                previous_selection = []
+            try:
+                for selected_node in previous_selection:
+                    try:
+                        selected_node.set_selected(False)
+                    except Exception:
+                        pass
+                try:
+                    node.set_selected(True)
+                except Exception:
+                    pass
+                deleted_ok = False
+                if hasattr(current_workflow, "_delete_selected_nodes_with_workspace_rules"):
+                    deleted_ok = bool(current_workflow._delete_selected_nodes_with_workspace_rules())
+                else:
+                    graph.delete_node(node)
+                    deleted_ok = True
+                if _find_node_by_name(current_workflow, node_name) is not None:
+                    action_plan["execution_notes"].append(f"delete_node did not remove node {node_name}.")
+                    continue
+                if current_workflow not in touched_workflows:
+                    touched_workflows.append(current_workflow)
+                executed.append(f"Deleted node {node_name}.")
+            except Exception as exc:
+                action_plan["execution_notes"].append(f"delete_node failed for {node_name or '<missing>'}: {exc}")
+                continue
+            finally:
+                try:
+                    for selected_node in list(graph.selected_nodes()):
+                        try:
+                            selected_node.set_selected(False)
+                        except Exception:
+                            pass
+                    for selected_node in previous_selection:
+                        try:
+                            if selected_node is not node:
+                                selected_node.set_selected(True)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
         elif action_type == "connect_nodes":
             connection_result = _connect_nodes(current_workflow, action, created_node_aliases=created_node_aliases)
             if connection_result:
@@ -774,7 +870,11 @@ def execute_canvas_actions(workflow, action_plan):
                     except Exception:
                         pass
                 if source_skill_id:
-                    executed.append(f"Loaded workflow template from skill {source_skill_id}.")
+                    source_workflow_path = str(action.get("source_workflow_path", "") or "").strip()
+                    if source_workflow_path:
+                        executed.append(f"Loaded working copy of workflow template from skill {source_skill_id}.")
+                    else:
+                        executed.append(f"Loaded workflow template from skill {source_skill_id}.")
                 elif workflow_path:
                     executed.append(f"Loaded workflow JSON from {workflow_path}.")
                 else:

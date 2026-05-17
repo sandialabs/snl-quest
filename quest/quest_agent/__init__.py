@@ -10,6 +10,7 @@ from .skill_library import (
 )
 from .llm_matcher import run_structured_task_match
 from .llm_matcher import run_grounded_chat_reply
+from .llm_matcher import run_semantic_flow_validation
 from .llm_matcher import run_chat_router
 from .llm_matcher import run_workspace_action_plan
 from . import context_service
@@ -46,6 +47,7 @@ __all__ = [
     "load_skill_library",
     "run_chat_router",
     "run_grounded_chat_reply",
+    "run_semantic_flow_validation",
     "run_structured_task_match",
     "run_workspace_action_plan",
     "run_retrieval_test",

@@ -3,6 +3,7 @@ import os
 import ctypes
 import stat
 import subprocess
+import argparse
 
 # Configure the Qt graphics backend before importing any Qt widgets or creating QApplication.
 os.environ.setdefault("QT_OPENGL", "software")
@@ -51,6 +52,30 @@ DISPLAY_VERSION = ".".join(__version__.split(".")[:2])
 QCoreApplication.setAttribute(Qt.AA_UseSoftwareOpenGL)
 QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
 QQuickWindow.setGraphicsApi(QSGRendererInterface.GraphicsApi.Software)
+
+
+def _parse_quest_cli_args(argv):
+    parser = argparse.ArgumentParser(
+        prog="quest",
+        description="Launch the QuESt application.",
+    )
+    parser.add_argument(
+        "--server-mode",
+        action="store_true",
+        help="Launch QuESt with external MCP server mode enabled.",
+    )
+    parser.add_argument(
+        "--mcp-mode",
+        choices=("in-process", "external"),
+        default=None,
+        help="Select the QuESt Agent MCP mode at startup.",
+    )
+    args, remaining = parser.parse_known_args(list(argv or [])[1:])
+    if args.server_mode or args.mcp_mode == "external":
+        os.environ["QUEST_MCP_MODE"] = "external"
+    elif args.mcp_mode == "in-process":
+        os.environ.pop("QUEST_MCP_MODE", None)
+    return [list(argv or ["quest"])[0], *remaining]
 
 class MainWindow(QMainWindow, Ui_MainWindow):
     """
@@ -950,6 +975,7 @@ def main():
     Entry point to launch the app.
     """
     try:
+        sys.argv = _parse_quest_cli_args(sys.argv)
         # Check if a QApplication instance already exists
         if not QApplication.instance():
             app = QApplication(sys.argv)
