@@ -220,6 +220,26 @@ def _build_skill_workflow_template_context(workflow_json_path, normalize_path, s
     return context_entry
 
 
+def _normalized_tool_id(value):
+    return str(value or "").strip().casefold()
+
+
+def _skill_tool_ids(skill):
+    tool_ids = set()
+    for value in list(getattr(skill, "recommended_tools", []) or []) + list(getattr(skill, "required_tools", []) or []):
+        normalized = _normalized_tool_id(value)
+        if normalized:
+            tool_ids.add(normalized)
+    raw_data = getattr(skill, "raw_data", {}) or {}
+    if isinstance(raw_data, dict):
+        classification = raw_data.get("classification", {}) if isinstance(raw_data.get("classification", {}), dict) else {}
+        for value in list(classification.get("related_tools", []) or classification.get("tool_tags", []) or []):
+            normalized = _normalized_tool_id(value)
+            if normalized:
+                tool_ids.add(normalized)
+    return tool_ids
+
+
 def get_skill_execution_recipes(state, normalize_path):
     state = dict(state or {})
     task_match_results = dict(state.get("task_match_results", {}) or {})
@@ -233,6 +253,13 @@ def get_skill_execution_recipes(state, normalize_path):
         skill_id = str(getattr(skill, "skill_id", "") or "").strip()
         if skill_id:
             skill_lookup[skill_id] = skill
+
+    matched_tool_ids = {
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(task_match_results.get("tool_matches", []) or [])
+        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+    }
+    non_workspace_tool_ids = {tool_id for tool_id in matched_tool_ids if tool_id != "workspace"}
 
     ranked_matches = []
     for item in skill_matches:
@@ -261,6 +288,9 @@ def get_skill_execution_recipes(state, normalize_path):
         skill_id = str(item.get("skill_id", "") or "").strip()
         skill = skill_lookup.get(skill_id)
         if skill is None:
+            continue
+        skill_tool_ids = _skill_tool_ids(skill)
+        if non_workspace_tool_ids and not (skill_tool_ids & non_workspace_tool_ids):
             continue
         raw_data = getattr(skill, "raw_data", {}) or {}
         if not isinstance(raw_data, dict):

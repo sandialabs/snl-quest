@@ -1224,6 +1224,27 @@ def _skill_query_alignment_bonus(skill: SkillRecord, query_text: str) -> float:
     return bonus
 
 
+def _looks_like_btm_text(text: str) -> bool:
+    lowered = str(text or "").casefold().replace("_", " ").replace("-", " ")
+    return any(
+        phrase in lowered
+        for phrase in (
+            "btm",
+            "behind the meter",
+            "cost savings",
+            "tariff savings",
+            "battery optimization",
+            "storage optimization",
+            "pv profile",
+            "load profile",
+        )
+    )
+
+
+def _skill_looks_like_btm(skill: SkillRecord) -> bool:
+    return _looks_like_btm_text(_skill_search_haystack(skill))
+
+
 def _prefer_tool_specific_strategy(result: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(result or {})
     top_non_workspace_tool = next(
@@ -1328,6 +1349,8 @@ def _build_best_workflow_template(
         for item in list(tool_matches or [])
         if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
     }
+    non_workspace_tool_ids = {tool_id for tool_id in preferred_tool_ids if tool_id != "workspace"}
+    btm_preferred = "btm" in non_workspace_tool_ids
     candidates = []
     for match in list(skill_matches or []):
         item = dict(match or {})
@@ -1339,6 +1362,10 @@ def _build_best_workflow_template(
         if not workflow_json_path:
             continue
         tool_overlap = _skill_tool_ids(skill) & preferred_tool_ids
+        if non_workspace_tool_ids and not (tool_overlap & non_workspace_tool_ids):
+            continue
+        if btm_preferred and str(getattr(skill, "skill_type", "") or "").strip() == "quest_tool_specific" and not _skill_looks_like_btm(skill):
+            continue
         confidence = _coerce_confidence(item.get("confidence", 0.0))
         template_score = confidence
         if tool_overlap:
@@ -1435,6 +1462,12 @@ def _build_template_workflow_inventory(workflow_json_data: dict[str, Any]) -> di
     data = dict(workflow_json_data or {})
     node_records = [dict(item or {}) for item in list(data.get("nodes_df", []) or [])]
     node_lookup = {str(item.get("node_id", "") or "").strip(): item for item in node_records if str(item.get("node_id", "") or "").strip()}
+    subflow_records = [dict(item or {}) for item in list(data.get("subflows_df", []) or []) if isinstance(item, dict)]
+    subflow_names = {
+        str(item.get("flow_name", "") or "").strip()
+        for item in subflow_records
+        if str(item.get("flow_name", "") or "").strip()
+    }
     data_nodes = []
     python_nodes = []
     text_nodes = []
@@ -1456,12 +1489,15 @@ def _build_template_workflow_inventory(workflow_json_data: dict[str, Any]) -> di
         elif node_type == "python_node":
             wrapper = str(row.get("node_function_wrapper", "") or "").strip()
             input_ports, output_ports = _infer_python_ports_from_wrapper(wrapper)
+            is_subflow_proxy = node_name in subflow_names
             python_nodes.append(
                 {
                     "name": node_name,
                     "input_ports": input_ports,
                     "output_ports": output_ports,
-                    "wrapper": wrapper,
+                    "is_subflow_proxy": is_subflow_proxy,
+                    "proxy_for_subflow": node_name if is_subflow_proxy else "",
+                    "wrapper": _truncate_text(wrapper, 1200) if is_subflow_proxy else wrapper,
                 }
             )
         elif node_type == "back_node":
@@ -1498,6 +1534,20 @@ def _build_template_workflow_inventory(workflow_json_data: dict[str, Any]) -> di
                     "to_port": "",
                 }
             )
+    subflows = []
+    for subflow in subflow_records:
+        subflow_nodes = [dict(item or {}) for item in list(subflow.get("nodes_df", []) or [])]
+        subflows.append(
+            {
+                "flow_name": str(subflow.get("flow_name", "") or "").strip(),
+                "flow_type": str(subflow.get("flow_type", "") or "").strip(),
+                "data_node_count": sum(1 for item in subflow_nodes if str(item.get("node_type", "") or "").strip() == "data_node"),
+                "python_node_count": sum(1 for item in subflow_nodes if str(item.get("node_type", "") or "").strip() == "python_node"),
+                "text_node_count": sum(1 for item in subflow_nodes if str(item.get("node_type", "") or "").strip() == "back_node"),
+                "connection_count": len(list(subflow.get("connections_df", []) or [])),
+                "input_case_count": len(list(subflow.get("inputs_df", []) or [])),
+            }
+        )
     return {
         "flow_name": str(data.get("flow_name", "") or "").strip(),
         "flow_type": str(data.get("flow_type", "") or "").strip(),
@@ -1505,6 +1555,7 @@ def _build_template_workflow_inventory(workflow_json_data: dict[str, Any]) -> di
         "python_nodes": python_nodes,
         "text_nodes": text_nodes,
         "connections": connections,
+        "subflows": subflows,
     }
 
 
@@ -1580,9 +1631,12 @@ def _heuristic_skill_matches(
     skills: list[SkillRecord],
 ) -> list[dict[str, Any]]:
     matches = []
+    query_is_btm = _looks_like_btm_text(query_text)
     for skill in list(skills or []):
         score, matched_tokens = _score_overlap(query_text, _skill_search_haystack(skill))
         score += _skill_query_alignment_bonus(skill, query_text)
+        if query_is_btm and str(getattr(skill, "skill_type", "") or "").strip() == "quest_tool_specific" and not _skill_looks_like_btm(skill):
+            continue
         if score <= 0.0:
             continue
         if score < 0.18 and len(matched_tokens) < 2:
@@ -1714,6 +1768,7 @@ def _enforce_tool_derived_skill_matches(
     )
     if not preferred_tool_ids:
         return normalized
+    btm_preferred = "btm" in preferred_tool_ids
 
     skill_lookup = {
         str(getattr(skill, "skill_id", "") or "").strip(): skill
@@ -1725,6 +1780,8 @@ def _enforce_tool_derived_skill_matches(
         skill_id = str(dict(item or {}).get("skill_id", "") or "").strip()
         skill = skill_lookup.get(skill_id)
         if skill is None:
+            return False
+        if btm_preferred and str(getattr(skill, "skill_type", "") or "").strip() == "quest_tool_specific" and not _skill_looks_like_btm(skill):
             return False
         return bool(_skill_tool_ids(skill).intersection(preferred_tool_ids))
 
@@ -2544,7 +2601,7 @@ def _coerce_bool(value: Any) -> bool:
     return text in {"1", "true", "yes", "y", "on"}
 
 
-EXACT_TEMPLATE_LOCK_CONFIDENCE = 0.95
+SKILL_TEMPLATE_REUSE_CONFIDENCE = 0.8
 
 
 def _numberish_tokens(text: str) -> list[str]:
@@ -2660,20 +2717,50 @@ def _build_path_guidance(
     ]
     missing_text = "\n".join(missing_parts).casefold()
     best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
+    matched_skill_ids = {
+        str(dict(item or {}).get("skill_id", "") or "").strip()
+        for item in list(task_match_result.get("skill_matches", []) or [])
+        if str(dict(item or {}).get("skill_id", "") or "").strip()
+    }
+    if best_workflow_template:
+        best_template_skill_id = str(best_workflow_template.get("skill_id", "") or "").strip()
+        if not matched_skill_ids or best_template_skill_id not in matched_skill_ids:
+            best_workflow_template = {}
     recipe_entries = [
         dict(item or {})
         for item in list(skill_execution_recipes.get("recipes", []) or [])
         if isinstance(item, dict)
     ]
+    preferred_tool_ids = {
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(task_match_result.get("tool_matches", []) or [])
+        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+    }
+    non_workspace_tool_ids = {tool_id for tool_id in preferred_tool_ids if tool_id != "workspace"}
     reusable_templates = []
     for recipe in recipe_entries:
+        recipe_skill_id = str(recipe.get("skill_id", "") or "").strip()
+        if not matched_skill_ids or recipe_skill_id not in matched_skill_ids:
+            continue
         workflow_template = dict(recipe.get("workflow_template", {}) or {})
         workflow_path = str(workflow_template.get("path", "") or "").strip()
         confidence = _coerce_confidence(recipe.get("confidence", 0.0))
-        if workflow_path and confidence >= 0.55:
+        recipe_tool_ids = {
+            _normalized_tool_id(value)
+            for value in (
+                list(recipe.get("recommended_tools", []) or [])
+                + list(recipe.get("required_tools", []) or [])
+                + list(recipe.get("tool_tags", []) or [])
+                + list(dict(recipe.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
+            )
+            if _normalized_tool_id(value)
+        }
+        if non_workspace_tool_ids and not (recipe_tool_ids & non_workspace_tool_ids):
+            continue
+        if workflow_path and confidence > SKILL_TEMPLATE_REUSE_CONFIDENCE:
             reusable_templates.append(
                 {
-                    "skill_id": str(recipe.get("skill_id", "") or "").strip(),
+                    "skill_id": recipe_skill_id,
                     "title": str(recipe.get("title", "") or "").strip(),
                     "confidence": confidence,
                     "workflow_path": workflow_path,
@@ -2779,7 +2866,7 @@ def _build_path_guidance(
     exact_match_lock = (
         bool(best_workflow_template)
         and not current_flow_present
-        and exact_match_confidence >= EXACT_TEMPLATE_LOCK_CONFIDENCE
+        and exact_match_confidence > SKILL_TEMPLATE_REUSE_CONFIDENCE
         and not diff_detection.get("has_diff", False)
         and not missing_parts
     )
@@ -2816,8 +2903,8 @@ def _build_path_guidance(
     if exact_match_lock:
         recommended_path = "template_json_edit_then_load"
         reason = (
-            f"Matched skill template '{str(best_workflow_template.get('title', '') or '').strip()}' is an exact-enough fit, "
-            "the canvas is empty, and no explicit differences were requested; still validate and compile an adapted workflow_content copy before loading."
+            f"Matched skill template '{str(best_workflow_template.get('title', '') or '').strip()}' scored higher than 0.8, "
+            "the canvas is empty, and no explicit differences were requested; validate and compile an adapted workflow_content copy before loading."
         ).strip()
     elif explicit_json:
         recommended_path = "draft_workflow_json_then_load"
@@ -2833,10 +2920,10 @@ def _build_path_guidance(
         reason = "The current canvas already has relevant structure, so editing the existing flow is easier than rebuilding."
     elif node_count <= 0 and reusable_templates and create_flow_request:
         recommended_path = "template_json_edit_then_load"
-        reason = "The canvas is empty, the user is creating a flow, and a reusable skill template is available, so adapting the template is the easiest starting path."
+        reason = "The canvas is empty, the user is creating a flow, and a matched skill template scored higher than 0.8, so adapting the template is the preferred starting path."
     elif reusable_templates and _request_prefers_template_json_edit(user_prompt, canvas_context):
         recommended_path = "template_json_edit_then_load"
-        reason = "A strong matched skill already has a reusable workflow template, so the easiest path is usually to edit that JSON baseline, load it, and then validate the result."
+        reason = "A matched skill template scored higher than 0.8, so the easiest path is usually to edit that JSON baseline, load it, and then validate the result."
     elif touchup_request:
         recommended_path = "edit_current_flow"
         reason = "The request looks like a touch-up on the current flow, so direct canvas edits are the simpler path."
@@ -2858,6 +2945,65 @@ def _build_path_guidance(
         "explicit_diff_detected": bool(diff_detection.get("has_diff", False)),
         "diff_reasons": list(diff_detection.get("reasons", []) or []),
     }
+
+
+def _sanitize_template_candidates(
+    task_match_result: dict[str, Any] | None,
+    skill_execution_recipes: dict[str, Any] | None,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    task_match_result = dict(task_match_result or {})
+    skill_execution_recipes = dict(skill_execution_recipes or {})
+    matched_skill_ids = {
+        str(dict(item or {}).get("skill_id", "") or "").strip()
+        for item in list(task_match_result.get("skill_matches", []) or [])
+        if str(dict(item or {}).get("skill_id", "") or "").strip()
+    }
+    if not matched_skill_ids:
+        task_match_result["best_workflow_template"] = {}
+        skill_execution_recipes["recipes"] = []
+        skill_execution_recipes["available"] = False
+        return task_match_result, skill_execution_recipes
+    preferred_tool_ids = {
+        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+        for item in list(task_match_result.get("tool_matches", []) or [])
+        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
+    }
+    non_workspace_tool_ids = {tool_id for tool_id in preferred_tool_ids if tool_id != "workspace"}
+
+    sanitized_recipes = []
+    for recipe in list(skill_execution_recipes.get("recipes", []) or []):
+        recipe = dict(recipe or {})
+        recipe_skill_id = str(recipe.get("skill_id", "") or "").strip()
+        if recipe_skill_id not in matched_skill_ids:
+            continue
+        recipe_tool_ids = {
+            _normalized_tool_id(value)
+            for value in (
+                list(recipe.get("recommended_tools", []) or [])
+                + list(recipe.get("required_tools", []) or [])
+                + list(recipe.get("tool_tags", []) or [])
+                + list(dict(recipe.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
+            )
+            if _normalized_tool_id(value)
+        }
+        if non_workspace_tool_ids and not (recipe_tool_ids & non_workspace_tool_ids):
+            continue
+        sanitized_recipes.append(recipe)
+
+    best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
+    if best_workflow_template:
+        best_skill_id = str(best_workflow_template.get("skill_id", "") or "").strip()
+        best_allowed_by_match = best_skill_id in matched_skill_ids
+        best_allowed_by_recipe = any(
+            str(dict(recipe or {}).get("skill_id", "") or "").strip() == best_skill_id
+            for recipe in sanitized_recipes
+        )
+        if not best_allowed_by_match or not best_allowed_by_recipe:
+            task_match_result["best_workflow_template"] = {}
+
+    skill_execution_recipes["recipes"] = sanitized_recipes
+    skill_execution_recipes["available"] = bool(sanitized_recipes)
+    return task_match_result, skill_execution_recipes
 
 
 def _canvas_node_name_lookup(canvas_context: dict[str, Any]) -> dict[str, str]:
@@ -4369,6 +4515,10 @@ def run_workspace_action_plan(
     canvas_context = dict(canvas_context or {})
     task_match_result = dict(task_match_result or {})
     skill_execution_recipes = dict(skill_execution_recipes or {})
+    task_match_result, skill_execution_recipes = _sanitize_template_candidates(
+        task_match_result,
+        skill_execution_recipes,
+    )
     conversation = _recent_conversation(recent_messages)
     build_path_guidance = _build_path_guidance(
         user_prompt,

@@ -281,12 +281,27 @@ def _find_node_by_name(workflow, node_name):
     except Exception:
         all_nodes = []
     target_key = target_name.casefold()
+    normalized_target_keys = {target_key}
+    try:
+        if hasattr(workflow, "_sanitize_python_identifier"):
+            normalized_target_keys.add(
+                str(workflow._sanitize_python_identifier(target_name, fallback="node", suffix="node") or "").strip().casefold()
+            )
+    except Exception:
+        pass
+    try:
+        if hasattr(workflow, "_sanitize_data_output_name"):
+            normalized_target_keys.add(
+                str(workflow._sanitize_data_output_name(target_name) or "").strip().casefold()
+            )
+    except Exception:
+        pass
     for node in all_nodes:
         try:
             current_name = str(node.name() or "").strip()
         except Exception:
             current_name = ""
-        if current_name.casefold() == target_key:
+        if current_name.casefold() in normalized_target_keys:
             return node
     return None
 
@@ -437,6 +452,7 @@ def _load_workflow_json_into_current_workflow(workflow, action):
     workflow_path = str(dict(action or {}).get("workflow_path", "") or "").strip()
     workflow_content = dict(action.get("workflow_content", {}) or {}) if isinstance(action.get("workflow_content"), dict) else {}
     source_skill_id = str(dict(action or {}).get("source_skill_id", "") or "").strip()
+    loaded_from_content = False
 
     if workflow_path:
         normalized_path = os.path.normpath(workflow_path)
@@ -463,6 +479,7 @@ def _load_workflow_json_into_current_workflow(workflow, action):
     elif workflow_content:
         normalized_path = ""
         flow_json_data = workflow_content
+        loaded_from_content = True
     else:
         return False, "load_workflow_json requires workflow_path or workflow_content."
 
@@ -474,15 +491,26 @@ def _load_workflow_json_into_current_workflow(workflow, action):
     if "nodes_df" not in flow_json_data or "flow_layout" not in flow_json_data:
         return False, "load_workflow_json requires workflow JSON with nodes_df and flow_layout."
 
-    requested_flow_type = str(flow_json_data.get("flow_type", "sub-flow") or "").strip().lower()
-    if requested_flow_type not in {"master-flow", "sub-flow"}:
-        requested_flow_type = "sub-flow"
     has_subflows = isinstance(flow_json_data.get("subflows_df"), list) and len(flow_json_data.get("subflows_df", []) or []) > 0
+    requested_flow_type = _infer_workflow_json_flow_type(flow_json_data, has_subflows=has_subflows)
+    flow_json_data["flow_type"] = requested_flow_type
+    if loaded_from_content:
+        try:
+            normalized_path = _write_workflow_content_working_copy(flow_json_data, source_skill_id)
+            action["workflow_path"] = normalized_path
+            action["workflow_content_path"] = normalized_path
+        except Exception as exc:
+            return False, f"load_workflow_json failed to save adapted workflow JSON before loading: {exc}"
+
     parent_workspace = workflow._find_workspace_parent() if hasattr(workflow, "_find_workspace_parent") else None
     is_master_context = parent_workspace is not None and getattr(parent_workspace, "master_workflow", None) is workflow
+    target_workflow = workflow
 
     try:
         if requested_flow_type == "master-flow" and has_subflows:
+            if parent_workspace is not None and getattr(parent_workspace, "master_workflow", None) is not None:
+                target_workflow = parent_workspace.master_workflow
+                is_master_context = True
             if not is_master_context or parent_workspace is None or not hasattr(parent_workspace, "_load_master_flow_json_data"):
                 return False, "load_workflow_json cannot load a master flow with subflows into the current tab."
             parent_workspace._load_master_flow_json_data(flow_json_data, normalized_path or "")
@@ -497,17 +525,39 @@ def _load_workflow_json_into_current_workflow(workflow, action):
             else:
                 workflow._deserialize_flow_json_data(flow_json_data)
 
-        if normalized_path and hasattr(workflow, "_set_current_flow_json_path"):
-            workflow._set_current_flow_json_path(normalized_path)
-        if normalized_path and hasattr(workflow, "_set_quest_agent_current_flow_attachment"):
-            workflow._set_quest_agent_current_flow_attachment(normalized_path)
-        if hasattr(workflow, "_refresh_notebook_ui_after_file_load"):
-            workflow._refresh_notebook_ui_after_file_load()
+        if normalized_path and hasattr(target_workflow, "_set_current_flow_json_path"):
+            target_workflow._set_current_flow_json_path(normalized_path)
+        if normalized_path and hasattr(target_workflow, "_set_quest_agent_current_flow_attachment"):
+            target_workflow._set_quest_agent_current_flow_attachment(normalized_path)
+        if hasattr(target_workflow, "_refresh_notebook_ui_after_file_load"):
+            target_workflow._refresh_notebook_ui_after_file_load()
         if parent_workspace is not None and hasattr(parent_workspace, "sync_workflow_ui"):
-            parent_workspace.sync_workflow_ui(workflow)
+            parent_workspace.sync_workflow_ui(target_workflow)
         return True, ""
     except Exception as exc:
         return False, f"load_workflow_json failed: {exc}"
+
+
+def _infer_workflow_json_flow_type(flow_json_data, has_subflows=False):
+    requested_flow_type = str(dict(flow_json_data or {}).get("flow_type", "") or "").strip().lower()
+    if requested_flow_type in {"master-flow", "master_flow", "master"}:
+        return "master-flow"
+    if requested_flow_type in {"sub-flow", "sub_flow", "subflow", "sub"}:
+        return "sub-flow"
+    return "master-flow" if has_subflows else "sub-flow"
+
+
+def _write_workflow_content_working_copy(flow_json_data, source_skill_id=""):
+    working_dir = os.path.join(tempfile.gettempdir(), "quest_skill_template_working_copies")
+    os.makedirs(working_dir, exist_ok=True)
+    safe_skill_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(source_skill_id or "")).strip("_") or "adapted_workflow"
+    flow_name = str(dict(flow_json_data or {}).get("flow_name", "") or "").strip() or "workflow_content"
+    safe_flow_name = re.sub(r"[^A-Za-z0-9_.-]+", "_", flow_name).strip("_") or "workflow_content"
+    copy_name = f"{safe_skill_id}_{safe_flow_name}_{int(time.time() * 1000)}.json"
+    working_path = os.path.normpath(os.path.join(working_dir, copy_name))
+    with open(working_path, "w", encoding="utf-8") as handle:
+        json.dump(flow_json_data, handle, ensure_ascii=False, indent=2)
+    return working_path
 
 
 def _normalize_workflow_json_payload(flow_json_data):

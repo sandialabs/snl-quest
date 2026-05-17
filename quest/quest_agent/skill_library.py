@@ -183,9 +183,22 @@ def _effective_skill_type(
     recommended_tools = [str(tool_id or "").strip() for tool_id in list(recommended_tools or []) if str(tool_id or "").strip()]
     required_tools = [str(tool_id or "").strip() for tool_id in list(required_tools or []) if str(tool_id or "").strip()]
     tool_set = set(recommended_tools + required_tools)
-    if tool_set and tool_set.issubset(WORKSPACE_ONLY_TOOL_IDS):
+    if not tool_set or tool_set.issubset(WORKSPACE_ONLY_TOOL_IDS):
         return "general_python"
     return str(declared_skill_type or "").strip()
+
+
+def _effective_skill_tools(
+    declared_skill_type: str,
+    recommended_tools: list[str] | None = None,
+    required_tools: list[str] | None = None,
+) -> tuple[list[str], list[str]]:
+    effective_type = _effective_skill_type(declared_skill_type, recommended_tools, required_tools)
+    recommended = [str(tool_id or "").strip() for tool_id in list(recommended_tools or []) if str(tool_id or "").strip()]
+    required = [str(tool_id or "").strip() for tool_id in list(required_tools or []) if str(tool_id or "").strip()]
+    if effective_type == "general_python":
+        return [], []
+    return recommended, required
 
 
 def validate_skill_json(data: dict[str, Any], skill_folder: str | Path, expected_type: str) -> dict[str, Any]:
@@ -407,15 +420,21 @@ def load_skill_folder(skill_folder: str | Path, expected_type: str) -> SkillReco
     action_record_section = normalized.get("action_record", {}) if isinstance(normalized.get("action_record", {}), dict) else {}
     action_record_relative = str(action_record_section.get("path", "") or "")
     action_record_entries = list(action_record_section.get("records", []) or [])
+    effective_type = _effective_skill_type(
+        str(normalized["skill_type"]),
+        list(normalized["tools"].get("recommended", [])),
+        list(normalized["tools"].get("required", [])),
+    )
+    effective_recommended_tools, effective_required_tools = _effective_skill_tools(
+        str(normalized["skill_type"]),
+        list(normalized["tools"].get("recommended", [])),
+        list(normalized["tools"].get("required", [])),
+    )
 
     return SkillRecord(
         skill_id=str(normalized["skill_id"]),
         slug=str(normalized["slug"]),
-        skill_type=_effective_skill_type(
-            str(normalized["skill_type"]),
-            list(normalized["tools"].get("recommended", [])),
-            list(normalized["tools"].get("required", [])),
-        ),
+        skill_type=effective_type,
         skill_level=str(normalized.get("skill_level", "Competent") or "Competent"),
         skill_mode=str(normalized.get("plan", {}).get("skill_mode", "build") or "build"),
         title=str(normalized["title"]),
@@ -427,8 +446,8 @@ def load_skill_folder(skill_folder: str | Path, expected_type: str) -> SkillReco
         tool_tags=list(normalized["classification"].get("tool_tags", [])),
         structural_tags=list(normalized["classification"].get("structural_tags", [])),
         task_pattern_tags=list(normalized["classification"].get("task_pattern_tags", [])),
-        recommended_tools=list(normalized["tools"].get("recommended", [])),
-        required_tools=list(normalized["tools"].get("required", [])),
+        recommended_tools=effective_recommended_tools,
+        required_tools=effective_required_tools,
         folder_path=skill_folder.as_posix(),
         skill_json_path=skill_json_path.as_posix(),
         skill_md_path=skill_md_path.as_posix(),

@@ -214,6 +214,7 @@ def _quest_agent_refresh_context_payload_snapshot(state_snapshot, context_payloa
     payload.setdefault("workspace_relationship_context", {})
     recent_messages = list(state_snapshot.get("chat_messages", []) or [])
     payload["recent_messages"] = recent_messages
+    payload["task_match_results"] = dict(state_snapshot.get("task_match_results", {}) or {})
     if quest_agent_context_service is None:
         payload.setdefault("pinned_context", [])
         payload.setdefault("implicit_code_context", [])
@@ -4524,6 +4525,141 @@ class quest_workflow(QWidget):
             })
         return steps
 
+    def _quest_agent_current_matched_skill_ids(self):
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        return {
+            str(dict(item or {}).get("skill_id", "") or "").strip()
+            for item in list(result.get("skill_matches", []) or [])
+            if str(dict(item or {}).get("skill_id", "") or "").strip()
+        }
+
+    def _quest_agent_eligible_template_skill_ids(self, action_plan=None):
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        related_tool_ids = {
+            str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
+            for item in list(result.get("tool_matches", []) or [])
+            if str(dict(item or {}).get("tool_id", "") or "").strip()
+            and str(dict(item or {}).get("tool_id", "") or "").strip().casefold() != "workspace"
+        }
+        related_tool_ids.update(self._quest_agent_inferred_tool_ids_from_current_task(action_plan))
+        matched_confidence = {}
+        for item in list(result.get("skill_matches", []) or []):
+            skill_id = str(dict(item or {}).get("skill_id", "") or "").strip()
+            if not skill_id:
+                continue
+            try:
+                confidence = float(dict(item or {}).get("confidence", 0.0) or 0.0)
+            except Exception:
+                confidence = 0.0
+            matched_confidence[skill_id] = confidence
+        if not matched_confidence:
+            return set()
+        eligible = set()
+        for skill in list(self.quest_agent_state.get("loaded_skills", []) or []):
+            skill_id = str(getattr(skill, "skill_id", "") or "").strip()
+            if not skill_id or skill_id not in matched_confidence:
+                continue
+            if matched_confidence.get(skill_id, 0.0) <= 0.8:
+                continue
+            workflow_path = str(getattr(skill, "workflow_json_path", "") or "").strip()
+            if not workflow_path:
+                continue
+            skill_tools = {
+                str(tool_id or "").strip().casefold()
+                for tool_id in (
+                    list(getattr(skill, "recommended_tools", []) or [])
+                    + list(getattr(skill, "required_tools", []) or [])
+                    + list(getattr(skill, "tool_tags", []) or [])
+                )
+                if str(tool_id or "").strip() and str(tool_id or "").strip().casefold() != "workspace"
+            }
+            if related_tool_ids and not skill_tools.intersection(related_tool_ids):
+                continue
+            eligible.add(skill_id)
+        return eligible
+
+    def _quest_agent_inferred_tool_ids_from_current_task(self, action_plan=None):
+        result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
+        plan = dict(action_plan or {})
+        text = "\n".join(
+            str(value or "").strip()
+            for value in (
+                result.get("task", ""),
+                result.get("project_description", ""),
+                result.get("flow_description", ""),
+                self.quest_agent_state.get("pending_canvas_prompt", ""),
+                plan.get("goal_prompt", ""),
+                plan.get("reply", ""),
+                plan.get("path_reason", ""),
+            )
+            if str(value or "").strip()
+        ).casefold()
+        if not text:
+            return set()
+        tools = []
+        if write_active_tool_registry is not None and get_quest_agent_root is not None:
+            try:
+                registry = write_active_tool_registry(get_quest_agent_root())
+                tools = list(dict(registry or {}).get("tools", []) or [])
+            except Exception:
+                tools = []
+        inferred = set()
+        normalized_text = text.replace("_", " ").replace("-", " ")
+        if any(
+            phrase in normalized_text
+            for phrase in (
+                "btm",
+                "behind the meter",
+                "behindthemeter",
+                "tariff savings",
+                "cost savings",
+                "pv profile",
+                "load profile",
+                "battery optimization",
+                "storage optimization",
+            )
+        ):
+            inferred.add("btm")
+        for tool in tools:
+            tool = dict(tool or {})
+            tool_id = str(tool.get("tool_id", "") or "").strip().casefold()
+            if not tool_id or tool_id == "workspace":
+                continue
+            phrases = [
+                str(tool.get("name", "") or ""),
+                str(tool.get("search_key", "") or ""),
+                *list(tool.get("aliases", []) or []),
+                *list(tool.get("typical_tasks", []) or []),
+            ]
+            if tool_id == "btm":
+                phrases.extend(["behind the meter", "behind-the-meter", "tariff savings", "cost savings", "pv profile", "load profile"])
+            for phrase in phrases:
+                cleaned = str(phrase or "").strip().casefold().replace("_", " ").replace("-", " ")
+                if len(cleaned) < 3:
+                    continue
+                if cleaned in normalized_text:
+                    inferred.add(tool_id)
+                    break
+        return inferred
+
+    def _sanitize_quest_agent_canvas_plan_templates(self, action_plan):
+        plan = dict(action_plan or {})
+        eligible_skill_ids = self._quest_agent_eligible_template_skill_ids(plan)
+        filtered_actions = []
+        dropped_actions = list(plan.get("dropped_actions", []) or [])
+        for action in list(plan.get("actions", []) or []):
+            item = dict(action or {})
+            action_type = str(item.get("type", "") or "").strip()
+            source_skill_id = str(item.get("source_skill_id", "") or "").strip()
+            if action_type == "load_workflow_json" and source_skill_id and source_skill_id not in eligible_skill_ids:
+                dropped_actions.append(f"Dropped template load from ineligible skill '{source_skill_id}'.")
+                continue
+            filtered_actions.append(item)
+        plan["actions"] = filtered_actions
+        if dropped_actions:
+            plan["dropped_actions"] = dropped_actions
+        return plan
+
     def _describe_quest_agent_canvas_action(self, action):
         item = dict(action or {})
         action_type = str(item.get("type", "") or "").strip()
@@ -4600,6 +4736,8 @@ class quest_workflow(QWidget):
         if action_type == "load_workflow_json":
             source_skill_id = str(item.get("source_skill_id", "") or "").strip()
             workflow_path = str(item.get("workflow_path", "") or "").strip()
+            if isinstance(item.get("workflow_content"), dict):
+                return "Load the adapted workflow JSON into the current flow."
             if source_skill_id:
                 return f"Load the matched workflow template from skill `{source_skill_id}`."
             if workflow_path:
@@ -4669,6 +4807,7 @@ class quest_workflow(QWidget):
         return f"{text}\n\n{notes}" if text else notes
 
     def _build_quest_agent_canvas_plan_preview(self, action_plan):
+        action_plan = self._sanitize_quest_agent_canvas_plan_templates(action_plan)
         if bool(dict(action_plan or {}).get("flow_already_valid", False)):
             reply_text = str(dict(action_plan or {}).get("reply", "") or "").strip()
             lines = [reply_text] if reply_text else ["The current flow already satisfies the task. No canvas changes are needed."]
@@ -4737,7 +4876,7 @@ class quest_workflow(QWidget):
 
     def _store_quest_agent_pending_canvas_plan(self, prompt_text, action_plan):
         normalized_prompt = self._normalize_quest_agent_prompt_text(prompt_text)
-        plan = dict(action_plan or {})
+        plan = self._sanitize_quest_agent_canvas_plan_templates(action_plan)
         if normalized_prompt and not str(plan.get("goal_prompt", "") or "").strip():
             plan["goal_prompt"] = normalized_prompt
         steps = self._expand_quest_agent_canvas_plan_steps(plan)
@@ -5246,11 +5385,13 @@ class quest_workflow(QWidget):
             if node_type == "data":
                 variable_name = str(record.get("node_input_variable", "") or "").strip()
                 port_name = variable_name or (output_ports[0] if output_ports else "output")
+                is_from_master = self._coerce_yaml_bool(record.get("node_is_from_master", False))
                 data_nodes.append({
                     "name": node_name,
                     "port": port_name,
                     "value": str(record.get("node_input_value", "") or "").strip(),
                     "variable_name": variable_name,
+                    "is_from_master": is_from_master,
                 })
             elif node_type == "py":
                 wrapper_text = str(record.get("node_function_wrapper", "") or "").strip()
@@ -5284,9 +5425,10 @@ class quest_workflow(QWidget):
             port_name = str(entry.get("port", "") or "").strip()
             node_name = str(entry.get("name", "") or "").strip()
             node_value = str(entry.get("value", "") or "").strip()
+            is_from_master = self._coerce_yaml_bool(entry.get("is_from_master", False))
             if not variable_name:
                 missing_parts.append(f"Data node `{node_name}` is missing its output variable name.")
-            if not node_value:
+            if not node_value and not is_from_master:
                 missing_parts.append(f"Data node `{node_name}` has no initialized value.")
             if port_name:
                 data_sources_by_port.setdefault(port_name.casefold(), []).append((node_name, port_name))
@@ -5543,10 +5685,10 @@ class quest_workflow(QWidget):
     def _quest_agent_reconcile_tool_derived_skills(self, result):
         enriched = dict(result or {})
         related_tool_ids = {
-            str(dict(item or {}).get("tool_id", "") or "").strip()
+            str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
             for item in list(enriched.get("tool_matches", []) or [])
             if str(dict(item or {}).get("tool_id", "") or "").strip()
-            and str(dict(item or {}).get("tool_id", "") or "").strip() != "workspace"
+            and str(dict(item or {}).get("tool_id", "") or "").strip().casefold() != "workspace"
         }
         if not related_tool_ids:
             return enriched
@@ -5564,11 +5706,11 @@ class quest_workflow(QWidget):
             skill_tools = set()
             if skill_record is not None:
                 skill_tools = {
-                    str(tool_id or "").strip()
+                    str(tool_id or "").strip().casefold()
                     for tool_id in list(getattr(skill_record, "recommended_tools", []) or [])
                     + list(getattr(skill_record, "required_tools", []) or [])
                     + list(getattr(skill_record, "tool_tags", []) or [])
-                    if str(tool_id or "").strip() and str(tool_id or "").strip() != "workspace"
+                    if str(tool_id or "").strip() and str(tool_id or "").strip().casefold() != "workspace"
                 }
             if skill_tools.intersection(related_tool_ids):
                 existing_matches.append(dict(item or {}))
@@ -5578,11 +5720,11 @@ class quest_workflow(QWidget):
             if not skill_id or skill_id in existing_ids:
                 continue
             skill_tools = {
-                str(tool_id or "").strip()
+                str(tool_id or "").strip().casefold()
                 for tool_id in list(getattr(skill, "recommended_tools", []) or [])
                 + list(getattr(skill, "required_tools", []) or [])
                 + list(getattr(skill, "tool_tags", []) or [])
-                if str(tool_id or "").strip() and str(tool_id or "").strip() != "workspace"
+                if str(tool_id or "").strip() and str(tool_id or "").strip().casefold() != "workspace"
             }
             overlap = sorted(skill_tools.intersection(related_tool_ids))
             if not overlap:
@@ -5591,7 +5733,7 @@ class quest_workflow(QWidget):
                 "skill_id": skill_id,
                 "title": str(getattr(skill, "title", "") or skill_id).strip(),
                 "skill_type": str(getattr(skill, "skill_type", "") or "").strip(),
-                "confidence": 0.8 if str(getattr(skill, "skill_type", "") or "") == "quest_tool_specific" else 0.55,
+                "confidence": 0.85 if str(getattr(skill, "skill_type", "") or "") == "quest_tool_specific" else 0.55,
                 "reason": "Derived from related tools: " + ", ".join(overlap),
             })
             existing_ids.add(skill_id)
@@ -5604,6 +5746,36 @@ class quest_workflow(QWidget):
         enriched["skill_matches"] = existing_matches[:8]
         if existing_matches:
             enriched["strategy"] = "use_quest_skill"
+            best_template = dict(enriched.get("best_workflow_template", {}) or {})
+            best_confidence = float(best_template.get("confidence", 0.0) or 0.0) if best_template else 0.0
+            best_skill_id = str(best_template.get("skill_id", "") or "").strip()
+            best_skill = next((skill for skill in skill_records if str(getattr(skill, "skill_id", "") or "").strip() == best_skill_id), None)
+            best_skill_tools = {
+                str(tool_id or "").strip().casefold()
+                for tool_id in (
+                    list(getattr(best_skill, "recommended_tools", []) or [])
+                    + list(getattr(best_skill, "required_tools", []) or [])
+                    + list(getattr(best_skill, "tool_tags", []) or [])
+                )
+                if str(tool_id or "").strip() and str(tool_id or "").strip().casefold() != "workspace"
+            } if best_skill is not None else set()
+            if best_template and not best_skill_tools.intersection(related_tool_ids):
+                best_template = {}
+                best_confidence = 0.0
+            if best_confidence <= 0.8:
+                top_match = dict(existing_matches[0] or {})
+                top_skill_id = str(top_match.get("skill_id", "") or "").strip()
+                top_skill = next((skill for skill in skill_records if str(getattr(skill, "skill_id", "") or "").strip() == top_skill_id), None)
+                workflow_path = str(getattr(top_skill, "workflow_json_path", "") or "").strip() if top_skill is not None else ""
+                if workflow_path:
+                    enriched["best_workflow_template"] = {
+                        "skill_id": top_skill_id,
+                        "title": str(getattr(top_skill, "title", "") or top_match.get("title", "") or top_skill_id).strip(),
+                        "skill_type": str(getattr(top_skill, "skill_type", "") or top_match.get("skill_type", "") or "").strip(),
+                        "confidence": float(top_match.get("confidence", 0.0) or 0.0),
+                        "reason": str(top_match.get("reason", "") or "Derived from related tools.").strip(),
+                        "workflow_json_path": workflow_path,
+                    }
         return enriched
 
     def _quest_agent_format_structured_flow_analysis_lines(self, analysis):
@@ -5612,7 +5784,8 @@ class quest_workflow(QWidget):
                 [
                     str(item.get("name", "") or "").strip(),
                     str(item.get("port", "") or "").strip(),
-                    str(item.get("value", "") or "").strip(),
+                    str(item.get("value", "") or "").strip()
+                    or ("<from master>" if self._coerce_yaml_bool(item.get("is_from_master", False)) else ""),
                 ]
                 for item in list(summary.get("data_nodes", []) or [])
             ]
@@ -5692,12 +5865,56 @@ class quest_workflow(QWidget):
             return False
         snapshot = self._quest_agent_snapshot_workflow(workflow)
         nodes_by_name = dict(snapshot.get("nodes_by_name", {}) or {})
+
+        def _candidate_node_keys(name):
+            text = str(name or "").strip()
+            keys = []
+            if text:
+                keys.append(text.casefold())
+            try:
+                if hasattr(workflow, "_sanitize_python_identifier"):
+                    normalized = str(workflow._sanitize_python_identifier(text, fallback="node", suffix="node") or "").strip()
+                    if normalized:
+                        keys.append(normalized.casefold())
+            except Exception:
+                pass
+            try:
+                if hasattr(workflow, "_sanitize_data_output_name"):
+                    normalized = str(workflow._sanitize_data_output_name(text) or "").strip()
+                    if normalized:
+                        keys.append(normalized.casefold())
+            except Exception:
+                pass
+            return [key for index, key in enumerate(keys) if key and key not in keys[:index]]
+
+        def _record_for_action_node(name):
+            for key in _candidate_node_keys(name):
+                record = dict(nodes_by_name.get(key, {}) or {})
+                if record:
+                    return record
+            return {}
+
+        def _resolved_node_name(name):
+            record = _record_for_action_node(name)
+            return str(record.get("node_name", "") or name or "").strip()
+
         if action_type == "create_node":
             node_type = str(item.get("node_type", "") or "").strip()
             node_name = str(item.get("name", "") or "").strip()
             if not node_name:
                 return True
-            record = dict(nodes_by_name.get(node_name.casefold(), {}) or {})
+            record = _record_for_action_node(node_name)
+            if not record and node_type == "data":
+                expected_var = str(item.get("variable_name", "") or "").strip()
+                expected_value = str(item.get("value", "") or "")
+                for candidate in list(nodes_by_name.values()):
+                    candidate = dict(candidate or {})
+                    if expected_var and str(candidate.get("node_input_variable", "") or "").strip() != expected_var:
+                        continue
+                    if "value" in item and str(candidate.get("node_input_value", "") or "") != expected_value:
+                        continue
+                    record = candidate
+                    break
             if not record:
                 return False
             if node_type == "data":
@@ -5744,13 +5961,15 @@ class quest_workflow(QWidget):
         if action_type == "connect_nodes":
             source_name = str(item.get("source_node", "") or item.get("from_node", "") or "").strip()
             target_name = str(item.get("target_node", "") or item.get("to_node", "") or "").strip()
+            resolved_source_name = _resolved_node_name(source_name)
+            resolved_target_name = _resolved_node_name(target_name)
             mapping = item.get("mapping")
             if isinstance(mapping, dict) and mapping:
                 for source_port, target_port in mapping.items():
                     edge = (
-                        source_name.casefold(),
+                        resolved_source_name.casefold(),
                         str(source_port or "").strip().casefold(),
-                        target_name.casefold(),
+                        resolved_target_name.casefold(),
                         str(target_port or "").strip().casefold(),
                     )
                     if edge not in set(snapshot.get("edges", set()) or set()):
@@ -5759,9 +5978,9 @@ class quest_workflow(QWidget):
             source_port = str(item.get("source_port", "") or "").strip()
             target_port = str(item.get("target_port", "") or "").strip()
             edge = (
-                source_name.casefold(),
+                resolved_source_name.casefold(),
                 source_port.casefold(),
-                target_name.casefold(),
+                resolved_target_name.casefold(),
                 target_port.casefold(),
             )
             return edge in set(snapshot.get("edges", set()) or set())
@@ -5771,7 +5990,7 @@ class quest_workflow(QWidget):
             lookup_name = new_name or node_name
             if not lookup_name:
                 return False
-            record = dict(nodes_by_name.get(lookup_name.casefold(), {}) or {})
+            record = _record_for_action_node(lookup_name)
             if not record:
                 return False
             if "variable_name" in item:
@@ -5808,7 +6027,7 @@ class quest_workflow(QWidget):
             node_name = str(item.get("node_name", "") or item.get("name", "") or item.get("target_node", "") or "").strip()
             if not node_name:
                 return False
-            return node_name.casefold() not in nodes_by_name
+            return not bool(_record_for_action_node(node_name))
         return True
 
     def _quest_agent_missing_canvas_steps_from_plan(self):
@@ -6478,6 +6697,7 @@ class quest_workflow(QWidget):
         )
 
     def _execute_quest_agent_canvas_actions(self, action_plan):
+        action_plan = self._sanitize_quest_agent_canvas_plan_templates(action_plan)
         workflow = self._get_quest_agent_target_workflow()
         action_count = len(list(dict(action_plan or {}).get("actions", []) or []))
         self._append_quest_agent_mcp_message_log(

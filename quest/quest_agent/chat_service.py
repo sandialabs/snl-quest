@@ -741,24 +741,57 @@ def should_refresh_analysis_before_canvas_plan(user_prompt, state, route_result=
 
 
 def _build_reusable_skill_workflow_plan(context_payload):
-    recipes = list(dict(context_payload or {}).get("skill_execution_recipes", {}).get("recipes", []) or [])
+    payload = dict(context_payload or {})
+    recipes = list(payload.get("skill_execution_recipes", {}).get("recipes", []) or [])
+    task_match_result = dict(payload.get("task_match_results", {}) or {})
+    matched_skill_ids = {
+        str(dict(item or {}).get("skill_id", "") or "").strip()
+        for item in list(task_match_result.get("skill_matches", []) or [])
+        if str(dict(item or {}).get("skill_id", "") or "").strip()
+    }
+    if not matched_skill_ids:
+        return {}
+    matched_tool_ids = {
+        str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
+        for item in list(task_match_result.get("tool_matches", []) or [])
+        if str(dict(item or {}).get("tool_id", "") or "").strip()
+    }
+    non_workspace_tool_ids = {tool_id for tool_id in matched_tool_ids if tool_id != "workspace"}
     candidates = []
     for recipe in recipes:
         recipe = dict(recipe or {})
+        skill_id = str(recipe.get("skill_id", "") or "").strip()
+        if skill_id not in matched_skill_ids:
+            continue
         try:
             confidence = float(recipe.get("confidence", 0.0) or 0.0)
         except Exception:
             confidence = 0.0
         workflow_template = dict(recipe.get("workflow_template", {}) or {})
         workflow_path = str(workflow_template.get("path", "") or "").strip()
-        if not workflow_path or confidence < 0.55:
+        if not workflow_path or confidence <= 0.8:
+            continue
+        recipe_tool_ids = {
+            str(value or "").strip().casefold()
+            for value in (
+                list(recipe.get("recommended_tools", []) or [])
+                + list(recipe.get("required_tools", []) or [])
+                + list(recipe.get("tool_tags", []) or [])
+                + list(dict(recipe.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
+            )
+            if str(value or "").strip()
+        }
+        if recipe_tool_ids == {"workspace"}:
+            recipe_tool_ids = set()
+        if non_workspace_tool_ids and not (recipe_tool_ids & non_workspace_tool_ids):
             continue
         candidates.append(
             {
-                "skill_id": str(recipe.get("skill_id", "") or "").strip(),
+                "skill_id": skill_id,
                 "title": str(recipe.get("title", "") or "").strip(),
                 "confidence": confidence,
                 "workflow_path": workflow_path,
+                "tool_ids": sorted(recipe_tool_ids),
             }
         )
     if not candidates:
@@ -780,11 +813,80 @@ def _build_reusable_skill_workflow_plan(context_payload):
         "planning_source": "deterministic_skill_template",
         "planning_path": "reuse_skill_workflow_json",
         "path_reason": (
-            f"Loaded the matched skill template '{title}' because the canvas is empty and a strong reusable workflow example already exists."
+            f"Loaded the matched skill template '{title}' because the canvas is empty and the matched skill score is higher than 0.8."
             if title else
-            "Loaded a strong matched skill template because the canvas is empty and a reusable workflow example already exists."
+            "Loaded a strong matched skill template because the canvas is empty and the matched skill score is higher than 0.8."
         ),
     }
+
+
+def _eligible_template_skill_ids(context_payload):
+    payload = dict(context_payload or {})
+    task_match_result = dict(payload.get("task_match_results", {}) or {})
+    matched_skill_ids = {
+        str(dict(item or {}).get("skill_id", "") or "").strip()
+        for item in list(task_match_result.get("skill_matches", []) or [])
+        if str(dict(item or {}).get("skill_id", "") or "").strip()
+    }
+    if not matched_skill_ids:
+        return set()
+    matched_tool_ids = {
+        str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
+        for item in list(task_match_result.get("tool_matches", []) or [])
+        if str(dict(item or {}).get("tool_id", "") or "").strip()
+    }
+    non_workspace_tool_ids = {tool_id for tool_id in matched_tool_ids if tool_id != "workspace"}
+    eligible = set()
+    for recipe in list(dict(payload.get("skill_execution_recipes", {}) or {}).get("recipes", []) or []):
+        recipe = dict(recipe or {})
+        skill_id = str(recipe.get("skill_id", "") or "").strip()
+        if skill_id not in matched_skill_ids:
+            continue
+        try:
+            confidence = float(recipe.get("confidence", 0.0) or 0.0)
+        except Exception:
+            confidence = 0.0
+        workflow_template = dict(recipe.get("workflow_template", {}) or {})
+        workflow_path = str(workflow_template.get("path", "") or "").strip()
+        if not workflow_path or confidence <= 0.8:
+            continue
+        recipe_tool_ids = {
+            str(value or "").strip().casefold()
+            for value in (
+                list(recipe.get("recommended_tools", []) or [])
+                + list(recipe.get("required_tools", []) or [])
+                + list(recipe.get("tool_tags", []) or [])
+                + list(dict(recipe.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
+            )
+            if str(value or "").strip()
+        }
+        if recipe_tool_ids == {"workspace"}:
+            recipe_tool_ids = set()
+        if non_workspace_tool_ids and not (recipe_tool_ids & non_workspace_tool_ids):
+            continue
+        eligible.add(skill_id)
+    return eligible
+
+
+def _drop_unmatched_template_load_actions(plan, context_payload):
+    finalized = dict(plan or {})
+    eligible_skill_ids = _eligible_template_skill_ids(context_payload)
+    kept_actions = []
+    dropped = list(finalized.get("dropped_actions", []) or [])
+    for action in list(finalized.get("actions", []) or []):
+        item = dict(action or {})
+        action_type = str(item.get("type", "") or "").strip()
+        source_skill_id = str(item.get("source_skill_id", "") or "").strip()
+        if action_type == "load_workflow_json" and source_skill_id and source_skill_id not in eligible_skill_ids:
+            dropped.append(
+                f"Dropped template load from ineligible skill '{source_skill_id}'."
+            )
+            continue
+        kept_actions.append(item)
+    finalized["actions"] = kept_actions
+    if dropped:
+        finalized["dropped_actions"] = dropped
+    return finalized
 
 
 def _is_simple_deterministic_canvas_plan(plan):
@@ -915,6 +1017,9 @@ def plan_canvas_actions(
     fallback_plan = {"reply": "", "actions": []} if analysis_driven else _fallback_canvas_plan(user_prompt, canvas_context)
     direct_workspace_action = False if analysis_driven else _looks_like_direct_workspace_action_request(user_prompt)
     simple_direct_plan = direct_workspace_action and _is_simple_deterministic_canvas_plan(fallback_plan)
+    context_payload = dict(context_payload or {})
+    if "task_match_results" not in context_payload:
+        context_payload["task_match_results"] = dict((state or {}).get("task_match_results", {}) or {})
     reusable_template_plan = {} if direct_workspace_action else _build_reusable_skill_workflow_plan(context_payload)
     existing_value_update_action = _extract_existing_node_value_update_action(user_prompt, canvas_context)
     revision_request = _extract_revision_request(user_prompt)
@@ -963,6 +1068,7 @@ def plan_canvas_actions(
         return _collapse_local_plan_to_single_step(fallback_plan, user_prompt, model_name)
 
     planned = dict(planned or {})
+    planned = _drop_unmatched_template_load_actions(planned, context_payload)
     node_count = len(list(dict(canvas_context or {}).get("nodes", []) or []))
     if node_count <= 0 and reusable_template_plan:
         planned_actions = list(planned.get("actions", []) or [])

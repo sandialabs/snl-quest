@@ -559,6 +559,14 @@ def _clean_list(values: Any, limit: int | None = None) -> list[str]:
     return cleaned
 
 
+def _coerce_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return bool(value)
+    return str(value or "").strip().casefold() in {"1", "true", "yes", "y", "on"}
+
+
 def _canvas_context_search_text(canvas_context: dict[str, Any] | None = None) -> str:
     context = dict(canvas_context or {})
     parts = []
@@ -861,11 +869,15 @@ def analyze_workspace_canvas(canvas_snapshot: dict[str, Any] | None = None) -> d
         if node_type == "data":
             variable_name = str(record.get("node_input_variable", "") or record.get("variable_name", "") or "").strip()
             port_name = variable_name or (output_ports[0] if output_ports else "output")
+            is_from_master = _coerce_bool(
+                record.get("node_is_from_master", record.get("is_from_master", False))
+            )
             data_nodes.append({
                 "name": node_name,
                 "port": port_name,
                 "value": str(record.get("node_input_value", "") or record.get("value", "") or "").strip(),
                 "variable_name": variable_name,
+                "is_from_master": is_from_master,
             })
         elif node_type == "py":
             wrapper_text = str(record.get("node_function_wrapper", "") or record.get("wrapper_text", "") or record.get("code", "") or "").strip()
@@ -894,9 +906,10 @@ def analyze_workspace_canvas(canvas_snapshot: dict[str, Any] | None = None) -> d
         port_name = str(entry.get("port", "") or "").strip()
         node_name = str(entry.get("name", "") or "").strip()
         node_value = str(entry.get("value", "") or "").strip()
+        is_from_master = _coerce_bool(entry.get("is_from_master", False))
         if not variable_name:
             missing_parts.append(f"Data node `{node_name}` is missing its output variable name.")
-        if not node_value:
+        if not node_value and not is_from_master:
             missing_parts.append(f"Data node `{node_name}` has no initialized value.")
         if port_name:
             data_sources_by_port.setdefault(port_name.casefold(), []).append((node_name, port_name))
@@ -983,6 +996,7 @@ def _workflow_json_to_canvas_snapshot(workflow_json: dict[str, Any] | None = Non
             "node_type": node_type,
             "node_input_variable": str(row.get("node_input_variable", "") or "").strip(),
             "node_input_value": str(row.get("node_input_value", "") or ""),
+            "node_is_from_master": _coerce_bool(row.get("node_is_from_master", False)),
             "node_function_wrapper": str(row.get("node_function_wrapper", "") or ""),
         }
         if node_type == "py":
@@ -1024,7 +1038,17 @@ def analyze_workflow_json_template(workflow_json: dict[str, Any] | None = None) 
 
 
 def _load_tools(quest_agent_root: str | Path | None = None) -> list[dict[str, Any]]:
-    registry = write_active_tool_registry(get_quest_agent_root(quest_agent_root))
+    root = get_quest_agent_root(quest_agent_root)
+    registry_path = Path(root) / "registry" / "tools.json"
+    registry = {}
+    if registry_path.exists():
+        try:
+            with registry_path.open("r", encoding="utf-8") as handle:
+                registry = json.load(handle)
+        except Exception:
+            registry = {}
+    if not isinstance(registry, dict) or not list(registry.get("tools", []) or []):
+        registry = write_active_tool_registry(root)
     return [dict(item or {}) for item in list(registry.get("tools", []) or [])]
 
 
@@ -1107,6 +1131,16 @@ def search_skills(query: str, quest_agent_root: str | Path | None = None, limit:
         text_overlap = query_tokens.intersection(skill_text_tokens)
         tool_overlap = related_tool_ids.intersection(skill_tools)
         skill_type = str(getattr(skill, "skill_type", "") or "").strip()
+        semantic_score, semantic_reasons = _score_skill_against_task(skill, task_features)
+        skill_features = _skill_workflow_features(skill)
+        suspicious_tool_specific = (
+            skill_type == "quest_tool_specific"
+            and tool_overlap
+            and bool(task_features.get("btm"))
+            and not bool(skill_features.get("btm"))
+        )
+        if suspicious_tool_specific and semantic_score < 0.35:
+            continue
         if related_tool_ids:
             if not tool_overlap and skill_type != "general_python":
                 continue
@@ -1117,17 +1151,26 @@ def search_skills(query: str, quest_agent_root: str | Path | None = None, limit:
                 continue
             if not text_overlap:
                 continue
-        score = 0.5
+        score = 0.35 + (semantic_score * 0.45)
         if tool_overlap:
-            score += 0.2
+            score += 0.35 if skill_type == "quest_tool_specific" else 0.2
         if text_overlap:
             score += 0.1
-        score = min(0.8, score)
+        if suspicious_tool_specific:
+            score -= 0.45
+            skill_type = "general_python"
+        if bool(task_features.get("btm")) and not bool(skill_features.get("btm")) and skill_type != "general_python":
+            score -= 0.35
+        score = min(0.95 if tool_overlap and skill_type == "quest_tool_specific" else 0.8, score)
+        score = max(0.0, score)
+        if score < 0.2:
+            continue
         reasons = []
         if tool_overlap:
             reasons.append("related tools: " + ", ".join(sorted(tool_overlap)[:5]))
         if text_overlap:
             reasons.append("catalog terms: " + ", ".join(sorted(text_overlap)[:6]))
+        reasons.extend(semantic_reasons[:3])
         if not reasons:
             reasons.append("general Python Workspace fallback")
         matches.append({
