@@ -1,0 +1,1019 @@
+{
+    "flow_name": "valuation_flow",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x1c03353c790": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "Power Rating",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -4.137480570793244,
+                    509.784561882845
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "1"
+                }
+            },
+            "0x1c02d9eeeb0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "Energy Capacity",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    -7.481275269350789,
+                    642.4194444192317
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "energy",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "8"
+                }
+            },
+            "0x1c02da21070": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "Round Trip",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    9.058226752034557,
+                    793.184817253611
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "rte",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": ".85"
+                }
+            },
+            "0x1c02da21460": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "iso",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    301.3016665186045,
+                    122.63897958892727
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "iso_name",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"PJM\""
+                }
+            },
+            "0x1c02da21700": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "node",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    301.58396987964557,
+                    242.58251891671904
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "node_id",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "1"
+                }
+            },
+            "0x1c02da219d0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "market",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 193.015625,
+                "height": 80,
+                "pos": [
+                    305.4321286924362,
+                    357.08691115511306
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "market_type",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"pjm_pfp\""
+                }
+            },
+            "0x1c02da21ca0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "months",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 201.453125,
+                "height": 80,
+                "pos": [
+                    313.02687078052304,
+                    477.0304504829049
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "m",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "[(\"3\",\"2018\")]"
+                }
+            },
+            "0x1c02da21f70": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\python_icon.png",
+                "name": "ess_parameters",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 103.3,
+                "pos": [
+                    311.77749110348435,
+                    590.2127414784259
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "power",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "energy",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "rte",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "ess_parameters",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1c02da38ac0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "data_location 1",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    324.137170005967,
+                    774.3474497320426
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "data_path",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "\"data\""
+                }
+            },
+            "0x1c02da386d0": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\python_icon.png",
+                "name": "op_request",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": true,
+                "visible": true,
+                "width": 180,
+                "height": 149.5,
+                "pos": [
+                    681.799714032668,
+                    336.23587819328617
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "iso",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "node",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "market",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "month",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "ess",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "request",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1c02da4ddf0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\data_icon.png",
+                "name": "Solver",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    690.6537800912499,
+                    546.6626827761581
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "solver_name",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "'glpk'"
+                }
+            },
+            "0x1c02da4d790": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\python_icon.png",
+                "name": "data_management",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    662.6989112888746,
+                    722.0333589200231
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "data_path",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "dms",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1c02da38280": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\Users\\ylpomer\\Desktop\\pub_q\\snl-quest\\quest\\images\\icons\\python_icon.png",
+                "name": "valuation",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 224.515625,
+                "height": 103.3,
+                "pos": [
+                    959.0132305473134,
+                    541.5843314079677
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "request",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "solver_name",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "dms",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "optimization_results",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            },
+            "0x1c02da4d280": {
+                "type_": "QuESt.Workspace.BackNode",
+                "icon": null,
+                "name": "Valuation Optimization Handler",
+                "color": [
+                    255,
+                    255,
+                    155
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 351.87348256581527,
+                "height": 155.07857981460972,
+                "pos": [
+                    608.5419801060743,
+                    138.52888830821817
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": false,
+                "subgraph_session": {},
+                "custom": {
+                    "backdrop_text": "This is the workprocess for setting up a valuation analysis that estimates the revenue of an energy storage system participating in ISO/RTO markets"
+                }
+            }
+        },
+        "connections": [
+            {
+                "out": [
+                    "0x1c03353c790",
+                    "power"
+                ],
+                "in": [
+                    "0x1c02da21f70",
+                    "power"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02d9eeeb0",
+                    "energy"
+                ],
+                "in": [
+                    "0x1c02da21f70",
+                    "energy"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da21070",
+                    "rte"
+                ],
+                "in": [
+                    "0x1c02da21f70",
+                    "rte"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da21460",
+                    "iso_name"
+                ],
+                "in": [
+                    "0x1c02da386d0",
+                    "iso"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da21700",
+                    "node_id"
+                ],
+                "in": [
+                    "0x1c02da386d0",
+                    "node"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da219d0",
+                    "market_type"
+                ],
+                "in": [
+                    "0x1c02da386d0",
+                    "market"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da21ca0",
+                    "m"
+                ],
+                "in": [
+                    "0x1c02da386d0",
+                    "month"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da21f70",
+                    "ess_parameters"
+                ],
+                "in": [
+                    "0x1c02da386d0",
+                    "ess"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da38ac0",
+                    "data_path"
+                ],
+                "in": [
+                    "0x1c02da4d790",
+                    "data_path"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da386d0",
+                    "request"
+                ],
+                "in": [
+                    "0x1c02da38280",
+                    "request"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da4ddf0",
+                    "solver_name"
+                ],
+                "in": [
+                    "0x1c02da38280",
+                    "solver_name"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c02da4d790",
+                    "dms"
+                ],
+                "in": [
+                    "0x1c02da38280",
+                    "dms"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x1c03353c790",
+            "node_name": "Power Rating",
+            "node_type": "data_node",
+            "node_input_variable": "power",
+            "node_input_value": "1",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02d9eeeb0",
+            "node_name": "Energy Capacity",
+            "node_type": "data_node",
+            "node_input_variable": "energy",
+            "node_input_value": "8",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da21070",
+            "node_name": "Round Trip",
+            "node_type": "data_node",
+            "node_input_variable": "rte",
+            "node_input_value": ".85",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da21460",
+            "node_name": "iso",
+            "node_type": "data_node",
+            "node_input_variable": "iso_name",
+            "node_input_value": "\"PJM\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da21700",
+            "node_name": "node",
+            "node_type": "data_node",
+            "node_input_variable": "node_id",
+            "node_input_value": "1",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da219d0",
+            "node_name": "market",
+            "node_type": "data_node",
+            "node_input_variable": "market_type",
+            "node_input_value": "\"pjm_pfp\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da21ca0",
+            "node_name": "months",
+            "node_type": "data_node",
+            "node_input_variable": "m",
+            "node_input_value": "[(\"3\",\"2018\")]",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da21f70",
+            "node_name": "ess_parameters",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def ess_parameters_function(power, energy, rte):\n    params = {}\n    params['Power_rating'] = power\n    params['Energy_capacity'] = energy\n    params['Round_trip_efficiency'] = rte\n    params['Self_discharge_efficiency'] = 1\n    params['R'] = 0\n    params['Reserve_reg_min'] = 0\n    params['Reserve_reg_max'] = 1\n    params['State_of_charge_min'] = 0\n    params['State_of_charge_max'] = 1\n    params['State_of_charge_init'] = 0.5\n    return {'ess_parameters': [params]}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da38ac0",
+            "node_name": "data_location 1",
+            "node_type": "data_node",
+            "node_input_variable": "data_path",
+            "node_input_value": "\"data\"",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da386d0",
+            "node_name": "op_request",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def op_request_function(iso, node, market, month, ess):\n    request = {}\n    request['param set'] = ess\n    request['iso'] = iso\n    request['node id'] = node\n    request['market type'] = market\n    request['months'] = month\n    return {'request': request}",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da4ddf0",
+            "node_name": "Solver",
+            "node_type": "data_node",
+            "node_input_variable": "solver_name",
+            "node_input_value": "'glpk'",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        },
+        {
+            "node_id": "0x1c02da4d790",
+            "node_name": "data_management",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def data_management_function(data_path):\n    dms = ValuationDMS(max_memory=10000, save_data=True, save_name='valuation_dms.p', home_path=data_path)\n    return {'dms': dms}",
+            "node_imports": "from valuation.es_gui.tools.valuation.valuation_dms import ValuationDMS\n"
+        },
+        {
+            "node_id": "0x1c02da38280",
+            "node_name": "valuation",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_function_wrapper": "def valuation_function(request, solver_name, dms):\n    handler = ValuationOptimizerHandler(solver_name=solver_name, dms=dms)\n    handler.process_requests(request)\n    op_results = handler.get_solved_ops()\n    return {'optimization_results': op_results}",
+            "node_imports": "from valuation.es_gui.apps.valuation.op_handler_workspace import ValuationOptimizerHandler\n"
+        },
+        {
+            "node_id": "0x1c02da4d280",
+            "node_name": "Valuation Optimization Handler",
+            "node_type": "back_node",
+            "node_input_variable": "",
+            "node_input_value": "This is the workprocess for setting up a valuation analysis that estimates the revenue of an energy storage system participating in ISO/RTO markets",
+            "node_function_wrapper": "",
+            "node_imports": ""
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x1c03353c790",
+            "to_node": "0x1c02da21f70",
+            "mapping": {
+                "power": "power"
+            }
+        },
+        {
+            "connection_id": 2,
+            "from_node": "0x1c02d9eeeb0",
+            "to_node": "0x1c02da21f70",
+            "mapping": {
+                "energy": "energy"
+            }
+        },
+        {
+            "connection_id": 3,
+            "from_node": "0x1c02da21070",
+            "to_node": "0x1c02da21f70",
+            "mapping": {
+                "rte": "rte"
+            }
+        },
+        {
+            "connection_id": 4,
+            "from_node": "0x1c02da21460",
+            "to_node": "0x1c02da386d0",
+            "mapping": {
+                "iso_name": "iso"
+            }
+        },
+        {
+            "connection_id": 5,
+            "from_node": "0x1c02da21700",
+            "to_node": "0x1c02da386d0",
+            "mapping": {
+                "node_id": "node"
+            }
+        },
+        {
+            "connection_id": 6,
+            "from_node": "0x1c02da219d0",
+            "to_node": "0x1c02da386d0",
+            "mapping": {
+                "market_type": "market"
+            }
+        },
+        {
+            "connection_id": 7,
+            "from_node": "0x1c02da21ca0",
+            "to_node": "0x1c02da386d0",
+            "mapping": {
+                "m": "month"
+            }
+        },
+        {
+            "connection_id": 8,
+            "from_node": "0x1c02da21f70",
+            "to_node": "0x1c02da386d0",
+            "mapping": {
+                "ess_parameters": "ess"
+            }
+        },
+        {
+            "connection_id": 9,
+            "from_node": "0x1c02da38ac0",
+            "to_node": "0x1c02da4d790",
+            "mapping": {
+                "data_path": "data_path"
+            }
+        },
+        {
+            "connection_id": 10,
+            "from_node": "0x1c02da386d0",
+            "to_node": "0x1c02da38280",
+            "mapping": {
+                "request": "request"
+            }
+        },
+        {
+            "connection_id": 11,
+            "from_node": "0x1c02da4ddf0",
+            "to_node": "0x1c02da38280",
+            "mapping": {
+                "solver_name": "solver_name"
+            }
+        },
+        {
+            "connection_id": 12,
+            "from_node": "0x1c02da4d790",
+            "to_node": "0x1c02da38280",
+            "mapping": {
+                "dms": "dms"
+            }
+        }
+    ]
+}

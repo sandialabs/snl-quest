@@ -1,0 +1,155 @@
+flow_name: Master_btm_flow_2026
+inputs: &id001
+- node_id: '0x2f4f478dba0'
+  node_name: energy_capacity
+  variable_name: energy
+  value: '4000'
+  is_path: false
+  is_from_master: false
+- node_id: '0x2f4f478e3f0'
+  node_name: load_path
+  variable_name: load_path
+  value: '"C:/work/quest20c/quest2/data_center_virginia_10MW.csv"'
+  is_path: true
+  is_from_master: false
+- node_id: '0x2f4f4847890'
+  node_name: power_rating
+  variable_name: power
+  value: '1000'
+  is_path: false
+  is_from_master: false
+- node_id: '0x2f4f46efa10'
+  node_name: pv_path
+  variable_name: pv_path
+  value: '"C:/work/quest20c/quest2/ZeroPV1.json"'
+  is_path: true
+  is_from_master: false
+- node_id: '0x2f4f4847390'
+  node_name: rate_path
+  variable_name: rate_path
+  value: '"C:/work/quest20c/quest2/Dominion1MWtou.json"'
+  is_path: true
+  is_from_master: false
+- node_id: '0x2f4f478e060'
+  node_name: rte
+  variable_name: rte
+  value: '0.88'
+  is_path: false
+  is_from_master: false
+cases:
+- name: Base Case
+  inputs: *id001
+- name: Case 1
+  inputs:
+  - node_id: '0x2f4f478dba0'
+    node_name: energy_capacity
+    variable_name: energy
+    value: '4000'
+    is_path: false
+    is_from_master: false
+  - node_id: '0x2f4f478e3f0'
+    node_name: load_path
+    variable_name: load_path
+    value: '"C:/work/quest20c/quest2/data_center_virginia_10MW.csv"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f4847890'
+    node_name: power_rating
+    variable_name: power
+    value: '1000'
+    is_path: false
+    is_from_master: false
+  - node_id: '0x2f4f46efa10'
+    node_name: pv_path
+    variable_name: pv_path
+    value: '"C:/work/quest20c/quest2/ZeroPV1.json"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f4847390'
+    node_name: rate_path
+    variable_name: rate_path
+    value: '"C:/work/quest20c/quest2/Dominion1MWtou.json"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f478e060'
+    node_name: rte
+    variable_name: rte
+    value: '0.88'
+    is_path: false
+    is_from_master: false
+- name: Case 2
+  inputs:
+  - node_id: '0x2f4f478dba0'
+    node_name: energy_capacity
+    variable_name: energy
+    value: '4000'
+    is_path: false
+    is_from_master: false
+  - node_id: '0x2f4f478e3f0'
+    node_name: load_path
+    variable_name: load_path
+    value: '"C:/work/quest20c/quest2/data_center_virginia_10MW.csv"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f4847890'
+    node_name: power_rating
+    variable_name: power
+    value: '1000'
+    is_path: false
+    is_from_master: false
+  - node_id: '0x2f4f46efa10'
+    node_name: pv_path
+    variable_name: pv_path
+    value: '"C:/work/quest20c/quest2/ZeroPV1.json"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f4847390'
+    node_name: rate_path
+    variable_name: rate_path
+    value: '"C:/work/quest20c/quest2/Dominion1MWtou.json"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f478e060'
+    node_name: rte
+    variable_name: rte
+    value: '0.88'
+    is_path: false
+    is_from_master: false
+- name: Case 3
+  inputs:
+  - node_id: '0x2f4f478dba0'
+    node_name: energy_capacity
+    variable_name: energy
+    value: '4000'
+    is_path: false
+    is_from_master: false
+  - node_id: '0x2f4f478e3f0'
+    node_name: load_path
+    variable_name: load_path
+    value: '"C:/work/quest20c/quest2/data_center_virginia_10MW.csv"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f4847890'
+    node_name: power_rating
+    variable_name: power
+    value: '1000'
+    is_path: false
+    is_from_master: false
+  - node_id: '0x2f4f46efa10'
+    node_name: pv_path
+    variable_name: pv_path
+    value: '"C:/work/quest20c/quest2/ZeroPV1.json"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f4847390'
+    node_name: rate_path
+    variable_name: rate_path
+    value: '"C:/work/quest20c/quest2/Dominion1MWtou.json"'
+    is_path: true
+    is_from_master: false
+  - node_id: '0x2f4f478e060'
+    node_name: rte
+    variable_name: rte
+    value: '0.88'
+    is_path: false
+    is_from_master: false

@@ -1,0 +1,312 @@
+{
+    "flow_name": "Master",
+    "flow_type": "master-flow",
+    "flow_environment_name": "Master_env",
+    "flow_environment_path": "C:/work/quest210-py313/Scripts/python.exe",
+    "flow_layout": {
+        "graph": {
+            "acyclic": true,
+            "pipe_collision": false
+        },
+        "nodes": {
+            "0x1c4c4230ec0": {
+                "type_": "QuESt.Workspace.BackNode",
+                "icon": null,
+                "name": "Description",
+                "color": [
+                    255,
+                    255,
+                    155
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 264.0,
+                "height": 106.0,
+                "pos": [
+                    100.0,
+                    100.0
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": false,
+                "subgraph_session": {},
+                "custom": {
+                    "backdrop_text": "This is an flow to multiply 2 numbers"
+                }
+            },
+            "0x1c4c3f66fd0": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+                "name": "data_node_1",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    93.37605915337002,
+                    248.98937822682998
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "a",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "10"
+                }
+            },
+            "0x1c4c3f66e90": {
+                "type_": "QuESt.Workspace.DataNode",
+                "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\data_icon.png",
+                "name": "data_node_2",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    93.95643863421509,
+                    405.183076781135
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [],
+                "output_ports": [
+                    {
+                        "name": "b",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ],
+                "custom": {
+                    "Text Caption": "12"
+                }
+            },
+            "0x1c4972cf490": {
+                "type_": "QuESt.Workspace.PyNode",
+                "icon": "C:\\work\\quest210-py313\\Lib\\site-packages\\quest\\images\\icons\\python_icon.png",
+                "name": "product",
+                "color": [
+                    255,
+                    255,
+                    255
+                ],
+                "border_color": [
+                    74,
+                    84,
+                    85,
+                    255
+                ],
+                "text_color": [
+                    0,
+                    0,
+                    0
+                ],
+                "disabled": false,
+                "selected": false,
+                "visible": true,
+                "width": 180,
+                "height": 80,
+                "pos": [
+                    382.7096312140599,
+                    317.8707482667851
+                ],
+                "layout_direction": 0,
+                "port_deletion_allowed": true,
+                "subgraph_session": {},
+                "input_ports": [
+                    {
+                        "name": "x",
+                        "multi_connection": false,
+                        "display_name": true
+                    },
+                    {
+                        "name": "y",
+                        "multi_connection": false,
+                        "display_name": true
+                    }
+                ],
+                "output_ports": [
+                    {
+                        "name": "output",
+                        "multi_connection": true,
+                        "display_name": true
+                    }
+                ]
+            }
+        },
+        "connections": [
+            {
+                "out": [
+                    "0x1c4c3f66fd0",
+                    "a"
+                ],
+                "in": [
+                    "0x1c4972cf490",
+                    "x"
+                ]
+            },
+            {
+                "out": [
+                    "0x1c4c3f66e90",
+                    "b"
+                ],
+                "in": [
+                    "0x1c4972cf490",
+                    "y"
+                ]
+            }
+        ]
+    },
+    "nodes_df": [
+        {
+            "node_id": "0x1c4c4230ec0",
+            "node_name": "Description",
+            "node_type": "back_node",
+            "node_input_variable": "",
+            "node_input_value": "This is an flow to multiply 2 numbers",
+            "node_value_display": true,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x1c4c3f66fd0",
+            "node_name": "data_node_1",
+            "node_type": "data_node",
+            "node_input_variable": "a",
+            "node_input_value": "10",
+            "node_value_display": true,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x1c4c3f66e90",
+            "node_name": "data_node_2",
+            "node_type": "data_node",
+            "node_input_variable": "b",
+            "node_input_value": "12",
+            "node_value_display": true,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "",
+            "node_imports": "",
+            "node_notebook_path": ""
+        },
+        {
+            "node_id": "0x1c4972cf490",
+            "node_name": "product",
+            "node_type": "python_node",
+            "node_input_variable": "",
+            "node_input_value": "",
+            "node_value_display": false,
+            "node_is_path": false,
+            "node_is_from_master": false,
+            "node_expose_outputs": [],
+            "node_function_wrapper": "def product_function(x, y):\n    return {'output': x * y}",
+            "node_imports": "import pandas as pd\nimport numpy as np\n",
+            "node_notebook_path": "c:\\work\\quest210-py313\\node_notebooks\\product_0x1c4972cf490.ipynb"
+        }
+    ],
+    "connections_df": [
+        {
+            "connection_id": 1,
+            "from_node": "0x1c4c3f66fd0",
+            "to_node": "0x1c4972cf490",
+            "mapping": {
+                "a": "x"
+            }
+        },
+        {
+            "connection_id": 2,
+            "from_node": "0x1c4c3f66e90",
+            "to_node": "0x1c4972cf490",
+            "mapping": {
+                "b": "y"
+            }
+        }
+    ],
+    "inputs_df": [
+        {
+            "name": "Base Case",
+            "inputs": [
+                {
+                    "node_id": "0x1c4c3f66fd0",
+                    "node_name": "data_node_1",
+                    "variable_name": "a",
+                    "value": "10",
+                    "is_path": false,
+                    "is_from_master": false
+                },
+                {
+                    "node_id": "0x1c4c3f66e90",
+                    "node_name": "data_node_2",
+                    "variable_name": "b",
+                    "value": "12",
+                    "is_path": false,
+                    "is_from_master": false
+                }
+            ]
+        }
+    ],
+    "subflows_df": []
+}
