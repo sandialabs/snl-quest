@@ -1,0 +1,23 @@
+prune quest/snl_libraries/*
+prune quest/app_envs/*
+include quest/*.py
+include quest/version.txt
+include quest/*.qrc
+include quest/*.json
+include quest/*.md
+include quest/*.yml
+include quest/*.ini
+include quest/*.bat
+include quest/*.sh
+include quest/*.html
+include quest/*.js
+include quest/*.css
+include quest/*.ttf
+include quest/*.gif
+include quest/*.mplstyle
+include quest/*.svg
+include quest/*.png
+include quest/*.jpg
+recursive-include quest app *
+recursive-include quest licenses *
+recursive-include quest themes *

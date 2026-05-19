@@ -1,0 +1,87 @@
+name: Publish to PyPI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - version.txt
+  workflow_dispatch:
+    inputs:
+      include_prerelease:
+        description: "Publish pre-release versions"
+        type: boolean
+        default: false
+
+env:
+  PKG_NAME: quest-snl
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      is_prerelease: ${{ steps.check.outputs.is_prerelease }}
+      pkg_name: ${{ steps.check.outputs.pkg_name }}
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        run: |
+          version="$(tr -d '\r\n' < version.txt)"
+           echo "pkg_name=${{ env.PKG_NAME }}" >> "$GITHUB_OUTPUT"
+          if echo "$version" | grep -Eq '[A-Za-z]'; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  publish:
+    name: Publish to PyPI
+    needs: check-version
+    if: inputs.include_prerelease == true || needs.check-version.outputs.is_prerelease == 'false'
+    runs-on: ubuntu-latest
+    environment:
+      name: release
+    permissions:
+      contents: read
+      
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Clean egg-info
+        run: rm -rf quest_snl.egg-info
+
+      - name: Copy version.txt into package
+        run: cp version.txt quest/version.txt
+      - name: Clear large directories
+        run: |
+          find quest/app_envs -mindepth 1 -delete
+     
+
+      - name: Install build tooling
+        run: python -m pip install --upgrade pip setuptools wheel twine
+
+      - name: Build wheel only
+        run: python setup.py bdist_wheel
+      
+      - name: Debug MANIFEST
+        run: |
+          cat MANIFEST.in
+          python setup.py egg_info
+          grep snl_libraries quest_snl.egg-info/SOURCES.txt | head -5 || echo "snl_libraries not found - good!"
+          grep app_envs quest_snl.egg-info/SOURCES.txt | head -5 || echo "app_envs not found - good!"
+
+      - name: Validate built distributions
+        run: python -m twine check dist/*
+
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          skip-existing: true
