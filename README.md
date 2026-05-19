@@ -1,4 +1,4 @@
-<img src="quest/snl_libraries/snl_btm/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
+<img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/snl_libraries/snl_btm/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 
 # QuESt: Open-source Platform for Energy Storage Analytics
 
@@ -33,7 +33,7 @@ Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 <a id="what-is-it"></a>
 QuESt 2.0 is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools.
 
-<img src="quest/images/read/home_page.png" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
+<img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/images/read/home_page.png" alt="Download U.S. utility rate structure data" width=600px margin="auto" />
 
 Currently, QuESt 2.0 includes three main components:
 
@@ -122,9 +122,9 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 **GitHub**: You need Git installed on your system to clone the repository. If you don’t have Git installed, you can follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) to install it.
 
 1. Click on the releases located at the top of this page on the right side as shown in the picture below. (Opening this page in a new tab may be helpful to follow along with the instructions)
-   <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
+   <img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
 2. On the releases page, download the quest_win.zip file found in the assets of QuESt2.0.b pre-release.
-   <img src="quest/images/read/quest_win_zip.png" alt="Download zip" width=600px margin="auto" />
+   <img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/images/read/quest_win_zip.png" alt="Download zip" width=600px margin="auto" />
 3. Extract the downloaded file.
 4. Navigate inside the extracted directory and double click on start.bat. This will setup QuESt and launch it when it is finished. For future uses of QuESt users can double click the start.bat file to launch QuESt.
 
@@ -287,9 +287,9 @@ python -m quest
 ### Installing QuESt using the executable
 
 1. Click on the releases located at the top of this page on the right side.
-   <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
+   <img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
 2. Download the `quest_mac.zip` file found in the assets of the QuESt 2.0.b pre-release.
-   <img src="quest/images/read/quest_mac_zip.png" alt="Download zip" width=600px margin="auto" />
+   <img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/images/read/quest_mac_zip.png" alt="Download zip" width=600px margin="auto" />
 3. Extract the downloaded file.
 
 4. **Activate Rosetta 2** (for Apple Silicon users):
@@ -319,7 +319,7 @@ python -m quest
 ### For Linux Users:
 
 1. Click on the code button at the top of the page and then select "Download ZIP" from the dropdown.
-   <img src="quest/images/read/git_extract.png" alt="Download zip" width=600px margin="auto" />
+   <img src="https://raw.githubusercontent.com/sandialabs/snl-quest/master/quest/images/read/git_extract.png" alt="Download zip" width=600px margin="auto" />
 
 2. Go to the location of the downloaded ZIP folder (default is Downloads).
 
