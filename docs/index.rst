@@ -110,14 +110,14 @@ Installation Instructions for QuESt
 Prerequisites
 ~~~~~~~~~~~~~
 
-- Python (3.9.x recommended) installed on your system
+- Python (3.13.x recommended) installed on your system
 - Git installed on your system
 
 Installing Python
 ~~~~~~~~~~~~~~~~~
 
 1. Go to `python.org <https://www.python.org/>`_.
-2. Download a version of Python suitable for your operating system (3.9.x recommended).
+2. Download a current stable version of Python suitable for your operating system (Python 3.13.x recommended).
 3. Follow the installation instructions provided on the website.
 
 Installing Git

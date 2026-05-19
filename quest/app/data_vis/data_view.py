@@ -137,7 +137,15 @@ class data_view(QWidget, Ui_data_v):
         #self.data_vis_install_button.setEnabled(False)
         data_vis_path = os.path.join(base_dir, "snl_libraries", "gpt", "app.py")
         self.runner = SubProcessWorker(
-            command=["streamlit", "run", data_vis_path, "--server.headless=true", "--server.port", "5678"],
+            command=[
+                "streamlit",
+                "run",
+                data_vis_path,
+                "--server.headless=true",
+                "--server.port",
+                "5678",
+                "--browser.gatherUsageStats=false",
+            ],
             parser=simple_percent_parser,
             )
         self.runner.signals.progress.connect(None)

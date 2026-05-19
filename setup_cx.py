@@ -3,7 +3,7 @@ from cx_Freeze import setup, Executable
 
 DISTNAME = "Quest"
 VERSION = "2.1.0"
-PYTHON_REQUIRES = ">=3.6"
+PYTHON_REQUIRES = ">=3.9, <3.14"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"
 LONG_DESCRIPTION = open("README.md").read()
 AUTHOR = "Sandia National Laboratories"
@@ -12,22 +12,21 @@ LICENSE = "BSD 3-clause"
 URL = "https://github.com/sandialabs/snl-quest.git"
 
 options = {
-    'build_exe': {
-        'packages': [
+    "build_exe": {
+        "packages": [
             "PySide6",
             "pandas",
             "streamlit",
             "openai",
-            "matplotlib",
             "psutil",
             "NodeGraphQt",
             "notebook",
-            "nbformat"
+            "nbformat",
         ],
-        'include_files': [
+        "include_files": [
             ("README.md", "README.md"),
             ("LICENSE", "LICENSE"),
-            ("quest", "quest")
+            ("quest", "quest"),
         ],
     },
 }
@@ -41,6 +40,14 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     python_requires=PYTHON_REQUIRES,
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+    ],
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     author=AUTHOR,
@@ -48,5 +55,5 @@ setup(
     license=LICENSE,
     url=URL,
     executables=executables,
-    options=options
+    options=options,
 )
