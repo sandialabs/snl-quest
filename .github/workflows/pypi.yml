@@ -1,4 +1,4 @@
-name: Publish to TestPyPI
+name: Publish to PyPI
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
         default: false
 
 env:
-  PKG_NAME: snl-questfy26
+  PKG_NAME: quest-snl
 
 jobs:
   check-version:
@@ -36,16 +36,14 @@ jobs:
           fi
 
   publish:
-    name: Publish to TestPyPI
+    name: Publish to PyPI
     needs: check-version
     if: inputs.include_prerelease == true || needs.check-version.outputs.is_prerelease == 'false'
     runs-on: ubuntu-latest
     environment:
       name: release
-
     permissions:
       contents: read
-
       
     steps:
       - name: Check out repository
@@ -57,7 +55,7 @@ jobs:
           python-version: "3.13"
 
       - name: Clean egg-info
-        run: rm -rf ${{ env.PKG_NAME }}.egg-info
+        run: rm -rf quest_snl.egg-info
 
       - name: Copy version.txt into package
         run: cp version.txt quest/version.txt
@@ -76,15 +74,14 @@ jobs:
         run: |
           cat MANIFEST.in
           python setup.py egg_info
-          grep snl_libraries snl_questfy26.egg-info/SOURCES.txt | head -5 || echo "snl_libraries not found - good!"
-          grep app_envs snl_questfy26.egg-info/SOURCES.txt | head -5 || echo "app_envs not found - good!"
+          grep snl_libraries quest_snl.egg-info/SOURCES.txt | head -5 || echo "snl_libraries not found - good!"
+          grep app_envs quest_snl.egg-info/SOURCES.txt | head -5 || echo "app_envs not found - good!"
 
       - name: Validate built distributions
         run: python -m twine check dist/*
 
-      - name: Publish package to TestPyPI
+      - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          password: ${{ secrets.PYPI_API_TOKEN }}
           skip-existing: true

@@ -2,11 +2,10 @@ from pathlib import Path
 
 from setuptools import find_packages, setup
 
-
 ROOT = Path(__file__).parent
 from quest import __version__
 
-DISTNAME = "Quest"
+DISTNAME = "quest-snl"
 VERSION = __version__
 PYTHON_REQUIRES = ">=3.9, <3.14"
 DESCRIPTION = "Sandia National Laboratories Energy Storage Application Platform"

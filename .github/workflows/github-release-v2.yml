@@ -16,7 +16,7 @@ env:
   RELEASE_NOTES_FILE: .github/release-notes.md
   MACOS_INSTALL_FILE: .github/scripts/install.sh
   WINDOWS_INSTALL_FILE: .github/scripts/install.bat
-  PKG_NAME: snl-questfy26
+  PKG_NAME: quest-snl
 
 jobs:
   prepare-release:

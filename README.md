@@ -460,7 +460,7 @@ python -m quest
 
 3. Install QuESt:
    ```bash
-   pip install quest-snl[dev]
+   pip install quest-snl
    ```
 4. Run QuESt:
    ```bash
