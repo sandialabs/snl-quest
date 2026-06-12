@@ -41,7 +41,7 @@ setup(
         "anthropic==0.72.0",
         "langgraph==1.1.10",
         "mcp>=1.13.0",
-        "psutil==5.9.0",
+        "psutil>=5.9.0,<8",
         "GitPython==3.1.43",
         'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
         "notebook==7.5.5",
