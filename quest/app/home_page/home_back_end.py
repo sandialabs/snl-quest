@@ -244,6 +244,38 @@ class app_manager:
 
         return False
 
+    def _install_script_command(self, current_platform):
+        """Return the OS-appropriate installer command and environment."""
+        if current_platform == "Windows":
+            script_path = self.script_path
+            root, ext = os.path.splitext(script_path)
+            candidates = [script_path]
+            if ext.lower() in ("", ".sh"):
+                candidates = [f"{root}.bat", f"{root}.cmd", script_path]
+
+            for candidate in candidates:
+                if os.path.exists(candidate):
+                    return [candidate], None
+
+            raise FileNotFoundError(
+                f"Unable to find a Windows installer script for '{self.script_path}'."
+            )
+
+        worker_env = os.environ.copy()
+        worker_env["QUEST_PYTHON"] = sys.executable
+
+        script_path = self.script_path
+        root, ext = os.path.splitext(script_path)
+        if ext.lower() in (".bat", ".cmd"):
+            script_path = f"{root}.sh"
+
+        if not os.path.exists(script_path):
+            raise FileNotFoundError(
+                f"Unable to find a Unix installer script for '{self.script_path}'."
+            )
+
+        return ["/bin/bash", script_path], worker_env
+
     def install(self):
         """
         Install the application by setting up and activating the environment.
@@ -282,13 +314,8 @@ class app_manager:
                     act_command = ["/bin/bash", "-c", f"source \"{activate_script_path}\" && python3 \"{self.env_cmd}\""]
 
         else:
-            # Determine the script to run (batch file for Windows, shell script for others)
-            if current_platform == "Windows":
-                script_command = [self.script_path]
-            else:
-                worker_env = os.environ.copy()
-                worker_env["QUEST_PYTHON"] = sys.executable
-                script_command = ["/bin/bash", self.script_path.replace('.bat', '.sh')]
+            # Determine the installer script for this operating system.
+            script_command, worker_env = self._install_script_command(current_platform)
 
             # Use script_command if the environment directory does not exist
             act_command = script_command
