@@ -3,7 +3,8 @@ set -e
 
 PYTHON_BIN="${QUEST_PYTHON:-python3}"
 VENV_PATH="$(cd "$(dirname "$0")" && pwd)/../../../app_envs/env_eval"
-LOCAL_EVAL_PATH="$(cd "$(dirname "$0")" && pwd)/../../../snl_libraries/snl_valuation"
+EVAL_BRANCH="QuESt_Valuation"
+EVAL_PACKAGE_URL="https://github.com/sandialabs/snl-quest/archive/refs/heads/${EVAL_BRANCH}.zip"
 TARGET_PYTHON_VERSION="$("$PYTHON_BIN" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 
 install_glpk() {
@@ -62,12 +63,8 @@ source "$VENV_PATH/bin/activate"
 
 export PIP_NO_INDEX=0
 
-if [ ! -f "$LOCAL_EVAL_PATH/setup.py" ]; then
-    echo "Failed to locate bundled Valuation sources at '$LOCAL_EVAL_PATH'."
-    exit 1
-fi
-
-pip install "$LOCAL_EVAL_PATH"
+python -m pip install --upgrade --force-reinstall "$EVAL_PACKAGE_URL"
+python -c "import numpy, matplotlib, valuation; print('Valuation Python imports verified:', numpy.__version__, matplotlib.__version__)"
 
 install_glpk
 

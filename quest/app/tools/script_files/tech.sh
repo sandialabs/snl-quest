@@ -3,7 +3,8 @@ set -e
 
 PYTHON_BIN="${QUEST_PYTHON:-python3}"
 VENV_PATH="$(cd "$(dirname "$0")" && pwd)/../../../app_envs/env_tech"
-LOCAL_TECH_PATH="$(cd "$(dirname "$0")" && pwd)/../../../snl_libraries/snl_tech_selection"
+TECH_BRANCH="QuESt_Tech_Selection"
+TECH_PACKAGE_URL="https://github.com/sandialabs/snl-quest/archive/refs/heads/${TECH_BRANCH}.zip"
 TARGET_PYTHON_VERSION="$("$PYTHON_BIN" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 
 install_glpk() {
@@ -62,12 +63,8 @@ source "$VENV_PATH/bin/activate"
 
 export PIP_NO_INDEX=0
 
-if [ ! -f "$LOCAL_TECH_PATH/setup.py" ]; then
-    echo "Failed to locate bundled Tech Selection sources at '$LOCAL_TECH_PATH'."
-    exit 1
-fi
-
-pip install "$LOCAL_TECH_PATH"
+python -m pip install --upgrade --force-reinstall "$TECH_PACKAGE_URL"
+python -c "import numpy, matplotlib, tech_selection; print('Tech Selection Python imports verified:', numpy.__version__, matplotlib.__version__)"
 
 install_glpk
 

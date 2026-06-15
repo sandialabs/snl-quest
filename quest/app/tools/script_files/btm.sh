@@ -3,7 +3,8 @@ set -e
 
 PYTHON_BIN="${QUEST_PYTHON:-python3}"
 VENV_PATH="$(cd "$(dirname "$0")" && pwd)/../../../app_envs/env_btm"
-LOCAL_BTM_PATH="$(cd "$(dirname "$0")" && pwd)/../../../snl_libraries/snl_btm"
+BTM_BRANCH="QuESt_BTM"
+BTM_PACKAGE_URL="https://github.com/sandialabs/snl-quest/archive/refs/heads/${BTM_BRANCH}.zip"
 TARGET_PYTHON_VERSION="$("$PYTHON_BIN" -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')"
 
 install_glpk() {
@@ -62,12 +63,8 @@ source "$VENV_PATH/bin/activate"
 
 export PIP_NO_INDEX=0
 
-if [ ! -f "$LOCAL_BTM_PATH/setup.py" ]; then
-    echo "Failed to locate bundled BTM sources at '$LOCAL_BTM_PATH'."
-    exit 1
-fi
-
-pip install "$LOCAL_BTM_PATH"
+python -m pip install --upgrade --force-reinstall "$BTM_PACKAGE_URL"
+python -c "import numpy, matplotlib, btm; print('BTM Python imports verified:', numpy.__version__, matplotlib.__version__)"
 
 install_glpk
 
