@@ -42,10 +42,17 @@ python -m pip install -e .
 
 ## Running
 
-After installation, launch the app with:
+After installation, launch the app with the console command created by the
+package:
 
 ```bash
 valuation
+```
+
+You can also launch the package as a Python module:
+
+```bash
+python -m valuation
 ```
 
 When installed through the main QuESt application, use the QuESt home screen to
