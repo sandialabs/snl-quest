@@ -175,7 +175,7 @@ python -m pip install --upgrade pip
 
 Use this option if you want to download the source as a ZIP file.
 
-1. Go to https://github.com/sandialabs/snl-quest.
+1. Go to https://github.com/sandialabs/snl-quest/tree/QuESt_AI_Agent.
 2. Click **Code** and choose **Download ZIP**.
 3. Extract the ZIP file.
 4. Open a terminal in the extracted QuESt directory.
@@ -194,7 +194,7 @@ Use this option if you want to clone the repository or contribute changes.
 2. Clone the repository:
 
 ```bash
-git clone https://github.com/sandialabs/snl-quest.git
+git clone -b QuESt_AI_Agent --single-branch https://github.com/sandialabs/snl-quest.git
 cd snl-quest
 ```
 
