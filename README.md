@@ -133,148 +133,97 @@ QuESt is currently available on Github at: https://github.com/sandialabs/snl-que
 
 ### Installation Instructions for QuESt
 
-## Easy Installation (Recommended)
+## 1. Install Python
 
-### For Windows Users:
-1. Click on the releases located on the right side.
-   <img src="quest/images/read/releases.png" alt="Download zip" width=600px margin="auto" />
-2. Download the quest_win.zip file found in the assets of QuESt2.0.b pre-release.
-   <img src="quest/images/read/quest_win_zip.png" alt="Download zip" width=600px margin="auto" />
-3. Extract the downloaded file.
-4. Navigate inside the directory and double click on start.bat. This will setup QuESt and launch it when it is finished. This will also launch QuESt in the future.
+Install Python 3.13.x from [python.org](https://www.python.org/) and follow the installer instructions for your operating system. On Windows, enable the option to add Python to `PATH` if it is offered.
 
-### For Unix Users (Linux and macOS):
+Confirm Python is available:
 
-1. Click on the code button at the top of the page and then select "Download ZIP" from the dropdown.
-   <img src="quest/images/read/git_extract.png" alt="Download zip" width=600px margin="auto" />
+```bash
+python --version
+```
 
-2. Go to the location of the downloaded ZIP folder (default is Downloads).
+On Linux/macOS, use `python3 --version` if your system uses `python3` as the command name.
 
-3. Extract the ZIP folder to your desired location (e.g., Desktop).
+## 2. Create a Virtual Environment Using `venv`
 
-4. Install Python (3.13.x)
+From the directory where you want to install or develop QuESt, create and activate a virtual environment:
 
-## Installing Python
-1. Go to [python.org](https://www.python.org/).
-2. Download a current stable version of Python suitable for your operating system (Python 3.13.x recommended).
-3. Follow the installation instructions provided on the website.
+```bash
+python -m venv env
+```
 
-5. Install git
+Activate it:
 
+```bash
+.\env\Scripts\activate
+```
 
-## Installing Git
-- Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
-- Follow the installation instructions provided on the website.
+On Linux/macOS:
 
-6. Open a terminal inside the installed quest directory and create a virtual env.
+```bash
+source env/bin/activate
+```
 
-## Setting Up a Virtual Environment
-1. Install `virtualenv` (if not already installed):
-    ```bash
-    python3 -m pip install virtualenv
-    ```
+Upgrade `pip`:
 
-2. Create a virtual environment:
-    ```bash
-    virtualenv env
-    ```
+```bash
+python -m pip install --upgrade pip
+```
 
-3. Activate the virtual environment:
-     ```bash
-     source env/bin/activate
-     ```
+## 3. Option 1: Install QuESt Without Git
 
-7. With the virtual env activated we can now setup the environment for QuESt with the following command:
-    ```bash
-    python3 -m pip install .
-    ```
-8. Run QuESt with the following command:
+Use this option if you want to download the source as a ZIP file.
 
-        ```bash
-        python3 -m quest
-        ```
+1. Go to https://github.com/sandialabs/snl-quest.
+2. Click **Code** and choose **Download ZIP**.
+3. Extract the ZIP file.
+4. Open a terminal in the extracted QuESt directory.
+5. Activate the virtual environment from step 2.
+6. Install QuESt:
 
-## Installation for Developers:
+```bash
+python -m pip install .
+```
 
-## Prerequisites
-- Python (3.13.x recommended) installed on your system
-- Git installed on your system
+## 4. Option 2: Install QuESt With Git
 
-## Installing Python
-1. Go to [python.org](https://www.python.org/).
-2. Download a current stable version of Python suitable for your operating system (Python 3.13.x recommended).
-3. Follow the installation instructions provided on the website.
+Use this option if you want to clone the repository or contribute changes.
 
-## Installing Git
-- Visit [git-scm.com](https://git-scm.com/) to download Git for your operating system.
-- Follow the installation instructions provided on the website.
+1. Install Git from [git-scm.com](https://git-scm.com/).
+2. Clone the repository:
 
-## Setting Up a Virtual Environment
-1. Install `virtualenv` (if not already installed):
-    ```bash
-    pip install virtualenv
-    ```
+```bash
+git clone https://github.com/sandialabs/snl-quest.git
+cd snl-quest
+```
 
-2. Create a virtual environment:
-    ```bash
-    virtualenv env
-    ```
+3. Activate the virtual environment from step 2.
+4. Install QuESt:
 
-3. Activate the virtual environment:
-   - On Windows:
-     ```bash
-     .\env\Scripts\activate
-     ```
-   - On Linux/macOS:
-     ```bash
-     source env/bin/activate
-     ```
-
-## Installing QuESt
-
-1. Clone the Repository:
-    ```bash
-    git clone <repository_url>
-    ```
-   Replace `<repository_url>` with the URL of the QuESt GitHub repository.
-
-2. Navigate to the QuESt Directory:
-    ```bash
-    cd <repository_name>
-    ```
-   Replace `<repository_name>` with the name of the directory where QuESt was cloned.
-
-3. Install Dependencies:
-    ```bash
-    pip install .
-    ```
+```bash
+python -m pip install .
+```
 
 ## Running QuESt
-## Easy Version:
-1. If you have followed the Easy Installation steps you can now double click on the start.bat if you are on windows or on the unix_entry if you are on mac or linux to launch quest. Some unix based systems may require users to always use the terminal to run the unix_entry.sh script to launch QuESt.
 
-## For Developers:
-1. Run QuESt:
-    - Once the dependencies are installed, ensure you have navigated to the directory where QuESt is installed and the virtual environment is activated. You can run QuESt using the following command:
-        - On Windows:
-            ```bash
-            python -m quest
-            ```
-        - On Linux/macOS:
-            ```bash
-            python3 -m quest
-            ```
-        - Alternatively quest may be run any directory as long as the venv is active using the terminal command:
-            ```bash
-            quest
-            ```
+With the virtual environment activated, run:
+
+```bash
+python -m quest
+```
+
+You can also run:
+
+```bash
+quest
+```
 
 ## Deactivating the Virtual Environment
-1. Deactivate the Virtual Environment:
-    ```bash
-    deactivate
-    ```
-   This will return you to your system's default Python environment.
+
+```bash
+deactivate
+```
 
 ### References
 <a id="references"></a>
