@@ -740,23 +740,55 @@ def should_refresh_analysis_before_canvas_plan(user_prompt, state, route_result=
     return False
 
 
+def _recipe_template_tool_ids(recipe):
+    item = dict(recipe or {})
+    recipe_tool_ids = {
+        str(value or "").strip().casefold()
+        for value in (
+            list(item.get("recommended_tools", []) or [])
+            + list(item.get("required_tools", []) or [])
+            + list(item.get("tool_tags", []) or [])
+            + list(dict(item.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
+        )
+        if str(value or "").strip()
+    }
+    if recipe_tool_ids == {"workspace"}:
+        recipe_tool_ids = set()
+    return recipe_tool_ids
+
+
+def _confident_non_workspace_tool_ids(tool_matches, threshold=0.8):
+    tool_ids = set()
+    for item in list(tool_matches or []):
+        match = dict(item or {})
+        tool_id = str(match.get("tool_id", "") or "").strip().casefold()
+        if not tool_id or tool_id == "workspace":
+            continue
+        try:
+            confidence = float(match.get("confidence", match.get("score", 0.0)) or 0.0)
+        except Exception:
+            confidence = 0.0
+        if confidence >= threshold:
+            tool_ids.add(tool_id)
+    return tool_ids
+
+
 def _build_reusable_skill_workflow_plan(context_payload):
     payload = dict(context_payload or {})
     recipes = list(payload.get("skill_execution_recipes", {}).get("recipes", []) or [])
     task_match_result = dict(payload.get("task_match_results", {}) or {})
+    best_workflow_template = dict(task_match_result.get("best_workflow_template", {}) or {})
     matched_skill_ids = {
         str(dict(item or {}).get("skill_id", "") or "").strip()
         for item in list(task_match_result.get("skill_matches", []) or [])
         if str(dict(item or {}).get("skill_id", "") or "").strip()
     }
+    best_template_skill_id = str(best_workflow_template.get("skill_id", "") or "").strip()
+    if best_template_skill_id:
+        matched_skill_ids.add(best_template_skill_id)
     if not matched_skill_ids:
         return {}
-    matched_tool_ids = {
-        str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
-        for item in list(task_match_result.get("tool_matches", []) or [])
-        if str(dict(item or {}).get("tool_id", "") or "").strip()
-    }
-    non_workspace_tool_ids = {tool_id for tool_id in matched_tool_ids if tool_id != "workspace"}
+    non_workspace_tool_ids = _confident_non_workspace_tool_ids(task_match_result.get("tool_matches", []))
     candidates = []
     for recipe in recipes:
         recipe = dict(recipe or {})
@@ -771,18 +803,7 @@ def _build_reusable_skill_workflow_plan(context_payload):
         workflow_path = str(workflow_template.get("path", "") or "").strip()
         if not workflow_path or confidence <= 0.8:
             continue
-        recipe_tool_ids = {
-            str(value or "").strip().casefold()
-            for value in (
-                list(recipe.get("recommended_tools", []) or [])
-                + list(recipe.get("required_tools", []) or [])
-                + list(recipe.get("tool_tags", []) or [])
-                + list(dict(recipe.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
-            )
-            if str(value or "").strip()
-        }
-        if recipe_tool_ids == {"workspace"}:
-            recipe_tool_ids = set()
+        recipe_tool_ids = _recipe_template_tool_ids(recipe)
         if non_workspace_tool_ids and not (recipe_tool_ids & non_workspace_tool_ids):
             continue
         candidates.append(
@@ -794,6 +815,33 @@ def _build_reusable_skill_workflow_plan(context_payload):
                 "tool_ids": sorted(recipe_tool_ids),
             }
         )
+    best_template_path = str(best_workflow_template.get("workflow_json_path", "") or "").strip()
+    try:
+        best_template_confidence = float(best_workflow_template.get("confidence", 0.0) or 0.0)
+    except Exception:
+        best_template_confidence = 0.0
+    if best_template_skill_id and best_template_path and best_template_confidence > 0.8:
+        template_tool_ids = {
+            str(value or "").strip().casefold()
+            for value in (
+                list(best_workflow_template.get("recommended_tools", []) or [])
+                + list(best_workflow_template.get("required_tools", []) or [])
+                + list(best_workflow_template.get("tool_overlap", []) or [])
+            )
+            if str(value or "").strip()
+        }
+        if template_tool_ids == {"workspace"}:
+            template_tool_ids = set()
+        if not non_workspace_tool_ids or (template_tool_ids & non_workspace_tool_ids):
+            candidates.append(
+                {
+                    "skill_id": best_template_skill_id,
+                    "title": str(best_workflow_template.get("title", "") or "").strip(),
+                    "confidence": best_template_confidence,
+                    "workflow_path": best_template_path,
+                    "tool_ids": sorted(template_tool_ids),
+                }
+            )
     if not candidates:
         return {}
     candidates.sort(key=lambda item: (-float(item.get("confidence", 0.0) or 0.0), str(item.get("title", "") or "").casefold()))
@@ -830,12 +878,7 @@ def _eligible_template_skill_ids(context_payload):
     }
     if not matched_skill_ids:
         return set()
-    matched_tool_ids = {
-        str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
-        for item in list(task_match_result.get("tool_matches", []) or [])
-        if str(dict(item or {}).get("tool_id", "") or "").strip()
-    }
-    non_workspace_tool_ids = {tool_id for tool_id in matched_tool_ids if tool_id != "workspace"}
+    non_workspace_tool_ids = _confident_non_workspace_tool_ids(task_match_result.get("tool_matches", []))
     eligible = set()
     for recipe in list(dict(payload.get("skill_execution_recipes", {}) or {}).get("recipes", []) or []):
         recipe = dict(recipe or {})
@@ -850,18 +893,7 @@ def _eligible_template_skill_ids(context_payload):
         workflow_path = str(workflow_template.get("path", "") or "").strip()
         if not workflow_path or confidence <= 0.8:
             continue
-        recipe_tool_ids = {
-            str(value or "").strip().casefold()
-            for value in (
-                list(recipe.get("recommended_tools", []) or [])
-                + list(recipe.get("required_tools", []) or [])
-                + list(recipe.get("tool_tags", []) or [])
-                + list(dict(recipe.get("edit_recipe", {}) or {}).get("required_tools", []) or [])
-            )
-            if str(value or "").strip()
-        }
-        if recipe_tool_ids == {"workspace"}:
-            recipe_tool_ids = set()
+        recipe_tool_ids = _recipe_template_tool_ids(recipe)
         if non_workspace_tool_ids and not (recipe_tool_ids & non_workspace_tool_ids):
             continue
         eligible.add(skill_id)
@@ -1020,10 +1052,13 @@ def plan_canvas_actions(
     context_payload = dict(context_payload or {})
     if "task_match_results" not in context_payload:
         context_payload["task_match_results"] = dict((state or {}).get("task_match_results", {}) or {})
-    reusable_template_plan = {} if direct_workspace_action else _build_reusable_skill_workflow_plan(context_payload)
+    reusable_template_plan = _build_reusable_skill_workflow_plan(context_payload)
+    node_count = len(list(dict(canvas_context or {}).get("nodes", []) or []))
     existing_value_update_action = _extract_existing_node_value_update_action(user_prompt, canvas_context)
     revision_request = _extract_revision_request(user_prompt)
     is_revision_request = bool(revision_request)
+    if node_count <= 0 and reusable_template_plan and not is_revision_request:
+        return _collapse_local_plan_to_single_step(_ensure_workspace_operations(reusable_template_plan), user_prompt, model_name)
     if simple_direct_plan:
         direct_plan = dict(fallback_plan or {})
         direct_plan["planning_source"] = "deterministic_canvas_action"
@@ -1039,7 +1074,7 @@ def plan_canvas_actions(
     try:
         task_match_result = dict((state or {}).get("task_match_results", {}) or {})
         skill_execution_recipes = dict(context_payload.get("skill_execution_recipes", {}) or {})
-        if direct_workspace_action:
+        if direct_workspace_action and not reusable_template_plan:
             task_match_result["skill_matches"] = []
             task_match_result["top_skill_matches"] = []
             task_match_result["best_workflow_template"] = {}
@@ -1058,7 +1093,7 @@ def plan_canvas_actions(
             recent_messages=list(context_payload.get("recent_messages", []) or []),
             selected_model=model_name,
             single_step_only=local_single_step,
-            force_planning_path="edit_current_flow" if direct_workspace_action and len(list(dict(canvas_context or {}).get("nodes", []) or [])) > 0 else ("manual_canvas_build" if direct_workspace_action else None),
+            force_planning_path="edit_current_flow" if direct_workspace_action and node_count > 0 else ("manual_canvas_build" if direct_workspace_action and not reusable_template_plan else None),
         )
     except Exception:
         if len(list(dict(canvas_context or {}).get("nodes", []) or [])) <= 0 and reusable_template_plan:
@@ -1069,7 +1104,6 @@ def plan_canvas_actions(
 
     planned = dict(planned or {})
     planned = _drop_unmatched_template_load_actions(planned, context_payload)
-    node_count = len(list(dict(canvas_context or {}).get("nodes", []) or []))
     if node_count <= 0 and reusable_template_plan:
         planned_actions = list(planned.get("actions", []) or [])
         has_load_action = any(str(dict(action or {}).get("type", "") or "").strip() == "load_workflow_json" for action in planned_actions)

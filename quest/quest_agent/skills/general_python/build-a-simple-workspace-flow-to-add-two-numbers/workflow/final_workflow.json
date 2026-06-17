@@ -130,7 +130,7 @@
           }
         ],
         "custom": {
-          "Text Caption": ""
+          "Text Caption": "20"
         }
       },
       "0x1c10fa6f490": {
@@ -243,8 +243,8 @@
       "node_name": "number2",
       "node_type": "data_node",
       "node_input_variable": "b",
-      "node_input_value": "",
-      "node_value_display": false,
+      "node_input_value": "20",
+      "node_value_display": true,
       "node_is_path": false,
       "node_is_from_master": false,
       "node_expose_outputs": [],
@@ -301,7 +301,7 @@
           "node_id": "0x1c13b427250",
           "node_name": "number2",
           "variable_name": "b",
-          "value": "",
+          "value": "20",
           "is_path": false,
           "is_from_master": false
         }

@@ -1001,12 +1001,59 @@ def _tool_prompt_entry(tool: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+NUMBER_TOKEN_ALIASES = {
+    "0": "zero",
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four",
+    "5": "five",
+    "6": "six",
+    "7": "seven",
+    "8": "eight",
+    "9": "nine",
+    "10": "ten",
+}
+
+
+def _match_token_variants(token: str) -> list[str]:
+    cleaned = str(token or "").strip().casefold()
+    if not cleaned:
+        return []
+    variants = [cleaned]
+    if cleaned in NUMBER_TOKEN_ALIASES:
+        variants.append(NUMBER_TOKEN_ALIASES[cleaned])
+    if cleaned.endswith("ing") and len(cleaned) > 5:
+        stem = cleaned[:-3]
+        if len(stem) >= 2:
+            variants.append(stem)
+        if len(stem) >= 3 and stem[-1] == stem[-2]:
+            variants.append(stem[:-1])
+    if cleaned.endswith("ed") and len(cleaned) > 4:
+        stem = cleaned[:-2]
+        if len(stem) >= 2:
+            variants.append(stem)
+    if cleaned.endswith("s") and len(cleaned) > 3:
+        variants.append(cleaned[:-1])
+    deduped = []
+    seen = set()
+    for value in variants:
+        if value in seen:
+            continue
+        if value in MATCH_STOPWORDS:
+            continue
+        if len(value) < 2 and not value.isdigit():
+            continue
+        seen.add(value)
+        deduped.append(value)
+    return deduped
+
+
 def _tokenize_match_text(value: Any) -> list[str]:
-    return [
-        token
-        for token in re.split(r"[^a-z0-9_]+", str(value or "").casefold())
-        if len(token) >= 2 and token not in MATCH_STOPWORDS
-    ]
+    tokens = []
+    for raw_token in re.split(r"[^a-z0-9_]+", str(value or "").casefold()):
+        tokens.extend(_match_token_variants(raw_token))
+    return tokens
 
 
 def _workflow_context_search_text(attached_workflow_jsons: list[dict[str, Any]] | None) -> str:
@@ -1087,6 +1134,19 @@ def _score_overlap(query_text: str, haystack_text: str) -> tuple[float, list[str
             seen.add(token)
             matched_tokens.append(token)
             score += min(0.18, 0.04 + (len(token) * 0.01))
+    query_unique_tokens = []
+    query_seen = set()
+    for token in query_tokens:
+        if token in query_seen:
+            continue
+        query_seen.add(token)
+        query_unique_tokens.append(token)
+    if len(query_unique_tokens) >= 4:
+        coverage = len(set(matched_tokens)) / max(1, len(query_unique_tokens))
+        if coverage >= 0.8:
+            score += 0.35
+        elif coverage >= 0.6:
+            score += 0.18
     if haystack and any(alias and alias in query for alias in sorted(haystack_tokens, key=len, reverse=True)[:12]):
         score += 0.06
     return min(score, 0.95), matched_tokens[:6]
@@ -1224,6 +1284,121 @@ def _skill_query_alignment_bonus(skill: SkillRecord, query_text: str) -> float:
     return bonus
 
 
+GENERIC_SKILL_QUERY_TOKENS = {
+    "build",
+    "create",
+    "flow",
+    "make",
+    "simple",
+    "workspace",
+    "workflow",
+}
+
+
+CARDINAL_MATCH_TOKENS = {
+    "zero",
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+}
+
+OPERATION_TOKEN_GROUPS = {
+    "addition": {"add", "addition", "plus", "sum", "total"},
+    "multiplication": {"multiply", "multiplication", "product", "times"},
+    "subtraction": {"minus", "subtract", "subtraction", "difference"},
+    "division": {"divide", "division", "quotient"},
+}
+
+
+def _contains_ordered_token_window(haystack_tokens: list[str], query_tokens: list[str], window_size: int) -> bool:
+    if window_size <= 0 or len(query_tokens) < window_size:
+        return False
+    haystack_windows = {
+        tuple(haystack_tokens[index:index + window_size])
+        for index in range(0, max(0, len(haystack_tokens) - window_size + 1))
+    }
+    for index in range(0, len(query_tokens) - window_size + 1):
+        if tuple(query_tokens[index:index + window_size]) in haystack_windows:
+            return True
+    return False
+
+
+def _skill_phrase_alignment_adjustment(skill: SkillRecord, query_text: str) -> float:
+    query_tokens = [
+        token for token in _tokenize_match_text(query_text)
+        if token not in GENERIC_SKILL_QUERY_TOKENS
+    ]
+    deduped_query_tokens = []
+    seen = set()
+    for token in query_tokens:
+        if token in seen:
+            continue
+        seen.add(token)
+        deduped_query_tokens.append(token)
+    if not deduped_query_tokens:
+        return 0.0
+
+    haystack_tokens = _tokenize_match_text(_skill_search_haystack(skill))
+    adjustment = 0.0
+    if _contains_ordered_token_window(haystack_tokens, deduped_query_tokens, 3):
+        adjustment += 0.18
+    elif _contains_ordered_token_window(haystack_tokens, deduped_query_tokens, 2):
+        adjustment += 0.08
+
+    query_cardinals = {token for token in deduped_query_tokens if token in CARDINAL_MATCH_TOKENS}
+    title_cardinals = {
+        token for token in _tokenize_match_text(getattr(skill, "title", ""))
+        if token in CARDINAL_MATCH_TOKENS
+    }
+    if query_cardinals and title_cardinals and not query_cardinals.intersection(title_cardinals):
+        adjustment -= 0.12
+    return adjustment
+
+
+def _operation_groups_in_text(text: str) -> set[str]:
+    tokens = set(_tokenize_match_text(text))
+    return {
+        group_name
+        for group_name, group_tokens in OPERATION_TOKEN_GROUPS.items()
+        if tokens.intersection(group_tokens)
+    }
+
+
+def _skill_focused_match_text(skill: SkillRecord) -> str:
+    raw_data = getattr(skill, "raw_data", {}) or {}
+    if not isinstance(raw_data, dict):
+        raw_data = {}
+    task = raw_data.get("task", {}) if isinstance(raw_data.get("task", {}), dict) else {}
+    return " ".join(
+        part
+        for part in (
+            str(getattr(skill, "title", "") or "").strip(),
+            str(getattr(skill, "summary", "") or "").strip(),
+            str(task.get("description", "") or "").strip(),
+        )
+        if part
+    )
+
+
+def _skill_operation_alignment_adjustment(skill: SkillRecord, query_text: str) -> float:
+    query_groups = _operation_groups_in_text(query_text)
+    if not query_groups:
+        return 0.0
+    skill_groups = _operation_groups_in_text(_skill_focused_match_text(skill))
+    if not skill_groups:
+        return 0.0
+    if query_groups.intersection(skill_groups):
+        return 0.16
+    return -0.18
+
+
 def _looks_like_btm_text(text: str) -> bool:
     lowered = str(text or "").casefold().replace("_", " ").replace("-", " ")
     return any(
@@ -1276,6 +1451,28 @@ def _prefer_tool_specific_strategy(result: dict[str, Any]) -> dict[str, Any]:
 
 def _normalized_tool_id(value: Any) -> str:
     return str(value or "").strip().casefold()
+
+
+def _confident_tool_ids(
+    tool_matches: list[dict[str, Any]] | None,
+    *,
+    threshold: float = 0.25,
+    include_workspace: bool = True,
+) -> set[str]:
+    tool_ids = set()
+    for item in list(tool_matches or []):
+        match = dict(item or {})
+        tool_id = _normalized_tool_id(match.get("tool_id", ""))
+        if not tool_id:
+            continue
+        confidence = _coerce_confidence(match.get("confidence", match.get("score", 0.0)))
+        if tool_id == "workspace":
+            if include_workspace:
+                tool_ids.add(tool_id)
+            continue
+        if confidence >= threshold:
+            tool_ids.add(tool_id)
+    return tool_ids
 
 
 def _skill_tool_ids(skill: SkillRecord) -> set[str]:
@@ -1344,11 +1541,7 @@ def _build_best_workflow_template(
         for skill in list(skills or [])
         if str(getattr(skill, "skill_id", "") or "").strip()
     }
-    preferred_tool_ids = {
-        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-        for item in list(tool_matches or [])
-        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-    }
+    preferred_tool_ids = _confident_tool_ids(tool_matches, threshold=0.8, include_workspace=True)
     non_workspace_tool_ids = {tool_id for tool_id in preferred_tool_ids if tool_id != "workspace"}
     btm_preferred = "btm" in non_workspace_tool_ids
     candidates = []
@@ -1635,6 +1828,8 @@ def _heuristic_skill_matches(
     for skill in list(skills or []):
         score, matched_tokens = _score_overlap(query_text, _skill_search_haystack(skill))
         score += _skill_query_alignment_bonus(skill, query_text)
+        score += _skill_phrase_alignment_adjustment(skill, query_text)
+        score += _skill_operation_alignment_adjustment(skill, query_text)
         if query_is_btm and str(getattr(skill, "skill_type", "") or "").strip() == "quest_tool_specific" and not _skill_looks_like_btm(skill):
             continue
         if score <= 0.0:
@@ -1654,7 +1849,7 @@ def _heuristic_skill_matches(
             }
         )
     matches.sort(key=lambda entry: (-float(entry.get("confidence", 0.0) or 0.0), str(entry.get("title", "") or "").casefold()))
-    return matches[:8]
+    return matches[:10]
 
 
 def _merge_ranked_matches(
@@ -1663,6 +1858,7 @@ def _merge_ranked_matches(
     *,
     id_key: str,
     label_key: str,
+    limit: int = 8,
 ) -> list[dict[str, Any]]:
     merged = {}
     order = []
@@ -1685,7 +1881,164 @@ def _merge_ranked_matches(
                 existing["reason"] = current.get("reason")
     ranked = [merged[item_id] for item_id in order]
     ranked.sort(key=lambda entry: (-float(entry.get("confidence", 0.0) or 0.0), str(entry.get(label_key, "") or "").casefold()))
-    return ranked[:8]
+    return ranked[:limit]
+
+
+def _llm_skill_rerank_entry(
+    match: dict[str, Any],
+    skill: SkillRecord,
+) -> dict[str, Any]:
+    raw_data = dict(getattr(skill, "raw_data", {}) or {})
+    task_data = dict(raw_data.get("task", {}) or {})
+    plan_data = dict(raw_data.get("plan", {}) or {})
+    workflow_data = dict(raw_data.get("workflow", {}) or {})
+    validation_data = dict(raw_data.get("validation", {}) or {})
+    steps = list(plan_data.get("steps", []) or [])
+    criteria = list(validation_data.get("success_criteria", []) or [])
+    return {
+        "skill_id": str(getattr(skill, "skill_id", "") or "").strip(),
+        "title": _truncate_text(getattr(skill, "title", ""), 140),
+        "skill_type": str(getattr(skill, "skill_type", "") or "").strip(),
+        "summary": _truncate_text(getattr(skill, "summary", ""), 360),
+        "tags": [str(value).strip() for value in list(getattr(skill, "tags", []) or [])[:8] if str(value).strip()],
+        "task_pattern_tags": [
+            str(value).strip()
+            for value in list(getattr(skill, "task_pattern_tags", []) or [])[:8]
+            if str(value).strip()
+        ],
+        "recommended_tools": [
+            str(value).strip()
+            for value in list(getattr(skill, "recommended_tools", []) or [])[:6]
+            if str(value).strip()
+        ],
+        "required_tools": [
+            str(value).strip()
+            for value in list(getattr(skill, "required_tools", []) or [])[:6]
+            if str(value).strip()
+        ],
+        "deterministic_confidence": _coerce_confidence(match.get("confidence", 0.0)),
+        "deterministic_reason": _truncate_text(match.get("reason", ""), 220),
+        "saved_task_description": _truncate_text(task_data.get("description", ""), 260),
+        "workflow_strategy": _truncate_text(plan_data.get("workflow_strategy", ""), 160),
+        "step_summary": [
+            _truncate_text(step, 160)
+            for step in steps[:5]
+            if str(step).strip()
+        ],
+        "success_criteria": [
+            _truncate_text(item, 160)
+            for item in criteria[:4]
+            if str(item).strip()
+        ],
+        "has_workflow_json": bool(str(getattr(skill, "workflow_json_path", "") or "").strip()),
+        "workflow_name": _truncate_text(workflow_data.get("name", ""), 140),
+    }
+
+
+def _apply_llm_skill_rerank(
+    normalized_result: dict[str, Any],
+    *,
+    query_text: str,
+    skills: list[SkillRecord],
+    selected_model: str | None,
+    api_key: str | None = None,
+) -> dict[str, Any]:
+    result = dict(normalized_result or {})
+    candidates = [dict(item or {}) for item in list(result.get("skill_matches", []) or [])[:10]]
+    if len(candidates) < 2:
+        return result
+    skills_by_id = {
+        str(getattr(skill, "skill_id", "") or "").strip(): skill
+        for skill in list(skills or [])
+        if str(getattr(skill, "skill_id", "") or "").strip()
+    }
+    rerank_entries = []
+    candidate_by_id = {}
+    for candidate in candidates:
+        skill_id = str(candidate.get("skill_id", "") or "").strip()
+        skill = skills_by_id.get(skill_id)
+        if not skill_id or skill is None:
+            continue
+        candidate_by_id[skill_id] = candidate
+        rerank_entries.append(_llm_skill_rerank_entry(candidate, skill))
+    if len(rerank_entries) < 2:
+        return result
+
+    system_prompt = (
+        "You rescore QuESt saved-skill candidates for reuse. "
+        "Only judge the provided candidates; do not invent skill ids. "
+        "Prefer an existing saved workflow when the user's requested operation, object, and workflow intent match. "
+        "Use high confidence (0.85-1.0) for exact or near-exact reusable workflow matches, medium confidence "
+        "(0.55-0.84) for related but incomplete matches, and low confidence below 0.55 for poor matches. "
+        "Return compact JSON only."
+    )
+    user_payload = {
+        "user_request": _truncate_text(query_text, 1200),
+        "candidates": rerank_entries,
+        "output_schema": {
+            "reranked_skills": [
+                {
+                    "skill_id": "one of the provided ids",
+                    "confidence": "number from 0.0 to 1.0",
+                    "reason": "short reason focused on semantic task fit",
+                }
+            ],
+            "best_skill_id": "provided id or empty string",
+        },
+    }
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": json.dumps(user_payload, ensure_ascii=False)},
+    ]
+    notes = [str(note).strip() for note in list(result.get("notes", []) or []) if str(note).strip()]
+    try:
+        content, resolved_model_name = _chat_completion_content(
+            messages,
+            selected_model=selected_model,
+            temperature=0,
+            api_key=api_key,
+            response_json=True,
+        )
+        parsed = _parse_json_response(
+            content,
+            "LLM skill rerank returned an empty response.",
+            "LLM skill rerank response was not valid JSON.",
+        )
+    except Exception as exc:
+        if not any("LLM skill rerank unavailable" in note for note in notes):
+            notes.append(f"LLM skill rerank unavailable; kept deterministic top skills. {exc}")
+        result["notes"] = notes[:10]
+        return result
+
+    valid_ids = set(candidate_by_id)
+    updated_by_id = {skill_id: dict(candidate) for skill_id, candidate in candidate_by_id.items()}
+    for item in list(parsed.get("reranked_skills", []) or []):
+        entry = dict(item or {})
+        skill_id = str(entry.get("skill_id", "") or "").strip()
+        if skill_id not in valid_ids:
+            continue
+        updated = dict(updated_by_id.get(skill_id, {}) or {})
+        updated["confidence"] = _coerce_confidence(entry.get("confidence", updated.get("confidence", 0.0)))
+        reason = str(entry.get("reason", "") or "").strip()
+        deterministic = _coerce_confidence(candidate_by_id[skill_id].get("confidence", 0.0))
+        if reason:
+            updated["reason"] = f"LLM rerank: {reason} (deterministic score {deterministic:.2f})."
+        else:
+            updated["reason"] = f"LLM rerank kept candidate (deterministic score {deterministic:.2f})."
+        updated_by_id[skill_id] = updated
+
+    reranked = list(updated_by_id.values())
+    reranked.sort(
+        key=lambda entry: (
+            -float(entry.get("confidence", 0.0) or 0.0),
+            str(entry.get("title", "") or "").casefold(),
+        )
+    )
+    result["skill_matches"] = reranked[:10]
+    if not any("LLM reranked top saved skills" in note for note in notes):
+        notes.append(f"LLM reranked top saved skills with {resolved_model_name}.")
+    result["notes"] = notes[:10]
+    return result
 
 
 def _apply_heuristic_match_floor(
@@ -1712,6 +2065,7 @@ def _apply_heuristic_match_floor(
         heuristic_skills,
         id_key="skill_id",
         label_key="title",
+        limit=10,
     )
     notes = [str(note).strip() for note in list(result.get("notes", []) or []) if str(note).strip()]
     if heuristic_tools and not any("heuristic" in note.casefold() for note in notes):
@@ -1755,18 +2109,22 @@ def _enforce_tool_derived_skill_matches(
     mcp_candidate_result: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     normalized = dict(result or {})
-    preferred_tool_ids = {
-        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-        for item in list(normalized.get("tool_matches", []) or [])
-        if _normalized_tool_id(dict(item or {}).get("tool_id", "")) not in {"", "workspace"}
-    }
+    preferred_tool_ids = _confident_tool_ids(
+        list(normalized.get("tool_matches", []) or []),
+        threshold=0.8,
+        include_workspace=False,
+    )
     candidate_result = dict(mcp_candidate_result or {})
     preferred_tool_ids.update(
-        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-        for item in list(candidate_result.get("tool_matches", []) or [])
-        if _normalized_tool_id(dict(item or {}).get("tool_id", "")) not in {"", "workspace"}
+        _confident_tool_ids(
+            list(candidate_result.get("tool_matches", []) or []),
+            threshold=0.8,
+            include_workspace=False,
+        )
     )
     if not preferred_tool_ids:
+        if list(normalized.get("skill_matches", []) or []):
+            normalized["strategy"] = "use_quest_skill"
         return normalized
     btm_preferred = "btm" in preferred_tool_ids
 
@@ -1809,7 +2167,7 @@ def _enforce_tool_derived_skill_matches(
         existing_ids.add(skill_id)
 
     filtered_matches.sort(key=lambda item: (-float(item.get("confidence", 0.0) or 0.0), str(item.get("title", "") or "").casefold()))
-    normalized["skill_matches"] = filtered_matches[:8]
+    normalized["skill_matches"] = filtered_matches[:10]
     if filtered_matches:
         normalized["strategy"] = "use_quest_skill"
     elif normalized.get("tool_matches"):
@@ -2731,11 +3089,11 @@ def _build_path_guidance(
         for item in list(skill_execution_recipes.get("recipes", []) or [])
         if isinstance(item, dict)
     ]
-    preferred_tool_ids = {
-        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-        for item in list(task_match_result.get("tool_matches", []) or [])
-        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-    }
+    preferred_tool_ids = _confident_tool_ids(
+        list(task_match_result.get("tool_matches", []) or []),
+        threshold=0.8,
+        include_workspace=True,
+    )
     non_workspace_tool_ids = {tool_id for tool_id in preferred_tool_ids if tool_id != "workspace"}
     reusable_templates = []
     for recipe in recipe_entries:
@@ -2963,11 +3321,11 @@ def _sanitize_template_candidates(
         skill_execution_recipes["recipes"] = []
         skill_execution_recipes["available"] = False
         return task_match_result, skill_execution_recipes
-    preferred_tool_ids = {
-        _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-        for item in list(task_match_result.get("tool_matches", []) or [])
-        if _normalized_tool_id(dict(item or {}).get("tool_id", ""))
-    }
+    preferred_tool_ids = _confident_tool_ids(
+        list(task_match_result.get("tool_matches", []) or []),
+        threshold=0.8,
+        include_workspace=True,
+    )
     non_workspace_tool_ids = {tool_id for tool_id in preferred_tool_ids if tool_id != "workspace"}
 
     sanitized_recipes = []
@@ -4816,6 +5174,13 @@ def run_structured_task_match(
         task_description=task_description,
         attached_workflow_jsons=list(attached_workflow_jsons or []),
         workspace_relationship_context=dict(workspace_relationship_context or {}),
+    )
+    result = _apply_llm_skill_rerank(
+        result,
+        query_text=query_text,
+        skills=skills,
+        selected_model=selected_reasoning_model,
+        api_key=api_key,
     )
     result = _enforce_tool_derived_skill_matches(
         result,

@@ -261,6 +261,18 @@ def _quest_agent_run_structured_match_from_snapshot(task_description, selected_m
             ) or {})
         except Exception as exc:
             _append_quest_agent_runtime_log(f"external MCP match_quest_tools_and_skills fallback: {exc}")
+    if (
+        mcp_candidate_result
+        and match_tools_and_skills is not None
+        and not list(dict(mcp_candidate_result or {}).get("skill_matches", []) or [])
+    ):
+        local_candidate_result = match_tools_and_skills(
+            str(task_description or "").strip(),
+            dict(context_payload.get("canvas_context", {}) or {}),
+            quest_agent_root=quest_agent_root,
+        )
+        if list(dict(local_candidate_result or {}).get("skill_matches", []) or []):
+            mcp_candidate_result = local_candidate_result
     if not mcp_candidate_result and match_tools_and_skills is not None:
         mcp_candidate_result = match_tools_and_skills(
             str(task_description or "").strip(),
@@ -3697,6 +3709,24 @@ class quest_workflow(QWidget):
                     "External MCP match failed; using in-process fallback.",
                     str(exc),
                 )
+        if (
+            mcp_candidate_result
+            and match_tools_and_skills is not None
+            and not list(dict(mcp_candidate_result or {}).get("skill_matches", []) or [])
+        ):
+            local_candidate_result = match_tools_and_skills(
+                str(task_description or "").strip(),
+                self._get_quest_agent_canvas_context(),
+                quest_agent_root=quest_agent_root,
+            )
+            if list(dict(local_candidate_result or {}).get("skill_matches", []) or []):
+                self._append_quest_agent_mcp_message_log(
+                    "QuESt Agent",
+                    "MCP",
+                    "Replaced empty external skill shortlist with in-process skill matches.",
+                    f"mode=in-process-fallback; tools={len(list(dict(local_candidate_result or {}).get('tool_matches', []) or []))}; skills={len(list(dict(local_candidate_result or {}).get('skill_matches', []) or []))}",
+                )
+                mcp_candidate_result = local_candidate_result
         if not mcp_candidate_result and match_tools_and_skills is not None:
             mcp_candidate_result = match_tools_and_skills(
                 str(task_description or "").strip(),
@@ -3955,27 +3985,31 @@ class quest_workflow(QWidget):
                 str(exc),
             )
             return enriched
-        semantic_missing = [
+        semantic_missing = self._quest_agent_filter_actionable_missing_parts([
             str(item).strip()
             for item in list(semantic.get("missing_parts", []) or [])
             if str(item).strip()
-        ]
-        semantic_unexpected = [
+        ])
+        semantic_unexpected = self._quest_agent_filter_actionable_missing_parts([
             str(item).strip()
             for item in list(semantic.get("unexpected_parts", []) or [])
             if str(item).strip()
-        ]
+        ])
         semantic_notes = [
             str(item).strip()
             for item in list(semantic.get("notes", []) or [])
             if str(item).strip()
         ]
         semantic_alignment = str(semantic.get("task_alignment", "") or "").strip().casefold()
+        structural_complete = (
+            str(dict(validation_report or {}).get("status", "") or "").strip().casefold() == "complete"
+            and bool(dict(validation_report or {}).get("structural_valid", False))
+        )
         enriched["semantic_validation"] = semantic
         if semantic_missing or semantic_unexpected:
             enriched["missing_parts"] = semantic_missing + semantic_unexpected
             enriched["semantic_missing_parts"] = semantic_missing + semantic_unexpected
-        elif semantic_alignment == "aligned":
+        elif semantic_alignment == "aligned" or structural_complete:
             enriched["missing_parts"] = []
             enriched["semantic_missing_parts"] = []
             enriched["structural_missing_parts"] = []
@@ -3989,7 +4023,7 @@ class quest_workflow(QWidget):
         if semantic_missing or semantic_unexpected:
             structured_analysis["semantic_missing_parts"] = semantic_missing + semantic_unexpected
             structured_analysis["missing_parts"] = semantic_missing + semantic_unexpected
-        elif semantic_alignment == "aligned":
+        elif semantic_alignment == "aligned" or structural_complete:
             structured_analysis["semantic_missing_parts"] = []
             structured_analysis["structural_missing_parts"] = []
             structured_analysis["missing_parts"] = []
@@ -4507,6 +4541,8 @@ class quest_workflow(QWidget):
         for action in list(dict(action_plan or {}).get("actions", []) or []):
             item = dict(action or {})
             action_type = str(item.get("type", "") or "").strip()
+            if not action_type:
+                continue
             count = max(1, min(5, int(item.get("count", 1) or 1)))
             if action_type == "create_node" and count > 1:
                 for _ in range(count):
@@ -4535,12 +4571,18 @@ class quest_workflow(QWidget):
 
     def _quest_agent_eligible_template_skill_ids(self, action_plan=None):
         result = dict(self.quest_agent_state.get("task_match_results", {}) or {})
-        related_tool_ids = {
-            str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
-            for item in list(result.get("tool_matches", []) or [])
-            if str(dict(item or {}).get("tool_id", "") or "").strip()
-            and str(dict(item or {}).get("tool_id", "") or "").strip().casefold() != "workspace"
-        }
+        related_tool_ids = set()
+        for item in list(result.get("tool_matches", []) or []):
+            match = dict(item or {})
+            tool_id = str(match.get("tool_id", "") or "").strip().casefold()
+            if not tool_id or tool_id == "workspace":
+                continue
+            try:
+                confidence = float(match.get("confidence", match.get("score", 0.0)) or 0.0)
+            except Exception:
+                confidence = 0.0
+            if confidence >= 0.8:
+                related_tool_ids.add(tool_id)
         related_tool_ids.update(self._quest_agent_inferred_tool_ids_from_current_task(action_plan))
         matched_confidence = {}
         for item in list(result.get("skill_matches", []) or []):
@@ -4552,9 +4594,22 @@ class quest_workflow(QWidget):
             except Exception:
                 confidence = 0.0
             matched_confidence[skill_id] = confidence
+        best_template = dict(result.get("best_workflow_template", {}) or {})
+        best_template_skill_id = str(best_template.get("skill_id", "") or "").strip()
+        if best_template_skill_id:
+            try:
+                best_template_confidence = float(best_template.get("confidence", 0.0) or 0.0)
+            except Exception:
+                best_template_confidence = 0.0
+            matched_confidence[best_template_skill_id] = max(
+                matched_confidence.get(best_template_skill_id, 0.0),
+                best_template_confidence,
+            )
         if not matched_confidence:
             return set()
         eligible = set()
+        if best_template_skill_id and matched_confidence.get(best_template_skill_id, 0.0) > 0.8:
+            eligible.add(best_template_skill_id)
         for skill in list(self.quest_agent_state.get("loaded_skills", []) or []):
             skill_id = str(getattr(skill, "skill_id", "") or "").strip()
             if not skill_id or skill_id not in matched_confidence:
@@ -5641,6 +5696,38 @@ class quest_workflow(QWidget):
             deduped.append(item)
         return deduped
 
+    def _quest_agent_filter_actionable_missing_parts(self, missing_parts):
+        benign_markers = (
+            "no additional",
+            "no missing",
+            "none missing",
+            "nothing missing",
+            "not missing",
+            "no further",
+            "no extra",
+            "not required",
+            "not needed",
+            "no action required",
+            "no changes are required",
+            "satisfies the task",
+            "complete as-is",
+            "already complete",
+        )
+        actionable = []
+        seen = set()
+        for item in list(missing_parts or []):
+            text = str(item or "").strip()
+            if not text:
+                continue
+            lowered = text.casefold()
+            if any(marker in lowered for marker in benign_markers):
+                continue
+            if lowered in seen:
+                continue
+            seen.add(lowered)
+            actionable.append(text)
+        return actionable
+
     def _quest_agent_enrich_task_match_result(self, result):
         enriched = dict(result or {})
         enriched = self._quest_agent_reconcile_tool_derived_skills(enriched)
@@ -5684,12 +5771,18 @@ class quest_workflow(QWidget):
 
     def _quest_agent_reconcile_tool_derived_skills(self, result):
         enriched = dict(result or {})
-        related_tool_ids = {
-            str(dict(item or {}).get("tool_id", "") or "").strip().casefold()
-            for item in list(enriched.get("tool_matches", []) or [])
-            if str(dict(item or {}).get("tool_id", "") or "").strip()
-            and str(dict(item or {}).get("tool_id", "") or "").strip().casefold() != "workspace"
-        }
+        related_tool_ids = set()
+        for item in list(enriched.get("tool_matches", []) or []):
+            match = dict(item or {})
+            tool_id = str(match.get("tool_id", "") or "").strip().casefold()
+            if not tool_id or tool_id == "workspace":
+                continue
+            try:
+                confidence = float(match.get("confidence", match.get("score", 0.0)) or 0.0)
+            except Exception:
+                confidence = 0.0
+            if confidence >= 0.8:
+                related_tool_ids.add(tool_id)
         if not related_tool_ids:
             return enriched
         skill_records = []
@@ -6385,11 +6478,17 @@ class quest_workflow(QWidget):
             final_parts.append(str(reply_text).strip())
         if review_text:
             final_parts.append(review_text)
-        missing_parts = [
+        missing_parts = self._quest_agent_filter_actionable_missing_parts([
             str(item).strip()
             for item in list(review_result.get("missing_parts", []) or [])
             if str(item).strip()
-        ]
+        ])
+        validation_report = dict(review_result.get("validation_report", {}) or {})
+        if (
+            str(validation_report.get("status", "") or "").strip().casefold() == "complete"
+            and bool(validation_report.get("structural_valid", False))
+        ):
+            missing_parts = []
         missing_steps = []
         should_open_followup = self._quest_agent_should_open_followup_fixup_plan(review_result, current_workflow)
         if should_open_followup:
@@ -6577,11 +6676,28 @@ class quest_workflow(QWidget):
                 "Validated the current flow against the goal.",
                 str(current_action.get("goal_prompt", "") or "").strip(),
             )
-        executed = self._execute_quest_agent_canvas_actions(step_plan)
-        if quest_agent_chat_service is not None:
-            step_reply = quest_agent_chat_service.build_canvas_action_reply(step_plan, executed)
-        else:
-            step_reply = {"reply": "Applied the next canvas step." if executed else "I did not apply any canvas changes."}
+        try:
+            executed = self._execute_quest_agent_canvas_actions(step_plan)
+            if quest_agent_chat_service is not None:
+                step_reply = quest_agent_chat_service.build_canvas_action_reply(step_plan, executed)
+            else:
+                step_reply = {"reply": "Applied the next canvas step." if executed else "I did not apply any canvas changes."}
+        except Exception as exc:
+            _append_quest_agent_runtime_log("canvas action execution failed:\n" + traceback.format_exc())
+            self._append_quest_agent_mcp_message_log(
+                "Workspace",
+                "QuESt Agent",
+                "Workspace operation execution failed.",
+                str(exc),
+            )
+            if quest_agent_chat_service is not None:
+                step_reply = quest_agent_chat_service.build_canvas_action_reply(step_plan, [], error=exc)
+            else:
+                step_reply = {"reply": f"I couldn't apply the requested canvas changes.\n\nDetails: {exc}"}
+            return {
+                "reply": str(dict(step_reply or {}).get("reply", "") or "").strip(),
+                "action_suggestions": self._quest_agent_pending_plan_action_suggestions(),
+            }
         reply_text = str(dict(step_reply or {}).get("reply", "") or "").strip()
         if executed:
             if current_action_type != "load_workflow_json" and not self._quest_agent_action_is_satisfied(
@@ -9683,7 +9799,20 @@ class quest_workflow(QWidget):
                 continue
             icon_path = node_data.get("icon")
             if isinstance(icon_path, str) and icon_path:
-                node_data["icon"] = icon_path.replace('\\', '/')
+                normalized_icon = icon_path.replace('\\', '/')
+                if os.path.exists(normalized_icon):
+                    node_data["icon"] = normalized_icon
+                    continue
+                node_type = str(node_data.get("type_", "") or "").strip()
+                fallback_icon = ""
+                if node_type.endswith(".DataNode"):
+                    fallback_icon = os.path.join(base_dir, "images", "icons", "data_icon.png")
+                elif node_type.endswith(".PyNode"):
+                    fallback_icon = os.path.join(base_dir, "images", "icons", "python_icon.png")
+                if fallback_icon and os.path.exists(fallback_icon):
+                    node_data["icon"] = self._normalize_python_path(fallback_icon)
+                else:
+                    node_data["icon"] = ""
         return layout_dict
 
     def update_flow(self):
@@ -11306,6 +11435,8 @@ class quest_workflow(QWidget):
                 if loaded_env_name and loaded_env_path:
                     break
 
+        if loaded_env_path and not os.path.exists(loaded_env_path):
+            loaded_env_path = ""
         self.flow_environment_name = loaded_env_name or self._default_environment_name(flow_name)
         self.flow_environment_path = loaded_env_path or self._normalize_python_path(sys.executable)
         self._last_auto_environment_name = self._default_environment_name(flow_name)
