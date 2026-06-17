@@ -17,7 +17,7 @@ Project maintainer (Tu Nguyen) `@sandia.gov: tunguy`
 - [What's New](#whats-new-in-222)
 - [App Hub](#the-app_hub)
 - [Workspace](#the-workspace)
-- [QuESt GPT](#quest-gpt)
+- [QuESt Agent](#quest-agent)
 - [Innovations](#what-are-the-key-innovations-of-quest-20)
 - [Uniqueness](#how-is-quest-20-different-from-the-other-tools-in-energy-storage-analytics)
 - [Advantages](#key-competitive-advantages-of-quest-20)
@@ -80,13 +80,19 @@ The QuESt Workspace provides an integrated environment where users can create wo
 
 - **Workflow Management:** The workspace supports the selection, assembly, connection, and post-processing of data and tools. This structured approach streamlines the analytics process, from data preparation to visualization, making it easier to manage and understand.
 
-### QuESt GPT
-<a id="quest-gpt"></a>
-QuESt GPT represents a leap forward in data analytics within the platform, utilizing generative AI (specifically Large Language Models, or LLM) for data characterization and visualization:
+### QuESt Agent
+<a id="quest-agent"></a>
+QuESt Agent is the AI-assisted workflow companion built into QuESt Workspace. It uses the active canvas, pinned messages, attached files, available QuESt tools, and saved reusable skills to help users understand, build, validate, and refine Workspace flows.
 
-- **Data Insights:** Users can select datasets and ask questions about the data, with QuESt GPT providing insights based on the data's characteristics. This interaction model simplifies complex data analysis, making it accessible to users without deep technical expertise.
+- **Workspace-aware assistance:** The agent can inspect the current flow, summarize data nodes, Python nodes, connections, missing parts, and validation facts, then use that context when answering questions or planning edits.
 
-- **Utilization of LLMs:** By leveraging advanced open-source LLMs such as OpenAi’s GPT-4 and Meta’s Llama2, QuESt GPT can perform sophisticated data analytics tasks, such as characterizing and visualizing large datasets. This enables users to gain deeper insights from their data, supporting more informed decision-making at no costs.
+- **Tool and skill matching:** The agent ranks relevant QuESt tools and saved skills for a request. Tool-specific skills are gated by high-confidence tool matches, while general Workspace skills and workflow templates can be reused when they directly match the task.
+
+- **Reusable workflow templates:** When a saved skill includes a strong matching workflow JSON template, the agent can prefer loading that template before building from scratch, then validate the resulting flow and suggest follow-up fixes only when real gaps remain.
+
+- **Preview-first canvas actions:** Before changing the canvas, the agent proposes an explicit operation plan, such as creating data nodes, updating Python wrappers, connecting ports, loading a matched template, or validating the current flow. Users can apply the next step, review the plan, cancel it, or revise the request.
+
+- **Flexible LLM providers:** The agent supports OpenAI, Anthropic Claude, and local Ollama/Gemma models. Cloud models can provide stronger semantic review and skill reranking, while local models support lower-cost or local-first workflows.
 
 ### What are the key innovations of QuESt 2.2.2?
 <a id="what-are-the-key-innovations-of-quest-20"></a>
