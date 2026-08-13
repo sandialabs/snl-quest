@@ -457,9 +457,9 @@ class Ui_help_land(object):
 "li.unchecked::marker { content: \"\\2610\"; }\n"
 "li.checked::marker { content: \"\\2612\"; }\n"
 "</style></head><body style=\" font-family:'Segoe UI'; font-size:9pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; font-weight:700;\">QuESt 2.0</span><span style=\" font-size:14pt;\"> is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools. </span"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; font-weight:700;\">QuESt 3.0</span><span style=\" font-size:14pt;\"> is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools. </span"
                         "></p>\n"
-"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt;\">Currently, QuESt 2.0 includes three main components: </span></p>\n"
+"<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt;\">Currently, QuESt 3.0 includes three main components: </span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:14pt; font-weight:700;\">1.</span><span style=\" font-family:'Times New Roman'; font-size:14pt;\">\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 </span><span style=\" font-size:14pt; font-weight:700;\">The QuESt App Hub</span><span style=\" font-size:14pt;\"> operates similarly to an app store, offering access points to a multitude of applications. Currently, various energy storage analytics tools have been available on QuESt App hub. For example: </span></p>\n"
 "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-family:'Symbol'; font-size:14pt;\">\u00b7"
                         "</span><span style=\" font-family:'Times New Roman'; font-size:14pt;\">\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0 </span><span style=\" font-size:14pt; font-weight:700;\">QuESt Data Manager</span><span style=\" font-size:14pt;\"> manages the acquisition of data. </span></p>\n"
@@ -493,4 +493,3 @@ class Ui_help_land(object):
         self.label_2.setText("")
         self.label_3.setText("")
     # retranslateUi
-

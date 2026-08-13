@@ -1,17 +1,11 @@
 @echo off
 
-REM Set the repository URL and branch name
-set REPO_URL=https://github.com/sandialabs/snl-quest.git
-set BRANCH_NAME=snl_libraries
-
-REM Set the sparse checkout directory
-set SPARSE_DIR=snl_libraries/snl_performance
+REM Install Performance from the QuESt_Performance branch without requiring Git on the target machine.
+set PERF_BRANCH=QuESt_Performance
+set PERF_PACKAGE_URL=https://github.com/sandialabs/snl-quest/archive/refs/heads/%PERF_BRANCH%.zip
 
 REM Set the path to the virtual environment
 set VENV_PATH=%~dp0..\..\..\app_envs\env_perf
-
-REM Set the path to the sparse checkout directory within the virtual environment
-set CHECKOUT_PATH=%VENV_PATH%\snl-quest\%SPARSE_DIR%
 
 REM Create the virtual environment if it doesn't exist
 if not exist "%VENV_PATH%" (
@@ -21,31 +15,18 @@ if not exist "%VENV_PATH%" (
 REM Activate the virtual environment
 call "%VENV_PATH%\Scripts\activate"
 
-REM Clone the repository without checking out files into the virtual environment directory
-if not exist "%VENV_PATH%\snl-quest" (
-    git clone --no-checkout -b %BRANCH_NAME% %REPO_URL% "%VENV_PATH%\snl-quest"
-)
+REM Allow this app installer to resolve packages from configured package indexes.
+set "PIP_NO_INDEX=0"
 
-REM Navigate to the cloned repository
-cd "%VENV_PATH%\snl-quest"
+REM Some Windows environments do not have the local CA chain configured for pip.
+set "PIP_TRUSTED_HOST=files.pythonhosted.org pypi.org pypi.python.org"
 
-REM Enable sparse checkout
-git sparse-checkout init
-
-REM Set sparse checkout path to include only the desired directory
-git sparse-checkout set %SPARSE_DIR%
-
-REM Check out the branch
-git checkout %BRANCH_NAME%
-
-REM Ensure the sparse checkout directory exists
-if not exist "%CHECKOUT_PATH%" (
-    echo Sparse checkout failed. Directory %SPARSE_DIR% does not exist.
+REM Install the Python package from the selected GitHub branch.
+python -m pip install --upgrade --force-reinstall --trusted-host files.pythonhosted.org --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host github.com --trusted-host codeload.github.com "%PERF_PACKAGE_URL%"
+if errorlevel 1 (
+    echo Failed to install QuESt Performance from branch "%PERF_BRANCH%".
     exit /b 1
 )
-
-REM Install the Python package within the virtual environment
-pip install "%CHECKOUT_PATH%"
 
 REM Define the GLPK URL and destination
 set URL=https://sourceforge.net/projects/winglpk/files/winglpk/GLPK-4.65/winglpk-4.65.zip/download

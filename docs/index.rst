@@ -8,10 +8,10 @@
    :width: 300px
    :align: center
 
-QuESt 2.0: Open-source Platform for Energy Storage Analytics
+QuESt 3.0: Open-source Platform for Energy Storage Analytics
 ============================================================
 
-Current release version: 2.0
+Current release version: 3.0
 
 Release date: March, 2024
 
@@ -34,14 +34,14 @@ For issues and feedback we would appreciate it if you could use the "Issues" fea
 Introduction
 ------------
 
-QuESt 2.0 is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools.
+QuESt 3.0 is an evolved version of the original QuESt, an open-source Python software designed for energy storage (ES) analytics. It transforms into a platform providing centralized access to multiple tools and improved data analytics, aiming to simplify ES analysis and democratize access to these tools.
 
 .. image:: home_page.png
    :alt: Screenshot of the QuESt home page
    :width: 600px
    :align: center
 
-Currently, QuESt 2.0 includes three main components:
+Currently, QuESt 3.0 includes three main components:
 
 The App Hub
 -----------
@@ -77,27 +77,27 @@ QuESt GPT represents a leap forward in data analytics within the platform, utili
 - **Data Insights:** Users can select datasets and ask questions about the data, with QuESt GPT providing insights based on the data's characteristics. This interaction model simplifies complex data analysis, making it accessible to users without deep technical expertise.
 - **Utilization of LLMs:** By leveraging advanced open-source LLMs such as OpenAi’s GPT-4 and Meta’s Llama2, QuESt GPT can perform sophisticated data analytics tasks, such as characterizing and visualizing large datasets. This enables users to gain deeper insights from their data, supporting more informed decision-making at no costs.
 
-What are the key innovations of QuESt 2.0?
+What are the key innovations of QuESt 3.0?
 ------------------------------------------
 
-QuESt 2.0 facilitates the advancement of energy storage technology by making powerful analytics tools accessible to all energy storage stakeholders, aligning with DOE’s energy storage program goals. The platform standardizes data and program structures, integrates applications seamlessly, and utilizes generative AI for advanced analytics, simplifying user interaction and enabling deeper insights from diverse data sources. This positions QuESt 2.0 as a pioneering platform in the energy storage domain, with the potential to significantly impact both the field and the broader energy landscape. Specifically, the key innovations of QuESt 2.0 include:
+QuESt 3.0 facilitates the advancement of energy storage technology by making powerful analytics tools accessible to all energy storage stakeholders, aligning with DOE’s energy storage program goals. The platform standardizes data and program structures, integrates applications seamlessly, and utilizes generative AI for advanced analytics, simplifying user interaction and enabling deeper insights from diverse data sources. This positions QuESt 3.0 as a pioneering platform in the energy storage domain, with the potential to significantly impact both the field and the broader energy landscape. Specifically, the key innovations of QuESt 3.0 include:
 
-1. **Integration and Usability:** At its core, QuESt 2.0 revolutionizes how energy storage analytics are performed by providing a seamless, user-friendly platform that integrates multiple applications developed by independent developers. This allows for a more cohesive and efficient user experience, significantly lowering the learning curve for users at various levels of expertise.
+1. **Integration and Usability:** At its core, QuESt 3.0 revolutionizes how energy storage analytics are performed by providing a seamless, user-friendly platform that integrates multiple applications developed by independent developers. This allows for a more cohesive and efficient user experience, significantly lowering the learning curve for users at various levels of expertise.
 2. **AI-powered Data Analytics:** The incorporation of QuESt GPT, utilizing Large Language Models (LLM), represents a significant technological leap forward. This feature enables users to perform more sophisticated data analytics, providing deeper insights from diverse data sources. It allows users to interact with data in an intuitive way, asking questions and receiving insights, which democratizes access to complex data analysis.
 3. **Complex Workflows:** The QuESt Workspace and the QuESt App Hub enhance the platform's capability to support complex analytical workflows. Users can integrate multiple applications into a single process, creating efficient pipelines for data analysis. The users can run their workflows locally or schedule them to run on cloud services (e.g., AWS, Azure..)
 
-How is QuESt 2.0 different from the other tools in Energy Storage Analytics?
+How is QuESt 3.0 different from the other tools in Energy Storage Analytics?
 ----------------------------------------------------------------------------
 
-QuESt 2.0 distinguishes itself in the crowded space of energy storage analytics tools by offering a unified platform rather than a collection of individual tools. While there are numerous tools available, these tend to focus on specific aspects of energy storage analysis and lack the integration and broad applicability that QuESt 2.0 provides.
+QuESt 3.0 distinguishes itself in the crowded space of energy storage analytics tools by offering a unified platform rather than a collection of individual tools. While there are numerous tools available, these tend to focus on specific aspects of energy storage analysis and lack the integration and broad applicability that QuESt 3.0 provides.
 
-Key Competitive Advantages of QuESt 2.0:
+Key Competitive Advantages of QuESt 3.0:
 ----------------------------------------
 
-- **Unified Platform:** Unlike individual tools that offer limited capabilities in specific topics, QuESt 2.0 serves as a comprehensive platform that integrates multiple applications for energy storage analytics. This integration allows users to access a wide range of tools and functionalities within a single environment, streamlining the workflow and enhancing productivity.
-- **Advanced Data Analytics:** With the inclusion of QuESt GPT for advanced data analytics, QuESt 2.0 utilizes generative AI to provide deeper insights from diverse data sources. This capability is not commonly found in other tools, giving QuESt 2.0 a significant technological edge.
-- **Flexibility and Scalability:** QuESt 2.0's modular design allows for the easy integration of new tools and applications, ensuring that the platform remains relevant and adaptable to future developments in energy storage analytics.
-- **Collaborative Development:** As an open-source platform, QuESt 2.0 benefits from contributions by a wide community of developers, enhancing its capabilities and ensuring continuous improvement.
+- **Unified Platform:** Unlike individual tools that offer limited capabilities in specific topics, QuESt 3.0 serves as a comprehensive platform that integrates multiple applications for energy storage analytics. This integration allows users to access a wide range of tools and functionalities within a single environment, streamlining the workflow and enhancing productivity.
+- **Advanced Data Analytics:** With the inclusion of QuESt GPT for advanced data analytics, QuESt 3.0 utilizes generative AI to provide deeper insights from diverse data sources. This capability is not commonly found in other tools, giving QuESt 3.0 a significant technological edge.
+- **Flexibility and Scalability:** QuESt 3.0's modular design allows for the easy integration of new tools and applications, ensuring that the platform remains relevant and adaptable to future developments in energy storage analytics.
+- **Collaborative Development:** As an open-source platform, QuESt 3.0 benefits from contributions by a wide community of developers, enhancing its capabilities and ensuring continuous improvement.
 
 How to download QuESt?
 ----------------------

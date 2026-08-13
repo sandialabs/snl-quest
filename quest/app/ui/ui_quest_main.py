@@ -981,7 +981,7 @@ class Ui_MainWindow(object):
         self.about.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>About</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
         self.about.setText("")
-        self.top_label.setText(QCoreApplication.translate("MainWindow", u"QuESt 2.0 - Open-Source Python Platform for Energy Storage Analytics", None))
+        self.top_label.setText(QCoreApplication.translate("MainWindow", u"QuESt 3.0 - Open-Source Python Platform for Energy Storage Analytics", None))
 #if QT_CONFIG(tooltip)
         self.min_resize_button.setToolTip(QCoreApplication.translate("MainWindow", u"<html><head/><body><p>Minimize</p></body></html>", None))
 #endif // QT_CONFIG(tooltip)
@@ -1050,4 +1050,3 @@ class Ui_MainWindow(object):
         self.credit_label.setText(QCoreApplication.translate("MainWindow", u"Developed by Sandia National Laboratories", None))
         self.version_label.setText(QCoreApplication.translate("MainWindow", u"ver 2.0.b ", None))
     # retranslateUi
-

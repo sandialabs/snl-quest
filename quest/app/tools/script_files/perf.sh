@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e
 
-REPO_URL="https://github.com/sandialabs/snl-quest.git"
-BRANCH_NAME="snl_libraries"
-SPARSE_DIR="snl_libraries/snl_performance"
+PERF_BRANCH="QuESt_Performance"
+PERF_PACKAGE_URL="https://github.com/sandialabs/snl-quest/archive/refs/heads/${PERF_BRANCH}.zip"
 VENV_PATH="$(cd "$(dirname "$0")" && pwd)/../../../app_envs/env_perf"
-CHECKOUT_PATH="$VENV_PATH/snl-quest/$SPARSE_DIR"
 
 install_glpk() {
     if command -v glpsol >/dev/null 2>&1; then
@@ -48,21 +46,9 @@ fi
 
 source "$VENV_PATH/bin/activate"
 
-if [ ! -d "$VENV_PATH/snl-quest" ]; then
-    git clone --no-checkout -b "$BRANCH_NAME" "$REPO_URL" "$VENV_PATH/snl-quest"
-fi
+export PIP_NO_INDEX=0
 
-cd "$VENV_PATH/snl-quest"
-git sparse-checkout init
-git sparse-checkout set "$SPARSE_DIR"
-git checkout "$BRANCH_NAME"
-
-if [ ! -d "$CHECKOUT_PATH" ]; then
-    echo "Sparse checkout failed. Directory $SPARSE_DIR does not exist."
-    exit 1
-fi
-
-pip install "$CHECKOUT_PATH"
+python -m pip install --upgrade --force-reinstall "$PERF_PACKAGE_URL"
 
 install_glpk
 
