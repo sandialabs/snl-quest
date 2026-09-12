@@ -39,7 +39,7 @@ setup(
         "streamlit==1.55.0",
         "openai==1.86.0",
         "psutil==5.9.0",
-        "GitPython==3.1.43",
+        "GitPython==3.1.61",
         'NodeGraphQt @ git+https://github.com/cancom84/NodeGraphQt-PySide6.git',
         "notebook==7.5.5",
         "nbformat==5.10.4"
