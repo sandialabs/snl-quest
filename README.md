@@ -63,6 +63,7 @@ The QuESt App Hub operates similarly to an app store, offering access points to 
 - **QuESt Planning** is a long-term capacity expansion planning model that identifies cost-optimal energy storage, generation, and transmission investments and evaluates a broad range of energy storage technologies.
 
 - **Progress** is a Python-based open-source tool for assessing the resource adequacy of the evolving electric power grid integrated with energy storage systems.
+- **QuESt PCM** is a production cost modeling tool that evaluates system operations with advanced modeling of diverse energy storage technologies.
 
 It has been designed with key features to improve user experience and application management:
 
