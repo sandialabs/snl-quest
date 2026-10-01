@@ -1,5 +1,4 @@
-<img src="quest/snl_libraries/snl_btm/btm/es_gui/resources/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
-
+<img src="/images/logo/Quest_Logo_RGB.png" alt="QuESt logo" width=300px margin="auto" />
 # QuESt: Open-source Platform for Energy Storage Analytics
 
 Current release version: 3.0
