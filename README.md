@@ -151,19 +151,19 @@ On Linux/macOS, use `python3 --version` if your system uses `python3` as the com
 From the directory where you want to install or develop QuESt, create and activate a virtual environment:
 
 ```bash
-python -m venv env
+python -m venv quest_3
 ```
 
 Activate it:
 
 ```bash
-.\env\Scripts\activate
+.\quest_3\Scripts\activate
 ```
 
 On Linux/macOS:
 
 ```bash
-source env/bin/activate
+source quest_3/bin/activate
 ```
 
 Upgrade `pip`:
